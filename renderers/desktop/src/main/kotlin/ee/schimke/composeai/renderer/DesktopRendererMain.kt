@@ -1,0 +1,654 @@
+package ee.schimke.composeai.renderer
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.currentComposer
+import androidx.compose.runtime.reflect.ComposableMethod
+import androidx.compose.runtime.reflect.getDeclaredComposableMethod
+import androidx.compose.runtime.remember
+import androidx.compose.ui.ImageComposeScene
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntSize
+import ee.schimke.composeai.daemon.DisplayFilterConfig
+import ee.schimke.composeai.daemon.DisplayFilterDataProducer
+import ee.schimke.composeai.scroll.ScrollAxis as ProductScrollAxis
+import java.io.ByteArrayInputStream
+import java.io.File
+import javax.imageio.ImageIO
+import kotlin.system.exitProcess
+import org.jetbrains.skia.EncodedImageFormat
+
+/**
+ * Standalone entry point for rendering Compose Desktop previews to PNG.
+ *
+ * Args: className functionName widthPx heightPx density showBackground backgroundColor outputFile
+ * [wrapperClassName] [wrapWidth] [wrapHeight] [previewParameterProviderFqn] [previewParameterLimit]
+ * [localeTag] [scrollMode] [scrollAxis] [scrollMaxScrollPx] [scrollFrameIntervalMs]
+ *
+ * The optional 9th argument is the FQN of a `PreviewWrapperProvider` (Compose 1.11+); pass an empty
+ * string or omit to skip wrapping.
+ *
+ * Args 10 and 11 are AS-parity wrap flags. When an axis wraps, widthPx/heightPx are treated as a
+ * sandbox dimension — the renderer wraps the composable, measures its intrinsic size, and crops the
+ * final PNG to that size on the wrapped axis. Defaults to `false` when omitted so older callers
+ * keep the full-frame behaviour.
+ *
+ * Args 12 and 13 are the `@PreviewParameter` provider FQN + limit. When arg 12 is non-empty the
+ * renderer instantiates the provider, iterates its `values.take(limit)`, and writes one file per
+ * value using `outputFile` as a template (`_PARAM_<idx>` inserted before the extension). Looping
+ * inside a single JVM — instead of spawning one subprocess per value — avoids N× Compose cold-start
+ * cost; the same `ImageComposeScene` is reused across values.
+ *
+ * Args 15–18 carry `@ScrollingPreview` intent. When [scrollMode] is `"LONG"` or `"GIF"` the
+ * renderer leaves the [ImageComposeScene] path and dispatches to [renderScrollPreview] (which uses
+ * `runComposeUiTest` for paused-clock + semantic scroll). `"TOP"` / `"END"` / empty are handled by
+ * the default single-frame path — TOP is the natural unscrolled capture, END is best-effort because
+ * the desktop renderer doesn't yet drive scrolls outside the LONG / GIF code path. `scrollAxis` is
+ * `VERTICAL` or `HORIZONTAL` (default `VERTICAL`). `scrollMaxScrollPx` caps the total scrolled
+ * extent (`0` = unbounded). `scrollFrameIntervalMs` is the per-frame GIF dwell (`0` = encoder
+ * default).
+ */
+fun main(args: Array<String>) {
+  if (args.size < 8) {
+    System.err.println(
+      "Usage: DesktopRendererMain <className> <functionName> <widthPx> <heightPx> <density> <showBackground> <backgroundColor> <outputFile> [wrapperClassName] [wrapWidth] [wrapHeight] [previewParameterProviderFqn] [previewParameterLimit] [localeTag] [scrollMode] [scrollAxis] [scrollMaxScrollPx] [scrollFrameIntervalMs]"
+    )
+    exitProcess(1)
+  }
+
+  val className = args[0]
+  val functionName = args[1]
+  val widthPx =
+    args[2].toIntOrNull()
+      ?: run {
+        System.err.println("Invalid widthPx: '${args[2]}' (expected integer)")
+        exitProcess(1)
+      }
+  val heightPx =
+    args[3].toIntOrNull()
+      ?: run {
+        System.err.println("Invalid heightPx: '${args[3]}' (expected integer)")
+        exitProcess(1)
+      }
+  val density =
+    args[4].toFloatOrNull()
+      ?: run {
+        System.err.println("Invalid density: '${args[4]}' (expected float)")
+        exitProcess(1)
+      }
+  val showBackground = args[5].toBoolean()
+  val backgroundColor =
+    args[6].toLongOrNull()
+      ?: run {
+        System.err.println("Invalid backgroundColor: '${args[6]}' (expected long)")
+        exitProcess(1)
+      }
+  val outputFile = File(args[7])
+  val wrapperClassName = args.getOrNull(8)?.takeIf { it.isNotBlank() }
+  val wrapWidth = args.getOrNull(9)?.toBoolean() ?: false
+  val wrapHeight = args.getOrNull(10)?.toBoolean() ?: false
+  val previewParameterProviderFqn = args.getOrNull(11)?.takeIf { it.isNotBlank() }
+  val previewParameterLimit = args.getOrNull(12)?.toIntOrNull()?.coerceAtLeast(0) ?: Int.MAX_VALUE
+  val localeTag = args.getOrNull(13)?.takeIf { it.isNotBlank() }
+  // `@ScrollingPreview` knobs. Empty / missing scrollMode means "no scroll intent — render
+  // a single frame via the default ImageComposeScene path". LONG / GIF dispatch to the
+  // `runComposeUiTest`-driven `renderScrollPreview` instead. TOP / END fall through to the
+  // default path; the desktop renderer doesn't yet drive a scrollable for END (issue #1207
+  // tracks the followup), so an END capture is functionally identical to TOP on this side.
+  val scrollModeArg = args.getOrNull(14)?.takeIf { it.isNotBlank() }
+  val scrollAxis =
+    when (args.getOrNull(15)?.takeIf { it.isNotBlank() }?.uppercase()) {
+      "HORIZONTAL" -> ProductScrollAxis.HORIZONTAL
+      else -> ProductScrollAxis.VERTICAL
+    }
+  val scrollMaxScrollPx = args.getOrNull(16)?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+  val scrollFrameIntervalMs = args.getOrNull(17)?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+  val scrollDispatchMode: DesktopScrollMode? =
+    when (scrollModeArg?.uppercase()) {
+      "LONG" -> DesktopScrollMode.LONG
+      "GIF" -> DesktopScrollMode.GIF
+      else -> null
+    }
+
+  // Provider enumeration is fatal to the whole subprocess — we can't
+  // render anything if values can't be loaded. Per-value render failures
+  // are caught individually below and surfaced as `.error.json` sidecars
+  // so a single broken preview doesn't sink the whole batch.
+  val values: List<Any?> =
+    try {
+      if (previewParameterProviderFqn != null && previewParameterLimit > 0) {
+        loadProviderValues(previewParameterProviderFqn, previewParameterLimit).also { vs ->
+          if (vs.isEmpty()) {
+            System.err.println(
+              "@PreviewParameter(provider = $previewParameterProviderFqn) on $functionName produced no values — skipping."
+            )
+          }
+        }
+      } else {
+        listOf(NO_PARAM)
+      }
+    } catch (e: Exception) {
+      writeErrorSidecar(outputFile, className, functionName, e)
+      // Exit 0 so the gradle plugin keeps rendering subsequent previews.
+      // The sidecar carries the structured error; the plugin doesn't need
+      // to re-discover it from a non-zero exit.
+      return
+    }
+
+  val suffixes: List<String> =
+    if (values.size == 1 && values[0] === NO_PARAM) {
+      listOf("")
+    } else {
+      PreviewParameterLabels.suffixesFor(values)
+    }
+  val targetFiles = values.mapIndexed { idx, value ->
+    if (value === NO_PARAM) outputFile
+    else File(insertBeforeExtension(outputFile.path, suffixes[idx]))
+  }
+  // Renderer is authoritative about the fan-out — delete any
+  // `<stem>_*<ext>` files from prior runs that aren't in this run's
+  // expected output. Guards against provider renames and the
+  // `_PARAM_<idx>` → `_<label>` migration leaving stale PNGs behind.
+  if (values.any { it !== NO_PARAM }) {
+    deleteStaleFanoutFiles(outputFile, targetFiles.map { it.name }.toSet())
+  }
+  for ((idx, value) in values.withIndex()) {
+    val targetFile = targetFiles[idx]
+    val previewArgs = if (value === NO_PARAM) emptyList() else listOf(value)
+    // Per-value try/catch — the user-facing pain we're addressing is "one
+    // broken preview turns the whole panel into 'Build failed'". Catching
+    // here lets sibling previews in the same subprocess (i.e. multiple
+    // @PreviewParameter values for the same function) succeed
+    // independently. Cross-preview isolation across functions is already
+    // provided by the subprocess-per-preview model in the gradle plugin.
+    try {
+      // Drop any stale sidecar before attempting a fresh render — if the
+      // last run failed and this one succeeds, the .error.json from the
+      // failed run would otherwise live forever next to the new PNG and
+      // VS Code would surface yesterday's exception as if it were current.
+      val sidecar = errorSidecarFor(targetFile)
+      if (sidecar.exists()) sidecar.delete()
+      if (scrollDispatchMode != null) {
+        // @ScrollingPreview(modes = [LONG, GIF]) — drive the dedicated scroll path. Falls
+        // through to the default single-frame render on "no scrollable found" so a misuse
+        // produces SOMETHING on disk rather than a missing file.
+        val didCapture =
+          renderScrollPreview(
+            className = className,
+            functionName = functionName,
+            widthPx = widthPx,
+            heightPx = heightPx,
+            density = density,
+            showBackground = showBackground,
+            backgroundColor = backgroundColor,
+            outputFile = targetFile,
+            wrapperClassName = wrapperClassName,
+            previewArgs = previewArgs,
+            localeTag = localeTag,
+            scrollMode = scrollDispatchMode,
+            axis = scrollAxis,
+            maxScrollPx = scrollMaxScrollPx,
+            frameIntervalMs = scrollFrameIntervalMs,
+          )
+        if (!didCapture) {
+          renderPreview(
+            className,
+            functionName,
+            widthPx,
+            heightPx,
+            density,
+            showBackground,
+            backgroundColor,
+            targetFile,
+            wrapperClassName,
+            wrapWidth,
+            wrapHeight,
+            previewArgs,
+            localeTag,
+          )
+        }
+      } else {
+        renderPreview(
+          className,
+          functionName,
+          widthPx,
+          heightPx,
+          density,
+          showBackground,
+          backgroundColor,
+          targetFile,
+          wrapperClassName,
+          wrapWidth,
+          wrapHeight,
+          previewArgs,
+          localeTag,
+        )
+      }
+      // Display filters — post-capture colour-matrix variants (grayscale / invert / daltonizer
+      // simulations). Gated on `composeai.displayfilter.filters` being non-empty; the gradle plugin
+      // forwards it from the `composePreview.displayFilter.filters` Gradle property. Wrapped in
+      // try/catch so a filter failure does not invalidate the just-rendered PNG. Data dir mirrors
+      // the daemon's convention: `<renders-dir>/../data/<previewId>/`.
+      val displayFilters = DisplayFilterConfig.fromSystemProperties()
+      if (displayFilters.isNotEmpty()) {
+        try {
+          val dataDir = (targetFile.parentFile?.parentFile ?: targetFile.parentFile).resolve("data")
+          DisplayFilterDataProducer.writeArtifacts(
+            rootDir = dataDir,
+            previewId = targetFile.nameWithoutExtension,
+            pngFile = targetFile,
+            filters = displayFilters,
+          )
+        } catch (t: Throwable) {
+          System.err.println(
+            "DesktopRendererMain: displayfilter write failed for ${targetFile.name}: " +
+              "${t.javaClass.simpleName}: ${t.message}"
+          )
+        }
+      }
+    } catch (e: Throwable) {
+      // Catch Throwable, not Exception — preview functions can throw
+      // Errors (e.g. AssertionError from a misused require) and the user
+      // wants those surfaced too. We won't catch JVM-fatal throwables in
+      // practice (those already terminated the JVM before we got here).
+      System.err.println("Render failed for $className.$functionName: ${e.message}")
+      writeErrorSidecar(targetFile, className, functionName, e)
+      // Continue with the next value — keep exit code 0 below.
+    }
+  }
+}
+
+/**
+ * Filename convention for the error sidecar: same path as the PNG with `.error.json` appended.
+ * Sibling placement means the gradle plugin doesn't need an aggregation step and the extension
+ * finds the sidecar by trivial string-concat on the manifest's existing renderOutput path.
+ */
+private fun errorSidecarFor(pngFile: File): File =
+  File(pngFile.parentFile, pngFile.name + ".error.json")
+
+private fun writeErrorSidecar(
+  pngFile: File,
+  className: String,
+  functionName: String,
+  e: Throwable,
+) {
+  val sidecar = errorSidecarFor(pngFile)
+  sidecar.parentFile?.mkdirs()
+  // Drop any stale PNG from a previous successful run so the extension
+  // doesn't surface yesterday's image alongside today's error message.
+  if (pngFile.exists()) pngFile.delete()
+  val stack = java.io.StringWriter().also { e.printStackTrace(java.io.PrintWriter(it)) }.toString()
+  val top = pickTopAppFrame(e)
+  // Hand-rolled JSON to avoid pulling kotlinx-serialization into the
+  // renderer-desktop runtime classpath (the plugin owns serialisation
+  // and we don't want a second copy here). Schema must mirror
+  // gradle-plugin/.../PreviewRenderError.kt verbatim.
+  val sb = StringBuilder()
+  sb.append('{')
+  sb.append("\"schema\":\"compose-preview-error/v1\",")
+  sb.append("\"exception\":").append(jsonString(e.javaClass.name)).append(',')
+  sb.append("\"message\":").append(jsonString(e.message ?: "")).append(',')
+  if (top != null) {
+    sb.append("\"topAppFrame\":{")
+    sb.append("\"file\":").append(jsonString(top.file)).append(',')
+    sb.append("\"line\":").append(top.line).append(',')
+    sb.append("\"function\":").append(jsonString(top.function))
+    sb.append("},")
+  }
+  sb.append("\"stackTrace\":").append(jsonString(stack))
+  sb.append('}')
+  sidecar.writeText(sb.toString())
+}
+
+/**
+ * The first stack frame attributable to user code — skip Compose scaffold, Kotlin stdlib, JDK
+ * frames, and the renderer's own glue so the user-facing "at Previews.kt:47" points where the bug
+ * actually is. Returns null when no frame survives the filter (deep framework throw).
+ */
+private fun pickTopAppFrame(e: Throwable): TopFrameJson? {
+  val skipPrefixes =
+    listOf(
+      "androidx.compose.",
+      "kotlin.",
+      "kotlinx.",
+      "java.",
+      "javax.",
+      "jdk.",
+      "sun.",
+      "ee.schimke.composeai.renderer.",
+      "org.jetbrains.skia.",
+      "org.jetbrains.skiko.",
+    )
+  for (frame in e.stackTrace) {
+    val cls = frame.className
+    if (skipPrefixes.any { cls.startsWith(it) }) continue
+    return TopFrameJson(
+      file = frame.fileName ?: "",
+      line = frame.lineNumber.coerceAtLeast(0),
+      function = frame.methodName ?: "",
+    )
+  }
+  return null
+}
+
+private data class TopFrameJson(val file: String, val line: Int, val function: String)
+
+private fun jsonString(s: String): String {
+  val sb = StringBuilder(s.length + 2)
+  sb.append('"')
+  for (c in s) {
+    when (c) {
+      '"' -> sb.append("\\\"")
+      '\\' -> sb.append("\\\\")
+      '\b' -> sb.append("\\b")
+      '\n' -> sb.append("\\n")
+      '\r' -> sb.append("\\r")
+      '\t' -> sb.append("\\t")
+      else -> if (c < ' ') sb.append("\\u%04x".format(c.code)) else sb.append(c)
+    }
+  }
+  sb.append('"')
+  return sb.toString()
+}
+
+// Sentinel: distinguishes "no @PreviewParameter fan-out" from "provider yielded null".
+// A null value from the provider is a legitimate case we want to render; NO_PARAM
+// short-circuits the file-path suffix logic instead.
+private val NO_PARAM = Any()
+
+private fun deleteStaleFanoutFiles(template: File, expectedNames: Set<String>) {
+  val dir = template.parentFile ?: return
+  if (!dir.isDirectory) return
+  val stem = template.nameWithoutExtension
+  val ext = ".${template.extension}"
+  val prefix = stem + "_"
+  dir
+    .listFiles()
+    ?.filter { it.name.startsWith(prefix) && it.name.endsWith(ext) && it.name !in expectedNames }
+    ?.forEach { f ->
+      if (!f.delete()) {
+        System.err.println("Failed to delete stale fan-out file: ${f.absolutePath}")
+      }
+    }
+}
+
+private fun insertBeforeExtension(path: String, suffix: String): String {
+  if (path.isEmpty()) return path
+  val dot = path.lastIndexOf('.')
+  val slash = path.lastIndexOf(File.separatorChar).coerceAtLeast(path.lastIndexOf('/'))
+  return if (dot > slash) path.substring(0, dot) + suffix + path.substring(dot) else path + suffix
+}
+
+/**
+ * Loads and enumerates a `PreviewParameterProvider` reflectively — same strategy the Android
+ * renderer uses in `PreviewManifestLoader.loadProviderValues`. Keeping this renderer-local avoids a
+ * shared module dependency and the lookup stays limited to the method shapes the interface
+ * guarantees (`getValues(): Sequence`).
+ */
+private fun loadProviderValues(providerFqn: String, limit: Int): List<Any?> {
+  val clazz =
+    try {
+      Class.forName(providerFqn)
+    } catch (e: ClassNotFoundException) {
+      System.err.println("@PreviewParameter: provider class $providerFqn not found — skipping.")
+      return emptyList()
+    }
+  val instance =
+    runCatching {
+        val ctor = clazz.getDeclaredConstructor()
+        ctor.isAccessible = true
+        ctor.newInstance()
+      }
+      .getOrElse { e ->
+        System.err.println(
+          "@PreviewParameter: couldn't instantiate $providerFqn via nullary ctor: ${e.message}"
+        )
+        return emptyList()
+      }
+  val getValues =
+    runCatching { clazz.getMethod("getValues") }
+      .getOrElse {
+        System.err.println(
+          "@PreviewParameter: $providerFqn has no getValues() — not a PreviewParameterProvider?"
+        )
+        return emptyList()
+      }
+  @Suppress("UNCHECKED_CAST")
+  val sequence = getValues.invoke(instance) as? Sequence<Any?> ?: return emptyList()
+  // `Sequence.take(Int)` is lazy and `.toList()` drives it — bounds the
+  // enumeration for infinite providers without requiring an explicit
+  // counter. Calling through the typed Kotlin API avoids reflective
+  // access into `kotlin.jvm.internal.ArrayIterator`, whose visibility is
+  // package-private and throws `IllegalAccessException` from outside the
+  // stdlib's own module.
+  return sequence.take(limit).toList()
+}
+
+private fun renderPreview(
+  className: String,
+  functionName: String,
+  widthPx: Int,
+  heightPx: Int,
+  density: Float,
+  showBackground: Boolean,
+  backgroundColor: Long,
+  outputFile: File,
+  wrapperClassName: String?,
+  wrapWidth: Boolean,
+  wrapHeight: Boolean,
+  previewArgs: List<Any?>,
+  localeTag: String?,
+) {
+  val clazz = Class.forName(className)
+  val composableMethod =
+    if (previewArgs.isEmpty()) {
+      clazz.getDeclaredComposableMethod(functionName)
+    } else {
+      findComposableMethodWithArgs(clazz, functionName, previewArgs)
+    }
+
+  val scene = ImageComposeScene(width = widthPx, height = heightPx, density = Density(density))
+
+  // Measured content size in pixels, captured from the wrapping Box via
+  // onGloballyPositioned. Only read when at least one axis wraps.
+  var measured: IntSize? = null
+
+  // Pseudolocale (`en-XA`, `ar-XB`): ar-XB flips `LocalLayoutDirection` to RTL so the captured
+  // PNG mirrors layout. en-XA is a no-op visually on desktop — CMP's
+  // `org.jetbrains.compose.resources.stringResource` doesn't go through `LocalContext.resources`,
+  // so the Resources-subclass trick the Android connector uses doesn't apply here. See the
+  // platform-support note in `site/reference/pseudolocale.md`.
+  val pseudolocale = ee.schimke.composeai.data.pseudolocale.Pseudolocale.fromTag(localeTag)
+  scene.setContent {
+    val baseProviders: @Composable (@Composable () -> Unit) -> Unit = { inner ->
+      if (pseudolocale?.isRtl == true) {
+        CompositionLocalProvider(
+          LocalInspectionMode provides true,
+          androidx.compose.ui.platform.LocalLayoutDirection provides
+            androidx.compose.ui.unit.LayoutDirection.Rtl,
+        ) {
+          inner()
+        }
+      } else {
+        CompositionLocalProvider(LocalInspectionMode provides true) { inner() }
+      }
+    }
+    baseProviders {
+      val bgColor =
+        when {
+          backgroundColor != 0L -> Color(backgroundColor.toInt())
+          showBackground -> Color.White
+          else -> Color.Transparent
+        }
+      val body: @Composable () -> Unit = {
+        if (wrapWidth || wrapHeight) {
+          // AS-parity wrap: measure the composable with unbounded
+          // constraints on wrapped axes (keep the sandbox constraint
+          // on fixed axes), capture the child's pixel size, then
+          // size the outer Box to exactly that. The .layout modifier
+          // lets us both observe and bound the child's size in a
+          // single measurement pass — more reliable under
+          // ImageComposeScene than onGloballyPositioned, which is
+          // tied to a post-layout effect pass the scene doesn't
+          // always flush.
+          // Bounded sandbox constraints (not Infinity) — matches
+          // Android Studio's preview pane. `fillMaxWidth` / LazyColumn
+          // / etc. require bounded constraints; they'd throw from
+          // `InlineClassHelper` under an Infinity max. Small
+          // composables (`Modifier.size(100.dp)`) still measure at
+          // their intrinsic size and get cropped to that below;
+          // `fillMax*` composables measure at the sandbox size and
+          // no crop happens on that axis.
+          Box(
+            modifier =
+              Modifier.layout { measurable, constraints ->
+                  // Relax the min constraint on wrapped axes so
+                  // small composables can shrink below the
+                  // sandbox; keep the max bounded (the parent's
+                  // maxWidth/maxHeight) so `fillMax*` / LazyColumn
+                  // still have a finite viewport.
+                  val wrappedConstraints =
+                    Constraints(
+                      minWidth = if (wrapWidth) 0 else constraints.minWidth,
+                      maxWidth = constraints.maxWidth,
+                      minHeight = if (wrapHeight) 0 else constraints.minHeight,
+                      maxHeight = constraints.maxHeight,
+                    )
+                  val placeable = measurable.measure(wrappedConstraints)
+                  measured = IntSize(placeable.width, placeable.height)
+                  layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+                }
+                .background(bgColor)
+          ) {
+            InvokeComposable(composableMethod, null, previewArgs)
+          }
+        } else {
+          Box(modifier = Modifier.fillMaxSize().background(bgColor)) {
+            InvokeComposable(composableMethod, null, previewArgs)
+          }
+        }
+      }
+      // `@PreviewWrapper(Provider::class)` — instantiate the provider reflectively
+      // so the renderer stays compatible with apps on stable Compose (no
+      // `PreviewWrapperProvider` on classpath).
+      if (wrapperClassName != null) {
+        InvokeWrappedComposable(wrapperClassName, body)
+      } else {
+        body()
+      }
+    }
+  }
+
+  // Render two frames for animations/effects to settle
+  scene.render()
+  val image = scene.render()
+
+  val pngData =
+    image.encodeToData(EncodedImageFormat.PNG)
+      ?: throw IllegalStateException("Failed to encode image to PNG")
+
+  outputFile.parentFile?.mkdirs()
+
+  // Crop to the measured content bounds on wrapped axes. `measured` is
+  // populated during the Modifier.layout measure pass in the wrap branch
+  // above — if it somehow wasn't set (shouldn't happen, but defensive),
+  // fall back to the sandbox dimensions and write the uncropped PNG.
+  if ((wrapWidth || wrapHeight) && measured != null) {
+    val m = measured!!
+    val cropW = (if (wrapWidth) m.width else widthPx).coerceIn(1, widthPx)
+    val cropH = (if (wrapHeight) m.height else heightPx).coerceIn(1, heightPx)
+    val decoded = ByteArrayInputStream(pngData.bytes).use { ImageIO.read(it) }
+    if (decoded != null && (cropW < decoded.width || cropH < decoded.height)) {
+      val sub =
+        decoded.getSubimage(
+          0,
+          0,
+          cropW.coerceAtMost(decoded.width),
+          cropH.coerceAtMost(decoded.height),
+        )
+      ImageIO.write(sub, "PNG", outputFile)
+    } else {
+      outputFile.writeBytes(pngData.bytes)
+    }
+  } else {
+    outputFile.writeBytes(pngData.bytes)
+  }
+
+  scene.close()
+}
+
+@Composable
+private fun InvokeComposable(
+  composableMethod: ComposableMethod,
+  instance: Any?,
+  previewArgs: List<Any?>,
+) {
+  composableMethod.invoke(currentComposer, instance, *previewArgs.toTypedArray())
+}
+
+/**
+ * Desktop mirror of the Android renderer's lookup for `@PreviewParameter` functions — see
+ * [ee.schimke.composeai.renderer.findComposableMethodWithArgs] for the full commentary. Kept local
+ * (not shared via a common module) so the two renderer artefacts stay independently buildable.
+ */
+private fun findComposableMethodWithArgs(
+  clazz: Class<*>,
+  name: String,
+  previewArgs: List<Any?>,
+): ComposableMethod {
+  val argCount = previewArgs.size
+  val candidate =
+    clazz.declaredMethods.firstOrNull { m ->
+      m.name == name && m.parameterCount >= argCount + 2 && argsMatch(m, previewArgs)
+    }
+      ?: throw NoSuchMethodException(
+        "Couldn't find composable method $name on ${clazz.name} taking $argCount parameter(s); " +
+          "check that the @PreviewParameter provider's value type matches the preview's parameter type."
+      )
+  val declaredTypes = candidate.parameterTypes.take(argCount).toTypedArray()
+  return clazz.getDeclaredComposableMethod(name, *declaredTypes)
+}
+
+private fun argsMatch(method: java.lang.reflect.Method, previewArgs: List<Any?>): Boolean {
+  for ((i, arg) in previewArgs.withIndex()) {
+    val expected = method.parameterTypes[i]
+    if (arg == null) {
+      if (expected.isPrimitive) return false
+      continue
+    }
+    val actual = arg.javaClass
+    if (expected.isAssignableFrom(actual)) continue
+    if (expected.kotlin.javaObjectType.isAssignableFrom(actual)) continue
+    return false
+  }
+  return true
+}
+
+/**
+ * Reflectively instantiates the `PreviewWrapperProvider` identified by [wrapperFqn] and invokes its
+ * `Wrap(content)` composable around [body].
+ *
+ * See [RobolectricRenderTest.resolveWrapper] — same lookup strategy, same caveats.
+ */
+@Composable
+private fun InvokeWrappedComposable(wrapperFqn: String, body: @Composable () -> Unit) {
+  val resolved = remember(wrapperFqn) { resolveWrapper(wrapperFqn) }
+  resolved.first.invoke(currentComposer, resolved.second, body)
+}
+
+private fun resolveWrapper(wrapperFqn: String): Pair<ComposableMethod, Any> {
+  val cls = ee.schimke.composeai.data.render.extensions.loadPreviewWrapperClass(wrapperFqn)
+  val instance = cls.getDeclaredConstructor().apply { isAccessible = true }.newInstance()
+  // PreviewWrapperProvider.Wrap(content: @Composable () -> Unit) compiles to
+  // Wrap(Function2, Composer, int) at the bytecode level.
+  val method = cls.getDeclaredComposableMethod("Wrap", Function2::class.java)
+  return method to instance
+}
