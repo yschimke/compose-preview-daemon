@@ -200,6 +200,17 @@ daemon needs a slot next, and pays only that catalog's first real render.
   resolves `composeai.render.outputDir` per render, not at construction, which
   is what lets a spare's engine — built by its warm render before any catalog
   is known — write into the adopting catalog's tree.
+- **Slot 0 can be deferred.** `composeai.daemon.lazyInProcessSandbox=true` makes an
+  adopt-first start skip the background boot of the in-process sandbox
+  altogether: it boots the first time a path only it can serve asks —
+  `acquireInteractiveSession`, `previewParameterRows`, or a render with no
+  worker left to route to (`RobolectricHost.ensureInProcessSandbox`, one boot
+  ever, bounded by the sandbox boot budget). A serve catalog daemon holds no
+  interactive session and enumerates no rows in the common case, so on the
+  deployed box this is a boot and a sandbox's worth of resident memory per
+  daemon that is never paid, at the cost of one slot of render capacity
+  until something needs it. Off by default: the Gradle/VS Code path wants
+  slot 0 for the panel's live toggle.
 - **What the signature does not cover.** Android resource carriage
   (`test_config.properties` for the app's own `R` table) is on the parent
   classpath, so a catalog carrying resources has a signature of its own; it

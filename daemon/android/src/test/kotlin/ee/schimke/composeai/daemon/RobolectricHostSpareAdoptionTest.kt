@@ -3,6 +3,7 @@ package ee.schimke.composeai.daemon
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.pool.SandboxProcessPool
 import ee.schimke.composeai.daemon.pool.SandboxWorkerMain
+import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
@@ -21,9 +22,10 @@ import org.junit.Test
  */
 class RobolectricHostSpareAdoptionTest {
 
-  @Test
-  fun adoptedSpareServesRendersWhileTheInProcessSandboxBoots() {
-    val outputDir = Files.createTempDirectory("spare-adoption").toFile()
+  /** A booted, warm, listening spare launched the way the spare pool launches one. */
+  private class LaunchedSpare(val process: Process, val pid: Long, val port: Int)
+
+  private fun launchSpare(): LaunchedSpare {
     val spare =
       ProcessBuilder(SandboxProcessPool.spareWorkerCommandForTest())
         .redirectErrorStream(false)
@@ -54,12 +56,23 @@ class RobolectricHostSpareAdoptionTest {
       }
     assertNotNull("spare worker never announced itself; see [spare] stderr above", handshake)
     val port = Regex("port=(\\d+)").find(handshake!!)!!.groupValues[1].toInt()
-    val sparePid = Regex("pid=(\\d+)").find(handshake)!!.groupValues[1].toLong()
+    val pid = Regex("pid=(\\d+)").find(handshake)!!.groupValues[1].toLong()
+    // Diagnostics for the memory profile (Linux only; STARTUP.md § "The pool, before and after").
+    System.err.println(
+      "[measure] spare warm RSS: ${rssKb(pid)} kB; host JVM before start: " +
+        "${rssKb(ProcessHandle.current().pid())} kB"
+    )
+    return LaunchedSpare(spare, pid, port)
+  }
 
+  @Test
+  fun adoptedSpareServesRendersWhileTheInProcessSandboxBoots() {
+    val outputDir = Files.createTempDirectory("spare-adoption").toFile()
+    val spare = launchSpare()
     System.setProperty(RenderEngine.OUTPUT_DIR_PROP, outputDir.absolutePath)
     System.setProperty("roborazzi.test.record", "true")
     System.setProperty(RobolectricHost.BACKGROUND_BOOT_PROP, "true")
-    System.setProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES, port.toString())
+    System.setProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES, spare.port.toString())
     val host = RobolectricHost(sandboxCount = 2)
     try {
       val startedAt = System.nanoTime()
@@ -73,7 +86,7 @@ class RobolectricHostSpareAdoptionTest {
         host.readySlotCountForTest(),
       )
       assertTrue("start() should return in adoption time, took ${startMs}ms", startMs < 30_000)
-      assertEquals(listOf(sparePid), host.workerPidsForTest())
+      assertEquals(listOf(spare.pid), host.workerPidsForTest())
 
       // A render succeeds now, on the worker — slot 0 is still booting.
       val early = host.submit(RenderRequest.Render(payload = "render-1"), timeoutMs = 120_000)
@@ -81,9 +94,14 @@ class RobolectricHostSpareAdoptionTest {
 
       // The in-process sandbox comes up behind it and the pool completes.
       val deadline = System.currentTimeMillis() + 600_000
-      while (host.readySlotCountForTest() < 2 && System.currentTimeMillis() < deadline) Thread
-        .sleep(200)
+      while (host.readySlotCountForTest() < 2 && System.currentTimeMillis() < deadline) {
+        Thread.sleep(200)
+      }
       assertEquals("slot 0 should boot in the background", 2, host.readySlotCountForTest())
+      System.err.println(
+        "[measure] host JVM after slot 0 booted: ${rssKb(ProcessHandle.current().pid())} kB; " +
+          "spare after a render: ${rssKb(spare.pid)} kB"
+      )
       val later = host.submit(RenderRequest.Render(payload = "render-2"), timeoutMs = 120_000)
       assertNotNull(later)
     } finally {
@@ -91,10 +109,64 @@ class RobolectricHostSpareAdoptionTest {
       System.clearProperty(RobolectricHost.BACKGROUND_BOOT_PROP)
       host.shutdown()
       // The adopted spare belongs to the host now: shutdown ends it.
-      assertTrue("adopted spare should exit with the host", spare.waitFor(30, TimeUnit.SECONDS))
+      assertTrue(
+        "adopted spare should exit with the host",
+        spare.process.waitFor(30, TimeUnit.SECONDS),
+      )
       outputDir.deleteRecursively()
     }
   }
+
+  @Test
+  fun lazyInProcessSandboxBootsOnlyWhenSomethingNeedsIt() {
+    // `composeai.daemon.lazyInProcessSandbox`: the adopted worker serves, and slot 0 stays down —
+    // no boot, no sandbox's worth of memory — until a path that only slot 0 can serve asks for it.
+    val outputDir = Files.createTempDirectory("spare-lazy-slot0").toFile()
+    val spare = launchSpare()
+    System.setProperty(RenderEngine.OUTPUT_DIR_PROP, outputDir.absolutePath)
+    System.setProperty("roborazzi.test.record", "true")
+    System.setProperty(RobolectricHost.BACKGROUND_BOOT_PROP, "true")
+    System.setProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES, spare.port.toString())
+    System.setProperty(DaemonProperties.Names.LAZY_IN_PROCESS_SANDBOX, "true")
+    val host = RobolectricHost(sandboxCount = 2)
+    try {
+      host.start()
+      assertEquals(1, host.readySlotCountForTest())
+      val rendered = host.submit(RenderRequest.Render(payload = "render-1"), timeoutMs = 120_000)
+      assertNotNull(rendered)
+      // Long enough that a background boot of slot 0 would have shown up.
+      Thread.sleep(8_000)
+      assertEquals("slot 0 must stay deferred", 1, host.readySlotCountForTest())
+      System.err.println(
+        "[measure] host JVM with slot 0 deferred: ${rssKb(ProcessHandle.current().pid())} kB"
+      )
+
+      val startedAt = System.nanoTime()
+      host.ensureInProcessSandboxForTest()
+      System.err.println(
+        "[measure] on-demand slot 0 boot: ${(System.nanoTime() - startedAt) / 1_000_000}ms; " +
+          "host JVM after: ${rssKb(ProcessHandle.current().pid())} kB"
+      )
+      assertEquals("slot 0 boots on demand", 2, host.readySlotCountForTest())
+      assertNotNull(host.submit(RenderRequest.Render(payload = "render-2"), timeoutMs = 120_000))
+    } finally {
+      System.clearProperty(DaemonProperties.Names.LAZY_IN_PROCESS_SANDBOX)
+      System.clearProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES)
+      System.clearProperty(RobolectricHost.BACKGROUND_BOOT_PROP)
+      host.shutdown()
+      assertTrue(spare.process.waitFor(30, TimeUnit.SECONDS))
+      outputDir.deleteRecursively()
+    }
+  }
+
+  private fun rssKb(pid: Long): Long? = runCatching {
+    File("/proc/$pid/status")
+      .readLines()
+      .firstOrNull { it.startsWith("VmRSS:") }
+      ?.filter { it.isDigit() }
+      ?.toLong()
+  }
+    .getOrNull()
 
   private fun pump(stream: java.io.InputStream) {
     Thread(
