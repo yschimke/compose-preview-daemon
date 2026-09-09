@@ -87,7 +87,10 @@ class ForwardMaterialInteractionExportTest {
     host.start()
     try {
       for (id in listOf(baseId, focusedId)) {
-        host.submit(RenderRequest.Render(payload = "previewId=$id"), timeoutMs = 60_000)
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$id")),
+          timeoutMs = 60_000,
+        )
       }
       val dataDir = outputDir.parentFile!!.resolve("data")
       fun svg(id: String) = dataDir.resolve(id).resolve("compose-figma.svg").readText()
@@ -148,7 +151,10 @@ class ForwardMaterialInteractionExportTest {
     host.start()
     try {
       for (id in listOf(baseId, focusedId, pressedId)) {
-        host.submit(RenderRequest.Render(payload = "previewId=$id"), timeoutMs = 60_000)
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$id")),
+          timeoutMs = 60_000,
+        )
       }
       val dataDir = outputDir.parentFile!!.resolve("data")
       fun svg(id: String) = dataDir.resolve(id).resolve("compose-figma.svg").readText()

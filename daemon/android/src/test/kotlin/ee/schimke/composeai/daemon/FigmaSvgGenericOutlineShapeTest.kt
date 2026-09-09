@@ -39,12 +39,19 @@ class FigmaSvgGenericOutlineShapeTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "previewId=generic-outline;" +
-              "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=GenericOutlineShapeSquare;" +
-              "widthPx=64;heightPx=64;density=1.0;showBackground=false;" +
-              "outputBaseName=generic-outline"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                previewId = "generic-outline",
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "GenericOutlineShapeSquare",
+                widthPx = 64,
+                heightPx = 64,
+                density = 1.0f,
+                showBackground = false,
+                outputBaseName = "generic-outline",
+              )
+            )
         ),
         timeoutMs = 120_000,
       )

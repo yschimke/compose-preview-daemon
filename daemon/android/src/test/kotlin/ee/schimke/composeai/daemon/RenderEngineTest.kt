@@ -67,15 +67,23 @@ class RenderEngineTest {
   ) =
     host.submit(
       RenderRequest.Render(
-        payload =
-          "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-            "functionName=TallWrapColumn;" +
-            // widthDp=200 @ density 2.625 ⇒ 525 px (pinned width). Wrap OFF pins the historical
-            // 320 px height frame (the bug); wrap ON uses the 800 dp sandbox bound + intrinsic
-            // crop.
-            "widthPx=525;heightPx=${if (wrap) 2100 else 320};density=2.625;" +
-            "wrapWidth=false;wrapHeight=$wrap;" +
-            "showBackground=true;outputBaseName=$base"
+        target =
+          RenderTarget.Spec(
+            RenderSpec(
+              className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+              functionName = "TallWrapColumn",
+              // widthDp=200 @ density 2.625 ⇒ 525 px (pinned width). Wrap OFF pins the historical
+              // 320 px height frame (the bug); wrap ON uses the 800 dp sandbox bound + intrinsic
+              // crop.
+              widthPx = 525,
+              heightPx = if (wrap) 2100 else 320,
+              density = 2.625f,
+              wrapWidth = false,
+              wrapHeight = wrap,
+              showBackground = true,
+              outputBaseName = base,
+            )
+          )
       ),
       timeoutMs = 120_000,
     )
@@ -166,12 +174,18 @@ class RenderEngineTest {
     try {
       val request =
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=RedSquare;" +
-              "widthPx=64;heightPx=64;density=1.0;" +
-              "showBackground=true;" +
-              "outputBaseName=red-square"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "RedSquare",
+                widthPx = 64,
+                heightPx = 64,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "red-square",
+              )
+            )
         )
       // Robolectric sandbox bootstrap dominates the first render; allow generous timeout.
       val result = host.submit(request, timeoutMs = 120_000)
@@ -263,10 +277,18 @@ class RenderEngineTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=SerifTextPreview;" +
-              "widthPx=200;heightPx=80;density=1.0;showBackground=true;outputBaseName=figma-fonts"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "SerifTextPreview",
+                widthPx = 200,
+                heightPx = 80,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "figma-fonts",
+              )
+            )
         ),
         timeoutMs = 120_000,
       )
@@ -311,10 +333,18 @@ class RenderEngineTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=SerifTextPreview;" +
-              "widthPx=200;heightPx=80;density=1.0;showBackground=true;outputBaseName=figma-novec"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "SerifTextPreview",
+                widthPx = 200,
+                heightPx = 80,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "figma-novec",
+              )
+            )
         ),
         timeoutMs = 120_000,
       )
@@ -349,12 +379,18 @@ class RenderEngineTest {
     try {
       val request =
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=OpaqueImageSquare;" +
-              "widthPx=64;heightPx=64;density=1.0;" +
-              "showBackground=true;" +
-              "outputBaseName=figma-raster"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "OpaqueImageSquare",
+                widthPx = 64,
+                heightPx = 64,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "figma-raster",
+              )
+            )
         )
       host.submit(request, timeoutMs = 120_000)
 
@@ -413,12 +449,18 @@ class RenderEngineTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=GradientBackgroundCard;" +
-              "widthPx=128;heightPx=48;density=1.0;" +
-              "showBackground=true;" +
-              "outputBaseName=figma-gradient"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "GradientBackgroundCard",
+                widthPx = 128,
+                heightPx = 48,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "figma-gradient",
+              )
+            )
         ),
         timeoutMs = 120_000,
       )
@@ -474,12 +516,18 @@ class RenderEngineTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=RadialGradientBackgroundCard;" +
-              "widthPx=128;heightPx=48;density=1.0;" +
-              "showBackground=true;" +
-              "outputBaseName=figma-radial"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "RadialGradientBackgroundCard",
+                widthPx = 128,
+                heightPx = 48,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "figma-radial",
+              )
+            )
         ),
         timeoutMs = 120_000,
       )
@@ -524,11 +572,18 @@ class RenderEngineTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=EmojiAndAnnotatedText;" +
-              "widthPx=180;heightPx=80;density=1.0;" +
-              "showBackground=true;outputBaseName=figma-emoji"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "EmojiAndAnnotatedText",
+                widthPx = 180,
+                heightPx = 80,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "figma-emoji",
+              )
+            )
         ),
         timeoutMs = 120_000,
       )
@@ -569,11 +624,18 @@ class RenderEngineTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=GraphicsLayerAndWideVector;" +
-              "widthPx=96;heightPx=48;density=1.0;" +
-              "showBackground=true;outputBaseName=figma-transforms"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "GraphicsLayerAndWideVector",
+                widthPx = 96,
+                heightPx = 48,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "figma-transforms",
+              )
+            )
         ),
         timeoutMs = 120_000,
       )
@@ -626,11 +688,18 @@ class RenderEngineTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            payload =
-              "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-                "functionName=IconButtonRowInputBar;" +
-                "widthPx=240;heightPx=64;density=1.0;" +
-                "showBackground=true;outputBaseName=padded-icon"
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                  functionName = "IconButtonRowInputBar",
+                  widthPx = 240,
+                  heightPx = 64,
+                  density = 1.0f,
+                  showBackground = true,
+                  outputBaseName = "padded-icon",
+                )
+              )
           ),
           timeoutMs = 120_000,
         )
@@ -695,11 +764,18 @@ class RenderEngineTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=AlphaZeroRecordButton;" +
-              "widthPx=200;heightPx=56;density=1.0;" +
-              "showBackground=true;outputBaseName=record-button"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "AlphaZeroRecordButton",
+                widthPx = 200,
+                heightPx = 56,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "record-button",
+              )
+            )
         ),
         timeoutMs = 120_000,
       )
@@ -735,11 +811,18 @@ class RenderEngineTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=VectorIconInAnimatedLayout;" +
-              "widthPx=96;heightPx=96;density=1.0;" +
-              "showBackground=true;outputBaseName=animated-fab"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "VectorIconInAnimatedLayout",
+                widthPx = 96,
+                heightPx = 96,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "animated-fab",
+              )
+            )
         ),
         timeoutMs = 120_000,
       )
@@ -780,12 +863,20 @@ class RenderEngineTest {
     try {
       val request =
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=LazyColumnListPreview;" +
-              "previewId=scaffold-list;mode=figma-svg-long;" +
-              "widthPx=200;heightPx=520;density=1.0;" +
-              "showBackground=true;outputBaseName=scaffold-list"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "LazyColumnListPreview",
+                previewId = "scaffold-list",
+                renderMode = "figma-svg-long",
+                widthPx = 200,
+                heightPx = 520,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "scaffold-list",
+              )
+            )
         )
       host.submit(request, timeoutMs = 240_000)
 
@@ -838,12 +929,18 @@ class RenderEngineTest {
     try {
       val request =
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=PrivateRedSquare;" +
-              "widthPx=64;heightPx=64;density=1.0;" +
-              "showBackground=true;" +
-              "outputBaseName=private-red-square"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "PrivateRedSquare",
+                widthPx = 64,
+                heightPx = 64,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "private-red-square",
+              )
+            )
         )
       val result = host.submit(request, timeoutMs = 120_000)
 
@@ -883,13 +980,20 @@ class RenderEngineTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            payload =
-              "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-                "functionName=ThemedTintedSquare;" +
-                "previewParameterProvider=ee.schimke.composeai.daemon.SquareTintProvider;" +
-                "widthPx=64;heightPx=64;density=1.0;" +
-                "showBackground=true;" +
-                "outputBaseName=preview-parameter-square"
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                  functionName = "ThemedTintedSquare",
+                  previewParameterProviderClassName =
+                    "ee.schimke.composeai.daemon.SquareTintProvider",
+                  widthPx = 64,
+                  heightPx = 64,
+                  density = 1.0f,
+                  showBackground = true,
+                  outputBaseName = "preview-parameter-square",
+                )
+              )
           ),
           timeoutMs = 120_000,
         )
@@ -927,14 +1031,21 @@ class RenderEngineTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            payload =
-              "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-                "functionName=ThemedTintedSquare;" +
-                "previewParameterProvider=ee.schimke.composeai.daemon.SquareTintProvider;" +
-                "previewParameterRow=PARAM_1;" +
-                "widthPx=64;heightPx=64;density=1.0;" +
-                "showBackground=true;" +
-                "outputBaseName=preview-parameter-square_PARAM_1"
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                  functionName = "ThemedTintedSquare",
+                  previewParameterProviderClassName =
+                    "ee.schimke.composeai.daemon.SquareTintProvider",
+                  previewParameterRow = "PARAM_1",
+                  widthPx = 64,
+                  heightPx = 64,
+                  density = 1.0f,
+                  showBackground = true,
+                  outputBaseName = "preview-parameter-square_PARAM_1",
+                )
+              )
           ),
           timeoutMs = 120_000,
         )
@@ -970,14 +1081,21 @@ class RenderEngineTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            payload =
-              "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-                "functionName=ThemedTintedSquare;" +
-                "previewParameterProvider=ee.schimke.composeai.daemon.SquareTintProvider;" +
-                "previewParameterRow=4280191205;" +
-                "widthPx=64;heightPx=64;density=1.0;" +
-                "showBackground=true;" +
-                "outputBaseName=preview-parameter-square_4280191205"
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                  functionName = "ThemedTintedSquare",
+                  previewParameterProviderClassName =
+                    "ee.schimke.composeai.daemon.SquareTintProvider",
+                  previewParameterRow = "4280191205",
+                  widthPx = 64,
+                  heightPx = 64,
+                  density = 1.0f,
+                  showBackground = true,
+                  outputBaseName = "preview-parameter-square_4280191205",
+                )
+              )
           ),
           timeoutMs = 120_000,
         )
@@ -1011,13 +1129,20 @@ class RenderEngineTest {
       val failure = runCatching {
         host.submit(
           RenderRequest.Render(
-            payload =
-              "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-                "functionName=ThemedTintedSquare;" +
-                "previewParameterProvider=ee.schimke.composeai.daemon.SquareTintProvider;" +
-                "previewParameterRow=PARAM_9;" +
-                "widthPx=64;heightPx=64;density=1.0;" +
-                "outputBaseName=preview-parameter-square_PARAM_9"
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                  functionName = "ThemedTintedSquare",
+                  previewParameterProviderClassName =
+                    "ee.schimke.composeai.daemon.SquareTintProvider",
+                  previewParameterRow = "PARAM_9",
+                  widthPx = 64,
+                  heightPx = 64,
+                  density = 1.0f,
+                  outputBaseName = "preview-parameter-square_PARAM_9",
+                )
+              )
           ),
           timeoutMs = 120_000,
         )
@@ -1050,13 +1175,19 @@ class RenderEngineTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            payload =
-              "previewId=serif-text;" +
-                "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-                "functionName=SerifTextPreview;" +
-                "widthPx=160;heightPx=48;density=1.0;" +
-                "showBackground=true;" +
-                "outputBaseName=serif-text"
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  previewId = "serif-text",
+                  className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                  functionName = "SerifTextPreview",
+                  widthPx = 160,
+                  heightPx = 48,
+                  density = 1.0f,
+                  showBackground = true,
+                  outputBaseName = "serif-text",
+                )
+              )
           ),
           timeoutMs = 120_000,
         )
@@ -1096,14 +1227,20 @@ class RenderEngineTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            payload =
-              "previewId=android-theme;" +
-                "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-                "functionName=ThemedPrimarySquare;" +
-                "widthPx=64;heightPx=64;density=1.0;" +
-                "showBackground=true;" +
-                "mode=theme;" +
-                "outputBaseName=android-theme"
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  previewId = "android-theme",
+                  className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                  functionName = "ThemedPrimarySquare",
+                  widthPx = 64,
+                  heightPx = 64,
+                  density = 1.0f,
+                  showBackground = true,
+                  renderMode = "theme",
+                  outputBaseName = "android-theme",
+                )
+              )
           ),
           timeoutMs = 120_000,
         )
@@ -1135,13 +1272,19 @@ class RenderEngineTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            payload =
-              "previewId=android-theme-subscribed;" +
-                "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-                "functionName=ThemedPrimarySquare;" +
-                "widthPx=64;heightPx=64;density=1.0;" +
-                "showBackground=true;" +
-                "outputBaseName=android-theme-subscribed"
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  previewId = "android-theme-subscribed",
+                  className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                  functionName = "ThemedPrimarySquare",
+                  widthPx = 64,
+                  heightPx = 64,
+                  density = 1.0f,
+                  showBackground = true,
+                  outputBaseName = "android-theme-subscribed",
+                )
+              )
           ),
           timeoutMs = 120_000,
         )
@@ -1167,12 +1310,18 @@ class RenderEngineTest {
       for (i in 1..5) {
         val request =
           RenderRequest.Render(
-            payload =
-              "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-                "functionName=${if (i % 2 == 0) "BlueSquare" else "RedSquare"};" +
-                "widthPx=64;heightPx=64;density=1.0;" +
-                "showBackground=true;" +
-                "outputBaseName=warmup-$i"
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                  functionName = if (i % 2 == 0) "BlueSquare" else "RedSquare",
+                  widthPx = 64,
+                  heightPx = 64,
+                  density = 1.0f,
+                  showBackground = true,
+                  outputBaseName = "warmup-$i",
+                )
+              )
           )
         val startNs = System.nanoTime()
         val result = host.submit(request, timeoutMs = 120_000)
@@ -1209,12 +1358,18 @@ class RenderEngineTest {
     try {
       val request =
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=ResourceReadingPreview;" +
-              "widthPx=64;heightPx=64;density=1.0;" +
-              "showBackground=true;" +
-              "outputBaseName=resource-reading"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "ResourceReadingPreview",
+                widthPx = 64,
+                heightPx = 64,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "resource-reading",
+              )
+            )
         )
       host.submit(request, timeoutMs = 120_000)
 

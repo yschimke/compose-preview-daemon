@@ -21,10 +21,10 @@ import org.junit.Test
  * used to read "the two slots have distinct classloaders" now reads "the two slots are distinct
  * processes" — `RobolectricHost.workerPidsForTest()` is the seam.
  *
- * **Why ids are bucketed by `id and 1`**: when the payload doesn't carry a `previewId=` key (legacy
- * stub payloads like `render-N`), [RobolectricHost.submit] hashes the request id instead. For small
- * positive Long ids `Long.hashCode()` is the low 32 bits as a signed int, so its parity matches `id
- * and 1L`; bucketing by that aligns with the actual dispatch path.
+ * **Why ids are bucketed by `id and 1`**: when the target names no preview (a [RenderTarget.Stub]),
+ * [RobolectricHost.submit] hashes the request id instead. For small positive Long ids
+ * `Long.hashCode()` is the low 32 bits as a signed int, so its parity matches `id and 1L`;
+ * bucketing by that aligns with the actual dispatch path.
  */
 class RobolectricHostPoolTest {
 
@@ -33,7 +33,10 @@ class RobolectricHostPoolTest {
     val host = RobolectricHost(sandboxCount = 2)
     try {
       host.start()
-      val results = (1..20).map { i -> host.submit(RenderRequest.Render(payload = "render-$i")) }
+      val results =
+        (1..20).map { i ->
+          host.submit(RenderRequest.Render(target = RenderTarget.Stub("render-$i")))
+        }
       assertEquals(20, results.size)
 
       val byBucket = results.groupBy { (it.id and 1L).toInt() }
@@ -82,7 +85,7 @@ class RobolectricHostPoolTest {
     val slotByPreview = previewIds.associateWith { previewId ->
       val slots =
         (1L..8L)
-          .map { id -> host.chooseSlotIndexForTest(payload = "previewId=$previewId", id = id) }
+          .map { id -> host.chooseSlotIndexForTest(target = preview(previewId), id = id) }
           .toSet()
       assertEquals(
         "previewId='$previewId' should always resolve to one slot, saw $slots",
@@ -105,22 +108,22 @@ class RobolectricHostPoolTest {
     // `ComposeTestRule` — so every normal render has to route to a worker process for the
     // session's lifetime.
     val host = RobolectricHost(sandboxCount = 2)
-    val slotZeroPayload =
+    val slotZeroTarget =
       (0 until 64)
-        .map { i -> "previewId=com.example.preview.HashesToInteractiveSlot$i" }
-        .first { payload ->
+        .map { i -> preview("com.example.preview.HashesToInteractiveSlot$i") }
+        .first { target ->
           host.chooseSlotIndexForTest(
-            payload = payload,
+            target = target,
             id = 100L,
             interactiveSlotPinned = false,
           ) == RobolectricHost.INTERACTIVE_SLOT_INDEX
         }
 
     assertEquals(
-      "test setup should pick a payload that normally hashes to the interactive slot",
+      "test setup should pick a preview that normally hashes to the interactive slot",
       RobolectricHost.INTERACTIVE_SLOT_INDEX,
       host.chooseSlotIndexForTest(
-        payload = slotZeroPayload,
+        target = slotZeroTarget,
         id = 100L,
         interactiveSlotPinned = false,
       ),
@@ -129,7 +132,7 @@ class RobolectricHostPoolTest {
       "while the in-process slot is held by a live session, normal dispatch must move to a worker",
       RobolectricHost.INTERACTIVE_SLOT_INDEX,
       host.chooseSlotIndexForTest(
-        payload = slotZeroPayload,
+        target = slotZeroTarget,
         id = 100L,
         interactiveSlotPinned = true,
       ),
@@ -154,7 +157,7 @@ class RobolectricHostPoolTest {
       host.start()
       // Must not block on the worker: a stub render right after start() succeeds on the ready
       // prefix (slot 0 alone).
-      val first = host.submit(RenderRequest.Render(payload = "render-1"))
+      val first = host.submit(RenderRequest.Render(target = RenderTarget.Stub("render-1")))
       assertNotNull("render immediately after start() should succeed", first)
 
       // Background boot completes the pool (generous bound — a worker pays a JVM launch plus a
@@ -172,7 +175,11 @@ class RobolectricHostPoolTest {
       // Steady state: renders dispatched to the worker come back with a real PNG.
       val results =
         (0 until 8).map { i ->
-          host.submit(RenderRequest.Render(payload = "previewId=com.example.preview.Bg$i"))
+          host.submit(
+            RenderRequest.Render(
+              target = RenderTarget.Preview(previewId = "com.example.preview.Bg$i")
+            )
+          )
         }
       assertEquals("every steady-state render should return a result", 8, results.size)
     } finally {
@@ -252,7 +259,7 @@ class RobolectricHostPoolTest {
 
       val slot0 =
         host.submit(
-          RenderRequest.Render(payload = renderPayload(slot0PreviewId, outputBaseName = "slot-0")),
+          RenderRequest.Render(target = renderTarget(slot0PreviewId, outputBaseName = "slot-0")),
           timeoutMs = 120_000,
         )
       assertNotNull("slot 0 real render should produce a PNG", slot0.pngPath)
@@ -260,7 +267,7 @@ class RobolectricHostPoolTest {
 
       val slot1 =
         host.submit(
-          RenderRequest.Render(payload = renderPayload(slot1PreviewId, outputBaseName = "slot-1")),
+          RenderRequest.Render(target = renderTarget(slot1PreviewId, outputBaseName = "slot-1")),
           timeoutMs = 120_000,
         )
       assertNotNull("slot 1 (worker process) real render should produce a PNG", slot1.pngPath)
@@ -323,7 +330,7 @@ class RobolectricHostPoolTest {
         // While the session holds slot 0, a normal render still succeeds — on the worker.
         val normal =
           host.submit(
-            RenderRequest.Render(payload = renderPayload("during-session", "during-session")),
+            RenderRequest.Render(target = renderTarget("during-session", "during-session")),
             timeoutMs = 120_000,
           )
         assertNotNull("normal renders must keep flowing during a held session", normal.pngPath)
@@ -354,13 +361,13 @@ class RobolectricHostPoolTest {
     try {
       host.start()
       // Warm slot 0 so its holder is allocated; without this the swap is a no-op locally. The
-      // payload has to be one that actually dispatches to slot 0 — affinity hashing sends most
+      // target has to be one that actually dispatches to slot 0 — affinity hashing sends most
       // previewIds to a worker, which owns its own holder in its own JVM.
-      val slotZeroPayload =
+      val slotZeroTarget =
         (0 until 64)
-          .map { i -> "previewId=com.example.P$i" }
-          .first { payload -> host.chooseSlotIndexForTest(payload = payload, id = 1L) == 0 }
-      host.submit(RenderRequest.Render(payload = slotZeroPayload))
+          .map { i -> preview("com.example.P$i") }
+          .first { target -> host.chooseSlotIndexForTest(target = target, id = 1L) == 0 }
+      host.submit(RenderRequest.Render(target = slotZeroTarget))
 
       host.swapUserClassLoaders()
 
@@ -370,7 +377,10 @@ class RobolectricHostPoolTest {
         host.workerPidsForTest().single(),
       )
       // And it must still serve renders afterwards.
-      val after = (1..6).map { i -> host.submit(RenderRequest.Render(payload = "render-$i")) }
+      val after =
+        (1..6).map { i ->
+          host.submit(RenderRequest.Render(target = RenderTarget.Stub("render-$i")))
+        }
       assertEquals(6, after.size)
     } finally {
       host.shutdown()
@@ -382,7 +392,7 @@ class RobolectricHostPoolTest {
       .map { i -> "ee.schimke.composeai.daemon.RedFixturePreviewsKt.RedSquare.$tag.$i" }
       .first { previewId ->
         probe.chooseSlotIndexForTest(
-          payload = renderPayload(previewId, outputBaseName = "probe"),
+          target = renderTarget(previewId, outputBaseName = "probe"),
           id = 1L,
         ) == slot
       }
@@ -400,13 +410,19 @@ class RobolectricHostPoolTest {
     throw AssertionError("expected ${expected.name} to be thrown")
   }
 
-  private fun renderPayload(previewId: String, outputBaseName: String): String =
-    "previewId=$previewId;" +
-      "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-      "functionName=RedSquare;" +
-      "widthPx=64;heightPx=64;density=1.0;" +
-      "showBackground=true;" +
-      "outputBaseName=$outputBaseName"
+  private fun renderTarget(previewId: String, outputBaseName: String): RenderTarget.Spec =
+    RenderTarget.Spec(
+      RenderSpec(
+        previewId = previewId,
+        className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+        functionName = "RedSquare",
+        widthPx = 64,
+        heightPx = 64,
+        density = 1.0f,
+        showBackground = true,
+        outputBaseName = outputBaseName,
+      )
+    )
 
   private fun stageFixtureClassesDir(): File {
     val tempDir = Files.createTempDirectory("pool-userClasses").toFile()

@@ -12,7 +12,7 @@ import org.junit.Test
  *
  * `renderSpecFromInfo` turns a synthetic `@OverrideVariant` preview's `previews.json` seed into
  * `RenderSpec.overrides.namedOverrides`; `renderNow` layers the live bag over it in
- * [RobolectricHost.reshapeRenderPayload], but the held lane goes through `applyOverrides`, which
+ * [RobolectricHost.reshapeRenderTarget], but the held lane goes through `applyOverrides`, which
  * used to copy only four of the bag's fields into the merge. So the viewer's **Live** toggle
  * composed the variant's *base* state — `switchbutton__ideal__split` drew the un-split switch
  * (yschimke/wear-m3-catalog#33).

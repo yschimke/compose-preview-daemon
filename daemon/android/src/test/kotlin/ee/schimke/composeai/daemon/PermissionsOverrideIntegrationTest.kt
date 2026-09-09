@@ -23,15 +23,15 @@ import org.junit.rules.TemporaryFolder
  * runtime-permissions surface added in #1370 / #1374 / #1381 / #1395 and unblocks the panel-side
  * override-toggle UI from #1400 part 2.
  *
- * The override is built panel-side as a [PreviewOverrides] bag, base64-serialised by
- * [JsonRpcServer.encodeRenderPayload] into the wire payload's `overrides=<b64>` token, and
- * round-tripped on the renderer side via [RenderEngine]'s `decodePreviewOverrides`. The planner
- * ([PermissionsPreviewOverrideExtension]) lifts the override into a [PermissionsOverrideExtension],
- * whose around-composable seeds Robolectric's `ShadowApplication.grantPermissions/denyPermissions`.
- * From there the standard Android path (`Context.checkSelfPermission(...)` →
- * `ContextWrapper.checkPermission(String, int, int)`) returns the requested value — including
- * through the [ShadowContextWrapperPermissionTracker] shadow, which forwards to the real
- * implementation before recording the query. Without all five rungs the pixels never flip.
+ * The override is built panel-side as a [PreviewOverrides] bag, base64-serialised by the caller's
+ * `PreviewOverrides` onto the render target, and round-tripped on the renderer side via
+ * [RenderEngine]'s `decodePreviewOverrides`. The planner ([PermissionsPreviewOverrideExtension])
+ * lifts the override into a [PermissionsOverrideExtension], whose around-composable seeds
+ * Robolectric's `ShadowApplication.grantPermissions/denyPermissions`. From there the standard
+ * Android path (`Context.checkSelfPermission(...)` → `ContextWrapper.checkPermission(String, int,
+ * int)`) returns the requested value — including through the
+ * [ShadowContextWrapperPermissionTracker] shadow, which forwards to the real implementation before
+ * recording the query. Without all five rungs the pixels never flip.
  *
  * Encoding the bag directly (rather than going through [JsonRpcServer]'s renderNow path) keeps the
  * test focused on the renderer-side leg and avoids the JSON-RPC plumbing — the encoder leg is
@@ -79,7 +79,7 @@ class PermissionsOverrideIntegrationTest {
     try {
       // Default render — no override sent. Robolectric's manifest baseline denies CAMERA,
       // so the fixture lands on the red branch.
-      val denied = renderAndDecode(host, "previewId=permission-gated", "denied")
+      val denied = renderAndDecode(host, preview("permission-gated"), "denied")
       val deniedRedPct = pixelMatchPct(denied, expectedRgb = 0xEF5350, perChannelTolerance = 8)
       assertTrue(
         "default render should be mostly red (denied branch); got" +
@@ -92,18 +92,17 @@ class PermissionsOverrideIntegrationTest {
       // `ShadowApplication.grantPermissions(...)`) BEFORE the first composition starts, so the
       // very first `checkSelfPermission` read in the composition returns GRANTED and the
       // composition lands on the green branch on this render — no warm-up second render needed.
-      val grantedPayload =
-        "previewId=permission-gated;overrides=" +
-          encodeOverridesBag(
-            PreviewOverrides(
-              permissions =
-                PermissionsOverride(
-                  grants =
-                    mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
-                )
-            )
-          )
-      val granted = renderAndDecode(host, grantedPayload, "granted")
+      val grantedTarget =
+        preview(
+          "permission-gated",
+          PreviewOverrides(
+            permissions =
+              PermissionsOverride(
+                grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
+              )
+          ),
+        )
+      val granted = renderAndDecode(host, grantedTarget, "granted")
       val grantedGreenPct = pixelMatchPct(granted, expectedRgb = 0x66BB6A, perChannelTolerance = 8)
       assertTrue(
         "override-applied render should be mostly green (granted branch); got" +
@@ -116,17 +115,17 @@ class PermissionsOverrideIntegrationTest {
 
       // Override flipped back to DENIED → red again. Proves the round-trip is symmetric;
       // a stuck "always grants" wiring would still produce green here and the test would fail.
-      val deniedPayload =
-        "previewId=permission-gated;overrides=" +
-          encodeOverridesBag(
-            PreviewOverrides(
-              permissions =
-                PermissionsOverride(
-                  grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.DENIED)
-                )
-            )
-          )
-      val deniedAgain = renderAndDecode(host, deniedPayload, "denied-after-grant")
+      val deniedTarget =
+        preview(
+          "permission-gated",
+          PreviewOverrides(
+            permissions =
+              PermissionsOverride(
+                grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.DENIED)
+              )
+          ),
+        )
+      val deniedAgain = renderAndDecode(host, deniedTarget, "denied-after-grant")
       val deniedAgainRedPct =
         pixelMatchPct(deniedAgain, expectedRgb = 0xEF5350, perChannelTolerance = 8)
       assertTrue(
@@ -140,8 +139,8 @@ class PermissionsOverrideIntegrationTest {
   }
 
   /**
-   * Encodes a [PreviewOverrides] bag the way [JsonRpcServer.encodeRenderPayload] does — UTF-8 JSON
-   * → URL-safe base64 (no padding). The renderer's `decodePreviewOverrides` mirror in
+   * Encodes a [PreviewOverrides] bag the way [JsonRpcServer.renderTargetFor] does — UTF-8 JSON →
+   * URL-safe base64 (no padding). The renderer's `decodePreviewOverrides` mirror in
    * `RenderEngine.kt` reverses this; the round-trip is what production daemons use.
    */
   private fun encodeOverridesBag(bag: PreviewOverrides): String {
@@ -151,10 +150,10 @@ class PermissionsOverrideIntegrationTest {
 
   private fun renderAndDecode(
     host: PreviewManifestRouter,
-    payload: String,
+    target: RenderTarget,
     label: String,
   ): java.awt.image.BufferedImage {
-    val request = RenderRequest.Render(payload = payload)
+    val request = RenderRequest.Render(target = target)
     val result = host.submit(request, timeoutMs = 120_000)
     assertNotNull("$label: pngPath must be populated", result.pngPath)
     val pngFile = File(result.pngPath!!)

@@ -899,9 +899,7 @@ private class StreamRpcFakeHost(
               } ?: continue
             when (req) {
               is RenderRequest.Render -> {
-                val previewId =
-                  if (req.payload.startsWith("previewId=")) req.payload.removePrefix("previewId=")
-                  else ""
+                val previewId = req.target.previewIdOrNull() ?: ""
                 val pngFile = perPreview[previewId] ?: defaultPng
                 val result =
                   RenderResult(

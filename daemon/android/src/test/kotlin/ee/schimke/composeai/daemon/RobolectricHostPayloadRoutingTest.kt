@@ -2,14 +2,19 @@ package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.protocol.Orientation
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
+import ee.schimke.composeai.daemon.protocol.UiMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Regression guards for manifest-backed `previewId=…` payload reshaping. */
+/** Regression guards for manifest-backed `previewId` resolution on the host thread. */
 class RobolectricHostPayloadRoutingTest {
+
+  /** Resolves [target] host-side and unwraps the spec the sandbox would receive. */
+  private fun RobolectricHost.resolvedSpec(target: RenderTarget): RenderSpec =
+    (reshapeRenderTarget(target) as RenderTarget.Spec).spec
 
   @Test
   fun `reshape forwards preview parameter provider from resolved manifest spec`() {
@@ -26,13 +31,12 @@ class RobolectricHostPayloadRoutingTest {
         }
       )
 
-    val routed = host.reshapeRenderPayload("previewId=time-play-button;uiMode=dark")
-    val spec = RenderSpec.parseFromPayloadOrNull(routed)
+    val spec =
+      host.resolvedSpec(preview("time-play-button", PreviewOverrides(uiMode = UiMode.DARK)))
 
-    assertNotNull("reshaped payload must remain a parseable RenderSpec: $routed", spec)
     assertEquals(
       "com.example.ThemePreviewParameterProvider",
-      spec!!.previewParameterProviderClassName,
+      spec.previewParameterProviderClassName,
     )
     assertEquals(3, spec.previewParameterLimit)
     assertEquals(RenderSpec.SpecUiMode.DARK, spec.uiMode)
@@ -42,18 +46,14 @@ class RobolectricHostPayloadRoutingTest {
   fun `reshape rotates the discovery-time frame for a device-less orientation request`() {
     // The production Android bundle daemon never mounts a `PreviewManifestRouter` — it reshapes
     // here. A device-less `orientation` arrives with no dimensions for
-    // `JsonRpcServer.encodeRenderPayload` to rotate, so this is the only lane that can turn the
+    // `JsonRpcServer.renderTargetFor` to rotate, so this is the only lane that can turn the
     // preview's own frame. Missing it captured a landscape bitmap while `applyPreviewQualifiers`
     // derived `port` from the same spec (#3552 review).
     val host = host(widthPx = 800, heightPx = 400)
 
-    val spec =
-      RenderSpec.parseFromPayloadOrNull(
-        host.reshapeRenderPayload("previewId=p;orientation=portrait")
-      )
+    val spec = host.resolvedSpec(preview("p", PreviewOverrides(orientation = Orientation.PORTRAIT)))
 
-    assertNotNull(spec)
-    assertEquals(400, spec!!.widthPx)
+    assertEquals(400, spec.widthPx)
     assertEquals(800, spec.heightPx)
     assertEquals(RenderSpec.SpecOrientation.PORTRAIT, spec.orientation)
   }
@@ -62,12 +62,9 @@ class RobolectricHostPayloadRoutingTest {
   fun `reshape leaves a frame already in the requested orientation alone`() {
     val host = host(widthPx = 400, heightPx = 800)
 
-    val spec =
-      RenderSpec.parseFromPayloadOrNull(
-        host.reshapeRenderPayload("previewId=p;orientation=portrait")
-      )
+    val spec = host.resolvedSpec(preview("p", PreviewOverrides(orientation = Orientation.PORTRAIT)))
 
-    assertEquals(400, spec!!.widthPx)
+    assertEquals(400, spec.widthPx)
     assertEquals(800, spec.heightPx)
   }
 
@@ -76,11 +73,14 @@ class RobolectricHostPayloadRoutingTest {
     val host = host(widthPx = 800, heightPx = 400)
 
     val spec =
-      RenderSpec.parseFromPayloadOrNull(
-        host.reshapeRenderPayload("previewId=p;widthPx=1000;heightPx=200;orientation=portrait")
+      host.resolvedSpec(
+        preview(
+          "p",
+          PreviewOverrides(widthPx = 1000, heightPx = 200, orientation = Orientation.PORTRAIT),
+        )
       )
 
-    assertEquals(1000, spec!!.widthPx)
+    assertEquals(1000, spec.widthPx)
     assertEquals(200, spec.heightPx)
   }
 
@@ -90,10 +90,11 @@ class RobolectricHostPayloadRoutingTest {
     // crops the axis that is no longer the free one.
     val host = host(widthPx = 800, heightPx = 400, wrapHeight = true)
 
-    val routed = host.reshapeRenderPayload("previewId=p;orientation=portrait")
+    val routed =
+      host.resolvedSpec(preview("p", PreviewOverrides(orientation = Orientation.PORTRAIT)))
 
-    assertTrue("rotated frame should now wrap width: $routed", routed.contains("wrapWidth=true"))
-    assertFalse("...and no longer wrap height: $routed", routed.contains("wrapHeight=true"))
+    assertTrue("rotated frame should now wrap width: $routed", routed.wrapWidth)
+    assertFalse("...and no longer wrap height: $routed", routed.wrapHeight)
   }
 
   @Test
@@ -155,9 +156,9 @@ class RobolectricHostPayloadRoutingTest {
         }
       )
 
-    val routed = host.reshapeRenderPayload("previewId=plain")
+    val routed = host.resolvedSpec(preview("plain"))
 
-    assertFalse(routed.contains("previewParameterProvider="))
-    assertFalse(routed.contains("previewParameterLimit="))
+    assertNull(routed.previewParameterProviderClassName)
+    assertEquals(Int.MAX_VALUE, routed.previewParameterLimit)
   }
 }

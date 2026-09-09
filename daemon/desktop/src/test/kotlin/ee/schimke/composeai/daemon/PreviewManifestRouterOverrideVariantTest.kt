@@ -5,8 +5,6 @@ import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import ee.schimke.composeai.data.overrides.OverrideSeed
 import ee.schimke.composeai.data.overrides.OverrideSeedKind
 import ee.schimke.composeai.data.overrides.OverrideVariantSpec
-import java.util.Base64
-import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -23,12 +21,10 @@ import org.junit.Test
  * the controller itself. yschimke/m3-catalog#201 is that divergence: a disabled button whose
  * exported vector is the enabled container, and a `size=l` cell exported at the small size.
  *
- * The inbound payload for a batch render is `previewId=<id>` and nothing else, so the seed can only
+ * The inbound target for a batch render names a previewId and nothing else, so the seed can only
  * reach the engine off the manifest entry.
  */
 class PreviewManifestRouterOverrideVariantTest {
-
-  private val json = Json { ignoreUnknownKeys = true }
 
   private fun entry(id: String, overrides: OverrideVariantSpec? = null) =
     PreviewManifestEntry(
@@ -47,12 +43,14 @@ class PreviewManifestRouterOverrideVariantTest {
       seeds = listOf(OverrideSeed(key = "state", kind = OverrideSeedKind.STRING, raw = "disabled")),
     )
 
-  private fun tokenFor(overrides: PreviewOverrides): String =
-    Base64.getUrlEncoder()
-      .withoutPadding()
-      .encodeToString(
-        json.encodeToString(PreviewOverrides.serializer(), overrides).toByteArray(Charsets.UTF_8)
-      )
+  /** Routes [previewId] with [overrides] and unwraps the resolved spec. */
+  private fun PreviewManifestRouter.routedSpec(
+    previewId: String,
+    overrides: PreviewOverrides? = null,
+  ): RenderSpec =
+    (routeTarget(RenderTarget.Preview(previewId = previewId, overrides = overrides))
+        as RenderTarget.Spec)
+      .spec
 
   @Test
   fun `a variant entry's baked seed reaches the routed RenderSpec`() {
@@ -60,7 +58,7 @@ class PreviewManifestRouterOverrideVariantTest {
     val router =
       PreviewManifestRouter(PreviewManifest(previews = listOf(entry(id, disabledSeed()))))
 
-    val spec = RenderSpec.parseFromPayload(router.routePayload("previewId=$id"))
+    val spec = router.routedSpec(id)
 
     assertEquals(
       PreviewOverrideValue.StringValue("disabled"),
@@ -69,11 +67,11 @@ class PreviewManifestRouterOverrideVariantTest {
   }
 
   @Test
-  fun `an ordinary entry routes with no overrides token`() {
+  fun `an ordinary entry routes with no overrides`() {
     val router =
       PreviewManifestRouter(PreviewManifest(previews = listOf(entry("FilledButton_Light"))))
 
-    val spec = RenderSpec.parseFromPayload(router.routePayload("previewId=FilledButton_Light"))
+    val spec = router.routedSpec("FilledButton_Light")
 
     assertNull(spec.overrides)
   }
@@ -92,32 +90,13 @@ class PreviewManifestRouterOverrideVariantTest {
       )
     val router = PreviewManifestRouter(PreviewManifest(previews = listOf(entry(id, seed))))
     val live =
-      tokenFor(
-        PreviewOverrides(
-          namedOverrides = mapOf("shape" to PreviewOverrideValue.StringValue("round"))
-        )
-      )
+      PreviewOverrides(namedOverrides = mapOf("shape" to PreviewOverrideValue.StringValue("round")))
 
-    val spec = RenderSpec.parseFromPayload(router.routePayload("previewId=$id;overrides=$live"))
+    val spec = router.routedSpec(id, overrides = live)
 
     val named = spec.overrides?.namedOverrides.orEmpty()
     assertEquals(PreviewOverrideValue.StringValue("round"), named["shape"])
     assertEquals(PreviewOverrideValue.StringValue("disabled"), named["state"])
-  }
-
-  @Test
-  fun `an undecodable inbound token does not cost the variant its seed`() {
-    val id = "FilledButton_Light_VARIANT_disabled"
-    val router =
-      PreviewManifestRouter(PreviewManifest(previews = listOf(entry(id, disabledSeed()))))
-
-    val spec =
-      RenderSpec.parseFromPayload(router.routePayload("previewId=$id;overrides=not-base64"))
-
-    assertEquals(
-      PreviewOverrideValue.StringValue("disabled"),
-      spec.overrides?.namedOverrides?.get("state"),
-    )
   }
 
   @Test

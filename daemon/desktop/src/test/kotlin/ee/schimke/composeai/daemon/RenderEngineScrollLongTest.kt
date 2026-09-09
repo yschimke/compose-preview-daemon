@@ -86,11 +86,20 @@ class RenderEngineScrollLongTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=$functionName;" +
-              "widthPx=380;heightPx=$viewportPx;density=1.0;showBackground=true;" +
-              "previewId=$previewId;outputBaseName=$previewId;mode=scroll-long"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "$functionName",
+                widthPx = 380,
+                heightPx = viewportPx,
+                density = 1.0f,
+                showBackground = true,
+                previewId = "$previewId",
+                outputBaseName = "$previewId",
+                renderMode = "scroll-long",
+              )
+            )
         ),
         timeoutMs = 240_000,
       )

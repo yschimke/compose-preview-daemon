@@ -31,14 +31,18 @@ class RenderEngineClearBackgroundTest {
   @get:Rule val tempFolder: TemporaryFolder = TemporaryFolder()
 
   private fun render(host: DesktopHost, clearBackground: Boolean, baseName: String): File {
-    val payload = buildString {
-      append("className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;")
-      append("functionName=SurfaceCardSquare;")
-      append("widthPx=220;heightPx=96;density=1.0;")
-      if (clearBackground) append("clearBackground=true;")
-      append("outputBaseName=$baseName")
-    }
-    val result = host.submit(RenderRequest.Render(payload = payload), timeoutMs = 60_000)
+    val spec =
+      RenderSpec(
+        className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+        functionName = "SurfaceCardSquare",
+        widthPx = 220,
+        heightPx = 96,
+        density = 1.0f,
+        clearBackground = clearBackground,
+        outputBaseName = baseName,
+      )
+    val result =
+      host.submit(RenderRequest.Render(target = RenderTarget.Spec(spec)), timeoutMs = 60_000)
     assertNotNull("pngPath must be populated", result.pngPath)
     val png = File(result.pngPath!!)
     assertTrue("rendered PNG must exist: ${png.absolutePath}", png.exists())

@@ -103,12 +103,18 @@ class RenderBodyDivergenceTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            payload =
-              "className=$FIXTURE_CLASS;" +
-                "functionName=$FIXTURE_FUNCTION;" +
-                "widthPx=$WIDTH;heightPx=$HEIGHT;density=$DENSITY;" +
-                "showBackground=true;" +
-                "outputBaseName=divergence-daemon"
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  className = FIXTURE_CLASS,
+                  functionName = FIXTURE_FUNCTION,
+                  widthPx = WIDTH,
+                  heightPx = HEIGHT,
+                  density = DENSITY,
+                  showBackground = true,
+                  outputBaseName = "divergence-daemon",
+                )
+              )
           ),
           timeoutMs = 120_000,
         )

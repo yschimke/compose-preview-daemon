@@ -3,6 +3,7 @@ package ee.schimke.composeai.daemon.harness
 import ee.schimke.composeai.daemon.RenderHost
 import ee.schimke.composeai.daemon.RenderRequest
 import ee.schimke.composeai.daemon.RenderResult
+import ee.schimke.composeai.daemon.previewIdOrNull
 import ee.schimke.composeai.daemon.protocol.RenderMetrics
 import ee.schimke.composeai.io.SystemFileSystem
 import java.io.File
@@ -144,18 +145,16 @@ class FakeHost(
   }
 
   private fun resolvePreviewId(request: RenderRequest.Render): String {
-    // Convention: the caller may stuff "previewId=<id>" into RenderRequest.payload — that's how
-    // future v1 scenarios will disambiguate concurrent renders. For v0 (single-preview S1) we also
-    // accept "any single-entry manifest = that entry's id" as a convenience so the test fixture
-    // builders don't have to thread the id through.
-    val prefix = "previewId="
-    val payload = request.payload
-    if (payload.startsWith(prefix)) return payload.substringAfter(prefix)
+    // The target names the preview when the caller knows it; a single-entry manifest resolves
+    // without one, as a convenience so fixture builders need not thread the id through.
+    request.target.previewIdOrNull()?.let {
+      return it
+    }
     if (manifest.size == 1) return manifest.keys.single()
     error(
-      "FakeHost: cannot resolve previewId — RenderRequest.payload was '$payload' " +
+      "FakeHost: cannot resolve previewId — RenderRequest.target was '${request.target}' " +
         "but manifest has ${manifest.size} entries (${manifest.keys.sorted()}); " +
-        "set request.payload = \"previewId=<id>\" or use a single-entry manifest"
+        "name the preview in the target or use a single-entry manifest"
     )
   }
 

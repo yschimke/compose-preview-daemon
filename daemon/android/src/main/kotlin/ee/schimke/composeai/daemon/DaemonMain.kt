@@ -794,7 +794,7 @@ private fun previewIndexBackedSpecResolver(previewIndex: PreviewIndex): ((String
 internal fun renderSpecFromInfo(info: PreviewInfoDto): RenderSpec {
   // `@OverrideVariant` baked seed for a synthetic variant preview → the base override layer. The
   // inbound live `renderNow.overrides` is layered OVER this in
-  // `RobolectricHost.reshapeRenderPayload`
+  // `RobolectricHost.reshapeRenderTarget`
   // so live wins per key; the baked seed applies even with zero live overrides.
   val bakedOverrides = info.overrides?.toPreviewOverrides()
   val defaults =
@@ -821,7 +821,7 @@ internal fun renderSpecFromInfo(info: PreviewInfoDto): RenderSpec {
       // `_Light`/uiMode-less preview rendered after a `_Dark` sibling captured the dark theme,
       // which is how the confetti-mobile catalog's data products shipped theme-lagged. `notnight`
       // is Studio's default for `uiMode = 0` previews, so the explicit reset is AS-parity. An
-      // inbound `renderNow` override still wins in `reshapeRenderPayload`.
+      // inbound `renderNow` override still wins in `reshapeRenderTarget`.
       uiMode = RenderSpec.SpecUiMode.LIGHT,
     )
   val params = info.params ?: return defaults

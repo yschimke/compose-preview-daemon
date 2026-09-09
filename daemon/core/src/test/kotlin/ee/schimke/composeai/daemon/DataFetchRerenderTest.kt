@@ -89,16 +89,14 @@ class DataFetchRerenderTest {
       // The producer's render submit observed the propagated mode tag. Renderer-agnostic seam
       // stays string-typed: payload carries `mode=a11y` so D2's renderer-side producer can pick
       // the right pipeline.
-      val payload = producer.lastRenderPayload
-      assertNotNull("producer should observe the host payload", payload)
-      assertTrue(
-        "render payload should propagate `mode=a11y`, was: $payload",
-        payload!!.contains("mode=a11y"),
+      val target = producer.lastRenderTarget as? RenderTarget.Preview
+      assertNotNull("producer should observe the host target", target)
+      assertEquals(
+        "render target should propagate the a11y render mode",
+        "a11y",
+        target!!.renderMode,
       )
-      assertTrue(
-        "render payload should carry previewId, was: $payload",
-        payload.contains("previewId=com.example.Foo_bar"),
-      )
+      assertEquals("com.example.Foo_bar", target.previewId)
       assertEquals("producer should observe the completed render", 1, producer.onRenderCalls.get())
       assertEquals("com.example.Foo_bar", producer.lastOnRenderPreviewId)
       assertEquals(3L, producer.lastOnRenderMetrics?.get("tookMs"))
@@ -139,19 +137,13 @@ class DataFetchRerenderTest {
         response!!["result"]?.jsonObject?.get("payload"),
       )
 
-      val payload = producer.lastRenderPayload
-      assertNotNull("producer should observe the host payload", payload)
-      assertTrue(
-        "render payload should carry the mode, was: $payload",
-        payload!!.contains("mode=a11y"),
-      )
-      assertTrue(
-        "override token should thread into the re-render payload, was: $payload",
-        payload.contains("uiMode=dark"),
-      )
-      assertTrue(
-        "the base64 overrides bag should ride along, was: $payload",
-        payload.contains("overrides="),
+      val target = producer.lastRenderTarget as? RenderTarget.Preview
+      assertNotNull("producer should observe the host target", target)
+      assertEquals("render target should carry the mode", "a11y", target!!.renderMode)
+      assertEquals(
+        "the caller's overrides must thread into the re-render",
+        UiMode.DARK,
+        target.overrides?.uiMode,
       )
       // The post-rerender re-ask must not carry `force` (else it would loop on RequiresRerender).
       val reaskParams = producer.lastFetchParams as? JsonObject
@@ -343,7 +335,7 @@ class DataFetchRerenderTest {
   ) : DataProductRegistry {
 
     val renderSubmits = AtomicInteger(0)
-    @Volatile var lastRenderPayload: String? = null
+    @Volatile var lastRenderTarget: RenderTarget? = null
     @Volatile var lastFetchParams: JsonElement? = null
     @Volatile var renderObserved: Boolean = false
     val onRenderCalls = AtomicInteger(0)
@@ -419,9 +411,9 @@ class DataFetchRerenderTest {
     }
 
     /** Called by [TestRenderHost] when the dispatcher submits a render. */
-    fun observeRenderSubmit(payload: String) {
+    fun observeRenderSubmit(target: RenderTarget) {
       renderSubmits.incrementAndGet()
-      lastRenderPayload = payload
+      lastRenderTarget = target
       renderObserved = true
     }
   }
@@ -454,7 +446,7 @@ class DataFetchRerenderTest {
                 } ?: continue
               when (req) {
                 is RenderRequest.Render -> {
-                  producer.observeRenderSubmit(req.payload)
+                  producer.observeRenderSubmit(req.target)
                   if (blockSubmits) {
                     // Hold the render forever - the dispatcher's budget timer is what trips
                     // the test's data/fetch response, and we want to confirm the render is

@@ -4,10 +4,8 @@ import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.File
-import java.util.Base64
 import javax.imageio.ImageIO
 import kotlin.math.abs
-import kotlinx.serialization.json.Json
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -78,7 +76,7 @@ class WrappedPreviewRenderTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val img = renderAndDecode(host, "previewId=wrapped", "wrapped")
+      val img = renderAndDecode(host, preview("wrapped"), "wrapped")
       // 32×32 at density 1.0 → 8.dp wrapper padding ≈ 8px green band around a 16×16 red body.
       // Sample edge pixels (inside the green band) and centre pixels (inside the red body); the
       // assertion is robust to anti-aliasing because the band and body are both ≥ several pixels
@@ -126,7 +124,7 @@ class WrappedPreviewRenderTest {
       val image =
         renderAndDecode(
           host = host,
-          payload = "previewId=wearthemecatalog__Dark",
+          target = preview("wearthemecatalog__Dark"),
           label = "Wear theme catalog",
         )
       assertTrue("Wear theme catalog should render its requested width", image.width == 96)
@@ -196,7 +194,9 @@ class WrappedPreviewRenderTest {
       // Before the fix, runScrollScenario called InvokeComposable directly and this submit failed.
       val result =
         host.submit(
-          RenderRequest.Render(payload = "previewId=wrapped-scroll;mode=scroll-long"),
+          RenderRequest.Render(
+            target = RenderTarget.Preview(previewId = "wrapped-scroll", renderMode = "scroll-long")
+          ),
           timeoutMs = 120_000,
         )
       assertNotNull("scroll-long must return its stitched PNG", result.pngPath)
@@ -263,8 +263,10 @@ class WrappedPreviewRenderTest {
       val themed =
         renderAndDecode(
           host,
-          "previewId=structural;overrides=" +
-            encodeThemeProviderBag("ee.schimke.composeai.daemon.BlueBorderWrapper"),
+          preview(
+            "structural",
+            PreviewOverrides(themeProvider = "ee.schimke.composeai.daemon.BlueBorderWrapper"),
+          ),
           "structural-themed",
         )
       // The theme wrapper is outermost, so its 8.dp blue band owns the edges...
@@ -286,21 +288,12 @@ class WrappedPreviewRenderTest {
   }
 
   /** A base64 `overrides=` bag carrying only a `themeProvider` selection. */
-  private fun encodeThemeProviderBag(fqn: String): String {
-    val json = Json { encodeDefaults = false }
-    val bytes =
-      json
-        .encodeToString(PreviewOverrides.serializer(), PreviewOverrides(themeProvider = fqn))
-        .toByteArray(Charsets.UTF_8)
-    return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
-  }
-
   private fun renderAndDecode(
     host: PreviewManifestRouter,
-    payload: String,
+    target: RenderTarget,
     label: String,
   ): BufferedImage {
-    val request = RenderRequest.Render(payload = payload)
+    val request = RenderRequest.Render(target = target)
     val result = host.submit(request, timeoutMs = 120_000)
     assertNotNull("$label: pngPath must be populated", result.pngPath)
     val pngFile = File(result.pngPath!!)

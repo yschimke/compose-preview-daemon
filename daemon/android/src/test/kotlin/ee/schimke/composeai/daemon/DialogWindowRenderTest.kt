@@ -75,7 +75,10 @@ class DialogWindowRenderTest {
     host.start()
     try {
       val result =
-        host.submit(RenderRequest.Render(payload = "previewId=$previewId"), timeoutMs = 120_000)
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$previewId")),
+          timeoutMs = 120_000,
+        )
       assertNotNull("PNG path must be populated", result.pngPath)
 
       val semantics =
@@ -121,7 +124,10 @@ class DialogWindowRenderTest {
     host.start()
     try {
       val result =
-        host.submit(RenderRequest.Render(payload = "previewId=$previewId"), timeoutMs = 120_000)
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$previewId")),
+          timeoutMs = 120_000,
+        )
       assertNotNull("PNG path must be populated", result.pngPath)
       val png = File(result.pngPath!!)
       assertTrue("rendered PNG must exist", png.isFile)

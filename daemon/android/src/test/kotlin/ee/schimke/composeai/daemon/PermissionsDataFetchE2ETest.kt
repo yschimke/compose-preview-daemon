@@ -101,9 +101,12 @@ class PermissionsDataFetchE2ETest {
               grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
             )
         )
-      val payload = "previewId=$previewId;overrides=${encodeOverridesBag(overrideBag)}"
       SandboxPermissionsBridge.resetAll()
-      val result = host.submit(RenderRequest.Render(payload = payload), timeoutMs = 120_000)
+      val result =
+        host.submit(
+          RenderRequest.Render(target = preview(previewId, overrideBag)),
+          timeoutMs = 120_000,
+        )
 
       // Pixel correctness — sanity check that the override actually drove the granted branch.
       // If this drops, the failure isn't the data-fetch path; it's the override-application path

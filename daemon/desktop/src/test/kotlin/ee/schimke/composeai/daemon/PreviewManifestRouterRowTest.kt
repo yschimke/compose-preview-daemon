@@ -1,7 +1,7 @@
 package ee.schimke.composeai.daemon
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -12,7 +12,7 @@ import org.junit.Test
  * reads bytecode and cannot instantiate a provider — so before this a `renderNow` naming a row
  * ("…MyScreenPreview_Light_PARAM_4") died in [PreviewManifestRouter] with *no manifest entry for
  * previewId*, and `serve` / `render_preview` could only ever show value 0. These tests sit on
- * [PreviewManifestRouter.routePayload] alone, so they stay in the unit source set; the pixel-level
+ * [PreviewManifestRouter.routeTarget] alone, so they stay in the unit source set; the pixel-level
  * proof that row 1 actually binds the provider's second value is the harness scenario
  * `PreviewParameterDesktopRealModeTest`.
  */
@@ -37,30 +37,30 @@ class PreviewManifestRouterRowTest {
   private fun router(vararg entries: PreviewManifestEntry) =
     PreviewManifestRouter(manifest(*entries))
 
-  private fun tokens(payload: String): Map<String, String> =
-    payload
-      .split(';')
-      .mapNotNull { it.trim().takeIf(String::isNotEmpty) }
-      .mapNotNull { pair ->
-        val eq = pair.indexOf('=')
-        if (eq <= 0) null else pair.substring(0, eq) to pair.substring(eq + 1)
-      }
-      .toMap()
+  /** Routes [previewId] and unwraps the resolved spec the router produced. */
+  private fun PreviewManifestRouter.routedSpec(
+    previewId: String,
+    previewParameterRow: String? = null,
+  ): RenderSpec {
+    val routed =
+      routeTarget(
+        RenderTarget.Preview(previewId = previewId, previewParameterRow = previewParameterRow)
+      )
+    return (routed as RenderTarget.Spec).spec
+  }
 
   @Test
   fun `an index-addressed row routes to its base entry and carries the row token`() {
-    val routed = router(entry("Screen")).routePayload("previewId=Screen_PARAM_4")
-    val t = tokens(routed)
-    assertEquals("com.example.PreviewsKt", t["className"])
-    assertEquals("Screen", t["functionName"])
-    assertEquals(provider, t["previewParameterProvider"])
-    assertEquals("PARAM_4", t["previewParameterRow"])
+    val spec = router(entry("Screen")).routedSpec("Screen_PARAM_4")
+    assertEquals("com.example.PreviewsKt", spec.className)
+    assertEquals("Screen", spec.functionName)
+    assertEquals(provider, spec.previewParameterProviderClassName)
+    assertEquals("PARAM_4", spec.previewParameterRow)
   }
 
   @Test
   fun `a label-addressed row carries the label verbatim`() {
-    val routed = router(entry("Screen")).routePayload("previewId=Screen_Dark")
-    assertEquals("Dark", tokens(routed)["previewParameterRow"])
+    assertEquals("Dark", router(entry("Screen")).routedSpec("Screen_Dark").previewParameterRow)
   }
 
   /**
@@ -69,18 +69,18 @@ class PreviewManifestRouterRowTest {
    */
   @Test
   fun `a row render keeps the requested id and gets its own output stem`() {
-    val t = tokens(router(entry("Screen")).routePayload("previewId=Screen_PARAM_2"))
-    assertEquals("Screen_PARAM_2", t["previewId"])
-    assertEquals("Screen_PARAM_2", t["outputBaseName"])
+    val spec = router(entry("Screen")).routedSpec("Screen_PARAM_2")
+    assertEquals("Screen_PARAM_2", spec.previewId)
+    assertEquals("Screen_PARAM_2", spec.outputBaseName)
   }
 
   /** The bare base id is unchanged by all this — no row token, no suffixed stem. */
   @Test
   fun `the base id still renders value 0 with no row token`() {
-    val t = tokens(router(entry("Screen")).routePayload("previewId=Screen"))
-    assertEquals("Screen", t["previewId"])
-    assertEquals("Screen", t["outputBaseName"])
-    assertFalse("base render must not carry a row token", t.containsKey("previewParameterRow"))
+    val spec = router(entry("Screen")).routedSpec("Screen")
+    assertEquals("Screen", spec.previewId)
+    assertEquals("Screen", spec.outputBaseName)
+    assertNull("base render must not carry a row token", spec.previewParameterRow)
   }
 
   /**
@@ -90,20 +90,16 @@ class PreviewManifestRouterRowTest {
    */
   @Test
   fun `the longest parameterized base wins over a shorter one`() {
-    val t =
-      tokens(
-        router(entry("Screen"), entry("Screen_Light"))
-          .routePayload("previewId=Screen_Light_PARAM_4")
-      )
-    assertEquals("Screen_Light_PARAM_4", t["previewId"])
-    assertEquals("PARAM_4", t["previewParameterRow"])
+    val spec = router(entry("Screen"), entry("Screen_Light")).routedSpec("Screen_Light_PARAM_4")
+    assertEquals("Screen_Light_PARAM_4", spec.previewId)
+    assertEquals("PARAM_4", spec.previewParameterRow)
   }
 
   /** A preview with no provider has no rows, so nothing can be read as a row token of it. */
   @Test
   fun `an unknown id whose prefix is not parameterized still fails loudly`() {
     val router = router(entry("Screen", parameterized = false))
-    val failure = runCatching { router.routePayload("previewId=Screen_Dark") }.exceptionOrNull()
+    val failure = runCatching { router.routedSpec("Screen_Dark") }.exceptionOrNull()
     assertTrue(
       "expected the pre-existing unknown-previewId error, got $failure",
       failure?.message?.contains("no manifest entry for previewId='Screen_Dark'") == true,
@@ -113,22 +109,17 @@ class PreviewManifestRouterRowTest {
   /** An explicit token lets a caller render a row of the bare base id without minting a row id. */
   @Test
   fun `an inbound row token wins over the one parsed out of the id`() {
-    val t =
-      tokens(
-        router(entry("Screen")).routePayload("previewId=Screen_PARAM_4;previewParameterRow=Dark")
-      )
-    assertEquals("Dark", t["previewParameterRow"])
-    assertEquals("Screen_Dark", t["outputBaseName"])
+    val spec = router(entry("Screen")).routedSpec("Screen_PARAM_4", previewParameterRow = "Dark")
+    assertEquals("Dark", spec.previewParameterRow)
+    assertEquals("Screen_Dark", spec.outputBaseName)
   }
 
   /** Row addressing is inert for a preview that declares no provider — no token is emitted. */
   @Test
   fun `a non-parameterized preview never gets a row token`() {
-    val t =
-      tokens(
-        router(entry("Screen", parameterized = false))
-          .routePayload("previewId=Screen;previewParameterRow=Dark")
-      )
-    assertFalse(t.containsKey("previewParameterRow"))
+    val spec =
+      router(entry("Screen", parameterized = false))
+        .routedSpec("Screen", previewParameterRow = "Dark")
+    assertNull(spec.previewParameterRow)
   }
 }

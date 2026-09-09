@@ -1,9 +1,7 @@
 package ee.schimke.composeai.daemon
 
-import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
-import java.util.Base64
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -23,14 +21,14 @@ import org.junit.Test
  * Regression test for the wire-side leg of the app-declared theme axis (`@ThemeCatalog` /
  * `@WearThemeCatalog`).
  *
- * [JsonRpcServer.encodeRenderPayload] serializes the render-affecting overrides that have no typed
- * wire token of their own into a single base64 `overrides=<bag>` token. `themeProvider` was missing
- * from that bag, so a one-shot `renderNow.overrides.themeProvider = <providerFqn>` was dropped on
- * the wire: the renderer read `spec.overrides?.themeProvider == null` in
- * `InvokeWithOptionalWrapper` and fell back to the preview's declared `@PreviewWrapper`. On the
- * preview server that surfaced as a Theme picker whose chips redrew byte-identical (unthemed)
- * pixels — every declared theme rendered the same. The live `stream/start` path was unaffected: it
- * carries the FQN separately as `InteractiveCommand.Start.themeProviderFqn`.
+ * [JsonRpcServer.renderTargetFor] serializes the render-affecting overrides that have no typed wire
+ * token of their own into a single base64 `overrides=<bag>` token. `themeProvider` was missing from
+ * that bag, so a one-shot `renderNow.overrides.themeProvider = <providerFqn>` was dropped on the
+ * wire: the renderer read `spec.overrides?.themeProvider == null` in `InvokeWithOptionalWrapper`
+ * and fell back to the preview's declared `@PreviewWrapper`. On the preview server that surfaced as
+ * a Theme picker whose chips redrew byte-identical (unthemed) pixels — every declared theme
+ * rendered the same. The live `stream/start` path was unaffected: it carries the FQN separately as
+ * `InteractiveCommand.Start.themeProviderFqn`.
  *
  * Drives a full JSON-RPC `initialize` → `renderNow` round-trip against a payload-capturing host and
  * asserts the encoded payload carries the FQN inside the `overrides=<base64>` token. Sibling to
@@ -43,10 +41,10 @@ class ThemeProviderOverrideEncodingTest {
   @Test(timeout = 30_000)
   fun themeProviderOverrideIsEncodedIntoTheExtensionBag() {
     val captured =
-      renderAndCapturePayload(
+      renderAndCaptureTarget(
         overrides = """{"themeProvider":"com.example.designcatalogwearm3.WearTealThemeCatalog"}"""
       )
-    val bag = decodeExtensionBag(captured)
+    val bag = requireNotNull(captured.overrides)
     assertEquals("com.example.designcatalogwearm3.WearTealThemeCatalog", bag.themeProvider)
   }
 
@@ -55,36 +53,28 @@ class ThemeProviderOverrideEncodingTest {
     // The theme selection travels in the same single bag as the planner-driven fields rather than
     // sprouting a token of its own.
     val captured =
-      renderAndCapturePayload(
+      renderAndCaptureTarget(
         overrides =
           """{
                 "themeProvider":"com.example.ThemeCatalog",
                 "material3Theme":{"sourceColor":"#FF3366FF"}
               }"""
       )
-    val bag = decodeExtensionBag(captured)
+    val bag = requireNotNull(captured.overrides)
     assertEquals("com.example.ThemeCatalog", bag.themeProvider)
     assertNotNull("material3Theme must round-trip", bag.material3Theme)
   }
 
   @Test(timeout = 30_000)
-  fun blankThemeProviderDoesNotForceTheBag() {
-    // A blank FQN is "no theme selected" — it must not emit a bag on its own, matching the
-    // no-extension-field case in [PermissionsOverrideEncodingTest].
-    val captured = renderAndCapturePayload(overrides = """{"themeProvider":"","uiMode":"dark"}""")
+  fun aBlankThemeProviderArrivesBlankRatherThanAsASelection() {
+    // A blank FQN is "no theme selected". It used to be load-bearing that it did not *force* an
+    // `overrides=` bag into the payload; with the object travelling whole, what matters is only
+    // that the renderer can still tell it apart from a real selection.
+    val captured = renderAndCaptureTarget(overrides = """{"themeProvider":"","uiMode":"dark"}""")
     assertTrue(
-      "overrides= bag must be omitted for a blank themeProvider: '$captured'",
-      "overrides=" !in captured,
+      "a blank themeProvider must not read as a selection",
+      captured.overrides?.themeProvider.isNullOrBlank(),
     )
-  }
-
-  private fun decodeExtensionBag(payload: String): PreviewOverrides {
-    val token =
-      payload.split(';').firstOrNull { it.trim().startsWith("overrides=") }
-        ?: error("payload must carry an overrides= token: '$payload'")
-    val b64 = token.substringAfter('=').trim()
-    val raw = String(Base64.getUrlDecoder().decode(b64), Charsets.UTF_8)
-    return json.decodeFromString(PreviewOverrides.serializer(), raw)
   }
 
   /**
@@ -93,7 +83,7 @@ class ThemeProviderOverrideEncodingTest {
    * `RenderRequest.payload` string the host received. Mirrors [PermissionsOverrideEncodingTest]'s
    * helper verbatim — kept file-local for the same reason.
    */
-  private fun renderAndCapturePayload(overrides: String): String {
+  private fun renderAndCaptureTarget(overrides: String): RenderTarget.Preview {
     val sourceKt = java.nio.file.Files.createTempFile("theme-provider-override-test", ".kt")
     java.nio.file.Files.writeString(sourceKt, "@Preview fun A() {}\n")
     val previewDto =
@@ -165,7 +155,8 @@ class ThemeProviderOverrideEncodingTest {
       assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 99 })
       writeFrame(clientToServerOut, """{"jsonrpc":"2.0","method":"exit"}""")
       assertTrue(exitLatch.await(5, TimeUnit.SECONDS))
-      return host.lastPayload.get() ?: error("host never received a render request")
+      return (host.lastTarget.get() as? RenderTarget.Preview)
+        ?: error("host never received a Preview render target")
     } finally {
       try {
         clientToServerOut.close()
@@ -208,7 +199,7 @@ class ThemeProviderOverrideEncodingTest {
  * [PermissionsOverrideEncodingTest] uses, so the two tests take no cross-file dependency.
  */
 private class PayloadCapturingThemeProviderHost : RenderHost {
-  val lastPayload: AtomicReference<String?> = AtomicReference(null)
+  val lastTarget: AtomicReference<RenderTarget?> = AtomicReference(null)
   private val queue = LinkedBlockingQueue<RenderRequest>()
   private val results = LinkedBlockingQueue<RenderResult>()
 
@@ -221,7 +212,7 @@ private class PayloadCapturingThemeProviderHost : RenderHost {
             when (val req = queue.poll(50, TimeUnit.MILLISECONDS)) {
               null -> continue
               is RenderRequest.Render -> {
-                lastPayload.set(req.payload)
+                lastTarget.set(req.target)
                 results.put(
                   RenderResult(
                     id = req.id,

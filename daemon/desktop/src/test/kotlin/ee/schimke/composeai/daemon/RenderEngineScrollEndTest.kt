@@ -70,11 +70,19 @@ class RenderEngineScrollEndTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=LazyColumnListPreview;" +
-              "widthPx=200;heightPx=520;density=1.0;showBackground=true;" +
-              "previewId=$previewId;outputBaseName=$previewId"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "LazyColumnListPreview",
+                widthPx = 200,
+                heightPx = 520,
+                density = 1.0f,
+                showBackground = true,
+                previewId = "$previewId",
+                outputBaseName = "$previewId",
+              )
+            )
         ),
         timeoutMs = 120_000,
       )

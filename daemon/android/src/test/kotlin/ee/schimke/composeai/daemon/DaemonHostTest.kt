@@ -27,7 +27,10 @@ class RobolectricHostTest {
     val host = RobolectricHost()
     host.start()
     try {
-      val results = (1..10).map { i -> host.submit(RenderRequest.Render(payload = "render-$i")) }
+      val results =
+        (1..10).map { i ->
+          host.submit(RenderRequest.Render(target = RenderTarget.Stub("render-$i")))
+        }
 
       // Sanity: 10 distinct results came back.
       assertEquals(10, results.size)

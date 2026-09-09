@@ -21,8 +21,8 @@ import org.junit.rules.TemporaryFolder
  *
  * [OverrideIntegrationTest.themeProviderOverrideWrapsPreviewInDeclaredTheme] already proves the
  * renderer honours `spec.overrides.themeProvider` — but it hand-builds the `overrides=<base64>`
- * token, so it never exercised `JsonRpcServer.encodeRenderPayload`. That encoder enumerates the
- * fields it packs into the bag, and `themeProvider` was missing from the list: a
+ * token, so it never exercised `JsonRpcServer.renderTargetFor`. That encoder enumerates the fields
+ * it packs into the bag, and `themeProvider` was missing from the list: a
  * `renderNow.overrides.themeProvider` was silently dropped between client and renderer, and every
  * preview came back wrapped in its own `@PreviewWrapper` instead of the chosen theme. On
  * preview.coo.ee that was the Theme picker whose chips all redrew identical pixels.

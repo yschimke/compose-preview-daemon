@@ -1,7 +1,9 @@
 package ee.schimke.composeai.daemon
 
+import ee.schimke.composeai.daemon.protocol.Orientation
 import ee.schimke.composeai.daemon.protocol.PreviewOverrideValue
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
+import ee.schimke.composeai.daemon.protocol.UiMode
 import ee.schimke.composeai.daemon.protocol.WallpaperOverride
 import ee.schimke.composeai.data.overrides.OverrideSeed
 import ee.schimke.composeai.data.overrides.OverrideSeedKind
@@ -9,10 +11,8 @@ import ee.schimke.composeai.data.overrides.OverrideVariantInteraction
 import ee.schimke.composeai.data.overrides.OverrideVariantSpec
 import java.io.ByteArrayInputStream
 import java.io.File
-import java.util.Base64
 import javax.imageio.ImageIO
 import kotlin.math.abs
-import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -76,8 +76,14 @@ class OverrideIntegrationTest {
       )
     host.start()
     try {
-      host.submit(RenderRequest.Render(payload = "previewId=$baseId"), timeoutMs = 30_000)
-      host.submit(RenderRequest.Render(payload = "previewId=$variantId"), timeoutMs = 30_000)
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "$baseId")),
+        timeoutMs = 30_000,
+      )
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "$variantId")),
+        timeoutMs = 30_000,
+      )
 
       val dataDir = outputDir.parentFile!!.resolve("data")
       val baseSvg = dataDir.resolve(baseId).resolve("compose-figma.svg").readText()
@@ -148,8 +154,14 @@ class OverrideIntegrationTest {
       )
     host.start()
     try {
-      host.submit(RenderRequest.Render(payload = "previewId=$baseId"), timeoutMs = 30_000)
-      host.submit(RenderRequest.Render(payload = "previewId=$variantId"), timeoutMs = 30_000)
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "$baseId")),
+        timeoutMs = 30_000,
+      )
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "$variantId")),
+        timeoutMs = 30_000,
+      )
       val dataDir = outputDir.parentFile!!.resolve("data")
       val baseSvg = dataDir.resolve(baseId).resolve("compose-figma.svg").readText()
       val variantSvg = dataDir.resolve(variantId).resolve("compose-figma.svg").readText()
@@ -247,7 +259,10 @@ class OverrideIntegrationTest {
     host.start()
     try {
       for (id in listOf(baseId, hoveredId, focusedId, pressedId, draggedId)) {
-        host.submit(RenderRequest.Render(payload = "previewId=$id"), timeoutMs = 60_000)
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$id")),
+          timeoutMs = 60_000,
+        )
       }
       val dataDir = outputDir.parentFile!!.resolve("data")
       fun svg(id: String) = dataDir.resolve(id).resolve("compose-figma.svg").readText()
@@ -312,7 +327,10 @@ class OverrideIntegrationTest {
     host.start()
     try {
       for (id in listOf(baseId, focusedId, pressedId)) {
-        host.submit(RenderRequest.Render(payload = "previewId=$id"), timeoutMs = 60_000)
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$id")),
+          timeoutMs = 60_000,
+        )
       }
       val dataDir = outputDir.parentFile!!.resolve("data")
       fun svg(id: String) = dataDir.resolve(id).resolve("compose-figma.svg").readText()
@@ -418,7 +436,10 @@ class OverrideIntegrationTest {
       )
     host.start()
     try {
-      host.submit(RenderRequest.Render(payload = "previewId=$id"), timeoutMs = 60_000)
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "$id")),
+        timeoutMs = 60_000,
+      )
       val svg =
         outputDir.parentFile!!.resolve("data").resolve(id).resolve("compose-figma.svg").readText()
       assertTrue("gradient ancestor must remain editable", svg.contains("<linearGradient"))
@@ -555,7 +576,10 @@ class OverrideIntegrationTest {
       )
     host.start()
     return try {
-      host.submit(RenderRequest.Render(payload = "previewId=$id"), timeoutMs = 60_000)
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "$id")),
+        timeoutMs = 60_000,
+      )
       outputDir.parentFile!!.resolve("data").resolve(id).resolve("compose-figma.svg").readText()
     } finally {
       host.shutdown()
@@ -584,10 +608,15 @@ class OverrideIntegrationTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val small = renderAndDecode(host, "previewId=red-square", "small")
+      val small = renderAndDecode(host, preview("red-square"), "small")
       assertEquals("manifest default width should be honoured", 64, small.width)
 
-      val large = renderAndDecode(host, "previewId=red-square;widthPx=128;heightPx=128", "large")
+      val large =
+        renderAndDecode(
+          host,
+          preview("red-square", PreviewOverrides(widthPx = 128, heightPx = 128)),
+          "large",
+        )
       assertEquals("widthPx override should reach the RenderSpec", 128, large.width)
       assertEquals("heightPx override should reach the RenderSpec", 128, large.height)
     } finally {
@@ -624,7 +653,7 @@ class OverrideIntegrationTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val portrait = renderAndDecode(host, "previewId=portrait-rect", "portrait-default")
+      val portrait = renderAndDecode(host, preview("portrait-rect"), "portrait-default")
       assertEquals("manifest default width should be honoured", 60, portrait.width)
       assertEquals("manifest default height should be honoured", 120, portrait.height)
       assertTrue(
@@ -633,7 +662,11 @@ class OverrideIntegrationTest {
       )
 
       val landscape =
-        renderAndDecode(host, "previewId=portrait-rect;orientation=landscape", "landscape")
+        renderAndDecode(
+          host,
+          preview("portrait-rect", PreviewOverrides(orientation = Orientation.LANDSCAPE)),
+          "landscape",
+        )
       assertEquals("orientation=landscape should swap widthPx", 120, landscape.width)
       assertEquals("orientation=landscape should swap heightPx", 60, landscape.height)
       assertTrue(
@@ -643,7 +676,11 @@ class OverrideIntegrationTest {
 
       // Re-asserting portrait keeps the spec at base dims — a no-op swap.
       val explicitPortrait =
-        renderAndDecode(host, "previewId=portrait-rect;orientation=portrait", "portrait-explicit")
+        renderAndDecode(
+          host,
+          preview("portrait-rect", PreviewOverrides(orientation = Orientation.PORTRAIT)),
+          "portrait-explicit",
+        )
       assertEquals("orientation=portrait should leave widthPx alone", 60, explicitPortrait.width)
       assertEquals("orientation=portrait should leave heightPx alone", 120, explicitPortrait.height)
 
@@ -652,7 +689,10 @@ class OverrideIntegrationTest {
       val explicitLandscape =
         renderAndDecode(
           host,
-          "previewId=portrait-rect;widthPx=200;heightPx=80;orientation=landscape",
+          preview(
+            "portrait-rect",
+            PreviewOverrides(widthPx = 200, heightPx = 80, orientation = Orientation.LANDSCAPE),
+          ),
           "explicit-landscape",
         )
       assertEquals(
@@ -671,7 +711,10 @@ class OverrideIntegrationTest {
       val explicitTaller =
         renderAndDecode(
           host,
-          "previewId=portrait-rect;widthPx=40;heightPx=100;orientation=landscape",
+          preview(
+            "portrait-rect",
+            PreviewOverrides(widthPx = 40, heightPx = 100, orientation = Orientation.LANDSCAPE),
+          ),
           "explicit-taller",
         )
       assertEquals(
@@ -722,14 +765,22 @@ class OverrideIntegrationTest {
     host.start()
     try {
       // `id:desktop_small` is 1366×768dp at density 1.0 — landscape by nature.
-      val natural = renderAndDecode(host, "previewId=red-square;device=id:desktop_small", "natural")
+      val natural =
+        renderAndDecode(
+          host,
+          preview("red-square", PreviewOverrides(device = "id:desktop_small")),
+          "natural",
+        )
       assertEquals("device width should be honoured", 1366, natural.width)
       assertEquals("device height should be honoured", 768, natural.height)
 
       val portrait =
         renderAndDecode(
           host,
-          "previewId=red-square;device=id:desktop_small;orientation=portrait",
+          preview(
+            "red-square",
+            PreviewOverrides(device = "id:desktop_small", orientation = Orientation.PORTRAIT),
+          ),
           "device-portrait",
         )
       assertEquals("portrait should swap the device frame's width", 768, portrait.width)
@@ -740,7 +791,10 @@ class OverrideIntegrationTest {
       val landscape =
         renderAndDecode(
           host,
-          "previewId=red-square;device=id:desktop_small;orientation=landscape",
+          preview(
+            "red-square",
+            PreviewOverrides(device = "id:desktop_small", orientation = Orientation.LANDSCAPE),
+          ),
           "device-landscape",
         )
       assertEquals("landscape should leave a landscape device alone", 1366, landscape.width)
@@ -750,7 +804,14 @@ class OverrideIntegrationTest {
       val explicit =
         renderAndDecode(
           host,
-          "previewId=red-square;device=id:desktop_small;orientation=portrait;widthPx=300",
+          preview(
+            "red-square",
+            PreviewOverrides(
+              device = "id:desktop_small",
+              orientation = Orientation.PORTRAIT,
+              widthPx = 300,
+            ),
+          ),
           "device-explicit",
         )
       assertEquals("explicit widthPx should win over the orientation hint", 300, explicit.width)
@@ -800,7 +861,11 @@ class OverrideIntegrationTest {
     try {
       // Landscape base + orientation=landscape => no swap, stays 120×60.
       val landscapeNoOp =
-        renderAndDecode(host, "previewId=landscape-rect;orientation=landscape", "landscape-noop")
+        renderAndDecode(
+          host,
+          preview("landscape-rect", PreviewOverrides(orientation = Orientation.LANDSCAPE)),
+          "landscape-noop",
+        )
       assertEquals(
         "orientation=landscape on landscape base should not swap widthPx",
         120,
@@ -814,7 +879,11 @@ class OverrideIntegrationTest {
 
       // Sending the same payload again must produce identical dims (idempotent).
       val landscapeRepeat =
-        renderAndDecode(host, "previewId=landscape-rect;orientation=landscape", "landscape-repeat")
+        renderAndDecode(
+          host,
+          preview("landscape-rect", PreviewOverrides(orientation = Orientation.LANDSCAPE)),
+          "landscape-repeat",
+        )
       assertEquals(
         "repeated orientation=landscape must be idempotent on width",
         120,
@@ -828,7 +897,11 @@ class OverrideIntegrationTest {
 
       // Portrait base + orientation=portrait => no swap, stays 60×120 (symmetric branch).
       val portraitNoOp =
-        renderAndDecode(host, "previewId=portrait-rect;orientation=portrait", "portrait-noop")
+        renderAndDecode(
+          host,
+          preview("portrait-rect", PreviewOverrides(orientation = Orientation.PORTRAIT)),
+          "portrait-noop",
+        )
       assertEquals(
         "orientation=portrait on portrait base should not swap widthPx",
         60,
@@ -844,7 +917,7 @@ class OverrideIntegrationTest {
       val landscapeToPortrait =
         renderAndDecode(
           host,
-          "previewId=landscape-rect;orientation=portrait",
+          preview("landscape-rect", PreviewOverrides(orientation = Orientation.PORTRAIT)),
           "landscape-to-portrait",
         )
       assertEquals(
@@ -884,8 +957,18 @@ class OverrideIntegrationTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val light = renderAndDecode(host, "previewId=dark-aware;uiMode=light", "uimode-light")
-      val dark = renderAndDecode(host, "previewId=dark-aware;uiMode=dark", "uimode-dark")
+      val light =
+        renderAndDecode(
+          host,
+          preview("dark-aware", PreviewOverrides(uiMode = UiMode.LIGHT)),
+          "uimode-light",
+        )
+      val dark =
+        renderAndDecode(
+          host,
+          preview("dark-aware", PreviewOverrides(uiMode = UiMode.DARK)),
+          "uimode-dark",
+        )
 
       // `LocalSystemTheme provides SystemTheme.Light/Dark` is what flips
       // `isSystemInDarkTheme()` on Compose Desktop. Without the override reaching the
@@ -913,7 +996,7 @@ class OverrideIntegrationTest {
    * `LocaleList` / JVM-default-`Locale` state, and `PseudolocaleOverrideExtensionDesktop` — planned
    * from the **extension bag** — installs the around-composable that flips `LocalLayoutDirection`
    * and pseudolocalises `stringResource(...)`. But `localeTag` travels as a typed wire token, and
-   * `JsonRpcServer.encodeRenderPayload` nulls tokenised fields out of the bag, so the planner was
+   * `JsonRpcServer.renderTargetFor` nulls tokenised fields out of the bag, so the planner was
    * handed `localeTag = null` on every payload-driven render and abstained: `?localeTag=ar-XB` on
    * the preview server came back plain LTR English, looking exactly like the feature was off. The
    * Gradle path plans from `params.locale` instead, which is why the baked catalog PNGs were right
@@ -971,14 +1054,19 @@ class OverrideIntegrationTest {
       )
     host.start()
     try {
-      val base = renderAndDecode(host, "previewId=direction-aware", "pseudo-base")
+      val base = renderAndDecode(host, preview("direction-aware"), "pseudo-base")
       val baseRedPct = pixelMatchPct(base, expectedRgb = 0xEF5350, perChannelTolerance = 8)
       assertTrue(
         "no override must stay LTR (red); got ${"%.2f".format(baseRedPct * 100)}%",
         baseRedPct >= 0.95,
       )
 
-      val bidi = renderAndDecode(host, "previewId=direction-aware;localeTag=ar-XB", "pseudo-bidi")
+      val bidi =
+        renderAndDecode(
+          host,
+          preview("direction-aware", PreviewOverrides(localeTag = "ar-XB")),
+          "pseudo-bidi",
+        )
       val bidiBluePct = pixelMatchPct(bidi, expectedRgb = 0x42A5F5, perChannelTolerance = 8)
       assertTrue(
         "localeTag=ar-XB must plan PseudolocaleOverrideExtensionDesktop so the composition flips " +
@@ -991,7 +1079,11 @@ class OverrideIntegrationTest {
       // `stringResource`) without touching layout direction, so this render must stay red. A blue
       // one would mean the wrap flips direction for every pseudolocale, not just the bidi one.
       val accent =
-        renderAndDecode(host, "previewId=direction-aware;localeTag=en-XA", "pseudo-accent")
+        renderAndDecode(
+          host,
+          preview("direction-aware", PreviewOverrides(localeTag = "en-XA")),
+          "pseudo-accent",
+        )
       val accentRedPct = pixelMatchPct(accent, expectedRgb = 0xEF5350, perChannelTolerance = 8)
       assertTrue(
         "localeTag=en-XA must stay LTR; got ${"%.2f".format(accentRedPct * 100)}% red",
@@ -1036,9 +1128,19 @@ class OverrideIntegrationTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val base = renderAndDecode(host, "previewId=locale-aware", "locale-base")
-      val german = renderAndDecode(host, "previewId=locale-aware;localeTag=de", "locale-de")
-      val arabic = renderAndDecode(host, "previewId=locale-aware;localeTag=ar", "locale-ar")
+      val base = renderAndDecode(host, preview("locale-aware"), "locale-base")
+      val german =
+        renderAndDecode(
+          host,
+          preview("locale-aware", PreviewOverrides(localeTag = "de")),
+          "locale-de",
+        )
+      val arabic =
+        renderAndDecode(
+          host,
+          preview("locale-aware", PreviewOverrides(localeTag = "ar")),
+          "locale-ar",
+        )
 
       val baseRedPct = pixelMatchPct(base, expectedRgb = 0xEF5350, perChannelTolerance = 8)
       assertTrue(
@@ -1061,7 +1163,7 @@ class OverrideIntegrationTest {
       // The JVM default Locale switch must not outlive the render: an un-overridden render after
       // two
       // overridden ones reads the base locale (red) again.
-      val baseAfter = renderAndDecode(host, "previewId=locale-aware", "locale-base-after")
+      val baseAfter = renderAndDecode(host, preview("locale-aware"), "locale-base-after")
       val baseAfterRedPct =
         pixelMatchPct(baseAfter, expectedRgb = 0xEF5350, perChannelTolerance = 8)
       assertTrue(
@@ -1144,17 +1246,17 @@ class OverrideIntegrationTest {
       )
     host.start()
     try {
-      val baseline = renderAndDecode(host, "previewId=wallpaper-aware", "wallpaper-baseline")
+      val baseline = renderAndDecode(host, preview("wallpaper-aware"), "wallpaper-baseline")
       val red =
         renderAndDecode(
           host,
-          "previewId=wallpaper-aware;overrides=${encodeWallpaperBag("#FFFF0000")}",
+          preview("wallpaper-aware", wallpaperBag("#FFFF0000")),
           "wallpaper-red",
         )
       val blue =
         renderAndDecode(
           host,
-          "previewId=wallpaper-aware;overrides=${encodeWallpaperBag("#FF0000FF")}",
+          preview("wallpaper-aware", wallpaperBag("#FF0000FF")),
           "wallpaper-blue",
         )
 
@@ -1203,8 +1305,18 @@ class OverrideIntegrationTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val unscaled = renderAndDecode(host, "previewId=font-scale;fontScale=1.0", "fontscale-1")
-      val scaled = renderAndDecode(host, "previewId=font-scale;fontScale=2.0", "fontscale-2")
+      val unscaled =
+        renderAndDecode(
+          host,
+          preview("font-scale", PreviewOverrides(fontScale = 1.0f)),
+          "fontscale-1",
+        )
+      val scaled =
+        renderAndDecode(
+          host,
+          preview("font-scale", PreviewOverrides(fontScale = 2.0f)),
+          "fontscale-2",
+        )
 
       // FontScaleAwareSquare paints black at fontScale<1.5, white at fontScale>=1.5. The override
       // reaches the composition iff `LocalDensity.current.fontScale` reflects the spec's value.
@@ -1263,7 +1375,7 @@ class OverrideIntegrationTest {
     host.start()
     try {
       // No seed: the `fill` knob returns its author default (red).
-      val default = renderAndDecode(host, "previewId=overridable", "named-default")
+      val default = renderAndDecode(host, preview("overridable"), "named-default")
       val defaultRedPct = pixelMatchPct(default, expectedRgb = 0xEF5350, perChannelTolerance = 8)
       assertTrue(
         "unseeded fill should be the author-default red; got ${"%.2f".format(defaultRedPct * 100)}%",
@@ -1276,7 +1388,7 @@ class OverrideIntegrationTest {
       val seeded =
         renderAndDecode(
           host,
-          "previewId=overridable;overrides=${encodeNamedBag("fill", "#FF42A5F5")}",
+          preview("overridable", namedBag("fill", "#FF42A5F5")),
           "named-seeded",
         )
       val seededBluePct = pixelMatchPct(seeded, expectedRgb = 0x42A5F5, perChannelTolerance = 8)
@@ -1345,7 +1457,7 @@ class OverrideIntegrationTest {
       val seeded =
         renderAndDecode(
           host,
-          "previewId=remembered;overrides=${encodeNamedBag("fill", "#FF42A5F5")}",
+          preview("remembered", namedBag("fill", "#FF42A5F5")),
           "remembered-seeded",
         )
       val bluePct = pixelMatchPct(seeded, expectedRgb = 0x42A5F5, perChannelTolerance = 8)
@@ -1405,7 +1517,7 @@ class OverrideIntegrationTest {
       val seeded =
         renderAndDecode(
           host,
-          "previewId=animated;overrides=${encodeNamedBag("fill", "#FF42A5F5")}",
+          preview("animated", namedBag("fill", "#FF42A5F5")),
           "animated-seeded",
         )
       val bluePct = pixelMatchPct(seeded, expectedRgb = 0x42A5F5, perChannelTolerance = 8)
@@ -1440,7 +1552,13 @@ class OverrideIntegrationTest {
       )
     val host = DesktopHost(previewSpecResolver = { id -> baseSpec.takeIf { id == "wrapped" } })
 
-    val rotated = host.specFromPreviewIdPayload("previewId=wrapped;orientation=portrait")
+    val rotated =
+      host.specFromPreviewTarget(
+        RenderTarget.Preview(
+          previewId = "wrapped",
+          overrides = PreviewOverrides(orientation = Orientation.PORTRAIT),
+        )
+      )
 
     assertNotNull(rotated)
     assertEquals(400, rotated!!.widthPx)
@@ -1450,8 +1568,16 @@ class OverrideIntegrationTest {
 
     // Already portrait: no rotation, so the wrap intent is untouched.
     val untouched =
-      host.specFromPreviewIdPayload(
-        "previewId=wrapped;widthPx=400;heightPx=800;orientation=portrait"
+      host.specFromPreviewTarget(
+        RenderTarget.Preview(
+          previewId = "wrapped",
+          overrides =
+            PreviewOverrides(
+              widthPx = 400,
+              heightPx = 800,
+              orientation = Orientation.PORTRAIT,
+            ),
+        )
       )
     assertFalse("explicit pixels suppress the swap", untouched!!.wrapWidth)
     assertTrue(untouched.wrapHeight)
@@ -1518,7 +1644,7 @@ class OverrideIntegrationTest {
       val seeded =
         renderAndDecode(
           host,
-          "previewId=overridable;overrides=${encodeNamedBag("fill", "#FF42A5F5")}",
+          preview("overridable", namedBag("fill", "#FF42A5F5")),
           "named-seeded-gated",
         )
       val seededBluePct = pixelMatchPct(seeded, expectedRgb = 0x42A5F5, perChannelTolerance = 8)
@@ -1534,9 +1660,9 @@ class OverrideIntegrationTest {
 
   /**
    * **Regression guard for the `serve` / preview.coo.ee named-override drop.** The bundle-backed
-   * live daemon renders via a `previewId=<id>` payload (`JsonRpcServer.encodeRenderPayload`), which
+   * live daemon renders via a `previewId=<id>` payload (`JsonRpcServer.renderTargetFor`), which
    * [DesktopHost.dispatchRender] routes through [DesktopHost.specFromPreviewIdPayload] — NOT the
-   * `className=`-based [RenderSpec.parseFromPayload] that every other test here exercises via
+   * `className=`-based [RenderSpec] that every other test here exercises via
    * [PreviewManifestRouter] (the router rewrites `previewId` → `className=…`). That previewId path
    * rebuilt the spec with `base.copy(...)` and **dropped the `overrides=<b64>` extension bag**, so
    * a `?knob.<key>=…` edit silently no-op'd on the deployed server while display axes (fontScale /
@@ -1571,9 +1697,7 @@ class OverrideIntegrationTest {
     host.start()
     try {
       val request =
-        RenderRequest.Render(
-          payload = "previewId=overridable;overrides=${encodeNamedBag("fill", "#FF42A5F5")}"
-        )
+        RenderRequest.Render(target = preview("overridable", namedBag("fill", "#FF42A5F5")))
       val result = host.submit(request, timeoutMs = 30_000)
       assertNotNull("pngPath must be populated", result.pngPath)
       val png = ByteArrayInputStream(File(result.pngPath!!).readBytes()).use { ImageIO.read(it) }
@@ -1633,9 +1757,7 @@ class OverrideIntegrationTest {
     try {
       val blue = 0xFF42A5F5L
       val request =
-        RenderRequest.Render(
-          payload = "previewId=knobbed;overrides=${encodeTextBag("topArgb" to blue.toString())}"
-        )
+        RenderRequest.Render(target = preview("knobbed", textBag("topArgb" to blue.toString())))
       val result = host.submit(request, timeoutMs = 30_000)
       assertNotNull("pngPath must be populated", result.pngPath)
       val png = ByteArrayInputStream(File(result.pngPath!!).readBytes()).use { ImageIO.read(it) }
@@ -1705,9 +1827,7 @@ class OverrideIntegrationTest {
     try {
       val blue = 0xFF42A5F5L
       host.submit(
-        RenderRequest.Render(
-          payload = "previewId=knobbed;overrides=${encodeTextBag("topArgb" to blue.toString())}"
-        ),
+        RenderRequest.Render(target = preview("knobbed", textBag("topArgb" to blue.toString()))),
         timeoutMs = 30_000,
       )
 
@@ -1772,7 +1892,11 @@ class OverrideIntegrationTest {
       )
     host.start()
     try {
-      val result = host.submit(RenderRequest.Render(payload = "previewId=knobbed"), 30_000)
+      val result =
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "knobbed")),
+          30_000,
+        )
       assertNotNull("pngPath must be populated", result.pngPath)
       val png = ByteArrayInputStream(File(result.pngPath!!).readBytes()).use { ImageIO.read(it) }
       assertTrue(
@@ -1816,12 +1940,14 @@ class OverrideIntegrationTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val default = renderAndDecode(host, "previewId=ambient-primary", "theme-default")
+      val default = renderAndDecode(host, preview("ambient-primary"), "theme-default")
       val themed =
         renderAndDecode(
           host,
-          "previewId=ambient-primary;overrides=" +
-            encodeThemeProviderBag("ee.schimke.composeai.daemon.BluePrimaryThemeProvider"),
+          preview(
+            "ambient-primary",
+            themeProviderBag("ee.schimke.composeai.daemon.BluePrimaryThemeProvider"),
+          ),
           "theme-blue",
         )
 
@@ -1900,8 +2026,10 @@ class OverrideIntegrationTest {
       val themed =
         renderAndDecode(
           host,
-          "previewId=structural;overrides=" +
-            encodeThemeProviderBag("ee.schimke.composeai.daemon.BluePrimaryThemeProvider"),
+          preview(
+            "structural",
+            themeProviderBag("ee.schimke.composeai.daemon.BluePrimaryThemeProvider"),
+          ),
           "structural-themed",
         )
       // ...and the theme composed OUTSIDE it, so the body reads the declared theme's primary.
@@ -1955,8 +2083,10 @@ class OverrideIntegrationTest {
       val bogus =
         renderAndDecode(
           host,
-          "previewId=wrapped-ambient;overrides=" +
-            encodeThemeProviderBag("ee.schimke.composeai.daemon.NoSuchThemeProvider"),
+          preview(
+            "wrapped-ambient",
+            themeProviderBag("ee.schimke.composeai.daemon.NoSuchThemeProvider"),
+          ),
           "bad-theme",
         )
       // Declared wrapper (blue) still applied — the bogus override didn't strip it.
@@ -2247,10 +2377,10 @@ class OverrideIntegrationTest {
 
   private fun renderAndDecode(
     host: PreviewManifestRouter,
-    payload: String,
+    target: RenderTarget,
     label: String,
   ): java.awt.image.BufferedImage {
-    val request = RenderRequest.Render(payload = payload)
+    val request = RenderRequest.Render(target = target)
     val result = host.submit(request, timeoutMs = 30_000)
     assertNotNull("$label: pngPath must be populated", result.pngPath)
     val pngFile = File(result.pngPath!!)
@@ -2264,55 +2394,26 @@ class OverrideIntegrationTest {
    * the expected `0xRRGGBB` colour. Inlined here rather than imported from the harness's
    * `PixelDiff` to avoid the same circular dep that [RenderEngineTest]'s helper sidesteps.
    */
-  private fun encodeWallpaperBag(seedColor: String): String {
-    val json = Json { encodeDefaults = false }
-    val bag = PreviewOverrides(wallpaper = WallpaperOverride(seedColor = seedColor))
-    return Base64.getUrlEncoder()
-      .withoutPadding()
-      .encodeToString(
-        json.encodeToString(PreviewOverrides.serializer(), bag).toByteArray(Charsets.UTF_8)
-      )
-  }
+  private fun wallpaperBag(seedColor: String): PreviewOverrides =
+    PreviewOverrides(wallpaper = WallpaperOverride(seedColor = seedColor))
 
   /** A base64 `overrides=` bag carrying a single `themeProvider` FQN. */
-  private fun encodeThemeProviderBag(fqn: String): String {
-    val json = Json { encodeDefaults = false }
-    val bag = PreviewOverrides(themeProvider = fqn)
-    return Base64.getUrlEncoder()
-      .withoutPadding()
-      .encodeToString(
-        json.encodeToString(PreviewOverrides.serializer(), bag).toByteArray(Charsets.UTF_8)
-      )
-  }
+  private fun themeProviderBag(fqn: String): PreviewOverrides =
+    PreviewOverrides(themeProvider = fqn)
 
   /** A base64 `overrides=` bag carrying a single named colour knob (`key = argb`). */
-  private fun encodeNamedBag(key: String, argb: String): String {
-    val json = Json { encodeDefaults = false }
-    val bag = PreviewOverrides(namedOverrides = mapOf(key to PreviewOverrideValue.ColorValue(argb)))
-    return Base64.getUrlEncoder()
-      .withoutPadding()
-      .encodeToString(
-        json.encodeToString(PreviewOverrides.serializer(), bag).toByteArray(Charsets.UTF_8)
-      )
-  }
+  private fun namedBag(key: String, argb: String): PreviewOverrides =
+    PreviewOverrides(namedOverrides = mapOf(key to PreviewOverrideValue.ColorValue(argb)))
 
   /**
    * A `namedOverrides` bag of plain **text** values — the shape a parameter-knob seed takes.
    * [encodeNamedBag]'s `ColorValue` has no parameter-knob equivalent (`Color` is not a seedable
    * kind), so a colour seed is deliberately dropped by `PreviewKnobSeeds` and cannot drive one.
    */
-  private fun encodeTextBag(vararg entries: Pair<String, String>): String {
-    val json = Json { encodeDefaults = false }
-    val bag =
-      PreviewOverrides(
-        namedOverrides = entries.associate { (k, v) -> k to PreviewOverrideValue.StringValue(v) }
-      )
-    return Base64.getUrlEncoder()
-      .withoutPadding()
-      .encodeToString(
-        json.encodeToString(PreviewOverrides.serializer(), bag).toByteArray(Charsets.UTF_8)
-      )
-  }
+  private fun textBag(vararg entries: Pair<String, String>): PreviewOverrides =
+    PreviewOverrides(
+      namedOverrides = entries.associate { (k, v) -> k to PreviewOverrideValue.StringValue(v) }
+    )
 
   private fun pixelMatchPct(
     img: java.awt.image.BufferedImage,

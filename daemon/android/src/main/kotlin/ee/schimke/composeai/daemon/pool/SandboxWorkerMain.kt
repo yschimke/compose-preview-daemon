@@ -103,7 +103,7 @@ object SandboxWorkerMain {
             try {
               val result =
                 host.submit(
-                  RenderRequest.Render(id = request.id, payload = request.payload),
+                  RenderRequest.Render(id = request.id, target = request.target),
                   timeoutMs = request.timeoutMs,
                 )
               WorkerResponse.Result(RenderResultDto.of(result))

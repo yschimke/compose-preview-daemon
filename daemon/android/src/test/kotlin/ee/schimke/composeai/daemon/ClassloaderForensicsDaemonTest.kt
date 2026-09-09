@@ -25,7 +25,7 @@ import org.junit.Test
  * discipline (`Thread.currentThread().contextClassLoader = effectiveLoader`).
  *
  * **Forensic-dump payload routing.** Per the design's "don't widen the core's sealed hierarchy"
- * constraint, we use `RobolectricHost.FORENSIC_DUMP_PREFIX` to route through the existing
+ * constraint, we use [RenderTarget.Forensic] to route through the existing
  * `RenderRequest.Render.payload` field rather than introducing a new `RenderRequest` variant.
  *
  * Output: `daemon/android/build/reports/classloader-forensics/daemon.json`. The diff tool
@@ -68,10 +68,10 @@ class ClassloaderForensicsDaemonTest {
     val host = RobolectricHost(userClassloaderHolder = holder)
     host.start()
     try {
-      val payload =
-        "${RobolectricHost.FORENSIC_DUMP_PREFIX}${outFile.absolutePath};" +
-          "${RobolectricHost.FORENSIC_SURVEY_KEY}=${survey.joinToString(",")}"
-      val request = RenderRequest.Render(payload = payload)
+      val request =
+        RenderRequest.Render(
+          target = RenderTarget.Forensic(outPath = outFile.absolutePath, survey = survey)
+        )
       val result = host.submit(request, timeoutMs = 180_000)
       // `pngPath` carries the dump path back via the same field (no need to widen RenderResult).
       val reported = result.pngPath

@@ -44,7 +44,7 @@ class FigmaSvgDeviceFrameTest {
     host.start()
     try {
       host.submit(
-        RenderRequest.Render(payload = "previewId=wear-device-frame"),
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "wear-device-frame")),
         timeoutMs = 120_000,
       )
 

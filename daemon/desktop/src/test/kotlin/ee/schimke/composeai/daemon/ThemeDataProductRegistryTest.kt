@@ -263,7 +263,7 @@ class ThemeDataProductRegistryTest {
         host.submit(
           RenderRequest.Render(
             id = RenderHost.nextRequestId(),
-            payload = "previewId=preview-3;mode=theme",
+            target = RenderTarget.Preview(previewId = "preview-3", renderMode = "theme"),
           )
         )
       registry.onRender("preview-3", result)

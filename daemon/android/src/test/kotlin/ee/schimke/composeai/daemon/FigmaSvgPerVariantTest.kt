@@ -1,5 +1,7 @@
 package ee.schimke.composeai.daemon
 
+import ee.schimke.composeai.daemon.protocol.PreviewOverrides
+import ee.schimke.composeai.daemon.protocol.UiMode
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -59,11 +61,15 @@ class FigmaSvgPerVariantTest {
     host.start()
     try {
       host.submit(
-        RenderRequest.Render(payload = "previewId=dark-aware-light;uiMode=light"),
+        RenderRequest.Render(
+          target = preview("dark-aware-light", PreviewOverrides(uiMode = UiMode.LIGHT))
+        ),
         timeoutMs = 120_000,
       )
       host.submit(
-        RenderRequest.Render(payload = "previewId=dark-aware-dark;uiMode=dark"),
+        RenderRequest.Render(
+          target = preview("dark-aware-dark", PreviewOverrides(uiMode = UiMode.DARK))
+        ),
         timeoutMs = 120_000,
       )
 
@@ -109,22 +115,39 @@ class FigmaSvgPerVariantTest {
     val host = RobolectricHost()
     host.start()
     try {
-      val basePayload =
-        "previewId=dark-aware;" +
-          "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-          "functionName=DarkAwareSquare;" +
-          "widthPx=48;heightPx=48;density=1.0;showBackground=false;"
+      val baseSpec =
+        RenderSpec(
+          previewId = "dark-aware",
+          className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+          functionName = "DarkAwareSquare",
+          widthPx = 48,
+          heightPx = 48,
+          density = 1.0f,
+          showBackground = false,
+        )
       val lightResult =
         host.submit(
           RenderRequest.Render(
-            payload = basePayload + "uiMode=light;outputBaseName=dark-aware-light"
+            target =
+              RenderTarget.Spec(
+                baseSpec.copy(
+                  uiMode = RenderSpec.SpecUiMode.LIGHT,
+                  outputBaseName = "dark-aware-light",
+                )
+              )
           ),
           timeoutMs = 120_000,
         )
       val darkResult =
         host.submit(
           RenderRequest.Render(
-            payload = basePayload + "uiMode=dark;outputBaseName=dark-aware-dark"
+            target =
+              RenderTarget.Spec(
+                baseSpec.copy(
+                  uiMode = RenderSpec.SpecUiMode.DARK,
+                  outputBaseName = "dark-aware-dark",
+                )
+              )
           ),
           timeoutMs = 120_000,
         )

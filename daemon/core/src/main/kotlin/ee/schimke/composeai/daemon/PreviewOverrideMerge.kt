@@ -226,11 +226,8 @@ public fun PreviewOverrides?.withSizeBounds(source: PreviewOverrides?): PreviewO
  * Put a pseudolocale [localeTag] (`en-XA` / `ar-XB`) back onto an (optionally null) extension bag,
  * so the renderer's `PreviewOverrideExtensions.plan(spec.overrides)` sees the tag the spec carries.
  *
- * **Why the renderer has to do this.** `localeTag` reaches a backend as a **typed wire token**
- * (`…;localeTag=ar-XB;…`), which `RenderSpec.parseFromPayload` reads into `spec.localeTag`.
- * `JsonRpcServer.encodeRenderPayload` deliberately nulls every tokenised field out of the base64
- * `overrides=<bag>` it emits alongside, so nothing travels twice — and
- * `PreviewOverridesEncodingCompletenessTest.tokenisedFieldsAreNotRestatedInTheBag` pins that. But
+ * **Why the renderer has to do this.** `localeTag` is applied by the renderer itself, so the
+ * backends read it off [RenderSpec.localeTag] rather than out of the overrides bag. But
  * `PseudolocalePreviewOverrideExtension` (Android) / `…Desktop` plan off the **bag**, so on every
  * daemon lane the planner was handed `localeTag = null` and abstained: the qualifier / `LocaleList`
  * half of the override applied, the around-composable that pseudolocalises `stringResource(...)`
@@ -380,7 +377,7 @@ public fun mergePreviewOverrides(
       ?: base.heightPx
   val effectiveOrientation = overrides.orientation ?: base.orientation
   // Rotate the frame when the effective orientation contradicts it (#3547) — the live-session
-  // (`stream/start`, `setOverrides`) twin of the same swap in `JsonRpcServer.encodeRenderPayload`
+  // (`stream/start`, `setOverrides`) twin of the same swap in `JsonRpcServer.renderTargetFor`
   // and both routers, so the viewer's Orientation control means the same thing on every lane.
   // Explicit `widthPx` / `heightPx` outrank it; `device` does not, being the frame under rotation.
   // Safe to apply over an already-rotated base because `orientedPx` only swaps a frame that
