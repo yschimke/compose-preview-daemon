@@ -40,8 +40,7 @@ tasks.register("ktfmtFormatAll") {
 // build releases at the tag. (compose-ai-tools split its `data/` modules onto a second line to
 // avoid re-uploading 58 unchanged artifacts per release; here they are the bulk of the build and
 // change with the renderers, so one train is the honest shape until measured otherwise.)
-val printPublishTasks by
-  tasks.registering {
+tasks.register("printPublishTasks") {
     group = "publishing"
     description = "Print the publish task path for each published module."
     notCompatibleWithConfigurationCache("Inspects the project tree at execution time")

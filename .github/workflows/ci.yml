@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Every module's unit tests, plus the ABI dumps. `jvmTest` / `desktopTest` alongside `test`
+  # Every module's unit tests, plus the ABI dumps. `jvmTest` alongside `test`
   # because a Kotlin Multiplatform module names its JVM tests that way and registers no `test`;
   # `checkKotlinAbi` unqualified so Gradle runs it wherever a module declares `abiValidation()`.
   # `--continue` so one red module reports every other module's result in the same run.
@@ -32,7 +32,7 @@ jobs:
           rw-token: ${{ github.event_name == 'push' && (secrets.BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN || secrets.BUILDFETCH_GRADLE_REMOTE_CACHE_TOKEN) || '' }}
           ro-token: ${{ secrets.BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN_RO || secrets.BUILDFETCH_GRADLE_REMOTE_CACHE_TOKEN_RO }}
       - name: Run module tests
-        run: ./gradlew test jvmTest desktopTest checkKotlinAbi --continue
+        run: ./gradlew test jvmTest checkKotlinAbi --continue
       - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
