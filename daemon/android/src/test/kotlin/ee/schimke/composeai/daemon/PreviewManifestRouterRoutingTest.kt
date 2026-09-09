@@ -76,7 +76,7 @@ class PreviewManifestRouterRoutingTest {
     val baked = router.routedSpec(previewId)
     assertEquals(
       PreviewOverrideValue.BooleanValue(false),
-      baked!!.overrides!!.namedOverrides!!["checked"],
+      baked.overrides?.namedOverrides?.get("checked"),
     )
 
     val live =
@@ -84,7 +84,7 @@ class PreviewManifestRouterRoutingTest {
     val layered = router.routedSpec(previewId, live)
     assertEquals(
       PreviewOverrideValue.BooleanValue(true),
-      layered!!.overrides!!.namedOverrides!!["checked"],
+      layered.overrides?.namedOverrides?.get("checked"),
     )
   }
 
@@ -154,7 +154,7 @@ class PreviewManifestRouterRoutingTest {
       (routed.previewParameterLimit == 3),
     )
     val spec = routed
-    assertEquals("com.example.ThemeProvider", spec!!.previewParameterProviderClassName)
+    assertEquals("com.example.ThemeProvider", spec.previewParameterProviderClassName)
     assertEquals(3, spec.previewParameterLimit)
   }
 
@@ -367,7 +367,7 @@ class PreviewManifestRouterRoutingTest {
       )
 
     val routed = PreviewManifestRouter(manifest = manifest).routedSpec("wearthemecatalog__Dark")
-    val spec = routed!!
+    val spec = routed
 
     assertTrue(
       "Wear theme catalogs must retain their strategy kind. spec=$routed",
