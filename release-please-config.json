@@ -9,7 +9,6 @@
       "package-name": "compose-preview-daemon",
       "include-component-in-tag": false,
       "draft": true,
-      "release-as": "3.0.0",
       "changelog-sections": [
         {
           "type": "feat",

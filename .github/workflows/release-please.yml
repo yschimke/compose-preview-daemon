@@ -33,6 +33,31 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+      # A *draft* GitHub Release does NOT create its git tag: GitHub only writes the tag ref when
+      # the release is published. But `release.yml` checks out `ref: <tag>`, so create the tag
+      # now, at the release PR's merge commit. Idempotent: skips if the ref already exists (a
+      # re-run, or a future non-draft release-please). v3.0.0 was cut without this step and both
+      # publish jobs died at checkout on the missing tag.
+      #
+      # `!cancelled()` rather than the default success-only gate: once the action reports
+      # `release_created=true`, a later failure must not skip tag creation, or the manifest names
+      # a version with no tag and later runs re-list old history.
+      - name: Ensure the release tag exists for the draft
+        if: ${{ !cancelled() && steps.rp.outputs.release_created == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.rp.outputs.tag_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
+            echo "tag ${TAG} already exists — leaving it."
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f ref="refs/tags/${TAG}" -f sha="${SHA}"
+            echo "created tag ${TAG} at ${SHA}."
+          fi
+
   release:
     needs: release-please
     if: ${{ !cancelled() && needs.release-please.outputs.release_created == 'true' }}
