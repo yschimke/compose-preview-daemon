@@ -1566,7 +1566,14 @@ class OverrideIntegrationTest {
     assertTrue("a rotated frame must wrap width instead", rotated.wrapWidth)
     assertFalse("...and no longer wrap height", rotated.wrapHeight)
 
-    // Already portrait: no rotation, so the wrap intent is untouched.
+    // Explicit pixels suppress the swap — and pin both axes, so neither is free to wrap.
+    //
+    // That second half is a **fix**, not a restatement. This lane used to carry the base's wrap
+    // intent through untouched, so a caller asking for exactly 400×800 got a render cropped to the
+    // composable's intrinsic height instead: the axis it had just pinned wrap-contented anyway.
+    // The router and the held-session lane both cleared the flag already (see the shared
+    // `RenderSpec.mergedWith`); this lane — the bundle-backed live daemon's — was the one that
+    // never was.
     val untouched =
       host.specFromPreviewTarget(
         RenderTarget.Preview(
@@ -1579,8 +1586,10 @@ class OverrideIntegrationTest {
             ),
         )
       )
-    assertFalse("explicit pixels suppress the swap", untouched!!.wrapWidth)
-    assertTrue(untouched.wrapHeight)
+    assertEquals("explicit pixels suppress the swap", 400, untouched!!.widthPx)
+    assertEquals(800, untouched.heightPx)
+    assertFalse("an explicitly sized axis must not wrap", untouched.wrapWidth)
+    assertFalse("...on either axis", untouched.wrapHeight)
   }
 
   /**

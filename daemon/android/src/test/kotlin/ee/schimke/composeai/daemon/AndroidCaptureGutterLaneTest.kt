@@ -177,6 +177,48 @@ class AndroidCaptureGutterLaneTest {
     )
   }
 
+  /**
+   * The **held-session** lane — `interactive/start`, `recording/start`, `stream/start` — resolves
+   * its spec through the router's `previewSpecResolver`, not through `routeTarget`. That resolver
+   * did not carry the gutter, so scrubbing a guttered preview in the panel resized it the moment
+   * the session took over: exactly the failure the desktop twin's resolver comment describes, on
+   * the backend that never got the fix.
+   *
+   * It stayed hidden because the one-shot lane re-read the gutter off the manifest entry inside the
+   * router, so only the held lane was short. With one shared merge there is only the resolved spec,
+   * and the gap has nowhere left to hide.
+   */
+  @Test
+  fun `the held-session resolver carries a declared gutter`() {
+    val entry =
+      PreviewManifestEntry(
+        id = "guttered",
+        className = "com.example.FooKt",
+        functionName = "Foo",
+        params =
+          PreviewParamsEntry(
+            widthDp = 32,
+            heightDp = 32,
+            density = 1.0f,
+            captureGutter = CaptureGutterDto(start = 4, top = 4, end = 4, bottom = 5),
+          ),
+      )
+
+    val spec = entry.renderSpec()
+
+    assertTrue(
+      "a held session must compose the same gutter the one-shot render does",
+      spec.hasCaptureGutter(),
+    )
+    assertEquals(4, spec.gutterStartDp)
+    assertEquals(4, spec.gutterTopDp)
+    assertEquals(4, spec.gutterEndDp)
+    assertEquals(5, spec.gutterBottomDp)
+    // …and survives the shared override merge untouched, with or without an override in play.
+    assertEquals(5, spec.mergedWith(null).gutterBottomDp)
+    assertEquals(5, spec.mergedWith(PreviewOverrides(uiMode = UiMode.DARK)).gutterBottomDp)
+  }
+
   @Test
   fun aGutteredRenderGrowsTheCanvasAndLeavesTheComponentAlone() {
     val outputDir = tempFolder.newFolder("renders-gutter")
