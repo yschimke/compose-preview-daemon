@@ -52,6 +52,22 @@ sealed interface WorkerRequest {
    */
   @Serializable @SerialName("swap") data object Swap : WorkerRequest
 
+  /**
+   * Adoption of a pre-booted **spare** worker (SANDBOX-POOL.md § "Spare workers"): the daemon that
+   * takes the worker over hands it the catalog it will render — the `composeai.*` / `robolectric.*`
+   * / `android.*` / `roborazzi.*` system properties the pool would otherwise have forwarded at
+   * launch, `composeai.daemon.userClassDirs` among them. The worker applies every property,
+   * rebuilds its child user classloader from the new class dirs, and watches [parentPid] so it
+   * halts with the daemon that adopted it. Replies [WorkerResponse.Configured].
+   *
+   * A worker the pool spawned itself never receives this: it inherited the same properties on its
+   * command line.
+   */
+  @Serializable
+  @SerialName("configure")
+  data class Configure(val systemProperties: Map<String, String>, val parentPid: Long? = null) :
+    WorkerRequest
+
   /** Drain and exit. The worker replies [WorkerResponse.Ok] and then closes the socket. */
   @Serializable @SerialName("shutdown") data object Shutdown : WorkerRequest
 }
@@ -84,6 +100,12 @@ sealed interface WorkerResponse {
   @Serializable
   @SerialName("failed")
   data class Failed(val id: Long, val diagnostic: String) : WorkerResponse
+
+  /**
+   * Reply to [WorkerRequest.Configure]: the adopted worker's process id, which the pool records in
+   * place of the [Ready] it never saw (the spare booted under someone else's supervision).
+   */
+  @Serializable @SerialName("configured") data class Configured(val pid: Long) : WorkerResponse
 
   /** Acknowledgement for the non-render requests. */
   @Serializable @SerialName("ok") data object Ok : WorkerResponse

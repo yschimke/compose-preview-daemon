@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon.client
 
+import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.protocol.DaemonLaunchDescriptor
 import ee.schimke.composeai.io.classpathArgFile
 import java.io.File
@@ -11,11 +12,66 @@ import kotlinx.serialization.json.JsonObject
  * Production [DaemonClientFactory]: forks a JVM per [DaemonLaunchDescriptor] and pipes its stdio
  * into a [DaemonClient]. Mirrors `RealDesktopHarnessLauncher` from `:daemon:harness`.
  */
-public class SubprocessDaemonClientFactory : DaemonClientFactory {
+public class SubprocessDaemonClientFactory(
+  /**
+   * Pre-booted sandbox workers to hand each Android daemon (SANDBOX-POOL.md § "Spare workers").
+   * `null` — the default, and every launch outside a long-lived server — spawns daemons exactly as
+   * before. With a pool, an Android launch whose sandbox pool has more than one slot takes the warm
+   * spares of its overlay signature via `composeai.daemon.sandboxWorker.spares`, and the pool is
+   * asked to top that signature back up for the next launch.
+   */
+  private val sparePool: SandboxSparePool? = null
+) : DaemonClientFactory {
   override fun spawn(workspaceId: WorkspaceId, descriptor: DaemonLaunchDescriptor): DaemonSpawn {
     require(descriptor.enabled) {
       "daemon disabled for ${descriptor.modulePath} — set composePreview { daemon { enabled = true } }"
     }
+    val launch = withReservedSpares(descriptor)
+    return spawnProcess(workspaceId, launch.descriptor).also {
+      // Demand-driven: the signature this launch used is the one worth keeping warm.
+      sparePool?.takeIf { launch.spareEligible }?.ensure(descriptor)
+    }
+  }
+
+  /** The descriptor as launched, plus whether it was the kind of launch spares apply to. */
+  internal class Launch(val descriptor: DaemonLaunchDescriptor, val spareEligible: Boolean)
+
+  /**
+   * Reserve spares for an Android launch with a multi-slot sandbox pool and put their ports on the
+   * descriptor. Pure apart from the reservation; the test reads the result.
+   */
+  internal fun withReservedSpares(descriptor: DaemonLaunchDescriptor): Launch {
+    val pool = sparePool ?: return Launch(descriptor, spareEligible = false)
+    if (descriptor.variant != ANDROID_VARIANT) return Launch(descriptor, spareEligible = false)
+    val workers = sandboxCountOf(descriptor) - 1
+    if (workers <= 0) return Launch(descriptor, spareEligible = false)
+    val ports = pool.reserve(descriptor, workers)
+    if (ports.isEmpty()) return Launch(descriptor, spareEligible = true)
+    return Launch(
+      descriptor.copy(
+        systemProperties =
+          descriptor.systemProperties +
+            (DaemonProperties.Names.SANDBOX_WORKER_SPARES to ports.joinToString(","))
+      ),
+      spareEligible = true,
+    )
+  }
+
+  /**
+   * The daemon's sandbox pool size: the descriptor's own property, else this JVM's (a server sets
+   * it once in `JAVA_TOOL_OPTIONS`, which every daemon JVM inherits too), else `DaemonMain`'s
+   * warm-spare default of five.
+   */
+  private fun sandboxCountOf(descriptor: DaemonLaunchDescriptor): Int =
+    (descriptor.systemProperties[DaemonProperties.Names.SANDBOX_COUNT]
+        ?: System.getProperty(DaemonProperties.Names.SANDBOX_COUNT))
+      ?.toIntOrNull()
+      ?.coerceAtLeast(1) ?: DEFAULT_ANDROID_SANDBOX_COUNT
+
+  private fun spawnProcess(
+    workspaceId: WorkspaceId,
+    descriptor: DaemonLaunchDescriptor,
+  ): DaemonSpawn {
     val javaBin =
       descriptor.javaLauncher ?: File(System.getProperty("java.home"), "bin/java").absolutePath
     val command =
@@ -49,6 +105,13 @@ public class SubprocessDaemonClientFactory : DaemonClientFactory {
       armHardTtl(process, ttl, "$workspaceId/${descriptor.modulePath}")
     }
     return SubprocessDaemonSpawn(process)
+  }
+
+  private companion object {
+    const val ANDROID_VARIANT = "android"
+
+    /** `DaemonMain`'s pool size when `composeai.daemon.warmSpare` (default on) is unset-else. */
+    const val DEFAULT_ANDROID_SANDBOX_COUNT = 5
   }
 
   /**
