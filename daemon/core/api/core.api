@@ -1977,6 +1977,8 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public final fun getSandboxCount ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getSandboxWorkerPort ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getSandboxWorkerSlot ()Lee/schimke/composeai/daemon/config/IntProperty;
+	public final fun getSandboxWorkerSpare ()Lee/schimke/composeai/daemon/config/BooleanProperty;
+	public final fun getSandboxWorkerSpares ()Lee/schimke/composeai/daemon/config/CsvListProperty;
 	public final fun getStartupQuiet ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getUseConsumerApplication ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getUserClassDirs ()Lee/schimke/composeai/daemon/config/PathListProperty;
@@ -2032,6 +2034,8 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
 	public static final field SANDBOX_COUNT Ljava/lang/String;
 	public static final field SANDBOX_WORKER_PORT Ljava/lang/String;
 	public static final field SANDBOX_WORKER_SLOT Ljava/lang/String;
+	public static final field SANDBOX_WORKER_SPARE Ljava/lang/String;
+	public static final field SANDBOX_WORKER_SPARES Ljava/lang/String;
 	public static final field STARTUP_QUIET Ljava/lang/String;
 	public static final field USER_CLASS_DIRS Ljava/lang/String;
 	public static final field USER_CLASS_PACKAGES Ljava/lang/String;

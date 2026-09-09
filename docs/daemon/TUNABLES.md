@@ -68,6 +68,8 @@ flips a knob.
 | `composeai.daemon.maxHeapMb` | Int | `1024` | Post-GC heap ceiling for the daemon JVM, in MiB. Also becomes `-Xmx`. |
 | `composeai.daemon.sandboxWorker.port` | Int | `0` | Loopback port a spawned sandbox worker connects back on. Set by `SandboxProcessPool`; `SandboxWorkerMain` fails fast when unset. |
 | `composeai.daemon.sandboxWorker.slot` | Int | `0` | Pool slot index a spawned sandbox worker owns. Set by `SandboxProcessPool`. |
+| `composeai.daemon.sandboxWorker.spare` | Boolean | `false` | Whether `SandboxWorkerMain` runs as a pre-booted spare: it boots and warm-renders with no catalog, then listens on a loopback port for the daemon that adopts it. Set by the spare pool that spawns it. |
+| `composeai.daemon.sandboxWorker.spares` | list | empty | Loopback ports of pre-booted spare workers reserved for this daemon, adopted by `SandboxProcessPool` ahead of any cold worker boot. Set by the spare pool at launch. |
 
 ## Tracing and diagnostics
 

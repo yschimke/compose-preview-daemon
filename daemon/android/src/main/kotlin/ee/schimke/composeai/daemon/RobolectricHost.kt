@@ -444,6 +444,10 @@ open class RobolectricHost(
       SandboxProcessPool(
         workerCount = sandboxCount - 1,
         bootTimeoutMs = DaemonProperties.sandboxBootTimeoutMs.read(),
+        // SANDBOX-POOL.md § "Spare workers" — pre-booted workers the launcher reserved for this
+        // daemon, adopted before any cold boot. Empty everywhere but under a spare pool.
+        spareEndpoints =
+          DaemonProperties.sandboxWorkerSpares.read().mapNotNull { it.toIntOrNull() },
       )
     else null
 
@@ -469,13 +473,23 @@ open class RobolectricHost(
     if (sandboxCount == 1) "compose-ai-daemon-host" else "compose-ai-daemon-host-$i"
 
   /**
-   * Number of sandbox slots that have finished booting, in slot order (slots boot sequentially, so
-   * ready slots are always the contiguous prefix `0 until readySlotCount`). [chooseSlotIndex]
-   * dispatches across only this prefix so a render never lands on a slot that's still bootstrapping
-   * in the background (see [start]'s background-boot mode). Equals [sandboxCount] once the pool
-   * completes — at which point dispatch is bit-identical with the pre-background behaviour.
+   * Number of sandbox slots that have finished booting. [chooseSlotIndex] dispatches across only
+   * the ready slots so a render never lands on one that's still bootstrapping in the background
+   * (see [start]'s background-boot mode). Equals [sandboxCount] once the pool completes — at which
+   * point dispatch is bit-identical with the pre-background behaviour.
+   *
+   * Ready slots are not a contiguous prefix any more: a daemon handed spare workers adopts them
+   * first, so slots 1..k can be serving while slot 0 — the in-process sandbox — is still booting
+   * behind them. [slotReady] is the per-slot truth; this is its count, for messages and tests.
    */
   private val readySlotCount = java.util.concurrent.atomic.AtomicInteger(0)
+
+  /** 1 once slot `i` may take renders; see [readySlotCount]. */
+  private val slotReady = java.util.concurrent.atomic.AtomicIntegerArray(sandboxCount)
+
+  private fun markSlotReady(slot: Int) {
+    if (slotReady.compareAndSet(slot, 0, 1)) readySlotCount.incrementAndGet()
+  }
 
   /** Background pool-boot thread (see [start]); null when background boot isn't active. */
   @Volatile private var backgroundBootWorker: Thread? = null
@@ -529,9 +543,37 @@ open class RobolectricHost(
     // One in-process slot, always. Slots 1..N-1 live in worker JVMs and hold no bridge state here.
     DaemonHostBridge.configureSlotCount(LOCAL_SANDBOX_COUNT)
     readySlotCount.set(0)
+    for (i in 0 until sandboxCount) slotReady.set(i, 0)
     val timeoutMs = DaemonProperties.sandboxBootTimeoutMs.read()
     // Read per-start (not at construction) so tests can flip the sysprop around start().
     val backgroundBoot = sandboxCount > 1 && DaemonProperties.backgroundSandboxBoot.read()
+
+    // SANDBOX-POOL.md § "Spare workers" — a daemon handed pre-booted spares takes them FIRST. An
+    // adoption is a socket connect plus a classloader swap, so the host can serve a render
+    // milliseconds after this point; the in-process sandbox, and any slot the spares did not
+    // cover, boot behind it on the background thread. `daemonReady` then means "a sandbox can
+    // render", which is what the protocol promises, on a different slot than usual. Only under
+    // background boot: the eager contract is every slot ready on return, and spares cannot speed
+    // up the slot that has to boot in this JVM anyway.
+    if (backgroundBoot && processPool?.hasUntriedSpare() == true) {
+      val adopted = adoptSpares()
+      if (adopted > 0) {
+        StartupTimings.mark(
+          "sandbox-ready latch fired ($adopted adopted spare(s); slot 0 and " +
+            "${sandboxCount - 1 - adopted} more booting in background)"
+        )
+        backgroundBootWorker =
+          Thread(
+              { runCatching { bootBehindAdoptedSpares(timeoutMs) } },
+              "compose-ai-daemon-pool-boot",
+            )
+            .apply {
+              isDaemon = true
+              start()
+            }
+        return
+      }
+    }
 
     // SANDBOX-POOL.md — slot 0 is the in-process sandbox and always boots eagerly: [start]'s
     // contract is that the host can serve a render when it returns. Slots 1..N-1 are worker JVMs,
@@ -542,7 +584,7 @@ open class RobolectricHost(
     // diagnosis to one worker's stderr at a time.
     try {
       bootSlotWithRetries(0, timeoutMs)
-      readySlotCount.set(1)
+      markSlotReady(0)
     } catch (t: Throwable) {
       runCatching { abortPartialStart(bootedThrough = -1) }
       throw t
@@ -615,8 +657,11 @@ open class RobolectricHost(
    */
   private fun bootRemainingSlots(timeoutMs: Long, background: Boolean) {
     val pool = processPool ?: return
-    fun bootAsync(slot: Int): FutureTask<Unit> =
-      FutureTask<Unit> { pool.bootWorker(slot - 1) }
+    // A slot adopted from a spare in [start] is already serving; only the rest boot here.
+    val pending = (1 until sandboxCount).filter { slotReady.get(it) == 0 }
+    if (pending.isEmpty()) return
+    fun bootAsync(slot: Int): FutureTask<Boolean> =
+      FutureTask<Boolean> { pool.bootWorker(slot - 1) }
         .also { task ->
           Thread(task, "compose-ai-daemon-worker-boot-$slot").apply {
             isDaemon = true
@@ -624,11 +669,12 @@ open class RobolectricHost(
           }
         }
     if (DaemonHostBridge.shutdown.get()) return
-    var booting: FutureTask<Unit>? = bootAsync(1)
-    for (i in 1 until sandboxCount) {
+    var booting: FutureTask<Boolean>? = bootAsync(pending.first())
+    for ((k, i) in pending.withIndex()) {
       val boot = booting ?: return
+      val adopted: Boolean
       try {
-        boot.get()
+        adopted = boot.get()
       } catch (e: ExecutionException) {
         val t = e.cause ?: e
         if (!background) throw t
@@ -642,12 +688,85 @@ open class RobolectricHost(
       if (DaemonHostBridge.shutdown.get()) return
       // Launch the next worker now, so its JVM start + Robolectric bootstrap runs underneath this
       // slot's warm render instead of after it.
-      booting = if (i + 1 < sandboxCount) bootAsync(i + 1) else null
-      warmSlotRender(i)
-      readySlotCount.set(i + 1)
+      booting = if (k + 1 < pending.size) bootAsync(pending[k + 1]) else null
+      // A spare arrives warm; only a cold-booted worker needs the boot-time render.
+      if (!adopted) warmSlotRender(i)
+      markSlotReady(i)
       StartupTimings.mark(
-        if (background) "sandbox $i ready (background boot)" else "sandbox $i ready"
+        when {
+          adopted -> "sandbox $i ready (adopted spare)"
+          background -> "sandbox $i ready (background boot)"
+          else -> "sandbox $i ready"
+        }
       )
+    }
+  }
+
+  /**
+   * [start]'s adopt-first step: fill worker slots from the spares the launcher reserved, stopping
+   * at the first slot no spare is left for. Returns how many slots were filled. Adoption never
+   * throws its way out — a spare that cannot be adopted is skipped inside the pool — so a stale
+   * list degrades to the ordinary boot path, never to a failed start.
+   */
+  private fun adoptSpares(): Int {
+    val pool = processPool ?: return 0
+    var adopted = 0
+    for (slot in 1 until sandboxCount) {
+      if (!pool.hasUntriedSpare()) break
+      if (!pool.adoptSpare(slot - 1)) break
+      markSlotReady(slot)
+      adopted++
+      StartupTimings.mark("sandbox $slot ready (adopted spare)")
+    }
+    return adopted
+  }
+
+  /**
+   * The background half of an adopt-first [start]: boot the in-process sandbox (slot 0), then any
+   * worker slot the spares did not cover. Slot 0 failing is logged, not fatal — the adopted workers
+   * keep serving renders; only held interactive sessions and `@PreviewParameter` row enumeration,
+   * which live on slot 0, are lost — matching the background-boot policy for a worker that fails
+   * permanently.
+   */
+  private fun bootBehindAdoptedSpares(timeoutMs: Long) {
+    if (DaemonHostBridge.shutdown.get()) return
+    try {
+      bootSlotWithRetries(0, timeoutMs)
+      markSlotReady(0)
+      StartupTimings.mark("sandbox 0 ready (background boot behind adopted spares)")
+    } catch (t: Throwable) {
+      System.err.println(
+        "RobolectricHost: background boot of the in-process sandbox (slot 0) failed permanently " +
+          "(${t.javaClass.simpleName}: ${t.message}); renders stay up on the ${readySlotCount.get()} " +
+          "adopted worker(s), but interactive sessions and parameter-row enumeration need slot 0."
+      )
+    }
+    if (DaemonHostBridge.shutdown.get()) return
+    bootRemainingSlots(timeoutMs, background = true)
+  }
+
+  /**
+   * The boot-time warm render against the in-process sandbox, for a spare worker
+   * (`SandboxWorkerMain`) that has nobody to warm it: a spare pays the sandbox's cold first render
+   * before it is offered to any daemon. Same render [bootRemainingSlots] gives each worker slot.
+   */
+  internal fun warmRenderInProcess() {
+    warmSlotRender(0)
+  }
+
+  /**
+   * Drop every slot's user-class holder so the next dispatch allocates a fresh one from
+   * [userClassloaderHolderFactory]. Where [swapUserClassLoaders] re-reads the *same* URLs into a
+   * new child loader, this lets the factory hand back a holder over **different** URLs — what an
+   * adopted spare needs once `configure` has told it which catalog it renders. No-op without a
+   * factory (the legacy single-holder form owns its URLs for life).
+   */
+  internal fun resetUserClassLoaderHolders() {
+    if (userClassloaderHolderFactory == null) return
+    forceCloseActiveInteractiveSession(reason = "user classloader reconfiguration")
+    for (i in 0 until LOCAL_SANDBOX_COUNT) {
+      perSlotHolders.set(i, null)
+      DaemonHostBridge.slot(i).childLoaderRef.set(null)
     }
   }
 
@@ -1176,22 +1295,25 @@ open class RobolectricHost(
    * Slots a render may currently land on: the in-process sandbox, plus every worker that is both
    * booted and still alive.
    *
-   * Background boot (see [start]) brings workers up one at a time, so the ready count bounds the
-   * range. Liveness is checked per worker on top of that: [SandboxProcessPool] marks a worker dead
-   * when it dies mid-request, and a dead worker must drop out of *routing* too — otherwise every
-   * preview whose affinity hash pinned it keeps hashing to a slot that can only fail, for the rest
-   * of the daemon's life. Excluding it re-keys those previews onto live slots instead (a cache-
-   * warmth cost, not a correctness one) and the pool degrades slot by slot rather than stranding a
-   * share of the catalog.
+   * Background boot (see [start]) brings workers up one at a time, and an adopt-first start can
+   * have workers serving before slot 0 is up, so readiness is per slot. Liveness is checked per
+   * worker on top of that: [SandboxProcessPool] marks a worker dead when it dies mid-request, and a
+   * dead worker must drop out of *routing* too — otherwise every preview whose affinity hash pinned
+   * it keeps hashing to a slot that can only fail, for the rest of the daemon's life. Excluding it
+   * re-keys those previews onto live slots instead (a cache- warmth cost, not a correctness one)
+   * and the pool degrades slot by slot rather than stranding a share of the catalog.
    */
   private fun routableSlots(): List<Int> {
-    val readyPrefix = readySlotCount.get().coerceIn(1, sandboxCount)
-    if (readyPrefix == 1) return listOf(0)
     val pool = processPool ?: return listOf(0)
-    return buildList {
-      add(0)
-      for (slot in 1 until readyPrefix) if (pool.isReady(slot - 1)) add(slot)
+    val routable = buildList {
+      if (slotReady.get(0) == 1) add(0)
+      for (slot in 1 until sandboxCount) {
+        if (slotReady.get(slot) == 1 && pool.isReady(slot - 1)) add(slot)
+      }
     }
+    // Nothing ready (start() not yet returned, or every worker gone and slot 0 still booting):
+    // slot 0 is where a render queues, exactly as before the pool existed.
+    return routable.ifEmpty { listOf(0) }
   }
 
   private fun chooseSlotIndex(
@@ -1951,8 +2073,7 @@ open class RobolectricHost(
     // raced a background pool boot) can't see the poison pill and legitimately outlives the join —
     // same "orphaned in this JVM" outcome [abortPartialStart] documents, and the daemon exits via
     // System.exit anyway. Only a *ready* slot's worker refusing to exit is a real bug.
-    val ready = readySlotCount.get()
-    val stuck = workerThreads.filterIndexed { i, t -> t.isAlive && i < ready }
+    val stuck = workerThreads.filterIndexed { i, t -> t.isAlive && slotReady.get(i) == 1 }
     if (stuck.isNotEmpty()) {
       error(
         "RobolectricHost worker(s) did not exit within ${timeoutMs}ms after shutdown: " +
