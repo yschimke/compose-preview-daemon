@@ -996,7 +996,7 @@ class OverrideIntegrationTest {
    * `LocaleList` / JVM-default-`Locale` state, and `PseudolocaleOverrideExtensionDesktop` — planned
    * from the **extension bag** — installs the around-composable that flips `LocalLayoutDirection`
    * and pseudolocalises `stringResource(...)`. But `localeTag` travels as a typed wire token, and
-   * `JsonRpcServer.encodeRenderPayload` nulls tokenised fields out of the bag, so the planner was
+   * `JsonRpcServer.renderTargetFor` nulls tokenised fields out of the bag, so the planner was
    * handed `localeTag = null` on every payload-driven render and abstained: `?localeTag=ar-XB` on
    * the preview server came back plain LTR English, looking exactly like the feature was off. The
    * Gradle path plans from `params.locale` instead, which is why the baked catalog PNGs were right
@@ -1660,9 +1660,9 @@ class OverrideIntegrationTest {
 
   /**
    * **Regression guard for the `serve` / preview.coo.ee named-override drop.** The bundle-backed
-   * live daemon renders via a `previewId=<id>` payload (`JsonRpcServer.encodeRenderPayload`), which
+   * live daemon renders via a `previewId=<id>` payload (`JsonRpcServer.renderTargetFor`), which
    * [DesktopHost.dispatchRender] routes through [DesktopHost.specFromPreviewIdPayload] — NOT the
-   * `className=`-based [RenderSpec.parseFromPayload] that every other test here exercises via
+   * `className=`-based [RenderSpec] that every other test here exercises via
    * [PreviewManifestRouter] (the router rewrites `previewId` → `className=…`). That previewId path
    * rebuilt the spec with `base.copy(...)` and **dropped the `overrides=<b64>` extension bag**, so
    * a `?knob.<key>=…` edit silently no-op'd on the deployed server while display axes (fontScale /

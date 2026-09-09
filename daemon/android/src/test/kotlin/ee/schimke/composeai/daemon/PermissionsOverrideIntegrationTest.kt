@@ -139,8 +139,8 @@ class PermissionsOverrideIntegrationTest {
   }
 
   /**
-   * Encodes a [PreviewOverrides] bag the way [JsonRpcServer.encodeRenderPayload] does — UTF-8 JSON
-   * → URL-safe base64 (no padding). The renderer's `decodePreviewOverrides` mirror in
+   * Encodes a [PreviewOverrides] bag the way [JsonRpcServer.renderTargetFor] does — UTF-8 JSON →
+   * URL-safe base64 (no padding). The renderer's `decodePreviewOverrides` mirror in
    * `RenderEngine.kt` reverses this; the round-trip is what production daemons use.
    */
   private fun encodeOverridesBag(bag: PreviewOverrides): String {

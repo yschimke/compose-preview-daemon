@@ -184,9 +184,9 @@ class PreviewManifestRouterRoutingTest {
 
   @Test
   fun `routeTarget emits wrapHeight for a widthDp-only preview - the TcpConnectPanel shape`() {
-    // Regression for the figma-svg collapse: the wrap flags MUST ride the serialized payload, or
-    // RenderSpec.parseFromPayloadOrNull defaults them false and RenderEngine never enters the
-    // measure-and-crop path — leaving no-height previews reflowed past the 320px frame to zero.
+    // Regression for the figma-svg collapse: the router MUST set the wrap flags, or RenderEngine
+    // never enters the measure-and-crop path — leaving no-height previews reflowed past the 320px
+    // frame to zero.
     val manifest =
       PreviewManifest(
         previews =

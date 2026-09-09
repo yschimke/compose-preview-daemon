@@ -18,8 +18,8 @@ import kotlinx.serialization.json.Json
  *
  * **Why a bespoke protocol and not the daemon's own JSON-RPC?** The worker is not a daemon: it owns
  * no preview index, no extension registry, no watch state. The parent resolves `previewId` to a
- * full spec payload *before* dispatch (`RobolectricHost.submit`'s `reshapeRenderPayload`), so the
- * only things that need to cross the process boundary are a spec payload in and a [RenderResult]
+ * full [RenderSpec] *before* dispatch (`RobolectricHost.submit`'s `reshapeRenderTarget`), so the
+ * only things that need to cross the process boundary are a resolved target in and a [RenderResult]
  * out. Three message kinds each way is the whole surface.
  *
  * **Why the result survives the trip intact.** `RobolectricHost` already reduces a sandbox-side

@@ -21,14 +21,14 @@ import org.junit.Test
  * Regression test for the wire-side leg of the app-declared theme axis (`@ThemeCatalog` /
  * `@WearThemeCatalog`).
  *
- * [JsonRpcServer.encodeRenderPayload] serializes the render-affecting overrides that have no typed
- * wire token of their own into a single base64 `overrides=<bag>` token. `themeProvider` was missing
- * from that bag, so a one-shot `renderNow.overrides.themeProvider = <providerFqn>` was dropped on
- * the wire: the renderer read `spec.overrides?.themeProvider == null` in
- * `InvokeWithOptionalWrapper` and fell back to the preview's declared `@PreviewWrapper`. On the
- * preview server that surfaced as a Theme picker whose chips redrew byte-identical (unthemed)
- * pixels — every declared theme rendered the same. The live `stream/start` path was unaffected: it
- * carries the FQN separately as `InteractiveCommand.Start.themeProviderFqn`.
+ * [JsonRpcServer.renderTargetFor] serializes the render-affecting overrides that have no typed wire
+ * token of their own into a single base64 `overrides=<bag>` token. `themeProvider` was missing from
+ * that bag, so a one-shot `renderNow.overrides.themeProvider = <providerFqn>` was dropped on the
+ * wire: the renderer read `spec.overrides?.themeProvider == null` in `InvokeWithOptionalWrapper`
+ * and fell back to the preview's declared `@PreviewWrapper`. On the preview server that surfaced as
+ * a Theme picker whose chips redrew byte-identical (unthemed) pixels — every declared theme
+ * rendered the same. The live `stream/start` path was unaffected: it carries the FQN separately as
+ * `InteractiveCommand.Start.themeProviderFqn`.
  *
  * Drives a full JSON-RPC `initialize` → `renderNow` round-trip against a payload-capturing host and
  * asserts the encoded payload carries the FQN inside the `overrides=<base64>` token. Sibling to

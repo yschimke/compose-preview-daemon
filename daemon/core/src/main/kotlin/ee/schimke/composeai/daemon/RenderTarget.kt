@@ -17,8 +17,8 @@ import kotlinx.serialization.json.Json
  * different shapes, and this type says so.
  *
  * They used to be the same shape: a single `payload: String` in the `;`-delimited `key=value`
- * grammar that `JsonRpcServer.encodeRenderPayload` wrote and each backend re-parsed. Twelve fields
- * of [PreviewOverrides] travelled as typed tokens, and **the rest of the object travelled as
+ * grammar that `JsonRpcServer.renderTargetFor` wrote and each backend re-parsed. Twelve fields of
+ * [PreviewOverrides] travelled as typed tokens, and **the rest of the object travelled as
  * base64-encoded JSON in an `overrides=` token beside them** — with the twelve nulled out of the
  * bag so they were not restated. Whether a field reached the renderer depended on whether someone
  * had remembered to add it to the encoder, and issue #3073 counted eight live fields that had not

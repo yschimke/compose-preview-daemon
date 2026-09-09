@@ -46,7 +46,7 @@ class RobolectricHostPayloadRoutingTest {
   fun `reshape rotates the discovery-time frame for a device-less orientation request`() {
     // The production Android bundle daemon never mounts a `PreviewManifestRouter` — it reshapes
     // here. A device-less `orientation` arrives with no dimensions for
-    // `JsonRpcServer.encodeRenderPayload` to rotate, so this is the only lane that can turn the
+    // `JsonRpcServer.renderTargetFor` to rotate, so this is the only lane that can turn the
     // preview's own frame. Missing it captured a landscape bitmap while `applyPreviewQualifiers`
     // derived `port` from the same spec (#3552 review).
     val host = host(widthPx = 800, heightPx = 400)

@@ -22,7 +22,7 @@ import org.junit.Test
 
 /**
  * Regression test for #474 — `renderNow.overrides.device` must be resolved into the wire payload's
- * `widthPx` / `heightPx` / `density` tokens by [JsonRpcServer.encodeRenderPayload]. Pre-fix the
+ * `widthPx` / `heightPx` / `density` tokens by [JsonRpcServer.renderTargetFor]. Pre-fix the
  * production path forwarded `device=id:pixel_5` as an opaque string, leaving downstream
  * `RenderSpec` defaults in place — the documented harness `PreviewManifestRouter` is the only place
  * that resolved the catalog, and production daemons don't run it.

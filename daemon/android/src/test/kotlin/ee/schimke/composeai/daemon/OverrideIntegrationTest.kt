@@ -19,7 +19,7 @@ import org.junit.rules.TemporaryFolder
 /**
  * End-to-end verification that `renderNow.overrides` actually changes rendered pixels (PROTOCOL.md
  * § 5, INTERACTIVE.md § 8a). Drives [PreviewManifestRouter] directly with override-bearing payloads
- * so we exercise the same path `JsonRpcServer.encodeRenderPayload` produces — the manifest router
+ * so we exercise the same path `JsonRpcServer.renderTargetFor` produces — the manifest router
  * rewrites `previewId=…;widthPx=…;uiMode=…` into a full `RenderSpec` payload, and the engine
  * consumes the override-merged spec.
  *
@@ -308,7 +308,7 @@ class OverrideIntegrationTest {
    * and add `ldrtl` — happens in `RenderEngine.applyPreviewQualifiers` off `spec.localeTag`. The
    * other half, `PseudolocaleOverrideExtension`'s wrapped `Resources`, is planned from the
    * **extension bag**; but `localeTag` travels as a typed wire token and
-   * `JsonRpcServer.encodeRenderPayload` nulls tokenised fields out of the bag, so the planner saw
+   * `JsonRpcServer.renderTargetFor` nulls tokenised fields out of the bag, so the planner saw
    * `localeTag = null` and abstained. The render came back correctly mirrored and qualified, with
    * every string un-pseudolocalised — `?localeTag=ar-XB` on the preview server looked like plain
    * English (the shape reported against `wear-m3-catalog`). The Gradle path plans from

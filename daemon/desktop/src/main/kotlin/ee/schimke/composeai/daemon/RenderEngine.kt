@@ -614,8 +614,8 @@ class RenderEngine(
                 ) {
                   ComposeDataExtensionPipeline.Apply(
                     // `withPseudolocaleFrom` puts an `en-XA` / `ar-XB` tag back on the bag: it
-                    // arrives as the typed `localeTag=` wire token (so `spec.localeTag`), and the
-                    // encoder nulls tokenised fields out of the bag — leaving
+                    // arrives on `spec.localeTag`, which the renderer applies itself rather
+                    // than through the bag — leaving
                     // `PseudolocalePreviewOverrideExtensionDesktop` planning off a null tag and
                     // abstaining, so the RTL flip + `stringResource` pseudolocalisation never
                     // installed on any daemon lane (#4371). See the helper's KDoc.

@@ -147,7 +147,7 @@ class FigmaSvgManifestUiModeTest {
 
   /**
    * Same guarantee through the **production** resolver
-   * ([renderSpecFromInfo] + [RobolectricHost.reshapeRenderPayload] — the lane `bundle pack`'s
+   * ([renderSpecFromInfo] + [RobolectricHost.reshapeRenderTarget] — the lane `bundle pack`'s
    * semantics fetch and the live daemon actually use, unlike the harness-only
    * [PreviewManifestRouter] above), in the order discovery really emits a multipreview (Dark FIRST,
    * then Light — annotation order reversed).

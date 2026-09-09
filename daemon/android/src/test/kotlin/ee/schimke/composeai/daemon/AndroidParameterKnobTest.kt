@@ -30,7 +30,7 @@ import org.junit.rules.TemporaryFolder
  *
  * **The knobs have to survive the sandbox boundary.** This backend composes inside a Robolectric
  * classloader that never sees the host-side `RenderSpec` — it parses the payload string
- * [RobolectricHost.reshapeRenderPayload] emits. So the host must encode a `knobs=` token and the
+ * [RobolectricHost.reshapeRenderTarget] emits. So the host must encode a `knobs=` token and the
  * sandbox must parse it back, or the render sees a preview with no declared knobs and drops every
  * seed for one in silence. That round trip is what this test exercises that the desktop twin
  * cannot.

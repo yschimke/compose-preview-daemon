@@ -23,7 +23,7 @@ import org.junit.Test
 /**
  * Regression test for the wire-side leg of issue #1400's permissions override pipeline.
  *
- * [JsonRpcServer.encodeRenderPayload] builds a base64-encoded [PreviewOverrides] bag for the
+ * [JsonRpcServer.renderTargetFor] builds a base64-encoded [PreviewOverrides] bag for the
  * extension-driven fields the renderer's planners consume (material3-theme, wallpaper, permissions,
  * ...). Before this fix the encoder only included `material3Theme` + `wallpaper`, so a client that
  * sent `renderNow.overrides.permissions = …` saw the field silently dropped: the planner read

@@ -103,10 +103,10 @@ import org.robolectric.annotation.GraphicsMode
  * `S5RenderFailedAndroidRealModeTest` was written to pin (matching the same pre-fix shape
  * `:daemon:desktop`'s `DesktopHost` had before the post-D-harness.v1.5b fix).
  *
- * The legacy stub-payload path (B1.3-era `payload="render-N"` that `DaemonHostTest` submits) is
- * unchanged — `dispatchRender`'s `parseFromPayloadOrNull` returns `null` and the call resolves to
- * [SandboxRunner.renderStub] without ever entering the engine. The discriminator stays "did
- * `parseFromPayloadOrNull` return a usable spec".
+ * The queue-plumbing path ([RenderTarget.Stub], which `DaemonHostTest` submits) is unchanged —
+ * `dispatchRender` resolves it to [SandboxRunner.renderStub] without ever entering the engine. It
+ * is a named target now rather than "a payload string that does not parse as a spec", so a real
+ * request that fails to resolve can no longer be reported as a successful stub render.
  */
 open class RobolectricHost(
   /**
@@ -944,12 +944,12 @@ open class RobolectricHost(
       "Use shutdown() to stop the host, not submit(Shutdown)."
     }
     val inbound = request as RenderRequest.Render
-    // #1687 — `JsonRpcServer.encodeRenderPayload` only knows the protocol-level `previewId=<id>`
-    // (it can't name the class/function), so a plain (non-router) host would fall through to
-    // `renderStub` for every classic renderNow. Resolve the id to a spec payload here, on the host
-    // thread, before the request crosses into the sandbox — the Android analogue of
-    // `DesktopHost.specFromPreviewIdPayload`. No-op (same instance) when the payload is already a
-    // spec payload, no resolver is wired, or the id is unknown — see [reshapeRenderPayload].
+    // #1687 — `JsonRpcServer.renderTargetFor` only knows the protocol-level previewId (it cannot
+    // name the class/function), so a plain (non-router) host would fall through to `renderStub`
+    // for every classic renderNow. Resolve the id here, on the host thread, before the request
+    // crosses into the sandbox — the Android analogue of `DesktopHost.specFromPreviewTarget`.
+    // No-op (same instance) when the target is already resolved, no resolver is wired, or the id
+    // is unknown — see [reshapeRenderTarget].
     val typed =
       reshapeRenderTarget(inbound.target).let { reshaped ->
         if (reshaped === inbound.target) inbound
@@ -1876,7 +1876,7 @@ open class RobolectricHost(
       widthPx = merged.widthPx,
       heightPx = merged.heightPx,
       // The wrap flags name an *axis*, so a rotated frame trades them — the held-session twin of
-      // the swap in `reshapeRenderPayload` and `DesktopHost.applyOverrides`. Without it an
+      // the swap in `reshapeRenderTarget` and `DesktopHost.applyOverrides`. Without it an
       // interactive / recording session starting from a one-wrapped-axis preview measures and
       // crops the axis that is no longer the free one (#3552 review).
       wrapWidth = if (merged.rotated) base.wrapHeight else base.wrapWidth,

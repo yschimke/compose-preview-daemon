@@ -26,10 +26,9 @@ import org.junit.rules.TemporaryFolder
  * larger than the frame), then the AS-parity crop trims the PNG to the resulting size — matching
  * the desktop daemon exactly.
  *
- * Drives the production path: the caller's `PreviewOverrides` ride the spec into
- * `RenderSpec.overrides` by `parseFromPayloadOrNull`, the same shape the host builds from a
- * `renderNow.overrides` request. [WrapContentStickerPreview]'s intrinsic size is 176 px (56 dp
- * badge
+ * Drives the production path: the caller's `PreviewOverrides` ride on `RenderSpec.overrides`, the
+ * same shape the host builds from a `renderNow.overrides` request. [WrapContentStickerPreview]'s
+ * intrinsic size is 176 px (56 dp badge
  * + 16 dp padding each side, × density 2), so each bound visibly reshapes the crop.
  */
 class RenderEngineSizeBoundsTest {

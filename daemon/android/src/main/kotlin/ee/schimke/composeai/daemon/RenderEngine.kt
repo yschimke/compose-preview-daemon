@@ -486,7 +486,7 @@ class RenderEngine(
                   val content: @Composable () -> Unit = {
                     ComposeDataExtensionPipeline.Apply(
                       // `withPseudolocaleFrom` puts an `en-XA` / `ar-XB` tag back on the bag: it
-                      // arrives as the typed `localeTag=` wire token (so `spec.localeTag`), and
+                      // arrives on `spec.localeTag`, which the renderer applies itself, and
                       // the encoder nulls tokenised fields out of the bag — leaving
                       // `PseudolocalePreviewOverrideExtension` planning off a null tag and
                       // abstaining, so the `Resources.getText` pseudolocalisation (and `ar-XB`'s

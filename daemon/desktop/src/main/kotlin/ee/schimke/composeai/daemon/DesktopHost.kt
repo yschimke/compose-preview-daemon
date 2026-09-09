@@ -49,14 +49,12 @@ import java.util.concurrent.TimeUnit
  * - [RenderEngine] takes the same invariant inwards: every `ImageComposeScene` is closed in a
  *   `try/finally`, even if the render body throws.
  *
- * **Payload format.** `RenderRequest.Render.payload` is parsed via [RenderSpec.parseFromPayload]: a
- * `;`-delimited `key=value` string carrying at minimum `className=...` and `functionName=...`. When
- * [RenderRequest] grows a typed `previewId: String?` field, [DesktopHost] will look the spec up in
- * `previews.json` instead. Until then, callers — `JsonRpcServer` (forwarding from the
- * `renderNow.previews[i]` ID), the harness's `HarnessClient`, and direct unit tests — encode the
- * spec into `payload`. A blank or non-spec payload falls back to a deterministic stub render
- * ([renderStubFallback]) so the legacy [DesktopHostTest] (which submits `payload="render-N"`) keeps
- * working through the B-desktop.1.4 transition.
+ * **What a request carries.** `RenderRequest.Render.target` is a [RenderTarget]: a
+ * [RenderTarget.Spec] renders as given, a [RenderTarget.Preview] is resolved through
+ * [previewSpecResolver] first, and a [RenderTarget.Stub] takes the queue-plumbing lane that
+ * [DesktopHostTest]'s sandbox-reuse assertion uses. Callers — `JsonRpcServer` (forwarding the
+ * `renderNow.previews[i]` id and the caller's overrides), the harness's `HarnessClient`, and direct
+ * unit tests — build the target rather than encoding one into a string.
  *
  * **Render-body exceptions propagate** — when [RenderEngine.render] throws (e.g. `BoomComposable`'s
  * `error("boom")` inside the composition), the loop posts the Throwable onto the per-id result
@@ -601,9 +599,8 @@ open class DesktopHost(
 
   /**
    * Merge [overrides] over [base], resolving `device` against [DeviceDimensions] when present.
-   * Mirrors the stringly-typed merge that `JsonRpcServer.encodeRenderPayload` +
-   * `RenderSpec.parseFromPayload` perform on the renderNow path — typed because recording doesn't
-   * go through the host's render-queue payload string.
+   * Mirrors what `JsonRpcServer.renderTargetFor` + [specFromPreviewTarget] do on the renderNow
+   * path; recording resolves its spec once when the session opens rather than per frame.
    *
    * Explicit `widthPx` / `heightPx` / `density` overrides win over `device`-resolved values.
    * Issue #1208 — `orientation` swaps the resolved `widthPx`/`heightPx` when the request conflicts
