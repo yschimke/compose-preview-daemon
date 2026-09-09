@@ -242,7 +242,8 @@ public class SandboxSparePool(
     // The handshake is the one stdout line we parse; everything else is diagnostics.
     val handshake = awaitHandshake(spare, process)
     if (handshake == null) {
-      log("spare for $signature did not come up within ${config.bootTimeoutMs}ms; killing it")
+      if (closed) log("spare for $signature was still booting when the pool closed")
+      else log("spare for $signature did not come up within ${config.bootTimeoutMs}ms; killing it")
       lock.withLock { spares.remove(spare) }
       process.destroyForcibly()
       return
