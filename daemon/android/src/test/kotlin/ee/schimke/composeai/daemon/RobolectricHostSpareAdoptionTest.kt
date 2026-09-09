@@ -5,6 +5,7 @@ import ee.schimke.composeai.daemon.pool.SandboxProcessPool
 import ee.schimke.composeai.daemon.pool.SandboxWorkerMain
 import java.io.File
 import java.nio.file.Files
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -22,8 +23,16 @@ import org.junit.Test
  */
 class RobolectricHostSpareAdoptionTest {
 
-  /** A booted, warm, listening spare launched the way the spare pool launches one. */
-  private class LaunchedSpare(val process: Process, val pid: Long, val port: Int)
+  /**
+   * A booted, warm, listening spare launched the way the spare pool launches one. [handshakes]
+   * receives every handshake line after the first — a released worker announces its next port.
+   */
+  private class LaunchedSpare(
+    val process: Process,
+    val pid: Long,
+    val port: Int,
+    val handshakes: LinkedBlockingQueue<String>,
+  )
 
   private fun launchSpare(): LaunchedSpare {
     // Experiment seams: `COMPOSEAI_TEST_SPARE_JAVA` runs the spare on another JDK,
@@ -39,6 +48,7 @@ class RobolectricHostSpareAdoptionTest {
       }
     val spare = ProcessBuilder(command).redirectErrorStream(false).start()
     pump(spare.errorStream)
+    val handshakes = LinkedBlockingQueue<String>()
     val handshake =
       spare.inputStream.bufferedReader().let { reader ->
         var line: String?
@@ -55,7 +65,14 @@ class RobolectricHostSpareAdoptionTest {
         }
         // Keep draining so the spare never blocks on a full pipe.
         Thread(
-            { runCatching { reader.forEachLine { System.err.println("[spare] $it") } } },
+            {
+              runCatching {
+                reader.forEachLine {
+                  if (it.startsWith(SandboxWorkerMain.SPARE_HANDSHAKE_PREFIX)) handshakes.put(it)
+                  else System.err.println("[spare] $it")
+                }
+              }
+            },
             "spare-stdout",
           )
           .apply { isDaemon = true }
@@ -89,7 +106,73 @@ class RobolectricHostSpareAdoptionTest {
       }
         .onFailure { System.err.println("[nmt] failed: $it") }
     }
-    return LaunchedSpare(spare, pid, port)
+    return LaunchedSpare(spare, pid, port, handshakes)
+  }
+
+  @Test
+  fun aReleasedSpareListensAgainAndTheNextHostAdoptsIt() {
+    // What a daemon's clean shutdown does to an adopted worker, and what the next daemon gets:
+    // the worker survives its first host, announces a fresh port, and serves a second host —
+    // with a different catalog — without a boot in between.
+    val outputDir = Files.createTempDirectory("spare-release").toFile()
+    val spare = launchSpare()
+    System.setProperty(RenderEngine.OUTPUT_DIR_PROP, outputDir.absolutePath)
+    System.setProperty("roborazzi.test.record", "true")
+    System.setProperty(RobolectricHost.BACKGROUND_BOOT_PROP, "true")
+    System.setProperty(DaemonProperties.Names.LAZY_IN_PROCESS_SANDBOX, "true")
+    try {
+      // First host: no catalog at all, one stub render on the worker, then a clean shutdown.
+      System.setProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES, spare.port.toString())
+      val first = RobolectricHost(sandboxCount = 2)
+      first.start()
+      assertEquals(listOf(spare.pid), first.workerPidsForTest())
+      assertNotNull(
+        first.submit(RenderRequest.Render(target = RenderTarget.Stub("first")), timeoutMs = 120_000)
+      )
+      first.shutdown()
+      val released = spare.handshakes.poll(30, TimeUnit.SECONDS)
+      assertNotNull("the released worker should announce a new port", released)
+      assertTrue("the worker should outlive the host that released it", spare.process.isAlive)
+      val nextPort = Regex("port=(\\d+)").find(released!!)!!.groupValues[1].toInt()
+      assertTrue("a fresh listener, not the old one", nextPort != spare.port)
+
+      // Second host: the fixture catalog this time, adopted through the new port.
+      val userClassesDir = stageFixtureClassesDir()
+      System.setProperty(UserClassLoaderHolder.USER_CLASS_DIRS_PROP, userClassesDir.absolutePath)
+      System.setProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES, nextPort.toString())
+      val second = RobolectricHost(sandboxCount = 2)
+      try {
+        val startedAt = System.nanoTime()
+        second.start()
+        val startMs = (System.nanoTime() - startedAt) / 1_000_000
+        assertEquals(listOf(spare.pid), second.workerPidsForTest())
+        assertTrue("re-adoption should take adoption time, took ${startMs}ms", startMs < 30_000)
+        val renderStartedAt = System.nanoTime()
+        val result =
+          second.submit(
+            RenderRequest.Render(target = fixtureTarget("RedSquare", "after-release")),
+            timeoutMs = 120_000,
+          )
+        assertNotNull("the re-adopted worker should render the new catalog", result.pngPath)
+        System.err.println(
+          "[measure] re-adopted worker: start ${startMs}ms, first catalog render " +
+            "${(System.nanoTime() - renderStartedAt) / 1_000_000}ms"
+        )
+      } finally {
+        System.clearProperty(UserClassLoaderHolder.USER_CLASS_DIRS_PROP)
+        second.shutdown()
+        userClassesDir.deleteRecursively()
+      }
+      // Released again — a pool would take it back; here nobody does, so end it.
+      assertNotNull(spare.handshakes.poll(30, TimeUnit.SECONDS))
+      spare.process.destroyForcibly()
+    } finally {
+      System.clearProperty(DaemonProperties.Names.LAZY_IN_PROCESS_SANDBOX)
+      System.clearProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES)
+      System.clearProperty(RobolectricHost.BACKGROUND_BOOT_PROP)
+      spare.process.destroyForcibly()
+      outputDir.deleteRecursively()
+    }
   }
 
   @Test
@@ -170,11 +253,12 @@ class RobolectricHostSpareAdoptionTest {
       System.clearProperty(RobolectricHost.BACKGROUND_BOOT_PROP)
       host.shutdown()
       userClassesDir.deleteRecursively()
-      // The adopted spare belongs to the host now: shutdown ends it.
-      assertTrue(
-        "adopted spare should exit with the host",
-        spare.process.waitFor(30, TimeUnit.SECONDS),
+      // Shutdown hands the adopted spare back rather than ending it: it announces a fresh port.
+      assertNotNull(
+        "adopted spare should be released, not killed",
+        spare.handshakes.poll(30, TimeUnit.SECONDS),
       )
+      spare.process.destroyForcibly()
       outputDir.deleteRecursively()
     }
   }
@@ -225,7 +309,8 @@ class RobolectricHostSpareAdoptionTest {
       System.clearProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES)
       System.clearProperty(RobolectricHost.BACKGROUND_BOOT_PROP)
       host.shutdown()
-      assertTrue(spare.process.waitFor(30, TimeUnit.SECONDS))
+      assertNotNull(spare.handshakes.poll(30, TimeUnit.SECONDS))
+      spare.process.destroyForcibly()
       outputDir.deleteRecursively()
     }
   }

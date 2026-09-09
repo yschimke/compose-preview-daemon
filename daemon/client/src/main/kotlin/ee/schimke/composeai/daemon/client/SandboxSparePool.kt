@@ -31,7 +31,11 @@ import kotlin.concurrent.withLock
  *
  * **Lifecycle.** A spare is a child of this JVM. It halts when this JVM exits, when the pool evicts
  * it, or with the daemon that adopted it (`SandboxWorkerMain` watches both). [reserve] hands out
- * only spares that are warm and alive; a handed-out spare is the adopting daemon's from then on.
+ * only spares that are warm and alive; a handed-out spare is the adopting daemon's until that
+ * daemon is done with it. A daemon that shuts down cleanly **releases** its adopted workers rather
+ * than killing them: each drops the catalog and announces a fresh port on the same stdout, and the
+ * pool takes it back as warm — the reaped daemon's sandboxes are the next daemon's, no boot at all.
+ * A daemon that dies takes its workers with it, and the pool boots replacements as usual.
  *
  * Wired by whoever spawns daemons — [SubprocessDaemonClientFactory] takes one and reserves spares
  * for every Android launch with a pool of more than one sandbox. Threading: one boot at a time, on
@@ -89,19 +93,30 @@ public class SandboxSparePool(
       get() = process?.isAlive ?: true
   }
 
+  /**
+   * A spare handed to a daemon by [reserve] and not yet back. The daemon may release it (a later
+   * handshake line on its stdout, see [returned]) or take it down with itself; until one of the two
+   * happens it is neither warm nor booting, and it costs the pool nothing but this entry.
+   */
+  private class Lent(val spare: Spare, val port: Int)
+
   public data class Snapshot(
     val warm: Int,
     val booting: Int,
     val signatures: Int,
     val adopted: Long,
     val coldLaunches: Long,
+    /** Adopted spares their daemon handed back warm, re-entering the pool without a boot. */
+    val returned: Long = 0L,
   )
 
   private val lock = ReentrantLock()
   private val spares = mutableListOf<Spare>() // guarded by [lock]
   private val lastReserved = mutableMapOf<String, Long>() // signature → nanoTime; guarded by [lock]
+  private val lent = mutableMapOf<Spare, Lent>() // guarded by [lock]
   private var adopted = 0L
   private var coldLaunches = 0L
+  private var returned = 0L
   @Volatile private var closed = false
   private val booter = Executors.newSingleThreadExecutor { r ->
     Thread(r, "compose-ai-spare-boot").apply { isDaemon = true }
@@ -122,7 +137,12 @@ public class SandboxSparePool(
         spares.filter { it.signature == signature && it.port != null && it.alive }.take(wanted)
       spares.removeAll(ready)
       if (ready.isEmpty()) coldLaunches++ else adopted += ready.size
-      ready.mapNotNull { it.port }
+      ready.map { spare ->
+        val port = checkNotNull(spare.port)
+        lent[spare] = Lent(spare, port)
+        spare.port = null
+        port
+      }
     }
   }
 
@@ -152,7 +172,9 @@ public class SandboxSparePool(
         room++
       }
       List(minOf(missing, room).coerceAtLeast(0)) {
-        val used = spares.filter { it.signature == signature }.map { it.archiveSlot }.toSet()
+        // Lent spares still hold their archive files, and may come back.
+        val used =
+          (spares + lent.keys).filter { it.signature == signature }.map { it.archiveSlot }.toSet()
         val slot = (0 until config.perSignature).firstOrNull { it !in used } ?: spares.size
         Spare(signature, slot).also { spares += it }
       }
@@ -187,6 +209,7 @@ public class SandboxSparePool(
       signatures = spares.map { it.signature }.distinct().size,
       adopted = adopted,
       coldLaunches = coldLaunches,
+      returned = returned,
     )
   }
 
@@ -195,6 +218,8 @@ public class SandboxSparePool(
     booter.shutdownNow()
     val all = lock.withLock { spares.toList().also { spares.clear() } }
     all.forEach { it.process?.destroyForcibly() }
+    // Lent spares are their daemons' now; a daemon that releases one after this finds the pool
+    // closed and the returnee is killed on arrival ([returned]).
   }
 
   // ---- internals -----------------------------------------------------------------------------
@@ -238,8 +263,11 @@ public class SandboxSparePool(
           try {
             process.inputStream.bufferedReader().useLines { lines ->
               for (line in lines) {
-                if (!result.isDone && line.startsWith(SPARE_HANDSHAKE_PREFIX)) {
-                  result.complete(parseHandshake(line))
+                if (line.startsWith(SPARE_HANDSHAKE_PREFIX)) {
+                  val handshake = parseHandshake(line)
+                  if (!result.isDone) result.complete(handshake)
+                  // A later handshake is the worker back from a daemon that released it.
+                  else if (handshake != null) returned(spare, handshake.second)
                 } else {
                   System.err.println("[spare-${spare.signature}] $line")
                 }
@@ -277,9 +305,38 @@ public class SandboxSparePool(
       }
   }
 
+  /**
+   * A lent spare announced a fresh port: its daemon released it on shutdown. Back into the pool as
+   * warm, unless the pool has closed or is full — then it is killed, like any spare over budget. (A
+   * returnee never displaces a warm spare of another signature: those were kept on purpose.)
+   */
+  private fun returned(spare: Spare, port: Int) {
+    val verdict = lock.withLock {
+      val loan = lent.remove(spare)
+      when {
+        loan == null -> "returned a port it was never lent on"
+        closed -> "returned after the pool closed"
+        spares.size >= config.maxSpares -> "returned to a full pool"
+        else -> {
+          spare.port = port
+          spares += spare
+          returned++
+          null
+        }
+      }
+    }
+    if (verdict == null) {
+      log("spare for ${spare.signature} (pid=${spare.pid}) returned warm, port=$port")
+    } else {
+      log("spare for ${spare.signature} (pid=${spare.pid}) $verdict; killing it")
+      spare.process?.destroyForcibly()
+    }
+  }
+
   /** Caller holds [lock]. Drops spares whose JVM is gone (a boot failure, or a kill). */
   private fun pruneDead() {
     spares.removeAll { !it.alive }
+    lent.keys.removeAll { !it.alive } // died with its daemon: nothing is coming back
   }
 
   /** Caller holds [lock]. */

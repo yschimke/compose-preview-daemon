@@ -319,11 +319,35 @@ class SandboxProcessPool(
     }
   }
 
-  /** Politely stops every worker, then force-kills anything still alive after [timeoutMs]. */
+  /**
+   * Politely stops every worker, then force-kills anything still alive after [timeoutMs].
+   *
+   * An **adopted** worker is not ours to kill: it was lent by a spare pool that wants it back warm.
+   * It gets [WorkerRequest.Release] instead — it drops this daemon's catalog and goes back to
+   * listening for the next — and is then left alone. If the release fails, it is shut down like any
+   * other worker; a spare that cannot be handed back must not be leaked.
+   */
   fun shutdown(timeoutMs: Long) {
     closed = true
     for (worker in workers) {
       if (worker == null) continue
+      if (worker.adopted && !worker.dead) {
+        val released = runCatching {
+          worker.lock.withLock {
+            exchange(worker, WorkerRequest.Release, readTimeoutMs = timeoutMs)
+          }
+        }
+          .isSuccess
+        if (released) {
+          runCatching { worker.socket.close() }
+          worker.dead = true
+          System.err.println(
+            "compose-ai-daemon: sandbox worker ${worker.index} (pid=${worker.pid}) released back " +
+              "to its spare pool"
+          )
+          continue
+        }
+      }
       runCatching {
         worker.lock.withLock {
           if (!worker.dead) exchange(worker, WorkerRequest.Shutdown, readTimeoutMs = timeoutMs)

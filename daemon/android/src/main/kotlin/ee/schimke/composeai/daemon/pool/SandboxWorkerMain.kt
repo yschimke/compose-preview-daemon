@@ -51,6 +51,9 @@ object SandboxWorkerMain {
    */
   const val SPARE_HANDSHAKE_PREFIX: String = "composeai-spare-worker: listening"
 
+  /** The pid of the daemon this worker currently serves, from `configure`; null once released. */
+  private val adopter = java.util.concurrent.atomic.AtomicReference<Long?>(null)
+
   @JvmStatic
   fun main(args: Array<String>) {
     val spare = DaemonProperties.sandboxWorkerSpare.read()
@@ -149,36 +152,43 @@ object SandboxWorkerMain {
     // catalog's renders grow it back as needed; their times were unchanged.
     System.gc()
     StartupTimings.mark("spare worker: warm, listening")
-    ServerSocket(0, 1, InetAddress.getLoopbackAddress()).use { server ->
-      // Announced on the REAL stdout, unlike a daemon: a worker's stdout is diagnostics, and this
-      // is the one line of it the spare pool parses.
-      System.out.println(
-        "$SPARE_HANDSHAKE_PREFIX pid=${ProcessHandle.current().pid()} port=${server.localPort}"
-      )
-      System.out.flush()
-      // No accept timeout: a spare waits as long as the pool keeps it. The pool kills spares it
-      // evicts, and the parent watch above ends this JVM if the pool's does.
-      val socket = server.accept()
-      // One adopter for the lifetime of this sandbox; nobody else gets to connect.
-      runCatching { server.close() }
-      socket.use {
-        it.tcpNoDelay = true
-        val reader = BufferedReader(InputStreamReader(it.getInputStream(), Charsets.UTF_8))
-        val writer = BufferedWriter(OutputStreamWriter(it.getOutputStream(), Charsets.UTF_8))
-        serve(host, reader, writer, userClassUrls)
-      }
-    }
+    // One adopter at a time, as many in a row as daemons release this worker: each round listens
+    // on a fresh port, announces it, serves the daemon that connects, and — if that daemon handed
+    // the worker back rather than shutting it down — goes round again.
+    do {
+      val released =
+        ServerSocket(0, 1, InetAddress.getLoopbackAddress()).use { server ->
+          // Announced on the REAL stdout, unlike a daemon: a worker's stdout is diagnostics, and
+          // this is the one line of it the spare pool parses (again, after a release).
+          System.out.println(
+            "$SPARE_HANDSHAKE_PREFIX pid=${ProcessHandle.current().pid()} port=${server.localPort}"
+          )
+          System.out.flush()
+          // No accept timeout: a spare waits as long as the pool keeps it. The pool kills spares
+          // it evicts, and the parent watch above ends this JVM if the pool's does.
+          val socket = server.accept()
+          // One adopter for this round; nobody else gets to connect.
+          runCatching { server.close() }
+          socket.use {
+            it.tcpNoDelay = true
+            val reader = BufferedReader(InputStreamReader(it.getInputStream(), Charsets.UTF_8))
+            val writer = BufferedWriter(OutputStreamWriter(it.getOutputStream(), Charsets.UTF_8))
+            serve(host, reader, writer, userClassUrls)
+          }
+        }
+    } while (released)
     runCatching { host.shutdown() }
   }
 
+  /** Serves one adopter until it shuts the worker down (false) or releases it (true) or goes. */
   private fun serve(
     host: RobolectricHost,
     reader: BufferedReader,
     writer: BufferedWriter,
     userClassUrls: AtomicReference<List<URL>>,
-  ) {
+  ): Boolean {
     while (true) {
-      val line = reader.readLine() ?: return // parent closed the socket / died — exit with it
+      val line = reader.readLine() ?: return false // parent closed the socket / died — exit with it
       val request =
         try {
           workerJson.decodeFromString(WorkerRequest.serializer(), line)
@@ -210,12 +220,28 @@ object SandboxWorkerMain {
           configure(host, request, userClassUrls)
           send(writer, WorkerResponse.Configured(pid = ProcessHandle.current().pid()))
         }
+        WorkerRequest.Release -> {
+          release(host, userClassUrls)
+          send(writer, WorkerResponse.Ok)
+          return true
+        }
         WorkerRequest.Shutdown -> {
           send(writer, WorkerResponse.Ok)
-          return
+          return false
         }
       }
     }
+  }
+
+  /**
+   * Back to generic: no user classes, no adopter to halt with. The catalog's other properties stay
+   * set until the next `configure` overwrites them — nothing reads them before a render.
+   */
+  private fun release(host: RobolectricHost, userClassUrls: AtomicReference<List<URL>>) {
+    adopter.set(null)
+    userClassUrls.set(emptyList())
+    host.resetUserClassLoaderHolders()
+    System.err.println("sandbox worker: released by its daemon; listening for the next")
   }
 
   /**
@@ -232,8 +258,18 @@ object SandboxWorkerMain {
     for ((key, value) in request.systemProperties) System.setProperty(key, value)
     userClassUrls.set(UserClassLoaderHolder.urlsFromSysprop())
     host.resetUserClassLoaderHolders()
+    adopter.set(request.parentPid)
     request.parentPid?.let { pid ->
-      ProcessHandle.of(pid).ifPresent { handle -> haltWhenExits(handle, "adopting daemon") }
+      ProcessHandle.of(pid).ifPresent { handle ->
+        // A released worker outlives the daemon that released it; only the *current* adopter's
+        // exit is this worker's exit.
+        handle.onExit().thenRun {
+          if (adopter.get() == pid) {
+            System.err.println("sandbox worker: adopting daemon $pid exited; halting")
+            Runtime.getRuntime().halt(0)
+          }
+        }
+      }
     }
     System.err.println(
       "sandbox worker: configured by pid=${request.parentPid} " +

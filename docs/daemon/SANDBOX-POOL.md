@@ -243,6 +243,20 @@ daemon needs a slot next, and pays only that catalog's first real render.
   and a spare inherits whatever `-Xmx` its launch descriptor carries. The
   descriptor is the place to cap it (`composeai.daemon.maxHeapMb` exists for
   exactly that), which is the serve-side wiring's job.
+- **Reaping hands the workers back.** A daemon's `SandboxProcessPool.shutdown`
+  sends an *adopted* worker `release` instead of `shutdown`: the worker drops
+  the catalog (its child classloader and its watch on the daemon's pid),
+  answers `ok`, and goes back to listening on a fresh loopback port, which it
+  announces with a second `composeai-spare-worker: listening` line on the same
+  stdout. `SandboxSparePool` keeps reading that stdout after the first
+  handshake, so a later one re-registers the worker as warm — counted as
+  `returned` in its snapshot — and the next daemon of that signature adopts a
+  sandbox that has already rendered a catalog, for a classloader swap. A
+  worker with no pool to go back to (the pool closed, or full) is killed on
+  return; a daemon that dies rather than shutting down still takes its
+  workers with it (they watch its pid). On a serve box that reaps a catalog
+  daemon and opens the next one all day, this is the difference between
+  booting a replacement spare per open and booting none.
 - **Slot 0 can be deferred.** `composeai.daemon.lazyInProcessSandbox=true` makes an
   adopt-first start skip the background boot of the in-process sandbox
   altogether: it boots the first time a path only it can serve asks —

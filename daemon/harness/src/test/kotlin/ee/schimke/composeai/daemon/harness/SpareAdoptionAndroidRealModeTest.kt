@@ -33,8 +33,9 @@ import org.junit.Test
  * 2. the pool pre-boots one spare for the launch's signature;
  * 3. a daemon launched through the pool **adopts** it — `initialize` answers without booting, a
  *    render lands on the adopted worker — and its launch tops the pool back up;
- * 4. after it is shut down, the **next** daemon adopts the replenished spare: the pool is reused,
- *    not consumed;
+ * 4. shutting it down **releases** the adopted worker back to the pool, warm, and the **next**
+ *    daemon adopts that same worker: the pool is reused, not consumed, and a reaped daemon's
+ *    sandboxes are not even re-booted;
  * 5. closing the pool leaves no spare JVM behind.
  *
  * **Skipped under fake mode and under `-Pharness.target=desktop`.** Heavy: two spare boots and
@@ -100,17 +101,20 @@ class SpareAdoptionAndroidRealModeTest {
         adopted.initializeMs < cold.initializeMs,
       )
 
-      // 4. The launch topped the signature back up; the next daemon adopts the replacement.
-      awaitWarm(pool, 1)
+      // 4. The daemon's shutdown handed the worker back; the next daemon adopts it again — the
+      // launch also topped the signature up, but the returnee is warm first.
+      awaitReturned(pool, 1)
       val reused = factory.openAndRender(descriptor, "reused", previewId)
       System.err.println(
-        "[measure] next daemon: initialize ${reused.initializeMs}ms, render ${reused.renderMs}ms"
+        "[measure] next daemon (returned worker): initialize ${reused.initializeMs}ms, " +
+          "render ${reused.renderMs}ms"
       )
       assertEquals(
-        "the second launch should have adopted the replenished spare",
+        "the second launch should have adopted the returned spare",
         2,
         pool.snapshot().adopted,
       )
+      awaitReturned(pool, 2)
       assertEquals(
         "no launch through the pool should have gone cold",
         0,
@@ -187,6 +191,18 @@ class SpareAdoptionAndroidRealModeTest {
     assertTrue(
       "expected $count warm spare(s), have ${pool.snapshot()}",
       pool.snapshot().warm >= count,
+    )
+  }
+
+  private fun awaitReturned(pool: SandboxSparePool, count: Int) {
+    val deadline = System.currentTimeMillis() + 60_000
+    while (pool.snapshot().returned < count && System.currentTimeMillis() < deadline) {
+      Thread.sleep(250)
+    }
+    assertEquals(
+      "expected $count returned spare(s), have ${pool.snapshot()}",
+      count.toLong(),
+      pool.snapshot().returned,
     )
   }
 

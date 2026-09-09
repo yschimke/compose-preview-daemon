@@ -68,6 +68,15 @@ sealed interface WorkerRequest {
   data class Configure(val systemProperties: Map<String, String>, val parentPid: Long? = null) :
     WorkerRequest
 
+  /**
+   * Hand an **adopted** spare back to the pool that lent it (SANDBOX-POOL.md § "Spare workers")
+   * instead of shutting it down: the worker drops the catalog — its user classloader and its watch
+   * on this daemon — replies [WorkerResponse.Ok], closes this socket, and goes back to listening,
+   * announcing a fresh port on its stdout for the spare pool to re-register. A reaped daemon's warm
+   * sandboxes are then the next daemon's, for the price of a classloader swap.
+   */
+  @Serializable @SerialName("release") data object Release : WorkerRequest
+
   /** Drain and exit. The worker replies [WorkerResponse.Ok] and then closes the socket. */
   @Serializable @SerialName("shutdown") data object Shutdown : WorkerRequest
 }

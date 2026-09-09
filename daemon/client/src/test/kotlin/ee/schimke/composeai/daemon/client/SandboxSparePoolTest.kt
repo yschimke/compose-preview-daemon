@@ -150,6 +150,53 @@ class SandboxSparePoolTest {
   }
 
   @Test
+  fun `a lent spare its daemon released comes back warm on a later handshake`() {
+    val pool = pool(SandboxSparePool.Config(maxSpares = 2, perSignature = 1))
+    val d = descriptor()
+    pool.ensure(d)
+    awaitLaunched(1)
+    launched[0].second.handshake(pid = 101, port = 40001)
+    awaitWarm(pool, 1)
+    assertThat(pool.reserve(d, 1)).containsExactly(40001)
+    assertThat(pool.snapshot().warm).isEqualTo(0)
+
+    // The daemon shut down and released the worker: it listens again, on a fresh port.
+    launched[0].second.handshake(pid = 101, port = 40011)
+    awaitWarm(pool, 1)
+    assertThat(pool.snapshot().returned).isEqualTo(1)
+    assertThat(launched[0].second.destroyed).isFalse()
+    assertThat(pool.reserve(d, 1)).containsExactly(40011)
+    assertThat(pool.snapshot().adopted).isEqualTo(2)
+    assertThat(pool.snapshot().coldLaunches).isEqualTo(0)
+    pool.close()
+  }
+
+  @Test
+  fun `a returned spare the pool has no room for is killed`() {
+    val pool = pool(SandboxSparePool.Config(maxSpares = 1, perSignature = 1))
+    val d = descriptor()
+    pool.ensure(d)
+    awaitLaunched(1)
+    launched[0].second.handshake(pid = 101, port = 40001)
+    awaitWarm(pool, 1)
+    assertThat(pool.reserve(d, 1)).containsExactly(40001)
+    // The launch topped the signature up meanwhile; the budget is spoken for.
+    pool.ensure(d)
+    awaitLaunched(2)
+    launched[1].second.handshake(pid = 102, port = 40002)
+    awaitWarm(pool, 1)
+
+    launched[0].second.handshake(pid = 101, port = 40011)
+    val deadline = System.currentTimeMillis() + 5_000
+    while (!launched[0].second.destroyed && System.currentTimeMillis() < deadline) Thread.sleep(10)
+    assertThat(launched[0].second.destroyed).isTrue()
+    assertThat(pool.snapshot().returned).isEqualTo(0)
+    assertThat(pool.snapshot().warm).isEqualTo(1)
+    assertThat(pool.reserve(d, 1)).containsExactly(40002)
+    pool.close()
+  }
+
+  @Test
   fun `ensure tops a signature up to its target within the total budget`() {
     val pool = pool(SandboxSparePool.Config(maxSpares = 3, perSignature = 2))
     val a = descriptor()
