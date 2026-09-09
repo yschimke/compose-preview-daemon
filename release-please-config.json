@@ -8,18 +8,41 @@
       "package-name": "compose-preview-daemon",
       "include-component-in-tag": false,
       "draft": true,
+      "release-as": "3.0.0",
       "changelog-sections": [
-        { "type": "feat", "section": "Features" },
-        { "type": "fix", "section": "Bug Fixes" },
-        { "type": "perf", "section": "Performance" },
-        { "type": "refactor", "section": "Refactoring" },
-        { "type": "docs", "section": "Documentation" },
-        { "type": "build", "section": "Build" },
-        { "type": "ci", "section": "CI" },
-        { "type": "chore", "section": "Chores" }
-      ],
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": false
+        {
+          "type": "feat",
+          "section": "Features"
+        },
+        {
+          "type": "fix",
+          "section": "Bug Fixes"
+        },
+        {
+          "type": "perf",
+          "section": "Performance"
+        },
+        {
+          "type": "refactor",
+          "section": "Refactoring"
+        },
+        {
+          "type": "docs",
+          "section": "Documentation"
+        },
+        {
+          "type": "build",
+          "section": "Build"
+        },
+        {
+          "type": "ci",
+          "section": "CI"
+        },
+        {
+          "type": "chore",
+          "section": "Chores"
+        }
+      ]
     }
   }
 }

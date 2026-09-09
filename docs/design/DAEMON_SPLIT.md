@@ -103,8 +103,10 @@ still holds the originals until its switch-over deletes them:
    history-filtered import of the 70 modules and `docs/daemon`, the build conventions
    (`build-logic`, the version catalog, ktfmt, the attribution gate, release-please on a single
    line), the sidecar packaging, CI.
-2. **First release** from here at the next minor after the last compose-ai-tools release that
-   published these coordinates, so consumers see one continuous version line.
+2. **First release** from here is **3.0.0**: a new major marks the coordinates' change of
+   repository, and the version line is continuous with the 2.4.x compose-ai-tools published.
+   `release-as` in `release-please-config.json` pins it and is removed once the tag exists;
+   every release after it is a minor, as `AGENTS.md` says.
 3. **compose-ai-tools** switches every reverse edge above to the released coordinates, deletes
    the 70 modules, points its release job at the sidecar archives published here, and drops the
    `data` publish train. Tracked in compose-ai-tools.
