@@ -3,6 +3,7 @@
   "release-type": "simple",
   "separate-pull-requests": true,
   "include-v-in-tag": true,
+  "bootstrap-sha": "8d41b08384f414235aa4fceb933b0653f7132b86",
   "packages": {
     ".": {
       "package-name": "compose-preview-daemon",
