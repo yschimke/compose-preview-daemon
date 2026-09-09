@@ -65,6 +65,15 @@ public class SandboxSparePool(
     val bootTimeoutMs: Long = DaemonProperties.sandboxBootTimeoutMs.read(),
     /** Where spare JVMs run; they write nothing there, but a daemon's own tree may be deleted. */
     val workingDirectory: File = File(System.getProperty("java.io.tmpdir")),
+    /**
+     * `-XX:TrimNativeHeapInterval`, in milliseconds, for a spare launched on this JVM's own JDK
+     * when that JDK is 21 or newer; `0` leaves the flag off. A warm spare idles holding what the
+     * boot and the warm render malloc'd and freed — glibc keeps it — and the JVM's periodic
+     * `malloc_trim` gives it back: measured on the adoption test's box, 514 → 438 MB resident after
+     * five idle seconds, with the catalog's first renders unchanged. Not applied under a
+     * `javaLauncher` override, whose version this pool cannot see.
+     */
+    val trimNativeHeapMs: Long = DEFAULT_TRIM_NATIVE_HEAP_MS,
   )
 
   /**
@@ -284,26 +293,39 @@ public class SandboxSparePool(
    * The spare's argv: the daemon's own launcher, flags and classpath, the boot-time system
    * properties, and the worker entry point in spare mode. Pure; the test reads it.
    */
-  internal fun spareCommand(descriptor: DaemonLaunchDescriptor, archiveSlot: Int): List<String> =
-    buildList {
-      add(descriptor.javaLauncher ?: File(System.getProperty("java.home"), "bin/java").absolutePath)
-      // One class-data-sharing archive per spare slot, like the daemon gives each worker slot:
-      // two JVMs dumping into one file at exit is a torn archive.
-      descriptor.jvmArgs.forEach { arg ->
-        if (arg.startsWith(SHARED_ARCHIVE_FLAG)) {
-          val path = arg.removePrefix(SHARED_ARCHIVE_FLAG)
-          val stem = path.removeSuffix(".jsa")
-          val ext = if (path.endsWith(".jsa")) ".jsa" else ""
-          add("$SHARED_ARCHIVE_FLAG$stem-spare$archiveSlot$ext")
-        } else add(arg)
-      }
-      bootSystemProperties(descriptor).forEach { (k, v) -> add("-D$k=$v") }
-      add("-D${DaemonProperties.Names.SANDBOX_WORKER_SPARE}=true")
-      add("-D${DaemonProperties.Names.SANDBOX_COUNT}=1")
-      add("-D${DaemonProperties.Names.BACKGROUND_SANDBOX_BOOT}=false")
-      add(classpathArgFile(descriptor.classpath))
-      add(SANDBOX_WORKER_MAIN_CLASS)
+  internal fun spareCommand(
+    descriptor: DaemonLaunchDescriptor,
+    archiveSlot: Int,
+    javaFeatureVersion: Int = Runtime.version().feature(),
+  ): List<String> = buildList {
+    add(descriptor.javaLauncher ?: File(System.getProperty("java.home"), "bin/java").absolutePath)
+    // One class-data-sharing archive per spare slot, like the daemon gives each worker slot:
+    // two JVMs dumping into one file at exit is a torn archive.
+    descriptor.jvmArgs.forEach { arg ->
+      if (arg.startsWith(SHARED_ARCHIVE_FLAG)) {
+        val path = arg.removePrefix(SHARED_ARCHIVE_FLAG)
+        val stem = path.removeSuffix(".jsa")
+        val ext = if (path.endsWith(".jsa")) ".jsa" else ""
+        add("$SHARED_ARCHIVE_FLAG$stem-spare$archiveSlot$ext")
+      } else add(arg)
     }
+    if (
+      config.trimNativeHeapMs > 0 &&
+        descriptor.javaLauncher == null &&
+        descriptor.jvmArgs.none { it.startsWith(TRIM_NATIVE_HEAP_FLAG) } &&
+        javaFeatureVersion >= 21
+    ) {
+      // Experimental on 21, a product flag from 22; the unlock is harmless either way.
+      add("-XX:+UnlockExperimentalVMOptions")
+      add("$TRIM_NATIVE_HEAP_FLAG${config.trimNativeHeapMs}")
+    }
+    bootSystemProperties(descriptor).forEach { (k, v) -> add("-D$k=$v") }
+    add("-D${DaemonProperties.Names.SANDBOX_WORKER_SPARE}=true")
+    add("-D${DaemonProperties.Names.SANDBOX_COUNT}=1")
+    add("-D${DaemonProperties.Names.BACKGROUND_SANDBOX_BOOT}=false")
+    add(classpathArgFile(descriptor.classpath))
+    add(SANDBOX_WORKER_MAIN_CLASS)
+  }
 
   /**
    * The system properties a sandbox boot depends on, and therefore the only ones a spare is
@@ -320,6 +342,9 @@ public class SandboxSparePool(
   public companion object {
     public const val DEFAULT_MAX_SPARES: Int = 4
     public const val DEFAULT_PER_SIGNATURE: Int = 2
+    public const val DEFAULT_TRIM_NATIVE_HEAP_MS: Long = 1_000L
+
+    private const val TRIM_NATIVE_HEAP_FLAG = "-XX:TrimNativeHeapInterval="
 
     /** Mirrors `SandboxWorkerMain.SPARE_HANDSHAKE_PREFIX`; the two must agree as bytes. */
     public const val SPARE_HANDSHAKE_PREFIX: String = "composeai-spare-worker: listening"

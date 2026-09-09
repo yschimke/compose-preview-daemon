@@ -26,10 +26,18 @@ class RobolectricHostSpareAdoptionTest {
   private class LaunchedSpare(val process: Process, val pid: Long, val port: Int)
 
   private fun launchSpare(): LaunchedSpare {
-    val spare =
-      ProcessBuilder(SandboxProcessPool.spareWorkerCommandForTest())
-        .redirectErrorStream(false)
-        .start()
+    // Experiment seams: `COMPOSEAI_TEST_SPARE_JAVA` runs the spare on another JDK,
+    // `COMPOSEAI_TEST_SPARE_JVM_ARGS` adds flags (space-separated) — for measuring a JVM lever on
+    // the spare without touching what the pool launches.
+    val command =
+      SandboxProcessPool.spareWorkerCommandForTest().toMutableList().apply {
+        System.getenv("COMPOSEAI_TEST_SPARE_JAVA")?.takeIf { it.isNotBlank() }?.let { set(0, it) }
+        System.getenv("COMPOSEAI_TEST_SPARE_JVM_ARGS")
+          ?.split(' ')
+          ?.filter { it.isNotBlank() }
+          ?.let { addAll(1, it) }
+      }
+    val spare = ProcessBuilder(command).redirectErrorStream(false).start()
     pump(spare.errorStream)
     val handshake =
       spare.inputStream.bufferedReader().let { reader ->
@@ -62,6 +70,25 @@ class RobolectricHostSpareAdoptionTest {
       "[measure] spare warm RSS: ${rssKb(pid)} kB; host JVM before start: " +
         "${rssKb(ProcessHandle.current().pid())} kB"
     )
+    if (System.getenv("COMPOSEAI_TEST_SPARE_JVM_ARGS")?.contains("NativeMemoryTracking") == true) {
+      Thread.sleep(5_000)
+      System.err.println("[measure] spare RSS after 5 s idle: ${rssKb(pid)} kB")
+      val jcmd = File(File(command[0]).parentFile, "jcmd")
+      runCatching {
+        val out =
+          ProcessBuilder(jcmd.path, pid.toString(), "VM.native_memory", "summary")
+            .redirectErrorStream(true)
+            .start()
+            .inputStream
+            .bufferedReader()
+            .readText()
+        out
+          .lines()
+          .filter { it.contains("committed=") }
+          .forEach { System.err.println("[nmt] ${it.trim()}") }
+      }
+        .onFailure { System.err.println("[nmt] failed: $it") }
+    }
     return LaunchedSpare(spare, pid, port)
   }
 
@@ -93,7 +120,11 @@ class RobolectricHostSpareAdoptionTest {
       assertEquals(listOf(spare.pid), host.workerPidsForTest())
 
       // A render succeeds now, on the worker — slot 0 is still booting.
-      val early = host.submit(RenderRequest.Render(payload = "render-1"), timeoutMs = 120_000)
+      val early =
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Stub("render-1")),
+          timeoutMs = 120_000,
+        )
       assertNotNull(early)
       // What the adopting catalog actually pays: its own first real renders, on a sandbox that
       // was warmed against no catalog. Foundation-only first, then Material 3 twice, so the
@@ -102,7 +133,7 @@ class RobolectricHostSpareAdoptionTest {
         val startedAt = System.nanoTime()
         val result =
           host.submit(
-            RenderRequest.Render(payload = fixturePayload(function, tag)),
+            RenderRequest.Render(target = fixtureTarget(function, tag)),
             timeoutMs = 120_000,
           )
         assertNotNull("$function should render a PNG", result.pngPath)
@@ -127,7 +158,11 @@ class RobolectricHostSpareAdoptionTest {
         "[measure] host JVM after slot 0 booted: ${rssKb(ProcessHandle.current().pid())} kB; " +
           "spare after a render: ${rssKb(spare.pid)} kB"
       )
-      val later = host.submit(RenderRequest.Render(payload = "render-2"), timeoutMs = 120_000)
+      val later =
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Stub("render-2")),
+          timeoutMs = 120_000,
+        )
       assertNotNull(later)
     } finally {
       System.clearProperty(UserClassLoaderHolder.USER_CLASS_DIRS_PROP)
@@ -159,7 +194,11 @@ class RobolectricHostSpareAdoptionTest {
     try {
       host.start()
       assertEquals(1, host.readySlotCountForTest())
-      val rendered = host.submit(RenderRequest.Render(payload = "render-1"), timeoutMs = 120_000)
+      val rendered =
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Stub("render-1")),
+          timeoutMs = 120_000,
+        )
       assertNotNull(rendered)
       // Long enough that a background boot of slot 0 would have shown up.
       Thread.sleep(8_000)
@@ -175,7 +214,12 @@ class RobolectricHostSpareAdoptionTest {
           "host JVM after: ${rssKb(ProcessHandle.current().pid())} kB"
       )
       assertEquals("slot 0 boots on demand", 2, host.readySlotCountForTest())
-      assertNotNull(host.submit(RenderRequest.Render(payload = "render-2"), timeoutMs = 120_000))
+      assertNotNull(
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Stub("render-2")),
+          timeoutMs = 120_000,
+        )
+      )
     } finally {
       System.clearProperty(DaemonProperties.Names.LAZY_IN_PROCESS_SANDBOX)
       System.clearProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES)
@@ -186,13 +230,19 @@ class RobolectricHostSpareAdoptionTest {
     }
   }
 
-  private fun fixturePayload(function: String, tag: String): String =
-    "previewId=ee.schimke.composeai.daemon.RedFixturePreviewsKt.$function.$tag;" +
-      "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-      "functionName=$function;" +
-      "widthPx=256;heightPx=128;density=2.0;" +
-      "showBackground=true;" +
-      "outputBaseName=$tag"
+  private fun fixtureTarget(function: String, tag: String): RenderTarget.Spec =
+    RenderTarget.Spec(
+      RenderSpec(
+        previewId = "ee.schimke.composeai.daemon.RedFixturePreviewsKt.$function.$tag",
+        className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+        functionName = function,
+        widthPx = 256,
+        heightPx = 128,
+        density = 2.0f,
+        showBackground = true,
+        outputBaseName = tag,
+      )
+    )
 
   /** The testFixtures classes, copied out so they can be a user-class dir of their own. */
   private fun stageFixtureClassesDir(): File {

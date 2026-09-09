@@ -96,6 +96,29 @@ class SandboxSparePoolTest {
   }
 
   @Test
+  fun `the native heap trim rides along only on a JDK that has it`() {
+    val pool = pool(SandboxSparePool.Config(maxSpares = 1, perSignature = 1))
+    val on21 = pool.spareCommand(descriptor(), archiveSlot = 0, javaFeatureVersion = 21)
+    assertThat(on21).contains("-XX:TrimNativeHeapInterval=1000")
+    assertThat(on21).contains("-XX:+UnlockExperimentalVMOptions")
+    val on17 = pool.spareCommand(descriptor(), archiveSlot = 0, javaFeatureVersion = 17)
+    assertThat(on17.any { it.contains("TrimNativeHeap") }).isFalse()
+    // A launcher the pool did not pick, or a descriptor that already decides, is left alone.
+    val other = descriptor().copy(javaLauncher = "/opt/jdk/bin/java")
+    assertThat(
+        pool.spareCommand(other, 0, javaFeatureVersion = 21).any { it.contains("TrimNativeHeap") }
+      )
+      .isFalse()
+    val off = pool(SandboxSparePool.Config(maxSpares = 1, perSignature = 1, trimNativeHeapMs = 0))
+    assertThat(
+        off.spareCommand(descriptor(), 0, javaFeatureVersion = 21).any {
+          it.contains("TrimNativeHeap")
+        }
+      )
+      .isFalse()
+  }
+
+  @Test
   fun `reserve hands out only warm spares of the same signature, once`() {
     val pool = pool(SandboxSparePool.Config(maxSpares = 4, perSignature = 2))
     val d = descriptor()
