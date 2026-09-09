@@ -157,7 +157,7 @@ class SandboxProcessPool(
       val response =
         exchange(
           worker,
-          WorkerRequest.Render(id = request.id, payload = request.payload, timeoutMs = timeoutMs),
+          WorkerRequest.Render(id = request.id, target = request.target, timeoutMs = timeoutMs),
           // Give the socket read a margin over the render budget so a worker that answers just
           // inside its own deadline still beats ours.
           readTimeoutMs = timeoutMs + SOCKET_READ_MARGIN_MS,

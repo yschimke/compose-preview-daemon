@@ -38,7 +38,7 @@ class MultipleSemanticsRootsRenderTest {
     try {
       val result =
         host.submit(
-          RenderRequest.Render(payload = "previewId=$previewId"),
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$previewId")),
           timeoutMs = 120_000,
         )
       assertNotNull("PNG path must be populated", result.pngPath)

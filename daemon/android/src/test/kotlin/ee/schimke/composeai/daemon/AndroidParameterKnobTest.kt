@@ -5,9 +5,7 @@ import ee.schimke.composeai.daemon.protocol.PreviewOverrideValue
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import java.io.ByteArrayInputStream
 import java.io.File
-import java.util.Base64
 import javax.imageio.ImageIO
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -58,8 +56,7 @@ class AndroidParameterKnobTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            payload =
-              "previewId=$KNOBBED_PREVIEW_ID;overrides=${encodeTextBag("topArgb" to blue.toString())}"
+            target = preview(KNOBBED_PREVIEW_ID, textBag("topArgb" to blue.toString()))
           ),
           timeoutMs = 120_000,
         )
@@ -97,7 +94,7 @@ class AndroidParameterKnobTest {
     try {
       val result =
         host.submit(
-          RenderRequest.Render(payload = "previewId=$KNOBBED_PREVIEW_ID"),
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$KNOBBED_PREVIEW_ID")),
           timeoutMs = 120_000,
         )
       assertNotNull("pngPath must be populated", result.pngPath)
@@ -137,8 +134,7 @@ class AndroidParameterKnobTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            payload =
-              "previewId=$KNOBBED_PREVIEW_ID;overrides=${encodeTextBag("topArgb" to blue.toString())}"
+            target = preview(KNOBBED_PREVIEW_ID, textBag("topArgb" to blue.toString()))
           ),
           timeoutMs = 120_000,
         )
@@ -213,18 +209,10 @@ class AndroidParameterKnobTest {
    * `ColorValue` has no parameter-knob equivalent (`Color` is not a seedable kind), so a colour
    * seed is deliberately dropped by `PreviewKnobSeeds` and cannot drive one.
    */
-  private fun encodeTextBag(vararg entries: Pair<String, String>): String {
-    val json = Json { encodeDefaults = false }
-    val bag =
-      PreviewOverrides(
-        namedOverrides = entries.associate { (k, v) -> k to PreviewOverrideValue.StringValue(v) }
-      )
-    return Base64.getUrlEncoder()
-      .withoutPadding()
-      .encodeToString(
-        json.encodeToString(PreviewOverrides.serializer(), bag).toByteArray(Charsets.UTF_8)
-      )
-  }
+  private fun textBag(vararg entries: Pair<String, String>): PreviewOverrides =
+    PreviewOverrides(
+      namedOverrides = entries.associate { (k, v) -> k to PreviewOverrideValue.StringValue(v) }
+    )
 
   private fun decode(file: File): java.awt.image.BufferedImage {
     require(file.exists()) { "expected capture at ${file.absolutePath}" }

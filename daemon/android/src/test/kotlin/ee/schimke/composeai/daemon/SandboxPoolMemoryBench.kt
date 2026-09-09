@@ -40,7 +40,7 @@ class SandboxPoolMemoryBench {
       // Run a few stub renders so the JIT and Robolectric's per-sandbox shadow caches have warmed
       // up; otherwise the post-boot snapshot under-represents the true working set.
       repeat(2 * sandboxCount) { i ->
-        host.submit(RenderRequest.Render(payload = "bench-warmup-$i"))
+        host.submit(RenderRequest.Render(target = RenderTarget.Stub("bench-warmup-$i")))
       }
 
       val warm = sample()

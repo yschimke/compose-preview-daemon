@@ -2,6 +2,7 @@ package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.protocol.InteractiveInputKind
 import ee.schimke.composeai.daemon.protocol.InteractiveInputParams
+import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import ee.schimke.composeai.daemon.protocol.SemanticsInputTarget
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -116,13 +117,19 @@ class AndroidInteractiveSessionTest {
         host.submit(
           RenderRequest.Render(
             id = followupId,
-            payload =
-              "previewId=red-square;" +
-                "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-                "functionName=RedSquare;" +
-                "widthPx=64;heightPx=64;density=1.0;" +
-                "showBackground=true;" +
-                "outputBaseName=post-interactive-red",
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  previewId = "red-square",
+                  className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                  functionName = "RedSquare",
+                  widthPx = 64,
+                  heightPx = 64,
+                  density = 1.0f,
+                  showBackground = true,
+                  outputBaseName = "post-interactive-red",
+                )
+              ),
           ),
           timeoutMs = 60_000,
         )
@@ -859,15 +866,21 @@ class AndroidInteractiveSessionTest {
       )
     val router = PreviewManifestRouter(manifest = manifest, sandboxCount = 2)
 
-    val routed = router.routePayload("previewId=$SCROLL_PREVIEW_ID;widthPx=128")
+    val routed =
+      router.routeTarget(preview(SCROLL_PREVIEW_ID, PreviewOverrides(widthPx = 128)))
+        as RenderTarget.Spec
 
-    assertTrue(
-      "routed payload must retain previewId so RobolectricHost can keep renderNow off the " +
+    assertEquals(
+      "the routed spec must retain previewId so RobolectricHost can keep renderNow off the " +
         "held interactive slot by preview affinity",
-      routed.split(';').contains("previewId=$SCROLL_PREVIEW_ID"),
+      SCROLL_PREVIEW_ID,
+      routed.spec.previewId,
     )
-    assertTrue("routed payload should still carry resolved class", routed.contains("className="))
-    assertTrue("inbound overrides must survive routing", routed.contains("widthPx=128"))
+    assertTrue(
+      "the routed spec should carry the resolved class",
+      routed.spec.className.isNotBlank(),
+    )
+    assertEquals("inbound overrides must survive routing", 128, routed.spec.widthPx)
   }
 
   @Test

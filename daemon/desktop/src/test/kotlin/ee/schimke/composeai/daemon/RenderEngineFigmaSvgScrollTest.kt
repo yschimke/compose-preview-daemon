@@ -37,12 +37,18 @@ class RenderEngineFigmaSvgScrollTest {
     try {
       val request =
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=LazyColumnListPreview;" +
-              "widthPx=200;heightPx=$heightPx;density=1.0;" +
-              "showBackground=true;" +
-              "outputBaseName=$baseName"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "LazyColumnListPreview",
+                widthPx = 200,
+                heightPx = heightPx,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "$baseName",
+              )
+            )
         )
       host.submit(request, timeoutMs = 120_000)
     } finally {

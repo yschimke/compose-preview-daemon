@@ -68,8 +68,14 @@ class FigmaSvgManifestUiModeTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      host.submit(RenderRequest.Render(payload = "previewId=$baseId"), timeoutMs = 120_000)
-      host.submit(RenderRequest.Render(payload = "previewId=$variantId"), timeoutMs = 120_000)
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "$baseId")),
+        timeoutMs = 120_000,
+      )
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "$variantId")),
+        timeoutMs = 120_000,
+      )
 
       val dataDir = outputDir.parentFile!!.resolve("data")
       val baseSvg = dataDir.resolve(baseId).resolve("compose-figma.svg").readText()
@@ -99,8 +105,14 @@ class FigmaSvgManifestUiModeTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      host.submit(RenderRequest.Render(payload = "previewId=square_Light"), timeoutMs = 120_000)
-      host.submit(RenderRequest.Render(payload = "previewId=square_Dark"), timeoutMs = 120_000)
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "square_Light")),
+        timeoutMs = 120_000,
+      )
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "square_Dark")),
+        timeoutMs = 120_000,
+      )
 
       val dataDir = outputDir.parentFile!!.resolve("data")
       val light = dataDir.resolve("square_Light").resolve("compose-figma.svg")
@@ -168,8 +180,14 @@ class FigmaSvgManifestUiModeTest {
       RobolectricHost(previewSpecResolver = { id -> byId[id]?.let { renderSpecFromInfo(it) } })
     host.start()
     try {
-      host.submit(RenderRequest.Render(payload = "previewId=sq_Dark"), timeoutMs = 120_000)
-      host.submit(RenderRequest.Render(payload = "previewId=sq_Light"), timeoutMs = 120_000)
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "sq_Dark")),
+        timeoutMs = 120_000,
+      )
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "sq_Light")),
+        timeoutMs = 120_000,
+      )
 
       val dataDir = outputDir.parentFile!!.resolve("data")
       val dark = dataDir.resolve("sq_Dark").resolve("compose-figma.svg").readText()

@@ -324,14 +324,29 @@ public interface RenderHost {
 /** Request envelope. [Shutdown] is the poison pill; everything else is a [Render]. */
 public sealed interface RenderRequest {
 
+  /**
+   * Render one preview. [target] says what to render — see [RenderTarget] for why a request is
+   * unresolved when it leaves the JSON-RPC layer and resolved by the time it reaches an engine.
+   */
   public data class Render(
     val id: Long = RenderHost.nextRequestId(),
+    val target: RenderTarget,
+  ) : RenderRequest {
+
     /**
-     * Free-form payload the stub host doesn't read. Real backends will replace this with a typed
-     * `PreviewInfo` / output-dir tuple in subsequent tasks.
+     * [target] as JSON, for the two boundaries that cannot pass a Kotlin object: the Robolectric
+     * sandbox classloader crossing and the sandbox worker-process hop.
+     *
+     * A property rather than a call at the crossing itself because the sandbox side reads it
+     * **reflectively** — `getTargetJson` — having matched this class by [Class.getSimpleName]
+     * rather than by identity. It has to: `RenderRequest` lives in the instrumented
+     * `ee.schimke.composeai.daemon` package, so the sandbox's copy of this class is a different
+     * `Class` object than the host's, and only `java.*` types (here, a `String`) survive the trip
+     * intact. See `DaemonHostBridge`'s package KDoc for the rule.
      */
-    val payload: String = "",
-  ) : RenderRequest
+    val targetJson: String
+      get() = RenderTarget.encode(target)
+  }
 
   /**
    * Enumerate a `@PreviewParameter` provider's rows — the ids `renderNow` can then address
@@ -343,17 +358,15 @@ public sealed interface RenderRequest {
    * [Render] does, so it inherits the sandbox's single-threaded dispatch and the
    * no-mid-render-cancellation invariant for free.
    *
-   * [payload] is the same `;`-delimited `key=value` shape [Render] uses, carrying at minimum
-   * `className` and `previewParameterProvider` (plus an optional `previewParameterLimit`). A String
-   * keeps the crossing `java.*`-only, which is what the sandbox classloader boundary requires — see
-   * `DaemonHostBridge`'s package KDoc.
-   *
    * The reply posted back on the per-id result queue is a `java.util.List<String>` of row labels in
-   * provider order, for the same reason.
+   * provider order, because that is what crosses the sandbox classloader boundary intact.
    */
   public data class ParameterRows(
     val id: Long = RenderHost.nextRequestId(),
-    val payload: String = "",
+    /** FQN of the `PreviewParameterProvider` to enumerate. */
+    val providerClassName: String,
+    /** Mirrors `@PreviewParameter.limit`; the sandbox clamps it to its own scan ceiling. */
+    val limit: Int = Int.MAX_VALUE,
   ) : RenderRequest
 
   /** Singleton poison pill. */

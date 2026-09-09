@@ -24,13 +24,16 @@ import ee.schimke.composeai.daemon.bridge.DaemonHostBridge
 import ee.schimke.composeai.daemon.bridge.InteractiveCommand
 import ee.schimke.composeai.daemon.bridge.SandboxSlot
 import ee.schimke.composeai.daemon.config.DaemonProperties
+import ee.schimke.composeai.daemon.devices.FrameOrientation
 import ee.schimke.composeai.daemon.pool.SandboxProcessPool
 import ee.schimke.composeai.daemon.protocol.DataExtensionDescriptor
+import ee.schimke.composeai.daemon.protocol.Orientation
 import ee.schimke.composeai.daemon.protocol.SemanticsInputTarget
 import ee.schimke.composeai.daemon.protocol.SemanticsTargetCandidate
 import ee.schimke.composeai.daemon.protocol.SemanticsTargetUnresolvedCode
 import ee.schimke.composeai.daemon.protocol.SemanticsTargetUnresolvedReason
 import ee.schimke.composeai.daemon.protocol.TypographyToken
+import ee.schimke.composeai.daemon.protocol.UiMode
 import ee.schimke.composeai.data.layoutinspector.ComposeSemanticsNode
 import ee.schimke.composeai.data.layoutinspector.SemanticsTarget
 import ee.schimke.composeai.data.layoutinspector.SemanticsTargets
@@ -664,17 +667,25 @@ open class RobolectricHost(
     val id = RenderHost.nextRequestId()
     val startedAt = System.nanoTime()
     try {
-      val payload =
-        "className=$WARMUP_PREVIEW_CLASS;functionName=$WARMUP_PREVIEW_FUNCTION;" +
-          "widthPx=64;heightPx=64;density=1.0;showBackground=true;" +
-          "outputBaseName=__warmup-slot-$slotIdx"
+      val target =
+        RenderTarget.Spec(
+          RenderSpec(
+            className = WARMUP_PREVIEW_CLASS,
+            functionName = WARMUP_PREVIEW_FUNCTION,
+            widthPx = 64,
+            heightPx = 64,
+            density = 1.0f,
+            showBackground = true,
+            outputBaseName = "__warmup-slot-$slotIdx",
+          )
+        )
       // Worker slots: the warm render is a plain remote submit — the worker owns its own child
       // classloader, so there's nothing to publish across first.
       if (slotIdx > 0) {
         val pool = processPool ?: error("warm render on slot $slotIdx without a process pool")
         pool.submit(
           slotIdx - 1,
-          RenderRequest.Render(id = id, payload = payload),
+          RenderRequest.Render(id = id, target = target),
           WARM_RENDER_TIMEOUT_MS,
         )
         StartupTimings.mark(
@@ -683,7 +694,7 @@ open class RobolectricHost(
         return
       }
       publishChildLoaderForSlot(slotIdx)
-      DaemonHostBridge.slot(slotIdx).requests.put(RenderRequest.Render(id = id, payload = payload))
+      DaemonHostBridge.slot(slotIdx).requests.put(RenderRequest.Render(id = id, target = target))
       val resultQueue = DaemonHostBridge.results.computeIfAbsent(id) { LinkedBlockingQueue() }
       val raw = resultQueue.poll(WARM_RENDER_TIMEOUT_MS, TimeUnit.MILLISECONDS)
       val tookMs = (System.nanoTime() - startedAt) / 1_000_000
@@ -940,9 +951,9 @@ open class RobolectricHost(
     // `DesktopHost.specFromPreviewIdPayload`. No-op (same instance) when the payload is already a
     // spec payload, no resolver is wired, or the id is unknown — see [reshapeRenderPayload].
     val typed =
-      reshapeRenderPayload(inbound.payload).let { reshaped ->
-        if (reshaped === inbound.payload) inbound
-        else RenderRequest.Render(id = inbound.id, payload = reshaped)
+      reshapeRenderTarget(inbound.target).let { reshaped ->
+        if (reshaped === inbound.target) inbound
+        else RenderRequest.Render(id = inbound.id, target = reshaped)
       }
     // SANDBOX-POOL.md — slot dispatch. Hash the **previewId** to a slot so the same preview always
     // lands on the same sandbox; Compose snapshot caches and Robolectric shadow caches accumulate
@@ -1030,12 +1041,8 @@ open class RobolectricHost(
 
     val request =
       RenderRequest.ParameterRows(
-        payload =
-          buildString {
-            append("className=").append(spec.className).append(';')
-            append("previewParameterProvider=").append(provider).append(';')
-            append("previewParameterLimit=").append(spec.previewParameterLimit)
-          }
+        providerClassName = provider,
+        limit = spec.previewParameterLimit,
       )
     // Only slot 0 is reachable through the bridge — slots 1..N-1 live in worker JVMs with no
     // ParameterRows lane — and a held interactive session pins exactly that slot
@@ -1147,23 +1154,23 @@ open class RobolectricHost(
   }
 
   /**
-   * SANDBOX-POOL.md (affinity-aware dispatch) — picks a slot for [render]. Uses the previewId
-   * extracted from the payload as the affinity key when present so the same preview always lands on
-   * the same sandbox; falls back to the monotonic request id when the payload is the legacy stub
-   * form (`render-N`) or has no `previewId=` key.
+   * SANDBOX-POOL.md (affinity-aware dispatch) — picks a slot for [render]. Uses the target's
+   * previewId as the affinity key when it names one, so the same preview always lands on the same
+   * sandbox; falls back to the monotonic request id for a target that names none (a
+   * [RenderTarget.Stub], or a spec resolved without an id).
    *
    * `Math.floorMod` keeps the slot index non-negative for any hash. With `sandboxCount = 1` both
    * paths collapse to slot 0 — bit-identical with the pre-pool single-sandbox dispatch.
    */
   internal fun chooseSlotIndexForTest(
-    payload: String,
+    target: RenderTarget,
     id: Long,
     interactiveSlotPinned: Boolean = false,
   ): Int =
     // Tests probe the steady-state dispatch (all slots booted and healthy), independent of whether
     // this host instance ever started — pass the full slot range rather than the live one.
     chooseSlotIndex(
-      RenderRequest.Render(id = id, payload = payload),
+      RenderRequest.Render(id = id, target = target),
       interactiveSlotPinned,
       routable = (0 until sandboxCount).toList(),
     )
@@ -1201,219 +1208,115 @@ open class RobolectricHost(
       if (interactiveSlotPinned) routable.filter { it != INTERACTIVE_SLOT_INDEX } else routable
     if (candidates.isEmpty()) return INTERACTIVE_SLOT_INDEX
     if (candidates.size == 1) return candidates.single()
-    val previewId = parsePreviewIdFromPayload(render.payload)
+    val previewId = render.target.previewIdOrNull()
     val key: Int = previewId?.hashCode() ?: render.id.hashCode()
     return candidates[Math.floorMod(key, candidates.size)]
   }
 
   /**
-   * Extracts `previewId=<id>` from a `;`-delimited payload. Mirrors the parsing
-   * `PreviewManifestRouter.parsePreviewId` does in the same package — duplicated here rather than
-   * shared via a top-level helper so the dispatch path stays a self-contained one-line read.
-   * Returns `null` when the payload doesn't carry a previewId (legacy stub-payload tests).
-   */
-  private fun parsePreviewIdFromPayload(payload: String): String? {
-    if (payload.isEmpty()) return null
-    for (entry in payload.split(';')) {
-      val trimmed = entry.trim()
-      if (trimmed.startsWith(PREVIEW_ID_KEY)) {
-        return trimmed.substring(PREVIEW_ID_KEY.length).trim().takeIf { it.isNotEmpty() }
-      }
-    }
-    return null
-  }
-
-  /**
-   * Host-side reshape of a core-issued `renderNow` payload (#1687).
-   * [JsonRpcServer.encodeRenderPayload] emits only the protocol-level `previewId=<id>` (plus any
-   * [PreviewOverrides] tokens); it can't name the class/function. When a [previewSpecResolver] is
-   * wired — production [DaemonMain] backs it with the bundle's `previews.json` — we resolve the id
-   * to a [RenderSpec] on the host thread and rewrite the payload into the parseable
-   * `className=…;functionName=…` shape the sandbox's [SandboxRunner.dispatchRender] expects.
-   * Mirrors [DesktopHost.specFromPreviewIdPayload] and the [PreviewManifestRouter]; inbound
-   * override tokens win over the spec's per-preview defaults.
+   * Host-side resolution of a core-issued `renderNow` (#1687).
    *
-   * Returns [payload] unchanged (same instance) when it already carries `className=` (router output
-   * or a direct spec-payload caller), when no resolver is wired (in-process unit tests), or when
-   * the resolver doesn't know the id — in those cases [dispatchRender] keeps its existing behaviour
-   * (parse the spec, or fall through to [renderStub] for legacy `render-N` payloads). Without this,
-   * the Android bundle daemon (which never mounts a [PreviewManifestRouter]) stubbed every classic
-   * preview, emitting a `renderFinished` with a `daemon-stub-<id>.png` path that was never written.
+   * [JsonRpcServer] names a `previewId` and the caller's [PreviewOverrides]; it cannot name the
+   * class/function. When a [previewSpecResolver] is wired — production [DaemonMain] backs it with
+   * the bundle's `previews.json` — we resolve the id to a [RenderSpec] on the host thread, so what
+   * crosses into the sandbox is already resolved. Mirrors [DesktopHost.specFromPreviewTarget] and
+   * [PreviewManifestRouter]; inbound overrides win over the spec's per-preview defaults.
+   *
+   * Returns the target unchanged when it is already a [RenderTarget.Spec] or a [RenderTarget.Stub],
+   * when no resolver is wired (in-process unit tests), or when the resolver does not know the id —
+   * in those cases [SandboxRunner.dispatchRender] keeps its existing behaviour. Without this the
+   * Android bundle daemon (which never mounts a [PreviewManifestRouter]) stubbed every classic
+   * preview, emitting a `renderFinished` with a `daemon-stub-<id>.png` path never written.
+   *
+   * **This backend is why [RenderSpec] is `@Serializable`.** Composition happens inside the
+   * Robolectric sandbox classloader, which cannot be handed a Kotlin object from out here (see
+   * `DaemonHostBridge`'s package doc), so the resolved spec crosses as JSON. Every field it carries
+   * therefore has to be *on the spec* — under the old `;`-delimited payload each one needed its own
+   * `append(…)` in this method, and a field nobody remembered to add reached the sandbox as its
+   * default and rendered wrong pixels with no error. The knobs (`knobs=`), the capture gutter
+   * (#4822) and the `@PreviewParameter` provider had each been fixed here, one at a time, exactly
+   * that way.
    */
-  internal fun reshapeRenderPayload(payload: String): String {
-    if (payload.contains("className=")) return payload
-    val resolver = previewSpecResolver ?: return payload
-    val inbound = parsePayloadMap(payload)
-    val previewId = inbound["previewId"]?.takeIf { it.isNotBlank() } ?: return payload
-    val base = resolver(previewId) ?: return payload
-    return buildString {
-      append("previewId=").append(previewId).append(';')
-      append("className=").append(base.className).append(';')
-      append("functionName=").append(base.functionName).append(';')
-      // Inbound explicit override wins over the spec's per-preview default. `device=` overrides are
-      // pre-resolved into widthPx/heightPx/density by `JsonRpcServer.encodeRenderPayload`.
-      //
-      // #3547 — a device-less `orientation` request reaches here with no dimensions at all
-      // (`encodeRenderPayload` has none to rotate), so this is the only lane that can rotate the
-      // preview's own discovery-time frame. Skipping it captured a landscape bitmap while
-      // `applyPreviewQualifiers` derived a `port` qualifier from the same spec: a frame
-      // contradicting its own Configuration. Explicit pixels still outrank the request, and
-      // `orientedPx` only swaps a frame that contradicts it, so a device override (already rotated
-      // upstream) passes through untouched.
-      val orientationCanSwap = inbound["widthPx"] == null && inbound["heightPx"] == null
-      val requestedOrientation = inbound["orientation"] ?: base.orientation?.name?.lowercase()
-      val (framedWidthPx, framedHeightPx) =
-        if (orientationCanSwap)
-          ee.schimke.composeai.daemon.devices.FrameOrientation.orientedPx(
-            base.widthPx,
-            base.heightPx,
-            requestedOrientation,
-          )
-        else base.widthPx to base.heightPx
-      val rotated = framedWidthPx != base.widthPx || framedHeightPx != base.heightPx
-      append("widthPx=").append(inbound["widthPx"] ?: framedWidthPx).append(';')
-      append("heightPx=").append(inbound["heightPx"] ?: framedHeightPx).append(';')
-      // AS-parity wrap flags must ride the serialized payload — `parseFromPayloadOrNull` defaults
-      // them false, so a held/stream render of a no-height preview would otherwise reflow past the
-      // frame to zero height. An inbound explicit size (a `device=` override arrives pre-resolved
-      // as
-      // widthPx/heightPx per encodeRenderPayload) pins the axis, dropping its wrap flag.
-      //
-      // The flags name an *axis*, so a rotated frame has to trade them too — a fixed-width /
-      // wrapped-height preview turned landscape must now wrap width, or the measure-and-crop pass
-      // sizes the wrong axis.
-      val wrapWidth = if (rotated) base.wrapHeight else base.wrapWidth
-      val wrapHeight = if (rotated) base.wrapWidth else base.wrapHeight
-      if (wrapWidth && inbound["widthPx"] == null) append("wrapWidth=true;")
-      if (wrapHeight && inbound["heightPx"] == null) append("wrapHeight=true;")
-      append("density=").append(inbound["density"] ?: base.density).append(';')
-      append("showBackground=").append(base.showBackground).append(';')
-      if (base.backgroundColor != 0L) {
-        append("backgroundColor=").append(base.backgroundColor).append(';')
-      }
-      // The raw device string is forwarded so the render body's round-Wear crop heuristic sees it.
-      (inbound["device"]?.takeIf { it.isNotBlank() } ?: base.device)
-        ?.takeIf { it.isNotBlank() }
-        ?.let { append("device=").append(it).append(';') }
-      (inbound["localeTag"] ?: base.localeTag)
-        ?.takeIf { it.isNotBlank() }
-        ?.let { append("localeTag=").append(it).append(';') }
-      (inbound["fontScale"] ?: base.fontScale?.toString())?.let {
-        append("fontScale=").append(it).append(';')
-      }
-      (inbound["uiMode"] ?: base.uiMode?.name?.lowercase())?.let {
-        append("uiMode=").append(it).append(';')
-      }
-      (inbound["orientation"] ?: base.orientation?.name?.lowercase())?.let {
-        append("orientation=").append(it).append(';')
-      }
-      // `@CaptureGutter` (#4443) — four dp edges in start,top,end,bottom order, mirroring
-      // [PreviewManifestRouter]. Without this the string round-trip drops the gutter silently:
-      // `RenderSpec.parseFromPayloadOrNull` defaults every edge to 0, so the sandbox composed at
-      // the un-guttered size and every override-driven render came back clipped to the
-      // composable's own frame (#4822). The router is the harness lane; this is the lane the
-      // production bundle daemon and `compose-preview serve` actually take.
-      //
-      // Deliberately NOT traded with the wrap flags on a rotation, for the reason the router
-      // states: a wrap flag names an axis of the frame, a gutter edge names a direction the
-      // component draws in, and a `widthPx ↔ heightPx` swap does not move where a shadow falls.
-      if (base.hasCaptureGutter()) {
-        append("captureGutter=")
-          .append(base.gutterStartDp)
-          .append(',')
-          .append(base.gutterTopDp)
-          .append(',')
-          .append(base.gutterEndDp)
-          .append(',')
-          .append(base.gutterBottomDp)
-          .append(';')
-      }
-      inbound["captureAdvanceMs"]?.let { append("captureAdvanceMs=").append(it).append(';') }
-      (inbound["inspectionMode"] ?: base.inspectionMode?.toString())?.let {
-        append("inspectionMode=").append(it).append(';')
-      }
-      // Layer the baked `@OverrideVariant` seed (`base.overrides`) UNDER the inbound live override
-      // token: a live per-render override wins per key, but the variant's baked seed still applies
-      // when the caller sends no override (catalog browsing). Mirrors the desktop host's
-      // `layeredOver(base.overrides)`; without it a live variant preview rendered its base state.
-      overridesTokenFor(inbound["overrides"], base.overrides)?.let {
-        append("overrides=").append(it).append(';')
-      }
-      inbound["mode"]?.let { append("mode=").append(it).append(';') }
-      (inbound["kind"]?.takeIf { it.isNotBlank() } ?: base.kind)
-        ?.takeIf { it.isNotBlank() }
-        ?.let { append("kind=").append(it).append(';') }
-      base.wrapperClassName
-        ?.takeIf { it.isNotBlank() }
-        ?.let { append("wrapperClassName=").append(it).append(';') }
-      // `@PreviewParameter` has BINARY retention, so the sandbox cannot recover its provider by
-      // reflecting on the preview method. The production bundle-daemon path resolves the provider
-      // from `previews.json` into [base]; carry it through this host-side payload reshape just like
-      // [PreviewManifestRouter] does. Dropping it makes the sandbox attempt the parameterless
-      // `(Composer, int)` lookup for a method compiled as `(<T>, Composer, int)`, producing the
-      // misleading `NoSuchMethodException: <class>.<function>` seen on published catalogs.
-      base.previewParameterProviderClassName
-        ?.takeIf { it.isNotBlank() }
-        ?.let {
-          append("previewParameterProvider=").append(it).append(';')
-          if (base.previewParameterLimit != Int.MAX_VALUE) {
-            append("previewParameterLimit=").append(base.previewParameterLimit).append(';')
-          }
-          base.previewParameterRow
-            ?.takeIf { row -> row.isNotBlank() }
-            ?.let { row -> append("previewParameterRow=").append(row).append(';') }
-        }
-      // The preview's **parameter knobs**. On this backend the token is the only way they reach
-      // the render: composition happens inside the Robolectric sandbox classloader, which sees the
-      // reshaped payload and never this host-side spec. Dropping it here would leave a seeded knob
-      // silently rendering its author default — the desktop backend has no equivalent emit because
-      // its resolver hands the spec to the render body directly.
-      PreviewKnobToken.encode(base.knobs)?.let { append("knobs=").append(it).append(';') }
-      // Key the output PNG on the (unique) previewId, like [PreviewManifestRouter]; the default
-      // `className-functionName` stem would collide for the multiple `@Preview` / @WearPreview*
-      // variants that share one function, overwriting each other's render.
-      append("outputBaseName=").append(previewId)
-    }
-  }
+  internal fun reshapeRenderTarget(target: RenderTarget): RenderTarget {
+    val preview = target as? RenderTarget.Preview ?: return target
+    val resolver = previewSpecResolver ?: return target
+    val previewId = preview.previewId.takeIf { it.isNotBlank() } ?: return target
+    val base = resolver(previewId) ?: return target
+    val overrides = preview.overrides
 
-  private val overridesJson =
-    kotlinx.serialization.json.Json {
-      ignoreUnknownKeys = true
-      encodeDefaults = false
-    }
-
-  /**
-   * Merge the inbound live override token (a sparse per-render overlay) OVER the baked
-   * `@OverrideVariant` seed [baseOverrides], returning the re-encoded `overrides=` token — or the
-   * inbound token unchanged when there is no baked seed, or null when neither is present. Live wins
-   * per key; the baked seed is the floor. The base64(url, no-pad)/JSON shape matches
-   * `JsonRpcServer.encodeRenderPayload` so the sandbox's `parseFromPayloadOrNull` decodes it.
-   */
-  private fun overridesTokenFor(
-    inboundToken: String?,
-    baseOverrides: ee.schimke.composeai.daemon.protocol.PreviewOverrides?,
-  ): String? {
-    if (baseOverrides == null) return inboundToken
-    val inbound = inboundToken?.let {
-      runCatching {
-        overridesJson.decodeFromString(
-          ee.schimke.composeai.daemon.protocol.PreviewOverrides.serializer(),
-          String(java.util.Base64.getUrlDecoder().decode(it), Charsets.UTF_8),
+    // #3547 — a device-less `orientation` request reaches here with no dimensions at all
+    // (`JsonRpcServer.renderTargetFor` has none to rotate), so this is the only lane that can
+    // rotate the preview's own discovery-time frame. Skipping it captured a landscape bitmap while
+    // `applyPreviewQualifiers` derived a `port` qualifier from the same spec: a frame contradicting
+    // its own Configuration. Explicit pixels still outrank the request, and `orientedPx` only swaps
+    // a frame that contradicts it, so a device override (already rotated upstream) passes through
+    // untouched.
+    val orientationCanSwap = overrides?.widthPx == null && overrides?.heightPx == null
+    val requestedOrientation =
+      when (overrides?.orientation) {
+        Orientation.PORTRAIT -> RenderSpec.SpecOrientation.PORTRAIT
+        Orientation.LANDSCAPE -> RenderSpec.SpecOrientation.LANDSCAPE
+        null -> base.orientation
+      }
+    val (framedWidthPx, framedHeightPx) =
+      if (orientationCanSwap)
+        FrameOrientation.orientedPx(
+          base.widthPx,
+          base.heightPx,
+          requestedOrientation?.name?.lowercase(),
         )
-      }
-        .getOrNull()
-    }
-    val merged = inbound.layeredOver(baseOverrides) ?: return inboundToken
-    return java.util.Base64.getUrlEncoder()
-      .withoutPadding()
-      .encodeToString(
-        overridesJson
-          .encodeToString(
-            ee.schimke.composeai.daemon.protocol.PreviewOverrides.serializer(),
-            merged,
-          )
-          .toByteArray(Charsets.UTF_8)
+      else base.widthPx to base.heightPx
+    val rotated = framedWidthPx != base.widthPx || framedHeightPx != base.heightPx
+    // The wrap flags name an *axis*, so a rotated frame has to trade them too — a fixed-width /
+    // wrapped-height preview turned landscape must now wrap width, or the measure-and-crop pass
+    // sizes the wrong axis. An explicit inbound size pins the axis and drops its wrap flag; a
+    // `device` override arrives here already resolved to widthPx/heightPx, so it pins one too.
+    //
+    // The `@CaptureGutter` edges are deliberately NOT traded with them (#4443): a wrap flag names
+    // an axis of the frame, a gutter edge names a direction the component draws in, and a
+    // `widthPx ↔ heightPx` swap does not move where a shadow falls.
+    val wrapWidth = if (rotated) base.wrapHeight else base.wrapWidth
+    val wrapHeight = if (rotated) base.wrapWidth else base.wrapHeight
+
+    val spec =
+      base.copy(
+        previewId = previewId,
+        widthPx = overrides?.widthPx ?: framedWidthPx,
+        heightPx = overrides?.heightPx ?: framedHeightPx,
+        wrapWidth = wrapWidth && overrides?.widthPx == null,
+        wrapHeight = wrapHeight && overrides?.heightPx == null,
+        density = overrides?.density ?: base.density,
+        // The raw device string is forwarded so the render body's round-Wear crop heuristic sees
+        // it.
+        device = overrides?.device?.takeIf { it.isNotBlank() } ?: base.device,
+        localeTag = overrides?.localeTag?.takeIf { it.isNotBlank() } ?: base.localeTag,
+        fontScale = overrides?.fontScale ?: base.fontScale,
+        uiMode =
+          when (overrides?.uiMode) {
+            UiMode.LIGHT -> RenderSpec.SpecUiMode.LIGHT
+            UiMode.DARK -> RenderSpec.SpecUiMode.DARK
+            null -> base.uiMode
+          },
+        orientation = requestedOrientation,
+        captureAdvanceMs = overrides?.captureAdvanceMs ?: base.captureAdvanceMs,
+        inspectionMode = overrides?.inspectionMode ?: base.inspectionMode,
+        slotMode = overrides?.slotMode ?: base.slotMode,
+        clearBackground = overrides?.clearBackground ?: base.clearBackground,
+        svgBackground = overrides?.svgBackground ?: base.svgBackground,
+        renderMode = preview.renderMode?.takeIf { it.isNotBlank() } ?: base.renderMode,
+        // Layer the baked `@OverrideVariant` seed (`base.overrides`) UNDER the inbound live
+        // override: a live per-render override wins per key, but the variant's baked seed still
+        // applies when the caller sends none (catalog browsing). Mirrors the desktop host; without
+        // it a live variant preview rendered its base state.
+        overrides = overrides.layeredOver(base.overrides) ?: base.overrides,
+        previewParameterRow =
+          preview.previewParameterRow?.takeIf { it.isNotBlank() } ?: base.previewParameterRow,
+        // Key the output PNG on the (unique) previewId, like [PreviewManifestRouter]; the default
+        // `className-functionName` stem would collide for the multiple `@Preview` / `@WearPreview*`
+        // variants that share one function, overwriting each other's render.
+        outputBaseName = previewId,
       )
+    return RenderTarget.Spec(spec)
   }
 
   /** Parses a `;`-delimited `key=value` payload into a map; mirrors [PreviewManifestRouter]. */
@@ -2116,23 +2019,6 @@ open class RobolectricHost(
     const val MAX_SANDBOX_BOOT_RETRIES: Int = 2
 
     /**
-     * Forensic-dump payload prefix — see docs/daemon/CLASSLOADER-FORENSICS.md § Implementation
-     * seam. Routed through the existing `RenderRequest.Render.payload` field rather than a new
-     * sealed-hierarchy variant so `:daemon:core`'s public surface stays unchanged.
-     *
-     * Wire format: `forensic-dump=<absolute-path>;survey=<csv-of-fqns>`. Recognised by
-     * [SandboxRunner.dispatchRender] which dispatches to `ClassloaderForensics.capture(...)` inside
-     * the sandbox.
-     */
-    const val FORENSIC_DUMP_PREFIX: String = "forensic-dump="
-
-    /** Output-path key inside the forensic payload (see [FORENSIC_DUMP_PREFIX]). */
-    const val FORENSIC_DUMP_KEY: String = "forensic-dump"
-
-    /** Survey-set key inside the forensic payload — comma-separated FQNs. */
-    const val FORENSIC_SURVEY_KEY: String = "survey"
-
-    /**
      * Sandboxes hosted **in this JVM** — always exactly one (issue #3072).
      *
      * Robolectric's native-graphics runtime loads `libandroid_runtime.so` once per process and
@@ -2142,14 +2028,6 @@ open class RobolectricHost(
      * pool scales by processes ([SandboxProcessPool]), and this stays 1.
      */
     internal const val LOCAL_SANDBOX_COUNT: Int = 1
-
-    /**
-     * Affinity-key prefix in the [RenderRequest.Render.payload] used by [chooseSlotIndex].
-     * `JsonRpcServer.handleRenderNow` and `PreviewManifestRouter` both encode the previewId here;
-     * the dispatch path reads it to pin renders of the same preview to the same sandbox slot.
-     * Mirrors the prefix `PreviewManifestRouter.parsePreviewId` recognises.
-     */
-    private const val PREVIEW_ID_KEY: String = "previewId="
 
     /**
      * INTERACTIVE-ANDROID.md § 7 — slot index pinned to interactive sessions.
@@ -2537,14 +2415,14 @@ open class RobolectricHost(
           // documents).
           "ParameterRows" -> {
             val id = request.javaClass.getMethod("getId").invoke(request) as Long
-            val payload = request.javaClass.getMethod("getPayload").invoke(request) as String
+            // Reflective reads for the same reason the `when` above matches on `simpleName`:
+            // `RenderRequest` is instrumented, so the sandbox's copy is a different `Class` object
+            // and only `java.*` values (here a `String` and an `int`) survive the crossing intact.
+            val provider =
+              request.javaClass.getMethod("getProviderClassName").invoke(request) as String
+            val limit = request.javaClass.getMethod("getLimit").invoke(request) as Int
             val reply: Any =
               try {
-                val map = parseKeyValuePayload(payload)
-                val provider = map["previewParameterProvider"].orEmpty()
-                val limit =
-                  map["previewParameterLimit"]?.toIntOrNull()
-                    ?: ee.schimke.composeai.renderer.PreviewParameterSupport.MAX_ROW_SCAN
                 val values =
                   ee.schimke.composeai.renderer.PreviewParameterSupport.loadValues(
                     providerFqn = provider,
@@ -2569,7 +2447,9 @@ open class RobolectricHost(
           }
           "Render" -> {
             val id = request.javaClass.getMethod("getId").invoke(request) as Long
-            val payload = request.javaClass.getMethod("getPayload").invoke(request) as String
+            // The resolved target as JSON — see `RenderRequest.Render.targetJson` for why the
+            // crossing is a reflective `String` read rather than a field access.
+            val targetJson = request.javaClass.getMethod("getTargetJson").invoke(request) as String
             // Two failure modes are routed differently — same shape as
             // `:daemon:desktop`'s `DesktopHost.runRenderLoop`:
             //   1. Spec-payload-not-recognised (legacy `payload="render-N"` from
@@ -2592,7 +2472,7 @@ open class RobolectricHost(
             // surfaces it as `renderFailed` upstream.
             val result: Any =
               try {
-                dispatchRender(slot, id, payload)
+                dispatchRender(slot, id, targetJson)
               } catch (t: Throwable) {
                 // [RenderEngine] dispatches the @Composable via `Method.invoke`, which wraps
                 // user-thrown exceptions in [java.lang.reflect.InvocationTargetException].
@@ -2611,27 +2491,28 @@ open class RobolectricHost(
     }
 
     /**
-     * Routes one render request to either [RenderEngine.render] (if the payload parses as a
-     * [RenderSpec]) or to the legacy classloader-identity stub. Same discriminator pattern
-     * `:daemon:desktop`'s [DesktopHost.dispatchRender] uses — payloads that don't carry
-     * `className=` (B1.3-era unit-test payloads of the form `render-N`) take the stub path so
-     * `RobolectricHostTest`'s sandbox-reuse assertion keeps working through B1.4.
+     * Routes one render request, decoded from the JSON that crossed the sandbox classloader
+     * boundary, to [RenderEngine.render] or to one of the non-render lanes.
+     *
+     * The three outcomes used to be told apart by inspecting the payload string — a
+     * `forensic-dump=` prefix, otherwise "does it contain `className=`", otherwise the stub. Each
+     * [RenderTarget] variant now says which one it is, so a target that fails to resolve upstream
+     * can no longer arrive here looking like a deliberate stub request.
      */
-    private fun dispatchRender(slot: SandboxSlot, id: Long, payload: String): RenderResult {
-      // Forensic-dump branch — see docs/daemon/CLASSLOADER-FORENSICS.md § Implementation seam.
-      // Routed through the existing `RenderRequest.Render.payload` free-form field rather than a
-      // new `RenderRequest` variant, per CLASSLOADER-FORENSICS.md's "don't widen the core's
-      // sealed hierarchy" constraint. The payload format is
-      // `forensic-dump=<absolute-path>;survey=<comma-separated-fqns>` — `;`-delimited like
-      // `RenderSpec.parseFromPayloadOrNull` so a future merge into a single dispatch table is a
-      // small refactor rather than a redesign. The dump runs *here*, inside the sandbox
-      // classloader (Robolectric's `InstrumentingClassLoader`), with the child `URLClassLoader`
-      // active via `Thread.currentThread().contextClassLoader` — exactly the state a real render
-      // sees, which is the whole point of the daemon-path dump.
-      if (payload.startsWith(FORENSIC_DUMP_PREFIX)) {
-        return runForensicDump(slot, id, payload)
-      }
-      val spec = RenderSpec.parseFromPayloadOrNull(payload) ?: return renderStub(id)
+    private fun dispatchRender(slot: SandboxSlot, id: Long, targetJson: String): RenderResult {
+      val spec =
+        when (val target = RenderTarget.decode(targetJson)) {
+          is RenderTarget.Spec -> target.spec
+          // Forensic dump — docs/daemon/CLASSLOADER-FORENSICS.md § Implementation seam. It runs
+          // *here*, inside the sandbox classloader (Robolectric's `InstrumentingClassLoader`) with
+          // the child `URLClassLoader` active via `Thread.currentThread().contextClassLoader` —
+          // exactly the state a real render sees, which is the whole point of the daemon-path dump.
+          is RenderTarget.Forensic -> return runForensicDump(slot, id, target)
+          // An unresolved preview means no resolver was wired host-side (in-process unit tests);
+          // there is nothing in here that can look an id up, so it takes the stub lane.
+          is RenderTarget.Preview,
+          is RenderTarget.Stub -> return renderStub(id)
+        }
       // B2.0 — pick up the disposable child classloader that the host thread has published into
       // the bridge. When no holder is wired (legacy in-process tests where the testFixtures live
       // on the sandbox classpath), the bridge returns null and we fall through to the sandbox's
@@ -2669,10 +2550,13 @@ open class RobolectricHost(
      * String, File)` method) so dropping the compile-time link is cheap relative to the
      * dependency-cycle risk of pulling forensics into the host's main code.
      */
-    private fun runForensicDump(slot: SandboxSlot, id: Long, payload: String): RenderResult {
-      val parsed = parseForensicPayload(payload)
-      val outFile = java.io.File(parsed.outPath)
-      val survey = parsed.survey
+    private fun runForensicDump(
+      slot: SandboxSlot,
+      id: Long,
+      target: RenderTarget.Forensic,
+    ): RenderResult {
+      val outFile = java.io.File(target.outPath)
+      val survey = target.survey
 
       val previousContext = Thread.currentThread().contextClassLoader
       val effectiveLoader: ClassLoader =
@@ -2731,34 +2615,6 @@ open class RobolectricHost(
         pngPath = outFile.absolutePath,
         metrics = null,
       )
-    }
-
-    /**
-     * `;`-delimited `key=value` payload → map — the shape every sandbox-bound request uses. Shared
-     * by the forensic-dump and `@PreviewParameter` row-enumeration lanes.
-     */
-    private fun parseKeyValuePayload(payload: String): Map<String, String> {
-      val map = mutableMapOf<String, String>()
-      for (entry in payload.split(';')) {
-        val trimmed = entry.trim()
-        if (trimmed.isEmpty()) continue
-        val eq = trimmed.indexOf('=')
-        if (eq <= 0) continue
-        map[trimmed.substring(0, eq).trim()] = trimmed.substring(eq + 1).trim()
-      }
-      return map
-    }
-
-    private data class ForensicPayload(val outPath: String, val survey: List<String>)
-
-    private fun parseForensicPayload(payload: String): ForensicPayload {
-      val map = parseKeyValuePayload(payload)
-      val outPath =
-        map[FORENSIC_DUMP_KEY] ?: error("forensic-dump payload missing $FORENSIC_DUMP_KEY=")
-      val survey =
-        map[FORENSIC_SURVEY_KEY]?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }
-          ?: emptyList()
-      return ForensicPayload(outPath = outPath, survey = survey)
     }
 
     /**

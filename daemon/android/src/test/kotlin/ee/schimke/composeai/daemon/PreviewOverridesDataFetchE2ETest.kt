@@ -73,7 +73,10 @@ class PreviewOverridesDataFetchE2ETest {
       // `fill`
       // + `label` into the sandbox-CL controller, which forwards them to the bridge.
       val result =
-        host.submit(RenderRequest.Render(payload = "previewId=$previewId"), timeoutMs = 120_000)
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$previewId")),
+          timeoutMs = 120_000,
+        )
       assertNotNull("pngPath must be populated", result.pngPath)
 
       // Hand the result to the registry the way `JsonRpcServer.handleRenderFinished` does. The
@@ -126,7 +129,10 @@ class PreviewOverridesDataFetchE2ETest {
     SandboxPreviewOverridesBridge.resetAll()
     try {
       val result =
-        host.submit(RenderRequest.Render(payload = "previewId=$previewId"), timeoutMs = 120_000)
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$previewId")),
+          timeoutMs = 120_000,
+        )
       assertNotNull("pngPath must be populated", result.pngPath)
       registry.onRender(previewId, result, overrides = null, previewContext = result.previewContext)
       assertTrue(

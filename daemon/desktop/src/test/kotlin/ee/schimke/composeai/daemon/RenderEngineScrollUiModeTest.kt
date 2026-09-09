@@ -65,7 +65,10 @@ class RenderEngineScrollUiModeTest {
   /**
    * Drives a `scroll-long` render through the daemon under [uiMode] and returns the stitched PNG.
    */
-  private fun stitchedUnder(previewId: String, uiMode: String): java.awt.image.BufferedImage {
+  private fun stitchedUnder(
+    previewId: String,
+    uiMode: RenderSpec.SpecUiMode,
+  ): java.awt.image.BufferedImage {
     val functionName = "DarkAwareLongScrollPreview"
     installPreviewIndex(previewId, functionName)
     val outputDir = tempFolder.newFolder("renders-$previewId")
@@ -76,12 +79,21 @@ class RenderEngineScrollUiModeTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=$functionName;" +
-              "widthPx=200;heightPx=$viewportPx;density=1.0;showBackground=true;" +
-              "uiMode=$uiMode;" +
-              "previewId=$previewId;outputBaseName=$previewId;mode=scroll-long"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = functionName,
+                widthPx = 200,
+                heightPx = viewportPx,
+                density = 1.0f,
+                showBackground = true,
+                uiMode = uiMode,
+                previewId = previewId,
+                outputBaseName = previewId,
+                renderMode = "scroll-long",
+              )
+            )
         ),
         timeoutMs = 240_000,
       )
@@ -113,7 +125,7 @@ class RenderEngineScrollUiModeTest {
    */
   @Test
   fun `a dark preview's stitched scroll product is rendered dark`() {
-    val dark = stitchedUnder("DarkAwareLongDark", uiMode = "dark")
+    val dark = stitchedUnder("DarkAwareLongDark", uiMode = RenderSpec.SpecUiMode.DARK)
     val nearBlack = dark.countWhere { r, g, b -> r < 40 && g < 40 && b < 40 }
     val nearWhite = dark.countWhere { r, g, b -> r > 215 && g > 215 && b > 215 }
     assertTrue("a dark scroll product must be mostly dark (got $nearBlack px)", nearBlack > 0)
@@ -142,7 +154,7 @@ class RenderEngineScrollUiModeTest {
   /** The control: the same fixture under light stays light, so the flip is what moved it. */
   @Test
   fun `a light preview's stitched scroll product stays light`() {
-    val light = stitchedUnder("DarkAwareLongLight", uiMode = "light")
+    val light = stitchedUnder("DarkAwareLongLight", uiMode = RenderSpec.SpecUiMode.LIGHT)
     val nearWhite = light.countWhere { r, g, b -> r > 215 && g > 215 && b > 215 }
     val nearBlack = light.countWhere { r, g, b -> r < 40 && g < 40 && b < 40 }
     assertTrue("a light scroll product must be mostly light (got $nearWhite px)", nearWhite > 0)

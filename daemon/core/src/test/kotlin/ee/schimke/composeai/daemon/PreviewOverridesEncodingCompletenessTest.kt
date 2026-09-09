@@ -23,7 +23,6 @@ import ee.schimke.composeai.daemon.protocol.UiMode
 import ee.schimke.composeai.daemon.protocol.WallpaperOverride
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
-import java.util.Base64
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -36,25 +35,28 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Completeness gate for [JsonRpcServer]'s `renderNow` encoder (issue #3073).
+ * Completeness gate for what a `renderNow` hands the render host (issue #3073).
  *
- * `encodeRenderPayload` can carry a [PreviewOverrides] field to the renderer in exactly two ways: a
- * **typed wire token** (`widthPx=…;uiMode=dark;…`) or the base64 `overrides=<bag>` **extension
- * bag**. A field on neither path is accepted by the protocol, merged by `PreviewOverrideMerge`,
- * documented in `Messages.kt` as honoured — and then silently dropped on the wire, so the render
- * comes back with default pixels and no error. That happened five separate times (`permissions`,
- * `gestures`, `lottie`, `namedOverrides`, `themeProvider`, each fixed one at a time) and had eight
- * more live instances when #3073 was filed (`clockEpochMillis`, `placeholderActive`, `ambient`,
- * `focus`, `keyboard`, `touchOverlay`, `remoteCompose`, `launcherWidget`).
+ * The encoder used to carry a [PreviewOverrides] field in one of exactly two ways: a **typed wire
+ * token** (`widthPx=…;uiMode=dark;…`) or a base64 `overrides=<bag>` appended beside them. A field
+ * on neither path was accepted by the protocol, merged by `PreviewOverrideMerge`, documented in
+ * `Messages.kt` as honoured — and then silently dropped, so the render came back with default
+ * pixels and no error. That happened five separate times (`permissions`, `gestures`, `lottie`,
+ * `namedOverrides`, `themeProvider`, each fixed one at a time) and had eight more live instances
+ * when #3073 was filed (`clockEpochMillis`, `placeholderActive`, `ambient`, `focus`, `keyboard`,
+ * `touchOverlay`, `remoteCompose`, `launcherWidget`).
  *
- * Rather than fix it a ninth time, this test walks `PreviewOverrides.serializer().descriptor` and
- * asserts every declared field survives a real `initialize` → `renderNow` round-trip on one of the
- * two paths. Adding a field to [PreviewOverrides] without either giving it a token or letting it
- * ride the bag now fails here instead of in a user's render.
+ * The overrides now ride [RenderTarget.Preview] as the object the client sent, so the question is
+ * no longer "which of the two paths carries this field" but the stronger "does the host receive
+ * what the caller sent". This test still walks `PreviewOverrides.serializer().descriptor` to prove
+ * the fixture below covers every declared field, then asserts the whole object survives a real
+ * `initialize` → `renderNow` round-trip — which a field can only fail by someone reintroducing a
+ * projection between the protocol and the host.
  *
  * Sibling to [PermissionsOverrideEncodingTest] / [ThemeProviderOverrideEncodingTest], which pin the
  * per-field semantics; this one only asks "does it reach the renderer at all".
@@ -65,27 +67,6 @@ class PreviewOverridesEncodingCompletenessTest {
     ignoreUnknownKeys = true
     encodeDefaults = false
   }
-
-  /**
-   * The fields [JsonRpcServer.encodeRenderPayload] emits as typed `key=value` tokens. Kept as the
-   * *only* hand-maintained list in the test: everything else is expected to ride the bag, which is
-   * exactly the invariant the encoder's denylist `copy(...)` establishes.
-   */
-  private val wireTokens =
-    setOf(
-      "widthPx",
-      "heightPx",
-      "density",
-      "localeTag",
-      "fontScale",
-      "uiMode",
-      "orientation",
-      "device",
-      "captureAdvanceMs",
-      "inspectionMode",
-      "slotMode",
-      "clearBackground",
-    )
 
   /**
    * Every [PreviewOverrides] field set to a non-default value, so serializing it (with
@@ -153,70 +134,59 @@ class PreviewOverridesEncodingCompletenessTest {
     )
   }
 
-  /** The list of typed tokens must stay a subset of the real field set. */
-  @Test
-  fun wireTokensNameRealFields() {
-    val unknown = wireTokens - declaredFieldNames()
-    assertTrue(
-      "wireTokens names non-existent PreviewOverrides field(s): $unknown",
-      unknown.isEmpty(),
+  /**
+   * The headline assertion: every field the caller set arrives on the host's target, with its value
+   * intact.
+   *
+   * [device] is the one field the daemon deliberately transforms on the way through — it is a
+   * catalog token and the backends want pixels, so `renderTargetFor` resolves it into `widthPx` /
+   * `heightPx` / `density`. Those three are compared separately below; everything else must be
+   * byte-identical to what was sent.
+   */
+  @Test(timeout = 60_000)
+  fun everyOverrideFieldReachesTheHostUnchanged() {
+    val sent = fullyPopulated
+    val received =
+      renderAndCaptureTarget(json.encodeToString(PreviewOverrides.serializer(), sent)).overrides
+    assertNotNull("the host must receive the caller's overrides", received)
+    assertEquals(
+      "a renderNow override was altered or dropped between the protocol and the host " +
+        "(issue #3073) — a caller setting it would get default pixels and no error",
+      sent.copy(widthPx = null, heightPx = null, density = null),
+      received!!.copy(widthPx = null, heightPx = null, density = null),
     )
   }
 
+  /**
+   * The explicit `widthPx` / `heightPx` on the fixture outrank the Pixel 5 geometry its `device`
+   * would otherwise supply; `density` has no explicit value on the fixture, so it resolves from the
+   * catalog. That precedence is PROTOCOL.md § 5's, applied once in `renderTargetFor`.
+   */
   @Test(timeout = 60_000)
-  fun everyOverrideFieldReachesTheRendererOnSomePath() {
-    val payload =
-      renderAndCapturePayload(json.encodeToString(PreviewOverrides.serializer(), fullyPopulated))
-    val tokens =
-      payload
-        .split(';')
-        .mapNotNull { it.trim().takeIf { t -> '=' in t } }
-        .associate { it.substringBefore('=') to it.substringAfter('=') }
-    val bagKeys = decodeExtensionBagKeys(payload)
-
-    val dropped =
-      declaredFieldNames().filterNot { field ->
-        if (field in wireTokens) field in tokens else field in bagKeys
-      }
-    assertTrue(
-      "renderNow.overrides field(s) $dropped reach the renderer on no path — they are neither a " +
-        "typed wire token nor present in the base64 `overrides=` bag, so a caller setting them " +
-        "gets default pixels and no error (issue #3073). Payload: $payload",
-      dropped.isEmpty(),
-    )
+  fun deviceResolvesToPixelsWithoutOutrankingAnExplicitSize() {
+    val received =
+      renderAndCaptureTarget(json.encodeToString(PreviewOverrides.serializer(), fullyPopulated))
+        .overrides
+    assertEquals(411, received?.widthPx)
+    assertEquals(891, received?.heightPx)
+    assertEquals(2.75f, received?.density)
+    assertEquals("id:pixel_5", received?.device)
   }
 
   @Test(timeout = 60_000)
-  fun tokenisedFieldsAreNotRestatedInTheBag() {
-    // The bag is built by nulling the tokenised fields, so nothing travels twice — the tokens are
-    // the single source of truth for size/locale/uiMode/device, and `device` in particular has
-    // already been resolved into widthPx/heightPx/density by the encoder.
-    val payload =
-      renderAndCapturePayload(json.encodeToString(PreviewOverrides.serializer(), fullyPopulated))
-    val duplicated = decodeExtensionBagKeys(payload).intersect(wireTokens)
-    assertTrue(
-      "tokenised field(s) restated in the extension bag: $duplicated",
-      duplicated.isEmpty(),
-    )
-  }
-
-  @Test(timeout = 60_000)
-  fun bagIsOmittedWhenOnlyTokenisedFieldsAreSet() {
-    // Byte-identical-payload guard: an overrides object that is fully covered by typed tokens must
-    // not start emitting an (empty) bag now that the emptiness check is structural.
-    val payload = renderAndCapturePayload("""{"uiMode":"dark","widthPx":320}""")
-    assertTrue("overrides= bag must be omitted: '$payload'", "overrides=" !in payload)
-  }
-
-  @Test(timeout = 60_000)
-  fun previouslyDroppedFieldRidesTheBag() {
+  fun previouslyDroppedFieldsArriveIntact() {
     // Spot-check the headline regression from #3073 rather than trusting the descriptor walk
     // alone: the deterministic wall clock (#1968) and the loading-state pin (#2646).
-    val payload =
-      renderAndCapturePayload("""{"clockEpochMillis":1700000000000,"placeholderActive":true}""")
-    val bag = decodeExtensionBag(payload)
-    assertEquals(1_700_000_000_000L, bag.clockEpochMillis)
-    assertEquals(true, bag.placeholderActive)
+    val received =
+      renderAndCaptureTarget("""{"clockEpochMillis":1700000000000,"placeholderActive":true}""")
+        .overrides
+    assertEquals(1_700_000_000_000L, received?.clockEpochMillis)
+    assertEquals(true, received?.placeholderActive)
+  }
+
+  @Test(timeout = 60_000)
+  fun anOverrideFreeRenderCarriesNoOverrides() {
+    assertNull(renderAndCaptureTarget("null").overrides)
   }
 
   private fun declaredFieldNames(): Set<String> {
@@ -224,27 +194,13 @@ class PreviewOverridesEncodingCompletenessTest {
     return (0 until descriptor.elementsCount).map { descriptor.getElementName(it) }.toSet()
   }
 
-  private fun decodeExtensionBag(payload: String): PreviewOverrides =
-    json.decodeFromString(PreviewOverrides.serializer(), decodeExtensionBagJson(payload))
-
-  private fun decodeExtensionBagKeys(payload: String): Set<String> =
-    json.parseToJsonElement(decodeExtensionBagJson(payload)).jsonObject.keys
-
-  private fun decodeExtensionBagJson(payload: String): String {
-    val token =
-      payload.split(';').firstOrNull { it.trim().startsWith("overrides=") }
-        ?: error("payload must carry an overrides= token: '$payload'")
-    val b64 = token.substringAfter('=').trim()
-    return String(Base64.getUrlDecoder().decode(b64), Charsets.UTF_8)
-  }
-
   /**
    * Spins up a [JsonRpcServer] backed by a payload-capturing host with a single-preview index, runs
    * `initialize` → `renderNow` with the supplied overrides JSON, and returns the
-   * `RenderRequest.payload` string the host received. Mirrors [ThemeProviderOverrideEncodingTest]'s
-   * helper — kept file-local for the same reason.
+   * [RenderTarget.Preview] the host received. Mirrors [ThemeProviderOverrideEncodingTest]'s helper
+   * — kept file-local for the same reason.
    */
-  private fun renderAndCapturePayload(overrides: String): String {
+  private fun renderAndCaptureTarget(overrides: String): RenderTarget.Preview {
     val sourceKt = java.nio.file.Files.createTempFile("overrides-completeness-test", ".kt")
     java.nio.file.Files.writeString(sourceKt, "@Preview fun A() {}\n")
     val previewDto =
@@ -316,7 +272,8 @@ class PreviewOverridesEncodingCompletenessTest {
       assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 99 })
       writeFrame(clientToServerOut, """{"jsonrpc":"2.0","method":"exit"}""")
       assertTrue(exitLatch.await(5, TimeUnit.SECONDS))
-      return host.lastPayload.get() ?: error("host never received a render request")
+      return (host.lastTarget.get() as? RenderTarget.Preview)
+        ?: error("host never received a Preview render target")
     } finally {
       try {
         clientToServerOut.close()
@@ -359,7 +316,7 @@ class PreviewOverridesEncodingCompletenessTest {
  * [ThemeProviderOverrideEncodingTest] uses, so the two tests take no cross-file dependency.
  */
 private class PayloadCapturingCompletenessHost : RenderHost {
-  val lastPayload: AtomicReference<String?> = AtomicReference(null)
+  val lastTarget: AtomicReference<RenderTarget?> = AtomicReference(null)
   private val queue = LinkedBlockingQueue<RenderRequest>()
   private val results = LinkedBlockingQueue<RenderResult>()
 
@@ -372,7 +329,7 @@ private class PayloadCapturingCompletenessHost : RenderHost {
             when (val req = queue.poll(50, TimeUnit.MILLISECONDS)) {
               null -> continue
               is RenderRequest.Render -> {
-                lastPayload.set(req.payload)
+                lastTarget.set(req.target)
                 results.put(
                   RenderResult(
                     id = req.id,

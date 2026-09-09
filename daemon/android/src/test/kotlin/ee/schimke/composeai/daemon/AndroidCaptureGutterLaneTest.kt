@@ -1,5 +1,7 @@
 package ee.schimke.composeai.daemon
 
+import ee.schimke.composeai.daemon.protocol.PreviewOverrides
+import ee.schimke.composeai.daemon.protocol.UiMode
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -64,37 +66,40 @@ class AndroidCaptureGutterLaneTest {
   }
 
   @Test
-  fun `the payload token round-trips, and an older client's payload decodes to no gutter`() {
+  fun `the gutter survives the boundary round-trip, and an older client's spec has none`() {
     val parsed =
-      RenderSpec.parseFromPayloadOrNull(
-        "className=com.example.FooKt;functionName=Foo;captureGutter=1,2,3,4"
-      )!!
+      RenderSpec.decode(
+        RenderSpec.encode(
+          RenderSpec(
+            className = "com.example.FooKt",
+            functionName = "Foo",
+            gutterStartDp = 1,
+            gutterTopDp = 2,
+            gutterEndDp = 3,
+            gutterBottomDp = 4,
+          )
+        )
+      )
     assertEquals(1, parsed.gutterStartDp)
     assertEquals(2, parsed.gutterTopDp)
     assertEquals(3, parsed.gutterEndDp)
     assertEquals(4, parsed.gutterBottomDp)
 
-    // No token at all — every payload written before this field existed.
-    val legacy = RenderSpec.parseFromPayloadOrNull("className=com.example.FooKt;functionName=Foo")!!
+    // A spec encoded before the field existed carries no gutter keys at all.
+    val legacy =
+      RenderSpec.decode("""{"className":"com.example.FooKt","functionName":"Foo","legacyKey":1}""")
     assertTrue(!legacy.hasCaptureGutter())
-
-    // A malformed token is no gutter rather than a partial one: half a gutter would silently
-    // publish a lopsided canvas, which is harder to notice than none at all.
-    val malformed =
-      RenderSpec.parseFromPayloadOrNull(
-        "className=com.example.FooKt;functionName=Foo;captureGutter=1,2"
-      )!!
-    assertTrue(!malformed.hasCaptureGutter())
   }
 
   @Test
-  fun `the host-side reshape carries the gutter, which is the lane production takes`() {
+  fun `the host-side resolve carries the gutter, which is the lane production takes`() {
     // The router below is the harness lane. The Android bundle daemon and `compose-preview serve`
-    // never mount one: they resolve `previewId=…` through `RobolectricHost.reshapeRenderPayload`,
-    // which re-serialises the spec into a payload string. That round-trip dropped the gutter
-    // (#4822) — and dropped it silently, because `parseFromPayloadOrNull` defaults every edge to
-    // 0 — so any override that forced a request off the baked lane (a theme, a knob, a Remote
-    // Compose seed) came back clipped to the composable's own frame.
+    // never mount one: they resolve `previewId` through `RobolectricHost.reshapeRenderTarget`,
+    // which used to re-serialise the spec into a payload string. That round-trip dropped the gutter
+    // (#4822) — and dropped it silently, because the payload parser defaulted every edge to 0 — so
+    // any override that forced a request off the baked lane (a theme, a knob, a Remote Compose
+    // seed) came back clipped to the composable's own frame. The spec now crosses whole, so the
+    // gutter cannot be dropped without dropping the field itself.
     val host =
       RobolectricHost(
         previewSpecResolver = {
@@ -113,11 +118,14 @@ class AndroidCaptureGutterLaneTest {
         }
       )
 
-    val reshaped = host.reshapeRenderPayload("previewId=media-podcastcontrolbuttons;uiMode=light")
-    val spec = RenderSpec.parseFromPayloadOrNull(reshaped)
+    val resolved =
+      host.reshapeRenderTarget(
+        preview("media-podcastcontrolbuttons", PreviewOverrides(uiMode = UiMode.LIGHT))
+      )
+    assertTrue("the resolve must produce a spec target: $resolved", resolved is RenderTarget.Spec)
+    val spec = (resolved as RenderTarget.Spec).spec
 
-    assertNotNull("reshaped payload must remain a parseable RenderSpec: $reshaped", spec)
-    assertTrue("the gutter must survive the string round-trip", spec!!.hasCaptureGutter())
+    assertTrue("the gutter must survive the resolve", spec.hasCaptureGutter())
     assertEquals(0, spec.gutterStartDp)
     assertEquals(8, spec.gutterTopDp)
     assertEquals(0, spec.gutterEndDp)
@@ -129,9 +137,9 @@ class AndroidCaptureGutterLaneTest {
   }
 
   @Test
-  fun `the host-side reshape emits no gutter token for an un-annotated preview`() {
-    // A payload for a preview that declares no gutter must be byte-identical to what it was before
-    // the token existed — the same guarantee the router makes.
+  fun `the host-side resolve leaves an un-annotated preview without a gutter`() {
+    // A preview that declares no gutter must resolve to the all-zero one — the same guarantee the
+    // router makes.
     val host =
       RobolectricHost(
         previewSpecResolver = {
@@ -139,7 +147,8 @@ class AndroidCaptureGutterLaneTest {
         }
       )
 
-    assertTrue(!host.reshapeRenderPayload("previewId=plain").contains("captureGutter="))
+    val resolved = host.reshapeRenderTarget(preview("plain"))
+    assertTrue(!(resolved as RenderTarget.Spec).spec.hasCaptureGutter())
   }
 
   @Test
@@ -244,7 +253,11 @@ class AndroidCaptureGutterLaneTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val result = host.submit(RenderRequest.Render(payload = "previewId=$id"), timeoutMs = 120_000)
+      val result =
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$id")),
+          timeoutMs = 120_000,
+        )
       assertNotNull("$id: pngPath must be populated", result.pngPath)
       val png = File(result.pngPath!!)
       assertTrue("$id: rendered PNG must exist", png.exists())

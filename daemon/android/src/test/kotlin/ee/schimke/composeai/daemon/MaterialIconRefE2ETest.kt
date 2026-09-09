@@ -50,7 +50,7 @@ class MaterialIconRefE2ETest {
     host.start()
     try {
       host.submit(
-        RenderRequest.Render(payload = "previewId=material-icon-row"),
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "material-icon-row")),
         timeoutMs = 120_000,
       )
 

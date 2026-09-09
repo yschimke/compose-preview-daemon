@@ -48,7 +48,10 @@ class FigmaSvgRetiredSlotTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      host.submit(RenderRequest.Render(payload = "previewId=retired-slot"), timeoutMs = 120_000)
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "retired-slot")),
+        timeoutMs = 120_000,
+      )
     } finally {
       host.shutdown()
     }

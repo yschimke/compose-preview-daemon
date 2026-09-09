@@ -539,30 +539,16 @@ private class SpecRoutingHost(
       "Use shutdown() to stop the host, not submit(Shutdown)."
     }
     val typed = request as RenderRequest.Render
-    val previewId = previewIdFromPayload(typed.payload) ?: "red-square"
+    val previewId = typed.target.previewIdOrNull() ?: "red-square"
     val spec =
       specs[previewId]
         ?: error("SpecRoutingHost: no spec for previewId='$previewId'; known=${specs.keys}")
     val routed =
       RenderRequest.Render(
         id = typed.id,
-        payload =
-          "className=${spec.className};" +
-            "functionName=${spec.functionName};" +
-            "widthPx=${spec.widthPx};heightPx=${spec.heightPx};density=${spec.density};" +
-            "showBackground=${spec.showBackground};" +
-            "outputBaseName=${spec.outputBaseName}-${typed.id}",
+        target =
+          RenderTarget.Spec(spec.copy(outputBaseName = "${spec.outputBaseName}-${typed.id}")),
       )
     return super.submit(routed, timeoutMs)
   }
-
-  private fun previewIdFromPayload(payload: String): String? =
-    payload
-      .split(';')
-      .mapNotNull { token ->
-        val eq = token.indexOf('=')
-        if (eq <= 0) null else token.substring(0, eq).trim() to token.substring(eq + 1).trim()
-      }
-      .firstOrNull { (key, value) -> key == "previewId" && value.isNotBlank() }
-      ?.second
 }

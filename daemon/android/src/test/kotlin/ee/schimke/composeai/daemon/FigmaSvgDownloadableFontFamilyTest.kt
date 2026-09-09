@@ -94,7 +94,10 @@ class FigmaSvgDownloadableFontFamilyTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      host.submit(RenderRequest.Render(payload = "previewId=$previewId"), timeoutMs = 120_000)
+      host.submit(
+        RenderRequest.Render(target = RenderTarget.Preview(previewId = "$previewId")),
+        timeoutMs = 120_000,
+      )
 
       val svgFile =
         outputDir.parentFile!!.resolve("data").resolve(previewId).resolve("compose-figma.svg")

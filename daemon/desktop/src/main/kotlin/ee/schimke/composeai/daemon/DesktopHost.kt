@@ -2,7 +2,8 @@ package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.protocol.DataExtensionDescriptor
-import ee.schimke.composeai.daemon.protocol.FigmaSvgBackgroundMode
+import ee.schimke.composeai.daemon.protocol.Orientation
+import ee.schimke.composeai.daemon.protocol.UiMode
 import ee.schimke.composeai.data.render.extensions.RecordingScriptDataExtensions
 import ee.schimke.composeai.io.composeAiCacheDir
 import java.io.File
@@ -812,22 +813,33 @@ open class DesktopHost(
   }
 
   /**
-   * Dispatches a render to [engine], or to [renderStubFallback] when the request payload is empty
-   * or doesn't look like a spec.
+   * Dispatches a render to [engine], or to [renderStubFallback] when the request carries no
+   * renderable target.
    *
-   * The non-spec escape hatch keeps the B-desktop.1.3 [DesktopHostTest] (which submits
-   * `payload="render-N"` strings) working through the B-desktop.1.4 transition — it doesn't carry a
-   * `className=`/`functionName=` pair, so we recognise it as "no spec; just verify the queue
-   * plumbing" and fall back to the classloader-stamped result. Real callers (JsonRpcServer + the
-   * harness) always encode a parseable payload.
+   * The three [RenderTarget] cases are the three things a caller can mean, and each is now stated
+   * rather than sniffed: a [RenderTarget.Spec] is already resolved, a [RenderTarget.Preview] needs
+   * the id looked up through [previewSpecResolver], and a [RenderTarget.Stub] is the queue-plumbing
+   * lane that verifies classloader identity without composing anything.
+   *
+   * Previously all three arrived as one string and were told apart by whether it contained
+   * `className=` — which meant a real request that failed to resolve became a stub render reported
+   * as a success. An unresolvable [RenderTarget.Preview] still falls back to the stub for
+   * compatibility with hosts that mount no resolver, but a malformed target can no longer
+   * masquerade as one.
    */
   private fun dispatchRender(request: RenderRequest.Render): RenderResult {
-    val parseable = request.payload.contains("className=")
     val spec =
-      if (parseable) {
-        RenderSpec.parseFromPayload(request.payload)
-      } else {
-        specFromPreviewIdPayload(request.payload) ?: return renderStubFallback(request.id)
+      when (val target = request.target) {
+        is RenderTarget.Spec -> target.spec
+        is RenderTarget.Preview ->
+          specFromPreviewTarget(target) ?: return renderStubFallback(request.id)
+        is RenderTarget.Stub -> return renderStubFallback(request.id)
+        // Robolectric-only: the dump inspects a sandbox classloader this backend does not have.
+        // Reaching here means a caller routed an Android-only request to the desktop host, which
+        // is a wiring bug — `JsonRpcServer` turns the throw into a typed `renderFailed` rather than
+        // letting it look like a successful stub render.
+        is RenderTarget.Forensic ->
+          error("forensic dump is an Android/Robolectric lane; this is the desktop host")
       }
     // B2.0 — resolve preview classes via the disposable child loader when the holder is wired
     // (production path; the Gradle plugin's daemon launch descriptor sets
@@ -842,29 +854,31 @@ open class DesktopHost(
   }
 
   /**
-   * Visible for testing — the bundle-backed live daemon's lane, otherwise reachable only by
-   * standing up a host and rendering. Not part of the public host surface.
+   * Resolves an unresolved [RenderTarget.Preview] into the [RenderSpec] the engine renders — the
+   * lane the bundle-backed live daemon (`serve` / preview.coo.ee) takes for a `renderNow`.
+   *
+   * Visible for testing; otherwise reachable only by standing up a host and rendering.
    */
-  internal fun specFromPreviewIdPayload(payload: String): RenderSpec? {
-    val map = parsePayloadMap(payload)
-    val previewId = map["previewId"]?.takeIf { it.isNotBlank() } ?: return null
+  internal fun specFromPreviewTarget(target: RenderTarget.Preview): RenderSpec? {
+    val previewId = target.previewId.takeIf { it.isNotBlank() } ?: return null
     val resolver = previewSpecResolver ?: return null
     val base = resolver(previewId) ?: return null
-    val widthOverride = map["widthPx"]?.toIntOrNull()
-    val heightOverride = map["heightPx"]?.toIntOrNull()
+    val overrides = target.overrides
+    val widthOverride = overrides?.widthPx
+    val heightOverride = overrides?.heightPx
     val orientation =
-      when (map["orientation"]?.lowercase()) {
-        "portrait" -> RenderSpec.SpecOrientation.PORTRAIT
-        "landscape" -> RenderSpec.SpecOrientation.LANDSCAPE
-        else -> base.orientation
+      when (overrides?.orientation) {
+        Orientation.PORTRAIT -> RenderSpec.SpecOrientation.PORTRAIT
+        Orientation.LANDSCAPE -> RenderSpec.SpecOrientation.LANDSCAPE
+        null -> base.orientation
       }
     // Issue #1208 — desktop has no display rotation, but `LANDSCAPE` / `PORTRAIT` reduce to a
     // `widthPx ↔ heightPx` swap. The hint is idempotent: only swap when the requested orientation
     // conflicts with the current aspect ratio (e.g. landscape-base + LANDSCAPE = no-op). Explicit
-    // pixel overrides (or device-derived dims emitted by `JsonRpcServer.encodeRenderPayload`) win
-    // over the hint, so we only swap when neither dimension was supplied on the wire.
-    // `PreviewManifestRouter` always emits widthPx/heightPx from its manifest defaults, so the
-    // swap there fires on the router side instead — see [PreviewManifestRouter.submit].
+    // pixel overrides — including the device-derived dims `JsonRpcServer.renderTargetFor` resolves
+    // onto the overrides — win over the hint, so we only swap when neither axis was supplied.
+    // `PreviewManifestRouter` resolves its manifest defaults onto both axes, so the swap fires on
+    // the router side instead — see [PreviewManifestRouter.routeTarget].
     val baseWidthPx = widthOverride ?: base.widthPx
     val baseHeightPx = heightOverride ?: base.heightPx
     val shouldSwap =
@@ -877,14 +891,13 @@ open class DesktopHost(
         }
     return base.copy(
       previewId = previewId,
-      renderMode = map["mode"]?.takeIf { it.isNotBlank() },
+      renderMode = target.renderMode?.takeIf { it.isNotBlank() },
       widthPx = if (shouldSwap) baseHeightPx else baseWidthPx,
       heightPx = if (shouldSwap) baseWidthPx else baseHeightPx,
       // The wrap flags name an *axis*, so a rotated frame trades them — without this a
       // fixed-width / wrapped-height preview turned portrait keeps wrapping height and the
       // measure-and-crop pass sizes the axis that is no longer free (#3552 review). Same trade as
-      // `applyOverrides`, `reshapeRenderPayload` and both routers; this is the lane the
-      // bundle-backed live daemon takes, per the note on `overrides` below.
+      // `applyOverrides`, `reshapeRenderTarget` and both routers.
       //
       // The `@CaptureGutter` edges carried on `base` are deliberately NOT traded with them, and
       // ride through this `copy` untouched (issue #4443). A wrap flag names an axis of the frame;
@@ -893,51 +906,27 @@ open class DesktopHost(
       // `bottom`. See `RenderSpec.captureGutterPx`.
       wrapWidth = if (shouldSwap) base.wrapHeight else base.wrapWidth,
       wrapHeight = if (shouldSwap) base.wrapWidth else base.wrapHeight,
-      density = map["density"]?.toFloatOrNull() ?: base.density,
-      localeTag = map["localeTag"]?.takeIf { it.isNotBlank() } ?: base.localeTag,
-      fontScale = map["fontScale"]?.toFloatOrNull() ?: base.fontScale,
+      density = overrides?.density ?: base.density,
+      localeTag = overrides?.localeTag?.takeIf { it.isNotBlank() } ?: base.localeTag,
+      fontScale = overrides?.fontScale ?: base.fontScale,
       uiMode =
-        when (map["uiMode"]?.lowercase()) {
-          "light" -> RenderSpec.SpecUiMode.LIGHT
-          "dark" -> RenderSpec.SpecUiMode.DARK
-          else -> base.uiMode
+        when (overrides?.uiMode) {
+          UiMode.LIGHT -> RenderSpec.SpecUiMode.LIGHT
+          UiMode.DARK -> RenderSpec.SpecUiMode.DARK
+          null -> base.uiMode
         },
       orientation = orientation,
-      inspectionMode = map["inspectionMode"]?.toBooleanStrictOrNull() ?: base.inspectionMode,
-      slotMode = map["slotMode"]?.toBooleanStrictOrNull() ?: base.slotMode,
-      clearBackground = map["clearBackground"]?.toBoolean() ?: base.clearBackground,
-      svgBackground = FigmaSvgBackgroundMode.parse(map["svgBackground"]) ?: base.svgBackground,
-      // The extension-driven override bag (`namedOverrides` / `themeProvider` / `wallpaper` /
-      // `permissions` / `gestures` / `lottie`) rides the `overrides=<base64>` token that
-      // `JsonRpcServer.encodeRenderPayload` emits. The className-based `parseFromPayload` decodes
-      // it;
-      // this previewId-based path — the one the bundle-backed live daemon (`serve` /
-      // preview.coo.ee)
-      // takes for a renderNow — must too, or a `?knob.<key>=…` edit is silently dropped while the
-      // display axes above (fontScale / uiMode / density / …) still apply. The decoded per-call bag
-      // is a sparse overlay — it carries only the knob the caller edited — so layer it *over*
-      // `base.overrides` (per-key for `namedOverrides`) rather than replacing wholesale, or a
-      // one-knob edit would drop any theme / wallpaper / other seeds the resolved base spec already
-      // declares. Today's serve resolver leaves `base.overrides` null, but interactive / recording
-      // resolvers don't, and this keeps the seam correct for them.
-      overrides =
-        map["overrides"]?.let { RenderSpec.decodeOverridesToken(it) }?.layeredOver(base.overrides)
-          ?: base.overrides,
+      inspectionMode = overrides?.inspectionMode ?: base.inspectionMode,
+      slotMode = overrides?.slotMode ?: base.slotMode,
+      clearBackground = overrides?.clearBackground ?: base.clearBackground,
+      svgBackground = overrides?.svgBackground ?: base.svgBackground,
+      // The per-call bag is a sparse overlay — it carries only the field the caller edited — so
+      // layer it *over* `base.overrides` (per-key for `namedOverrides`) rather than replacing
+      // wholesale, or a one-knob edit would drop any theme / wallpaper / other seeds the resolved
+      // base spec already declares. Today's serve resolver leaves `base.overrides` null, but
+      // interactive / recording resolvers don't, and this keeps the seam correct for them.
+      overrides = overrides?.layeredOver(base.overrides) ?: base.overrides,
     )
-  }
-
-  private fun parsePayloadMap(payload: String): Map<String, String> {
-    val map = mutableMapOf<String, String>()
-    for (entry in payload.split(';')) {
-      val trimmed = entry.trim()
-      if (trimmed.isEmpty()) continue
-      val eq = trimmed.indexOf('=')
-      if (eq <= 0) continue
-      val key = trimmed.substring(0, eq).trim()
-      val value = trimmed.substring(eq + 1).trim()
-      if (value.isNotEmpty()) map[key] = value
-    }
-    return map
   }
 
   /**

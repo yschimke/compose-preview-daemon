@@ -1,5 +1,7 @@
 package ee.schimke.composeai.daemon
 
+import ee.schimke.composeai.daemon.protocol.PreviewOverrides
+import ee.schimke.composeai.daemon.protocol.UiMode
 import ee.schimke.composeai.data.overrides.OverrideVariantInteraction
 import ee.schimke.composeai.data.overrides.OverrideVariantSpec
 import java.io.ByteArrayInputStream
@@ -56,12 +58,17 @@ class OverrideIntegrationTest {
     host.start()
     try {
       // Default (manifest's 64×64).
-      val small = renderAndDecode(host, "previewId=red-square", "small")
+      val small = renderAndDecode(host, preview("red-square"), "small")
       assertEquals("manifest default width should be honoured", 64, small.width)
       assertEquals("manifest default height should be honoured", 64, small.height)
 
       // Override pushes width and height to 128.
-      val large = renderAndDecode(host, "previewId=red-square;widthPx=128;heightPx=128", "large")
+      val large =
+        renderAndDecode(
+          host,
+          preview("red-square", PreviewOverrides(widthPx = 128, heightPx = 128)),
+          "large",
+        )
       assertEquals("widthPx override should reach the RenderSpec", 128, large.width)
       assertEquals("heightPx override should reach the RenderSpec", 128, large.height)
     } finally {
@@ -141,7 +148,7 @@ class OverrideIntegrationTest {
     host.start()
     try {
       fun renderedIs(id: String, rgb: Int): Double =
-        pixelMatchPct(renderAndDecode(host, "previewId=$id", id), rgb, 8)
+        pixelMatchPct(renderAndDecode(host, preview(id), id), rgb, 8)
       assertTrue("resting render must stay red", renderedIs("interaction-base", 0xEF5350) > 0.9)
       assertTrue("hovered render must be blue", renderedIs("interaction-hovered", 0x42A5F5) > 0.9)
       assertTrue(
@@ -201,7 +208,10 @@ class OverrideIntegrationTest {
     host.start()
     try {
       for (id in listOf(baseId, focusedId, pressedId, restingAfterPressId)) {
-        host.submit(RenderRequest.Render(payload = "previewId=$id"), timeoutMs = 60_000)
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = "$id")),
+          timeoutMs = 60_000,
+        )
       }
       val dataDir = outputDir.parentFile!!.resolve("data")
       fun svg(id: String) = dataDir.resolve(id).resolve("compose-figma.svg").readText()
@@ -260,8 +270,18 @@ class OverrideIntegrationTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val light = renderAndDecode(host, "previewId=dark-aware;uiMode=light", "uimode-light")
-      val dark = renderAndDecode(host, "previewId=dark-aware;uiMode=dark", "uimode-dark")
+      val light =
+        renderAndDecode(
+          host,
+          preview("dark-aware", PreviewOverrides(uiMode = UiMode.LIGHT)),
+          "uimode-light",
+        )
+      val dark =
+        renderAndDecode(
+          host,
+          preview("dark-aware", PreviewOverrides(uiMode = UiMode.DARK)),
+          "uimode-dark",
+        )
 
       // DarkAwareSquare paints white (#FFFFFF) in light mode, black (#000000) in dark mode.
       // `setQualifiers("+notnight")` / `+night` is what flips `isSystemInDarkTheme()`; if the
@@ -321,7 +341,7 @@ class OverrideIntegrationTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val plain = renderAndDecode(host, "previewId=pseudolocale-string", "pseudo-plain")
+      val plain = renderAndDecode(host, preview("pseudolocale-string"), "pseudo-plain")
       val plainRedPct = pixelMatchPct(plain, expectedRgb = 0xEF5350, perChannelTolerance = 8)
       assertTrue(
         "no override must resolve the plain string (red); got" +
@@ -331,7 +351,11 @@ class OverrideIntegrationTest {
 
       for ((tag, label) in listOf("en-XA" to "accent", "ar-XB" to "bidi")) {
         val rendered =
-          renderAndDecode(host, "previewId=pseudolocale-string;localeTag=$tag", "pseudo-$label")
+          renderAndDecode(
+            host,
+            preview("pseudolocale-string", PreviewOverrides(localeTag = tag)),
+            "pseudo-$label",
+          )
         val bluePct = pixelMatchPct(rendered, expectedRgb = 0x42A5F5, perChannelTolerance = 8)
         assertTrue(
           "localeTag=$tag must plan PseudolocaleOverrideExtension so Resources.getText comes back" +
@@ -342,7 +366,7 @@ class OverrideIntegrationTest {
       }
 
       // …and the wrap must not outlive the render that asked for it.
-      val after = renderAndDecode(host, "previewId=pseudolocale-string", "pseudo-plain-after")
+      val after = renderAndDecode(host, preview("pseudolocale-string"), "pseudo-plain-after")
       val afterRedPct = pixelMatchPct(after, expectedRgb = 0xEF5350, perChannelTolerance = 8)
       assertTrue(
         "an un-overridden render after a pseudolocale one must resolve the plain string again;" +
@@ -381,7 +405,12 @@ class OverrideIntegrationTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val pixel5 = renderAndDecode(host, "previewId=red-square;device=id:pixel_5", "pixel_5")
+      val pixel5 =
+        renderAndDecode(
+          host,
+          preview("red-square", PreviewOverrides(device = "id:pixel_5")),
+          "pixel_5",
+        )
       // 393dp × 2.75 density = 1080px nominal, 851dp × 2.75 = 2340px nominal. Robolectric's
       // qualifier round-trip is lossy by a couple of px (px → dp via integer division → px again),
       // so we assert "near nominal" rather than equality. The point is that the device override
@@ -392,7 +421,11 @@ class OverrideIntegrationTest {
       // Explicit widthPx still wins over the device-derived value — `device=id:pixel_5;widthPx=600`
       // takes the Pixel 5's density (2.75) but forces a custom width.
       val custom =
-        renderAndDecode(host, "previewId=red-square;device=id:pixel_5;widthPx=600", "custom")
+        renderAndDecode(
+          host,
+          preview("red-square", PreviewOverrides(device = "id:pixel_5", widthPx = 600)),
+          "custom",
+        )
       assertNearPx("explicit widthPx should override device dims", expected = 600, custom.width)
       assertNearPx(
         "heightPx still flows from the device when not overridden",
@@ -432,7 +465,12 @@ class OverrideIntegrationTest {
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
-      val img = renderAndDecode(host, "previewId=red-square;captureAdvanceMs=200", "advance-200")
+      val img =
+        renderAndDecode(
+          host,
+          preview("red-square", PreviewOverrides(captureAdvanceMs = 200L)),
+          "advance-200",
+        )
       assertEquals(32, img.width)
       assertEquals(32, img.height)
     } finally {
@@ -455,10 +493,10 @@ class OverrideIntegrationTest {
 
   private fun renderAndDecode(
     host: PreviewManifestRouter,
-    payload: String,
+    target: RenderTarget,
     label: String,
   ): java.awt.image.BufferedImage {
-    val request = RenderRequest.Render(payload = payload)
+    val request = RenderRequest.Render(target = target)
     val result = host.submit(request, timeoutMs = 120_000)
     assertNotNull("$label: pngPath must be populated", result.pngPath)
     val pngFile = File(result.pngPath!!)

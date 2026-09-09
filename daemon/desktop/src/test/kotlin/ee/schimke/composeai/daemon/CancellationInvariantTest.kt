@@ -86,12 +86,18 @@ class CancellationInvariantTest {
                 val result =
                   host.submit(
                     RenderRequest.Render(
-                      payload =
-                        "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-                          "functionName=SlowSquare;" +
-                          "widthPx=64;heightPx=64;density=1.0;" +
-                          "showBackground=true;" +
-                          "outputBaseName=slow-square"
+                      target =
+                        RenderTarget.Spec(
+                          RenderSpec(
+                            className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                            functionName = "SlowSquare",
+                            widthPx = 64,
+                            heightPx = 64,
+                            density = 1.0f,
+                            showBackground = true,
+                            outputBaseName = "slow-square",
+                          )
+                        )
                     ),
                     timeoutMs = 30_000,
                   )

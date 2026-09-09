@@ -4,7 +4,6 @@ import ee.schimke.composeai.daemon.protocol.PermissionGrantStateOverride
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
-import java.util.Base64
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -17,6 +16,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -43,14 +43,14 @@ class PermissionsOverrideEncodingTest {
   @Test(timeout = 30_000)
   fun permissionsOverrideIsEncodedIntoTheExtensionBag() {
     val captured =
-      renderAndCapturePayload(
+      renderAndCaptureTarget(
         overrides =
           """{"permissions":{"grants":{
                   "android.permission.CAMERA":"granted",
                   "android.permission.RECORD_AUDIO":"denied"
                 }}}"""
       )
-    val bag = decodeExtensionBag(captured)
+    val bag = requireNotNull(captured.overrides)
     assertNotNull("permissions bag must be present in the encoded payload", bag.permissions)
     val grants = bag.permissions!!.grants
     assertEquals(PermissionGrantStateOverride.GRANTED, grants["android.permission.CAMERA"])
@@ -58,11 +58,10 @@ class PermissionsOverrideEncodingTest {
   }
 
   @Test(timeout = 30_000)
-  fun permissionsOverrideRidesAlongsideThemeAndWallpaperInTheSameBag() {
-    // Sanity: the three extension-driven fields share a single base64 bag; sending all three
-    // packs them into one token rather than one per field.
+  fun permissionsOverrideArrivesAlongsideThemeAndWallpaper() {
+    // Sanity: the three extension-driven fields reach the host together, on the one object.
     val captured =
-      renderAndCapturePayload(
+      renderAndCaptureTarget(
         overrides =
           """{
                 "material3Theme":{"sourceColor":"#FF3366FF"},
@@ -70,31 +69,18 @@ class PermissionsOverrideEncodingTest {
                 "permissions":{"grants":{"android.permission.CAMERA":"granted"}}
               }"""
       )
-    val bag = decodeExtensionBag(captured)
+    val bag = requireNotNull(captured.overrides)
     assertNotNull("material3Theme must round-trip", bag.material3Theme)
     assertNotNull("wallpaper must round-trip", bag.wallpaper)
     assertNotNull("permissions must round-trip", bag.permissions)
   }
 
   @Test(timeout = 30_000)
-  fun absentPermissionsOverrideOmitsTheBagWhenNoOtherExtensionFieldIsSet() {
-    // Mirror `DeviceOverrideEncodingTest.noDeviceOverrideLeavesDimensionsAlone` — the bag is
-    // only emitted when at least one extension-driven field is present, so a permissions-free
-    // payload that also lacks theme/wallpaper produces no `overrides=` token at all.
-    val captured = renderAndCapturePayload(overrides = """{"uiMode":"dark"}""")
-    assertTrue(
-      "overrides= bag must be omitted when no extension-driven field is set: '$captured'",
-      "overrides=" !in captured,
-    )
-  }
-
-  private fun decodeExtensionBag(payload: String): PreviewOverrides {
-    val token =
-      payload.split(';').firstOrNull { it.trim().startsWith("overrides=") }
-        ?: error("payload must carry an overrides= token: '$payload'")
-    val b64 = token.substringAfter('=').trim()
-    val raw = String(Base64.getUrlDecoder().decode(b64), Charsets.UTF_8)
-    return json.decodeFromString(PreviewOverrides.serializer(), raw)
+  fun anUnsetPermissionsOverrideArrivesUnset() {
+    // An override the caller did not send must not materialize on the way through: the renderer
+    // distinguishes "no grants pinned" from "an empty grant map" and seeds Robolectric differently.
+    val captured = renderAndCaptureTarget(overrides = """{"uiMode":"dark"}""")
+    assertNull("permissions must not be set", captured.overrides?.permissions)
   }
 
   /**
@@ -105,7 +91,7 @@ class PermissionsOverrideEncodingTest {
    * rather than promoted to a shared utility because both tests are the only callers and the
    * plumbing is mechanical.
    */
-  private fun renderAndCapturePayload(overrides: String): String {
+  private fun renderAndCaptureTarget(overrides: String): RenderTarget.Preview {
     val sourceKt = java.nio.file.Files.createTempFile("permissions-override-test", ".kt")
     java.nio.file.Files.writeString(sourceKt, "@Preview fun A() {}\n")
     val previewDto =
@@ -177,7 +163,8 @@ class PermissionsOverrideEncodingTest {
       assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 99 })
       writeFrame(clientToServerOut, """{"jsonrpc":"2.0","method":"exit"}""")
       assertTrue(exitLatch.await(5, TimeUnit.SECONDS))
-      return host.lastPayload.get() ?: error("host never received a render request")
+      return (host.lastTarget.get() as? RenderTarget.Preview)
+        ?: error("host never received a Preview render target")
     } finally {
       try {
         clientToServerOut.close()
@@ -221,7 +208,7 @@ class PermissionsOverrideEncodingTest {
  * dependency on a private helper.
  */
 private class PayloadCapturingPermissionsHost : RenderHost {
-  val lastPayload: AtomicReference<String?> = AtomicReference(null)
+  val lastTarget: AtomicReference<RenderTarget?> = AtomicReference(null)
   private val queue = LinkedBlockingQueue<RenderRequest>()
   private val results = LinkedBlockingQueue<RenderResult>()
 
@@ -234,7 +221,7 @@ private class PayloadCapturingPermissionsHost : RenderHost {
             when (val req = queue.poll(50, TimeUnit.MILLISECONDS)) {
               null -> continue
               is RenderRequest.Render -> {
-                lastPayload.set(req.payload)
+                lastTarget.set(req.target)
                 results.put(
                   RenderResult(
                     id = req.id,

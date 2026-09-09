@@ -1,6 +1,8 @@
 package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.config.DaemonProperties
+import ee.schimke.composeai.daemon.devices.DeviceDimensions
+import ee.schimke.composeai.daemon.devices.FrameOrientation
 import ee.schimke.composeai.daemon.history.HistoryManager
 import ee.schimke.composeai.daemon.history.HistoryPruneConfig
 import ee.schimke.composeai.daemon.history.HistoryRpcHandlers
@@ -37,7 +39,6 @@ import ee.schimke.composeai.daemon.protocol.JsonRpcResponse
 import ee.schimke.composeai.daemon.protocol.KnownDevice
 import ee.schimke.composeai.daemon.protocol.LeakDetectionMode
 import ee.schimke.composeai.daemon.protocol.Manifest
-import ee.schimke.composeai.daemon.protocol.Orientation
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import ee.schimke.composeai.daemon.protocol.PreviewRowDto
 import ee.schimke.composeai.daemon.protocol.PreviewRowsParams
@@ -56,7 +57,6 @@ import ee.schimke.composeai.daemon.protocol.SetVisibleParams
 import ee.schimke.composeai.daemon.protocol.StreamFrameParams
 import ee.schimke.composeai.daemon.protocol.StreamStartParams
 import ee.schimke.composeai.daemon.protocol.StreamStartResult
-import ee.schimke.composeai.daemon.protocol.UiMode
 import ee.schimke.composeai.daemon.protocol.XrStartParams
 import ee.schimke.composeai.daemon.protocol.XrStartResult
 import ee.schimke.composeai.daemon.protocol.XrStopParams
@@ -74,7 +74,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.lang.management.ManagementFactory
 import java.nio.file.Path
-import java.util.Base64
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ConcurrentHashMap
@@ -1049,7 +1048,7 @@ public class JsonRpcServer(
     // the RenderRequest shape. B-desktop.1.4 will replace this with a typed
     // field; until then this is the documented workaround.
     val previewId = hostIdToPreviewId[hostId] ?: ""
-    val payload = encodeRenderPayload(previewId, overrides)
+    val target = renderTargetFor(previewId, overrides)
     Thread(
         {
           try {
@@ -1061,7 +1060,7 @@ public class JsonRpcServer(
             // boot.
             val raw =
               host.submit(
-                RenderRequest.Render(id = hostId, payload = payload),
+                RenderRequest.Render(id = hostId, target = target),
                 timeoutMs = renderTimeoutMs,
               )
             renderResultsQueue.put(raw)
@@ -1078,187 +1077,60 @@ public class JsonRpcServer(
   }
 
   /**
-   * Encodes the host-bound `RenderRequest.Render.payload` string. Today this carries:
+   * Builds the [RenderTarget] for a `renderNow`: the preview id, the caller's [PreviewOverrides],
+   * and the render mode this preview's active subscriptions imply.
    *
-   * - `previewId=<id>` — the discovery-time identifier the per-backend `PreviewManifestRouter`
-   *   resolves into a [RenderSpec] before dispatch.
-   * - Optional `widthPx`, `heightPx`, `density`, `localeTag`, `fontScale`, `uiMode`, `orientation`,
-   *   `inspectionMode` — the [PreviewOverrides] from this `renderNow` call. Routers preserve these
-   *   when rewriting the payload, and they win over the manifest entry's per-preview defaults.
+   * **`device` is resolved here and nowhere else.** `PreviewOverrides.device` is a catalog token
+   * (`id:pixel_5`, `spec:parent=pixel_tablet,orientation=portrait`) and the backends want pixels,
+   * so this resolves it against [DeviceDimensions] and writes the derived `widthPx` / `heightPx` /
+   * `density` onto the overrides the target carries. The precedence PROTOCOL.md § 5 documents is
+   * applied here in one place: an explicit `widthPx`/`heightPx` from the caller outranks the device
+   * geometry, which outranks the preview's own frame.
    *
-   * **`device` resolution.** When `overrides.device` is set we resolve it against
-   * [ee.schimke.composeai.daemon.devices.DeviceDimensions] and emit the derived `widthPx` /
-   * `heightPx` / `density` into the payload — that's the contract `PreviewOverrides.device`
-   * advertises in [Messages.kt][ee.schimke.composeai.daemon.protocol.PreviewOverrides] and
-   * PROTOCOL.md § 5. Without this, `device=id:pixel_5` would only flow as a raw string token
-   * (consumed by the Android backend's wear-round-crop heuristic) and the production render path
-   * would fall through to the spec's defaults instead of Pixel 5's 1080×2340 — see #474. Explicit
-   * `widthPx` / `heightPx` / `density` overrides on the same call still win, matching the harness
-   * `PreviewManifestRouter`'s precedence order.
+   * `orientation` rotates a device-derived frame (issue #3547) — a device supplies the frame's
+   * *natural* geometry, and `id:pixel_tablet` + `orientation=portrait` is precisely a request to
+   * rotate it — but never an explicitly sized one, since that is the caller naming exact pixels.
+   * The swap is idempotent: it means "make it look like this", not "always flip", so a landscape
+   * base plus `orientation=landscape` is a no-op and repeated calls stay stable.
    *
-   * `;`-delimited so the existing `RenderSpec.parseFromPayload(OrNull)` parsers read each pair
-   * directly. See PROTOCOL.md § 5 (`renderNow.overrides`) for the wire-level shape.
+   * The [device] token itself rides along unresolved as well, because Android's render body reads
+   * it to detect round Wear devices and apply the circular crop.
+   *
+   * **What this no longer does.** It used to serialize all of the above into a `;`-delimited
+   * `key=value` string, with the fields it had no token for base64-encoded into an `overrides=`
+   * token beside them. See [RenderTarget]'s KDoc for what that cost. The overrides now travel as
+   * the object they already are.
    */
-  private fun encodeRenderPayload(previewId: String, overrides: PreviewOverrides?): String {
-    val base = buildString {
-      if (previewId.isNotEmpty()) append("previewId=").append(previewId)
-      if (overrides == null) return@buildString
-      val deviceToken = overrides.device?.takeIf { it.isNotBlank() }
-      val deviceSpec = deviceToken?.let {
-        ee.schimke.composeai.daemon.devices.DeviceDimensions.resolve(it)
-      }
-      val naturalWidthPx = deviceSpec?.let { (it.widthDp * it.density).toInt().coerceAtLeast(1) }
-      val naturalHeightPx = deviceSpec?.let { (it.heightDp * it.density).toInt().coerceAtLeast(1) }
-      // Rotate the device's natural frame when `orientation` asks for the other one (#3547). This
-      // has to happen HERE, not only in the downstream `PreviewManifestRouter`: the router treats
-      // an inbound `widthPx` as "the caller named exact pixels" and leaves it alone, and the lines
-      // below are what put those device-derived pixels on the wire. So a `renderNow` carrying
-      // `device` + `orientation` reached the router already looking like an explicit-size request
-      // and the rotation was dropped — which is what `?device=id:pixel_tablet&orientation=portrait`
-      // hit on the preview server. Skipped when the caller set either axis explicitly, since those
-      // outrank both the device geometry and the rotation.
-      val orientationCanSwap = overrides.widthPx == null && overrides.heightPx == null
-      val (deviceWidthPx, deviceHeightPx) =
-        if (orientationCanSwap && naturalWidthPx != null && naturalHeightPx != null)
-          ee.schimke.composeai.daemon.devices.FrameOrientation.orientedPx(
-            naturalWidthPx,
-            naturalHeightPx,
-            overrides.orientation,
-          )
-        else naturalWidthPx to naturalHeightPx
-      val deviceDensity = deviceSpec?.density
-      (overrides.widthPx ?: deviceWidthPx)?.let {
-        if (isNotEmpty()) append(';')
-        append("widthPx=").append(it)
-      }
-      (overrides.heightPx ?: deviceHeightPx)?.let {
-        if (isNotEmpty()) append(';')
-        append("heightPx=").append(it)
-      }
-      (overrides.density ?: deviceDensity)?.let {
-        if (isNotEmpty()) append(';')
-        append("density=").append(it)
-      }
-      overrides.localeTag
-        ?.takeIf { it.isNotBlank() }
-        ?.let {
-          if (isNotEmpty()) append(';')
-          append("localeTag=").append(it)
-        }
-      overrides.fontScale?.let {
-        if (isNotEmpty()) append(';')
-        append("fontScale=").append(it)
-      }
-      overrides.uiMode?.let {
-        if (isNotEmpty()) append(';')
-        append("uiMode=")
-        append(
-          when (it) {
-            UiMode.LIGHT -> "light"
-            UiMode.DARK -> "dark"
-          }
-        )
-      }
-      overrides.orientation?.let {
-        if (isNotEmpty()) append(';')
-        append("orientation=")
-        append(
-          when (it) {
-            Orientation.PORTRAIT -> "portrait"
-            Orientation.LANDSCAPE -> "landscape"
-          }
-        )
-      }
-      deviceToken?.let {
-        if (isNotEmpty()) append(';')
-        append("device=").append(it)
-      }
-      overrides.captureAdvanceMs
-        ?.takeIf { it > 0L }
-        ?.let {
-          if (isNotEmpty()) append(';')
-          append("captureAdvanceMs=").append(it)
-        }
-      overrides.inspectionMode?.let {
-        if (isNotEmpty()) append(';')
-        append("inspectionMode=").append(it)
-      }
-      overrides.slotMode?.let {
-        if (isNotEmpty()) append(';')
-        append("slotMode=").append(it)
-      }
-      overrides.clearBackground?.let {
-        if (isNotEmpty()) append(';')
-        append("clearBackground=").append(it)
-      }
-      // Extension-driven overrides ride along as a single base64-encoded `PreviewOverrides`
-      // bag — the renderer's [PreviewOverrideExtensions] hands the bag to every registered
-      // planner, and the renderer itself reads a few fields off it directly (`themeProvider`,
-      // the min/max content bounds). New override-driven fields don't need a new wire token;
-      // they ride this bag.
-      //
-      // The bag is a **denylist**: take the caller's whole `overrides` and null out only what
-      // already travelled as a typed token above. It used to be a hand-maintained allowlist
-      // shadowed by a parallel emptiness check, so every field nobody remembered to add to
-      // *both* lists was accepted by the protocol, merged by `PreviewOverrideMerge`, then
-      // dropped here with no error and default pixels returned. #3073 counted eight live ones
-      // (`clockEpochMillis`, `placeholderActive`, `ambient`, `focus`, `keyboard`,
-      // `touchOverlay`, `remoteCompose`, `launcherWidget`), and `permissions`, `gestures`,
-      // `lottie`, `namedOverrides` and `themeProvider` had each been fixed the same way one at
-      // a time before that. Inverted, a new `PreviewOverrides` field reaches the renderer by
-      // default and the only edit it can ever need here is a *removal* — when it grows a typed
-      // token of its own. [PreviewOverridesEncodingCompletenessTest] walks the serializer
-      // descriptor and fails if any field reaches the renderer on neither path.
-      //
-      // `talkBack` rides the bag deliberately even though `DesktopRecordingSession` is its only
-      // reader today: a one-shot render ignores an unread field harmlessly, whereas scoping it
-      // out here would rebuild exactly the silent-drop trap for whoever wires it into
-      // single-frame capture later.
-      val extensionBag =
-        overrides
-          .copy(
-            // The 12 typed wire tokens emitted above. Nulled so the bag never restates them —
-            // the tokens are what each backend's `parseFromPayload` reads, and `device` in
-            // particular has already been resolved into widthPx/heightPx/density up there.
-            widthPx = null,
-            heightPx = null,
-            density = null,
-            localeTag = null,
-            fontScale = null,
-            uiMode = null,
-            orientation = null,
-            device = null,
-            captureAdvanceMs = null,
-            inspectionMode = null,
-            slotMode = null,
-            clearBackground = null,
-          )
-          // Blank/empty means "not set" for these two, so normalize before the emptiness check
-          // below — a `themeProvider: ""` must not conjure a bag out of nothing.
-          .let { if (it.themeProvider.isNullOrBlank()) it.copy(themeProvider = null) else it }
-          .let { if (it.namedOverrides.isNullOrEmpty()) it.copy(namedOverrides = null) else it }
-      if (extensionBag != PreviewOverrides()) {
-        if (isNotEmpty()) append(';')
-        append("overrides=")
-        append(
-          Base64.getUrlEncoder()
-            .withoutPadding()
-            .encodeToString(
-              json
-                .encodeToString(PreviewOverrides.serializer(), extensionBag)
-                .toByteArray(Charsets.UTF_8)
-            )
-        )
-      }
+  private fun renderTargetFor(
+    previewId: String,
+    overrides: PreviewOverrides?,
+    mode: String? = null,
+  ): RenderTarget {
+    val renderMode = mode?.takeIf { it.isNotEmpty() } ?: subscriptionDrivenRenderMode(previewId)
+    if (overrides == null) {
+      return RenderTarget.Preview(previewId = previewId, renderMode = renderMode)
     }
-    // D2.2 — sticky subscription → render-mode injection. When a panel has subscribed to any
-    // `a11y/*` kind for [previewId] (focus inspector's A11y toggle is the canonical caller),
-    // every subsequent renderNow for that preview runs in a11y mode so the ATF + hierarchy
-    // artefacts land for `attachmentsFor` to ship on the next `renderFinished`. The mode tag is
-    // the same channel the data/fetch RequiresRerender path uses; renderer-side resolution lives
-    // in `RenderEngine.runAccessibility`'s auto-mode (`spec.renderMode == "a11y"`).
-    val mode = subscriptionDrivenRenderMode(previewId) ?: return base
-    return if (base.isEmpty()) "mode=$mode" else "$base;mode=$mode"
+    val deviceToken = overrides.device?.takeIf { it.isNotBlank() }
+    val deviceSpec = deviceToken?.let { DeviceDimensions.resolve(it) }
+    val naturalWidthPx = deviceSpec?.let { (it.widthDp * it.density).toInt().coerceAtLeast(1) }
+    val naturalHeightPx = deviceSpec?.let { (it.heightDp * it.density).toInt().coerceAtLeast(1) }
+    // Skipped when the caller set either axis explicitly: those outrank both the device geometry
+    // and the rotation.
+    val orientationCanSwap = overrides.widthPx == null && overrides.heightPx == null
+    val (deviceWidthPx, deviceHeightPx) =
+      if (orientationCanSwap && naturalWidthPx != null && naturalHeightPx != null)
+        FrameOrientation.orientedPx(naturalWidthPx, naturalHeightPx, overrides.orientation)
+      else naturalWidthPx to naturalHeightPx
+    return RenderTarget.Preview(
+      previewId = previewId,
+      overrides =
+        overrides.copy(
+          widthPx = overrides.widthPx ?: deviceWidthPx,
+          heightPx = overrides.heightPx ?: deviceHeightPx,
+          density = overrides.density ?: deviceSpec?.density,
+        ),
+      renderMode = renderMode,
+    )
   }
 
   /**
@@ -1744,12 +1616,12 @@ public class JsonRpcServer(
     // fetch
     // records its data products as if the default preview rendered.
     overrides?.let { hostIdToOverrides[hostId] = it }
-    val payload = encodeRenderPayloadWithMode(previewId, mode, overrides)
+    val target = renderTargetFor(previewId, overrides, mode)
     Thread(
         {
           // Submit goes through the same render thread as renderNow but on a worker so the
           // budget timer below is what bounds wall-clock — not the host's submit timeout.
-          submitRerenderForFetch(hostId, payload)
+          submitRerenderForFetch(hostId, target)
           val budgetMs = dataFetchRerenderBudgetMs.coerceAtLeast(1L)
           val outcome =
             try {
@@ -1825,13 +1697,13 @@ public class JsonRpcServer(
    * watcher loop's existing `renderFailed` path handles them — and so the [dataFetchWaiters] future
    * is woken via [emitRenderFailed]'s completion call rather than by this thread.
    */
-  private fun submitRerenderForFetch(hostId: Long, payload: String) {
+  private fun submitRerenderForFetch(hostId: Long, target: RenderTarget) {
     Thread(
         {
           try {
             val raw =
               host.submit(
-                RenderRequest.Render(id = hostId, payload = payload),
+                RenderRequest.Render(id = hostId, target = target),
                 timeoutMs = renderTimeoutMs,
               )
             renderResultsQueue.put(raw)
@@ -1846,30 +1718,6 @@ public class JsonRpcServer(
       )
       .apply { isDaemon = true }
       .start()
-  }
-
-  /**
-   * D3 — encodes a [RenderRequest.Render.payload] with `previewId=<id>;mode=<mode>`. The `mode` key
-   * is consumed renderer-side (D2 / `renderer-android`) to pick the smallest render configuration
-   * that produces the requested kind — the daemon stays kind-agnostic and just forwards the
-   * producer-supplied tag. Fake-mode hosts (the test harness's `FakeHost`, `FakeRenderHost` in unit
-   * tests) ignore unknown payload keys, so this is forward-compatible.
-   */
-  private fun encodeRenderPayloadWithMode(
-    previewId: String,
-    mode: String,
-    overrides: PreviewOverrides? = null,
-  ): String = buildString {
-    // Reuse the full override serialization (typed size/locale/fontScale/uiMode/device tokens + the
-    // base64 `overrides=` bag) so the mode re-render honours the same overrides the normal render
-    // path does; then tag the render mode. `overrides == null` reduces to `previewId` alone, i.e.
-    // the
-    // prior behaviour for override-free re-renders.
-    append(encodeRenderPayload(previewId, overrides))
-    if (mode.isNotEmpty()) {
-      if (isNotEmpty()) append(';')
-      append("mode=").append(mode)
-    }
   }
 
   /**

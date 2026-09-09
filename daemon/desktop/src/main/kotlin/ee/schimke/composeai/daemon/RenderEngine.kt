@@ -35,8 +35,6 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.unit.Density
 import ee.schimke.composeai.daemon.devices.DeviceDimensions
-import ee.schimke.composeai.daemon.protocol.FigmaSvgBackgroundMode
-import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import ee.schimke.composeai.data.layoutinspector.ComposeFigmaSvgProduct
 import ee.schimke.composeai.data.render.LinkBufferComposer
 import ee.schimke.composeai.data.render.PreviewBackends
@@ -65,11 +63,8 @@ import ee.schimke.composeai.renderer.DesktopSettleClock
 import ee.schimke.composeai.renderer.encodePngData
 import ee.schimke.composeai.renderer.settleScene
 import java.io.File
-import java.util.Base64
 import java.util.Collections
 import java.util.WeakHashMap
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -2570,374 +2565,25 @@ internal fun previewBackgroundHex(spec: RenderSpec): String? =
     ?.let { "#${String.format(java.util.Locale.US, "%08X", it.toArgb())}" }
 
 /**
- * What [RenderEngine.render] needs to produce a single PNG. Decoupled from the protocol's
- * `RenderRequest` so the engine has no dependency on the JSON-RPC envelope shapes.
+ * This spec's `@CaptureGutter` in pixels at its own [RenderSpec.density] — the same per-edge
+ * rounding the standalone renderer's [PreviewCaptureGutter.ofDp] applies, so a `compose-preview
+ * serve` frame and the published PNG beside it grow by the same pixels (RENDER_LANE_PARITY.md).
  *
- * For v1 the daemon's [DesktopHost] parses this out of [RenderRequest.Render.payload] using a
- * trivial `key=value;key=value` format (see [parseFromPayload]); a typed `previewId` field on
- * `RenderRequest` is a documented follow-up that requires widening the renderer-agnostic surface in
- * `:daemon:core`.
+ * An extension rather than a member: [RenderSpec] lives in `:daemon:core`, which cannot see
+ * `:renderer-desktop`'s [PreviewCaptureGutter]. The dp edges are data and belong on the spec; the
+ * projection onto a particular renderer's type belongs with that renderer.
+ *
+ * **Rotation leaves the edges alone, deliberately** (issue #4443 item 4) — see the KDoc on
+ * [RenderSpec.gutterStartDp] for why a gutter edge is not traded the way a wrap flag is.
  */
-data class RenderSpec(
-  val previewId: String? = null,
-  val renderMode: String? = null,
-  /** Fully-qualified name of the class containing the @Preview function. */
-  val className: String,
-  /** Method name of the @Preview function (parameterless overload). */
-  val functionName: String,
-  /**
-   * Preview flavour mirror of `PreviewKind` (string-typed). `null` / `"COMPOSE"` take the normal
-   * class-reflection path; `"LOTTIE"` skips reflection entirely and inflates [assetPath] via
-   * Compottie, so a file-discovered Lottie asset renders through the live daemon (and VS Code) with
-   * no consumer composable.
-   */
-  val kind: String? = null,
-  /** For `kind="LOTTIE"`: the classpath-relative Lottie asset path. */
-  val assetPath: String? = null,
-  val widthPx: Int = 320,
-  val heightPx: Int = 320,
-  /**
-   * AS-parity wrap-content flags. When set, `widthPx`/`heightPx` are a *sandbox* bound (not a fixed
-   * frame): the composition root is measured with a relaxed (min = 0) constraint on the wrapped
-   * axis and sized to the composable's intrinsic size, and the background paints on that intrinsic
-   * box — so the captured layout/semantics tree (and the `compose/figma-svg` + wireframe derived
-   * from it) reflect the preview's *natural* size, matching the standalone renderer's wrap crop
-   * rather than a fixed 320² box that clipped/reflowed wide content. Off ⇒ the composition fills
-   * the frame (prior behaviour). Set by [PreviewManifestRouter] for previews that declare no
-   * explicit size/device.
-   */
-  val wrapWidth: Boolean = false,
-  val wrapHeight: Boolean = false,
-  val density: Float = 2.0f,
-  val showBackground: Boolean = true,
-  val backgroundColor: Long = 0L,
-  /**
-   * Raw `@Preview(device = …)` string when known. The desktop render path is currently
-   * shape-agnostic (no circular crop — that's an Android/Robolectric-only mechanism), but the field
-   * is carried so the wire format stays identical to `:daemon:android`'s `RenderSpec` and a single
-   * payload can drive both backends.
-   */
-  val device: String? = null,
-  /**
-   * `@Preview(showSystemUi = ...)` (issue #1930). When `true` on a phone-shape capture the render
-   * body wraps the composition in `:renderer-desktop`'s `SystemBarsFrame` — a synthetic status bar
-   * + gesture-nav pill that simulates Android phone chrome on this non-Android backend, matching
-   *   what the Android renderer draws so a single design reference matches either candidate.
-   *   Skipped for round/Wear [device]s. Dark chrome follows [uiMode].
-   */
-  val showSystemUi: Boolean = false,
-  /** Stem used for the output PNG filename (e.g. "preview-A" → "<outputDir>/preview-A.png"). */
-  val outputBaseName: String = "${className.substringAfterLast('.')}-$functionName",
-  /**
-   * BCP-47 locale tag override. Scoped through Compose UI's providable locale list when present.
-   */
-  val localeTag: String? = null,
-  /**
-   * Font scale multiplier override. Threaded through `Density(density, fontScale)` — applied to
-   * `ImageComposeScene`'s constructor and re-provided as `LocalDensity` so any composition path
-   * that reads `LocalDensity` directly (rather than the scene's density) sees the same value.
-   */
-  val fontScale: Float? = null,
-  /**
-   * Light/dark mode override. Provided as `LocalSystemTheme` — Compose Desktop's
-   * `isSystemInDarkTheme()` reads that local rather than `Configuration.uiMode`.
-   */
-  val uiMode: SpecUiMode? = null,
-  /**
-   * Portrait/landscape override. Desktop has no display-rotation concept on `ImageComposeScene`,
-   * but issue #1208 reduces `LANDSCAPE` to a `widthPx ↔ heightPx` swap applied by [DesktopHost]
-   * before the spec reaches the engine. Explicit `widthPx`/`heightPx` overrides on the same call
-   * win over the hint — `RenderEngine` reads the resolved dimensions straight from this spec
-   * without re-interpreting the orientation field, so any swap must already be baked in by the
-   * caller.
-   */
-  val orientation: SpecOrientation? = null,
-  /**
-   * Per-render `LocalInspectionMode` override for one-shot renders. Null preserves preview
-   * semantics (`true`); held interactive/recording sessions pass their own runtime-like `false`.
-   */
-  val inspectionMode: Boolean? = null,
-  /**
-   * Per-render slot mode. When `true` the renderer provides `LocalSlotMode = true`, so a
-   * `PreviewSlot` marker renders a labelled placeholder instead of its content. Null/false renders
-   * content normally.
-   */
-  val slotMode: Boolean? = null,
-  /**
-   * Per-render cleared-background toggle. When `true` the harness background is forced transparent
-   * (overriding [showBackground]/[backgroundColor]) and `LocalPreviewBackgroundCleared = true` is
-   * provided around the preview, so a composable that paints its own opaque fill can drop it for a
-   * crisp transparent outline. Default `false` preserves the discovery-time background.
-   */
-  val clearBackground: Boolean = false,
-  /**
-   * Per-render background mode for the `compose/figma-svg` export
-   * (`PreviewOverrides.svgBackground`) — `NONE`, `DEVICE`, `CONTENT_SHAPE`, or `FULL_BLEED`. Only
-   * that export reads it; it changes nothing about the rendered PNG.
-   *
-   * Null means the caller said nothing and the daemon-wide `composeai.svg.background` default
-   * applies, which is itself `NONE`: the export is background-free unless asked, because an
-   * injected fill is an opaque shape spanning the canvas — hard to remove once baked, easy to add
-   * back — so a *declared* `showBackground` is not enough to earn one.
-   */
-  val svgBackground: FigmaSvgBackgroundMode? = null,
-  /**
-   * Per-call overrides bag, threaded through every registered [PreviewOverrideExtension]. The
-   * renderer doesn't read individual fields directly — registered planners decide what to apply.
-   * Direct-applied overrides like size, density, and locale stay on this spec's typed fields above
-   * because the renderer applies them itself; theme/wallpaper-style overrides ride along here so
-   * adding a new override-driven feature is purely a connector concern.
-   */
-  val overrides: PreviewOverrides? = null,
-  /**
-   * FQN of the `PreviewWrapperProvider` from `@PreviewWrapper(SomeProvider::class)` when the source
-   * preview is annotated. Sourced from the gradle plugin's discovery JSON (`extractWrapperFqn`
-   * reads it off the class-file annotation tables — the upstream annotation has
-   * `AnnotationRetention.BINARY` and is invisible to `Method.annotations` at runtime, see
-   * issue #1440). The render body drives `InvokeWithOptionalWrapper` off this field when set; null
-   * falls back to the (best-effort) runtime-reflection lookup for direct-payload callers that
-   * bypass the manifest.
-   */
-  val wrapperClassName: String? = null,
-  /**
-   * FQN of the `PreviewParameterProvider` from `@PreviewParameter` on the preview function's
-   * parameter, when discovery recorded one. Sourced from `previews.json` (the upstream annotation
-   * has `AnnotationRetention.BINARY` and is invisible to `Method.annotations` at runtime — same
-   * provenance as [wrapperClassName]). When set the render body resolves and renders one of the
-   * provider's values — [previewParameterRow]'s, or the first under the bare id, matching
-   * `:daemon:android`'s single-frame contract; the per-value fan-out stays with the standalone
-   * renderer. Null is the plain parameterless preview.
-   */
-  val previewParameterProviderClassName: String? = null,
-  /** Mirrors `@PreviewParameter.limit`. `Int.MAX_VALUE` is the annotation default. */
-  val previewParameterLimit: Int = Int.MAX_VALUE,
-  /**
-   * Which `@PreviewParameter` row to bind — a fan-out suffix (`Dark`) or `PARAM_<idx>`, per
-   * [ee.schimke.composeai.renderer.PreviewParameterSupport.resolve]. Set by [PreviewManifestRouter]
-   * when the inbound previewId was row-addressed as `<baseId>_<row>` (issue #3749). Null keeps the
-   * historical "render value 0 under the bare id" contract.
-   */
-  val previewParameterRow: String? = null,
-  /**
-   * The **parameter knobs** this preview declares — its own defaulted value parameters, the
-   * secondary override format beside `previewOverride*` (see
-   * [ee.schimke.composeai.renderer.PreviewKnobArguments]). Carried from `previews.json` by
-   * `renderSpecFromInfo`, or from the `knobs=<name>:<index>:<TYPE>,…` payload token by
-   * [parseFromPayload].
-   *
-   * Empty for every preview that declares none, which is the overwhelming majority: discovery only
-   * reports knobs when **every** value parameter has a default, so a preview cannot acquire one by
-   * accident. A seed in `overrides.namedOverrides` naming one of these binds to the parameter's
-   * position; a seed naming anything else is left for the `previewOverride*` controller.
-   */
-  val knobs: List<PreviewKnobDto> = emptyList(),
-  /**
-   * `@CaptureGutter` edges in **dp** (issue #4443). Four flat Ints rather than a nested type
-   * because `:daemon:android`'s twin of this class can't see `:preview-data-api`'s
-   * `CaptureGutterDp`, and the two RenderSpecs are deliberately kept field-for-field identical so
-   * one payload string drives either backend.
-   *
-   * All-zero (the default) is every preview that doesn't declare the annotation, and an older
-   * client's payload — which carries no `captureGutter` token at all — decodes to exactly that, so
-   * the wire stays backward-compatible. Resolved to pixels once, against this render's own density,
-   * by [captureGutterPx].
-   *
-   * Edges are start/end (leading/trailing), resolved against the render's layout direction, not
-   * left/right. A rotated render does NOT rotate them — see [captureGutterPx].
-   */
-  val gutterStartDp: Int = 0,
-  val gutterTopDp: Int = 0,
-  val gutterEndDp: Int = 0,
-  val gutterBottomDp: Int = 0,
-) {
-
-  /**
-   * This spec's `@CaptureGutter` in pixels at its own [density] — the same per-edge rounding the
-   * standalone renderer's [ee.schimke.composeai.renderer.PreviewCaptureGutter.ofDp] applies, so a
-   * `compose-preview serve` frame and the published PNG beside it grow by the same pixels
-   * (RENDER_LANE_PARITY.md).
-   *
-   * **Rotation leaves the edges alone, deliberately** (issue #4443 item 4). [DesktopHost] reduces
-   * `orientation = landscape` to a `widthPx ↔ heightPx` swap, and [PreviewManifestRouter] trades
-   * the wrap flags with it because a wrap flag names an *axis* of the frame. A gutter edge does
-   * not: it is a statement about the component — "my shadow falls this far below me" — and nothing
-   * about swapping the sandbox's width and height turns the component upside down or moves where
-   * its shadow lands. Rotating `bottom` onto `end` would put the deep edge to the side of a
-   * component whose shadow still falls downward, cropping it exactly where it matters and padding
-   * an edge that needed nothing. So the declared edges survive rotation verbatim.
-   */
-  fun captureGutterPx(): ee.schimke.composeai.renderer.PreviewCaptureGutter =
-    ee.schimke.composeai.renderer.PreviewCaptureGutter.ofDp(
-      startDp = gutterStartDp,
-      topDp = gutterTopDp,
-      endDp = gutterEndDp,
-      bottomDp = gutterBottomDp,
-      density = density,
-    )
-
-  enum class SpecUiMode {
-    LIGHT,
-    DARK,
-  }
-
-  enum class SpecOrientation {
-    PORTRAIT,
-    LANDSCAPE,
-  }
-
-  companion object {
-
-    /**
-     * The `@Preview(uiMode = …)` **Configuration bits** for a [SpecUiMode], for the renderer entry
-     * points that take the raw int rather than the enum.
-     *
-     * All three states are distinct and the distinction matters:
-     * [ee.schimke.composeai.renderer.systemThemeFromUiMode] maps `0x20` → dark, `0x10` → light and
-     * anything else → `Unknown`, and `Unknown` deliberately leaves `isSystemInDarkTheme()` to the
-     * JVM's own theme probe. So collapsing [SpecUiMode.LIGHT] to `0` does not mean "light", it
-     * means "ask the host" — and a request that explicitly asked for light would render dark on a
-     * dark-themed machine.
-     *
-     * Easy to get wrong by copying the `if (DARK) 0x20 else 0` shape used for `SystemBarsFrame`,
-     * which is correct there only because that consumer inspects the night-YES bit alone and so has
-     * two states rather than three.
-     */
-    fun uiModeBits(mode: SpecUiMode?): Int =
-      when (mode) {
-        SpecUiMode.DARK -> 0x20 // UI_MODE_NIGHT_YES
-        SpecUiMode.LIGHT -> 0x10 // UI_MODE_NIGHT_NO
-        null -> 0 // UI_MODE_NIGHT_UNDEFINED — defer to the host
-      }
-
-    /**
-     * Parses [RenderRequest.Render.payload] — a `;`-delimited `key=value` string — into a
-     * [RenderSpec]. Recognised keys: `className`, `functionName`, `widthPx`, `heightPx`, `density`,
-     * `showBackground`, `backgroundColor`, `device`, `outputBaseName`, `localeTag`, `fontScale`,
-     * `uiMode` (`light`/`dark`), `orientation` (`portrait`/`landscape`), `inspectionMode`
-     * (`true`/`false`), and data-product routing keys `previewId` / `mode`. `className` and
-     * `functionName` are required; everything else falls back to the defaults on this data class.
-     *
-     * Keeping this stringly-typed for v1 is deliberate (per the task brief). When `RenderRequest`
-     * grows a typed `previewId: String?` field, [DesktopHost] will look the spec up in
-     * `previews.json` rather than parsing it out of the payload — at which point this helper goes
-     * away.
-     */
-    fun parseFromPayload(payload: String): RenderSpec {
-      val map = mutableMapOf<String, String>()
-      for (entry in payload.split(';')) {
-        val trimmed = entry.trim()
-        if (trimmed.isEmpty()) continue
-        val eq = trimmed.indexOf('=')
-        if (eq <= 0) continue
-        map[trimmed.substring(0, eq).trim()] = trimmed.substring(eq + 1).trim()
-      }
-      val className =
-        map["className"] ?: error("RenderSpec.parseFromPayload: missing 'className' in '$payload'")
-      val functionName =
-        map["functionName"]
-          ?: error("RenderSpec.parseFromPayload: missing 'functionName' in '$payload'")
-      val defaults = RenderSpec(className = className, functionName = functionName)
-      val gutterDp = parseGutterToken(map["captureGutter"])
-      return RenderSpec(
-        previewId = map["previewId"]?.takeIf { it.isNotBlank() },
-        renderMode = map["mode"]?.takeIf { it.isNotBlank() },
-        className = className,
-        functionName = functionName,
-        widthPx = map["widthPx"]?.toIntOrNull() ?: defaults.widthPx,
-        heightPx = map["heightPx"]?.toIntOrNull() ?: defaults.heightPx,
-        wrapWidth = map["wrapWidth"]?.toBoolean() ?: defaults.wrapWidth,
-        wrapHeight = map["wrapHeight"]?.toBoolean() ?: defaults.wrapHeight,
-        density = map["density"]?.toFloatOrNull() ?: defaults.density,
-        showBackground = map["showBackground"]?.toBoolean() ?: defaults.showBackground,
-        backgroundColor = map["backgroundColor"]?.toLongOrNull() ?: defaults.backgroundColor,
-        device = map["device"]?.takeIf { it.isNotBlank() } ?: defaults.device,
-        showSystemUi = map["showSystemUi"]?.toBoolean() ?: defaults.showSystemUi,
-        outputBaseName = map["outputBaseName"] ?: defaults.outputBaseName,
-        localeTag = map["localeTag"]?.takeIf { it.isNotBlank() },
-        fontScale = map["fontScale"]?.toFloatOrNull(),
-        uiMode =
-          when (map["uiMode"]?.lowercase()) {
-            "light" -> SpecUiMode.LIGHT
-            "dark" -> SpecUiMode.DARK
-            else -> null
-          },
-        orientation =
-          when (map["orientation"]?.lowercase()) {
-            "portrait" -> SpecOrientation.PORTRAIT
-            "landscape" -> SpecOrientation.LANDSCAPE
-            else -> null
-          },
-        inspectionMode = map["inspectionMode"]?.toBooleanStrictOrNull(),
-        slotMode = map["slotMode"]?.toBooleanStrictOrNull(),
-        clearBackground = map["clearBackground"]?.toBoolean() ?: defaults.clearBackground,
-        svgBackground =
-          FigmaSvgBackgroundMode.parse(map["svgBackground"]) ?: defaults.svgBackground,
-        overrides = map["overrides"]?.decodePreviewOverrides(),
-        wrapperClassName = map["wrapperClassName"]?.takeIf { it.isNotBlank() },
-        previewParameterProviderClassName =
-          map["previewParameterProvider"]?.takeIf { it.isNotBlank() },
-        previewParameterLimit =
-          map["previewParameterLimit"]?.toIntOrNull() ?: defaults.previewParameterLimit,
-        previewParameterRow = map["previewParameterRow"]?.takeIf { it.isNotBlank() },
-        knobs = parseKnobsToken(map["knobs"]),
-        gutterStartDp = gutterDp.start,
-        gutterTopDp = gutterDp.top,
-        gutterEndDp = gutterDp.end,
-        gutterBottomDp = gutterDp.bottom,
-      )
-    }
-
-    /**
-     * The `captureGutter=<start>,<top>,<end>,<bottom>` payload token — four dp edges, in that
-     * order. A missing or malformed token is an all-zero gutter, which is also what every payload
-     * written before the token existed decodes to.
-     */
-    internal fun parseGutterToken(token: String?): GutterDp {
-      val parts = token?.split(',') ?: return GutterDp()
-      if (parts.size != 4) return GutterDp()
-      val edges = parts.map { it.trim().toIntOrNull()?.coerceAtLeast(0) ?: return GutterDp() }
-      return GutterDp(edges[0], edges[1], edges[2], edges[3])
-    }
-
-    /**
-     * Parses the `knobs=<name>:<index>:<TYPE>,…` payload token into [RenderSpec.knobs]. Delegates
-     * to [PreviewKnobToken] so this backend, `:daemon:android`'s twin, and the Android host-side
-     * producer that emits the token cannot drift apart on what a well-formed entry is.
-     */
-    internal fun parseKnobsToken(token: String?): List<PreviewKnobDto> =
-      PreviewKnobToken.parse(token)
-
-    /** Four dp edges, the parsed shape of a `captureGutter=` token. */
-    internal data class GutterDp(
-      val start: Int = 0,
-      val top: Int = 0,
-      val end: Int = 0,
-      val bottom: Int = 0,
-    )
-
-    private val json = Json {
-      ignoreUnknownKeys = true
-      encodeDefaults = false
-    }
-
-    private fun String.decodePreviewOverrides(): PreviewOverrides? = runCatching {
-      val bytes = Base64.getUrlDecoder().decode(this)
-      json.decodeFromString(PreviewOverrides.serializer(), bytes.toString(Charsets.UTF_8))
-    }
-      .getOrNull()
-
-    /**
-     * Decode the base64-encoded `PreviewOverrides` bag carried in the `overrides=<b64>` payload
-     * token — the extension bag `JsonRpcServer.encodeRenderPayload` emits (`namedOverrides`,
-     * `themeProvider`, `wallpaper`, `permissions`, `gestures`, `lottie`). Exposed so the
-     * previewId-based render path ([DesktopHost.specFromPreviewIdPayload]) can carry the bag
-     * through too, not just the className-based [parseFromPayload]; without it a `?knob.<key>=…`
-     * edit on the bundle-backed live daemon (`serve` / preview.coo.ee) is silently dropped.
-     */
-    internal fun decodeOverridesToken(token: String): PreviewOverrides? =
-      token.decodePreviewOverrides()
-  }
-}
+fun RenderSpec.captureGutterPx(): ee.schimke.composeai.renderer.PreviewCaptureGutter =
+  ee.schimke.composeai.renderer.PreviewCaptureGutter.ofDp(
+    startDp = gutterStartDp,
+    topDp = gutterTopDp,
+    endDp = gutterEndDp,
+    bottomDp = gutterBottomDp,
+    density = density,
+  )
 
 /**
  * Tiny @Composable trampoline that invokes [composableMethod] reflectively against the current

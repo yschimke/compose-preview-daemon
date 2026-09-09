@@ -38,11 +38,18 @@ class RenderEngineRetiredSlotTest {
     try {
       host.submit(
         RenderRequest.Render(
-          payload =
-            "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
-              "functionName=ScrolledLazyColumnPreview;" +
-              "widthPx=200;heightPx=520;density=1.0;showBackground=true;" +
-              "outputBaseName=retired-slot"
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "ScrolledLazyColumnPreview",
+                widthPx = 200,
+                heightPx = 520,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "retired-slot",
+              )
+            )
         ),
         timeoutMs = 120_000,
       )

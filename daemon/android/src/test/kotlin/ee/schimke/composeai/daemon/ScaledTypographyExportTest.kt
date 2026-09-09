@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon
 
+import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import ee.schimke.composeai.data.layoutinspector.ComposeSemanticsNode
 import ee.schimke.composeai.data.layoutinspector.ComposeSemanticsPayload
 import java.io.File
@@ -64,7 +65,7 @@ class ScaledTypographyExportTest {
     host.start()
     try {
       host.submit(
-        RenderRequest.Render(payload = "previewId=$previewId;fontScale=$fontScale"),
+        RenderRequest.Render(target = preview(previewId, PreviewOverrides(fontScale = fontScale))),
         timeoutMs = 120_000,
       )
 

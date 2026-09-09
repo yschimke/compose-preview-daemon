@@ -2,6 +2,7 @@ package ee.schimke.composeai.daemon.pool
 
 import ee.schimke.composeai.daemon.MATERIAL3_THEME_PAYLOAD_CONTEXT_KEY
 import ee.schimke.composeai.daemon.RenderResult
+import ee.schimke.composeai.daemon.RenderTarget
 import ee.schimke.composeai.data.render.PreviewContext
 import ee.schimke.composeai.data.render.PreviewDeviceContext
 import ee.schimke.composeai.data.render.PreviewDeviceSpec
@@ -34,11 +35,16 @@ import kotlinx.serialization.json.Json
 sealed interface WorkerRequest {
 
   /**
-   * Render [payload] (an already-resolved `key=value;…` spec payload) and reply with the result.
+   * Render [target] — already resolved host-side by `RobolectricHost.reshapeRenderTarget` — and
+   * reply with the result.
+   *
+   * This request is itself JSON on the wire, so the target nests as the typed object it is rather
+   * than being re-encoded into a string field. The worker hop is one of the two places a
+   * [RenderTarget] genuinely has to serialize; it does not need a second format inside the first.
    */
   @Serializable
   @SerialName("render")
-  data class Render(val id: Long, val payload: String, val timeoutMs: Long) : WorkerRequest
+  data class Render(val id: Long, val target: RenderTarget, val timeoutMs: Long) : WorkerRequest
 
   /**
    * Broadcast of `RenderHost.swapUserClassLoaders` — the worker drops its child `URLClassLoader` so

@@ -119,30 +119,35 @@ class DesktopCaptureGutterLaneTest {
   }
 
   @Test
-  fun `the payload token round-trips, and an older client's payload decodes to no gutter`() {
+  fun `the gutter survives the boundary round-trip, and an older client's spec has none`() {
     val parsed =
-      RenderSpec.parseFromPayload(
-        "className=com.example.FooKt;functionName=Foo;captureGutter=1,2,3,4"
+      RenderSpec.decode(
+        RenderSpec.encode(
+          RenderSpec(
+            className = "com.example.FooKt",
+            functionName = "Foo",
+            gutterStartDp = 1,
+            gutterTopDp = 2,
+            gutterEndDp = 3,
+            gutterBottomDp = 4,
+          )
+        )
       )
     assertEquals(1, parsed.gutterStartDp)
     assertEquals(2, parsed.gutterTopDp)
     assertEquals(3, parsed.gutterEndDp)
     assertEquals(4, parsed.gutterBottomDp)
 
-    // No token at all — every payload written before this field existed.
-    val legacy = RenderSpec.parseFromPayload("className=com.example.FooKt;functionName=Foo")
+    // A spec encoded before the field existed carries no gutter keys at all; `ignoreUnknownKeys`
+    // plus the all-zero defaults decode it to no gutter rather than failing the hop.
+    val legacy =
+      RenderSpec.decode("""{"className":"com.example.FooKt","functionName":"Foo","legacyKey":1}""")
     assertEquals(0, legacy.gutterStartDp)
     assertEquals(0, legacy.gutterBottomDp)
-
-    // A malformed token is no gutter rather than a partial one: half a gutter would silently
-    // publish a lopsided canvas, which is harder to notice than none at all.
-    val malformed =
-      RenderSpec.parseFromPayload("className=com.example.FooKt;functionName=Foo;captureGutter=1,2")
-    assertEquals(0, malformed.gutterStartDp)
   }
 
   @Test
-  fun `the router forwards a manifest-declared gutter onto the payload`() {
+  fun `the router forwards a manifest-declared gutter onto the spec`() {
     val entry =
       PreviewManifestEntry(
         id = "sticker",
@@ -154,7 +159,7 @@ class DesktopCaptureGutterLaneTest {
           ),
       )
     assertEquals(CaptureGutterDto(4, 4, 4, 5), entry.resolved().captureGutter)
-    // …and an un-annotated entry resolves to the all-zero gutter, which the payload omits.
+    // …and an un-annotated entry resolves to the all-zero gutter.
     assertTrue(
       PreviewManifestEntry(
           id = "b",
