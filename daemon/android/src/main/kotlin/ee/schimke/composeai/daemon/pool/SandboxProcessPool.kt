@@ -46,21 +46,74 @@ class SandboxProcessPool(
    * inherit the daemon's own `composeai.*` / `robolectric.*` properties (see [workerSysprops]).
    */
   private val extraSysprops: Map<String, String> = emptyMap(),
+  /**
+   * Loopback ports of pre-booted **spare** workers reserved for this daemon (SANDBOX-POOL.md §
+   * "Spare workers"), from `composeai.daemon.sandboxWorker.spares`. [bootWorker] adopts one of
+   * these — connect, [WorkerRequest.Configure], done — before it falls back to launching and
+   * booting a worker of its own. Each port is tried at most once: a spare that refuses the
+   * connection or fails to configure is skipped, and the slot boots cold.
+   */
+  spareEndpoints: List<Int> = emptyList(),
 ) : AutoCloseable {
 
   private class Worker(
     val index: Int,
-    val process: Process,
+    /** The JVM we launched, or `null` for an adopted spare, which someone else spawned. */
+    val process: Process?,
     val socket: Socket,
     val reader: BufferedReader,
     val writer: BufferedWriter,
     val pid: Long,
+    /** Whether this slot was filled by adopting a spare rather than by a cold boot. */
+    val adopted: Boolean,
   ) {
     val lock = ReentrantLock()
     @Volatile var dead: Boolean = false
+
+    /**
+     * Either way there is a process to wait on or kill; a spare is reached through its pid. By pid
+     * for both — this module compiles against the Android stubs, which know `ProcessHandle` but not
+     * `Process.toHandle()`.
+     */
+    val handle: ProcessHandle?
+      get() = ProcessHandle.of(pid).orElse(null)
+
+    fun destroyForcibly() {
+      process?.destroyForcibly() ?: handle?.destroyForcibly()
+    }
+
+    /** Blocks up to [timeoutMs] for the process to exit; true if it did (or was never found). */
+    fun waitFor(timeoutMs: Long): Boolean {
+      process?.let {
+        return it.waitFor(timeoutMs, TimeUnit.MILLISECONDS)
+      }
+      val h = handle ?: return true
+      return try {
+        h.onExit().get(timeoutMs, TimeUnit.MILLISECONDS)
+        true
+      } catch (_: java.util.concurrent.TimeoutException) {
+        false
+      } catch (_: Throwable) {
+        true
+      }
+    }
   }
 
   private val workers = arrayOfNulls<Worker>(workerCount)
+
+  /** Spares not yet tried, in the order the launcher reserved them. Guarded by [serverLock]. */
+  private val untriedSpares = ArrayDeque(spareEndpoints)
+
+  /** Spare endpoints handed in at construction; a daemon with none boots every worker cold. */
+  val spareEndpointCount: Int = spareEndpoints.size
+
+  /** Whether a spare is still available to adopt (none has been tried for it yet). */
+  fun hasUntriedSpare(): Boolean = serverLock.withLock { untriedSpares.isNotEmpty() }
+
+  /**
+   * Whether worker [index] was filled by adopting a spare. False for a cold boot or an empty slot.
+   */
+  fun isAdopted(index: Int): Boolean = workers.getOrNull(index)?.adopted == true
 
   /**
    * Bound lazily on the first [bootWorker] so a host that never starts its pool (`sandboxCount =
@@ -81,16 +134,94 @@ class SandboxProcessPool(
   }
 
   /**
-   * Spawns worker [index] and blocks until it reports [WorkerResponse.Ready] (its Robolectric
-   * sandbox is booted and it is polling for renders). Throws on launch failure, accept timeout, or
-   * a worker-side boot failure — the caller decides whether that caps the pool (background boot) or
-   * aborts the host (eager boot), exactly as the in-JVM path did.
+   * Fills worker slot [index] and blocks until it can take renders. Returns `true` when the slot
+   * was filled by **adopting a spare** (a pre-booted, warm worker handed over by the launcher —
+   * milliseconds), `false` when it had to spawn and boot a worker of its own.
+   *
+   * The adopt path is tried first while untried spares remain; any failure there is logged and
+   * falls through to the cold path, so a stale spare list can only cost a connection attempt. The
+   * cold path throws on launch failure, accept timeout, or a worker-side boot failure — the caller
+   * decides whether that caps the pool (background boot) or aborts the host (eager boot), exactly
+   * as the in-JVM path did.
    */
-  fun bootWorker(index: Int) {
+  fun bootWorker(index: Int): Boolean {
+    if (adoptSpare(index)) return true
+    bootColdWorker(index)
+    return false
+  }
+
+  /**
+   * The adopt half of [bootWorker] on its own: fill slot [index] from the untried spares, or return
+   * `false` without booting anything. `RobolectricHost.start` uses this to take every spare it was
+   * handed *before* its own in-process sandbox boots, so a daemon with spares answers `initialize`
+   * in the time it takes to configure them.
+   */
+  fun adoptSpare(index: Int): Boolean {
     require(index in 0 until workerCount) {
       "worker index $index out of range 0..${workerCount - 1}"
     }
     check(!closed) { "SandboxProcessPool is closed" }
+    while (true) {
+      val port = serverLock.withLock { untriedSpares.removeFirstOrNull() } ?: break
+      val adopted =
+        try {
+          adoptSpare(index, port)
+        } catch (t: Throwable) {
+          System.err.println(
+            "compose-ai-daemon: spare sandbox worker on port $port could not be adopted for slot " +
+              "$index (${t.javaClass.simpleName}: ${t.message}); trying the next spare, else a cold boot"
+          )
+          continue
+        }
+      workers[index] = adopted
+      System.err.println(
+        "compose-ai-daemon: sandbox worker $index adopted a warm spare (pid=${adopted.pid}, port=$port)"
+      )
+      return true
+    }
+    return false
+  }
+
+  /**
+   * Connect to a listening spare and hand it this daemon's catalog. The spare has already booted
+   * and warm-rendered, so the round-trip is a socket connect plus a classloader swap on the far
+   * side; [SPARE_CONNECT_TIMEOUT_MS] bounds the connect and the configure reply separately.
+   */
+  private fun adoptSpare(index: Int, port: Int): Worker {
+    val socket = Socket()
+    try {
+      socket.connect(
+        java.net.InetSocketAddress(InetAddress.getLoopbackAddress(), port),
+        SPARE_CONNECT_TIMEOUT_MS,
+      )
+      socket.tcpNoDelay = true
+      socket.soTimeout = SPARE_CONFIGURE_TIMEOUT_MS
+      val reader = BufferedReader(InputStreamReader(socket.getInputStream(), Charsets.UTF_8))
+      val writer = BufferedWriter(OutputStreamWriter(socket.getOutputStream(), Charsets.UTF_8))
+      val request =
+        WorkerRequest.Configure(
+          // Everything a cold worker would have inherited on its command line, minus the pool's
+          // own coordinates: a spare has no parent port to dial, and its slot is this one.
+          systemProperties = configureSysprops(index),
+          parentPid = ProcessHandle.current().pid(),
+        )
+      writer.write(workerJson.encodeToString(WorkerRequest.serializer(), request))
+      writer.write("\n")
+      writer.flush()
+      val reply = readResponse(reader)
+      val pid =
+        (reply as? WorkerResponse.Configured)?.pid
+          ?: error("spare worker on port $port answered configure with $reply")
+      socket.soTimeout = 0
+      return Worker(index, process = null, socket, reader, writer, pid, adopted = true)
+    } catch (t: Throwable) {
+      runCatching { socket.close() }
+      throw t
+    }
+  }
+
+  /** The original path: spawn a worker JVM, wait for it to dial back and report ready. */
+  private fun bootColdWorker(index: Int) {
     val server = ensureServerSocket()
     val process = launchWorkerProcess(index, server.localPort)
     val socket =
@@ -121,7 +252,7 @@ class SandboxProcessPool(
     when (hello) {
       is WorkerResponse.Ready -> {
         socket.soTimeout = 0
-        workers[index] = Worker(index, process, socket, reader, writer, hello.pid)
+        workers[index] = Worker(index, process, socket, reader, writer, hello.pid, adopted = false)
         System.err.println(
           "compose-ai-daemon: sandbox worker $index ready (pid=${hello.pid}, port=${server.localPort})"
         )
@@ -199,12 +330,12 @@ class SandboxProcessPool(
         }
       }
       runCatching { worker.socket.close() }
-      if (!worker.process.waitFor(timeoutMs, TimeUnit.MILLISECONDS)) {
+      if (!worker.waitFor(timeoutMs)) {
         System.err.println(
           "compose-ai-daemon: sandbox worker ${worker.index} (pid=${worker.pid}) did not exit " +
             "within ${timeoutMs}ms; killing"
         )
-        worker.process.destroyForcibly()
+        worker.destroyForcibly()
       }
       worker.dead = true
     }
@@ -220,7 +351,7 @@ class SandboxProcessPool(
         "(${cause.javaClass.simpleName}: ${cause.message}); dropping it from the pool"
     )
     runCatching { worker.socket.close() }
-    runCatching { worker.process.destroyForcibly() }
+    runCatching { worker.destroyForcibly() }
   }
 
   private fun exchange(
@@ -317,19 +448,29 @@ class SandboxProcessPool(
    * is left to the parent, which already warms each slot as it comes up.
    */
   private fun workerSysprops(index: Int, port: Int): Map<String, String> {
-    val forwarded = linkedMapOf<String, String>()
-    for ((rawKey, rawValue) in System.getProperties()) {
-      val key = rawKey as? String ?: continue
-      val value = rawValue as? String ?: continue
-      if (FORWARDED_PREFIXES.any { key.startsWith(it) }) forwarded[key] = value
-    }
-    forwarded.keys.removeAll(WORKER_OVERRIDDEN_PROPS)
+    val forwarded = forwardedSysprops()
     forwarded[SANDBOX_COUNT_PROP] = "1"
     forwarded[WORKER_PORT_PROP] = port.toString()
     forwarded[WORKER_SLOT_PROP] = index.toString()
     forwarded.putAll(extraSysprops)
     return forwarded
   }
+
+  /**
+   * What an adopted spare is handed over the socket: the same forwarded families as
+   * [workerSysprops], without a port to dial back (it is already connected) and without the spare
+   * marker it was launched with (it is a pooled worker from here on).
+   */
+  private fun configureSysprops(index: Int): Map<String, String> {
+    val forwarded = forwardedSysprops()
+    forwarded[SANDBOX_COUNT_PROP] = "1"
+    forwarded[WORKER_SLOT_PROP] = index.toString()
+    forwarded[DaemonProperties.Names.SANDBOX_WORKER_SPARE] = "false"
+    forwarded.putAll(extraSysprops)
+    return forwarded
+  }
+
+  private fun forwardedSysprops(): LinkedHashMap<String, String> = Companion.forwardedSysprops()
 
   companion object {
     const val WORKER_PORT_PROP: String = DaemonProperties.Names.SANDBOX_WORKER_PORT
@@ -378,7 +519,56 @@ class SandboxProcessPool(
         DaemonProperties.Names.WARM_RENDER_ON_BOOT,
         WORKER_PORT_PROP,
         WORKER_SLOT_PROP,
+        // A worker never spawns spares of its own, and the marker is per launch.
+        DaemonProperties.Names.SANDBOX_WORKER_SPARE,
+        DaemonProperties.Names.SANDBOX_WORKER_SPARES,
       )
+
+    private fun forwardedSysprops(): LinkedHashMap<String, String> {
+      val forwarded = linkedMapOf<String, String>()
+      for ((rawKey, rawValue) in System.getProperties()) {
+        val key = rawKey as? String ?: continue
+        val value = rawValue as? String ?: continue
+        if (FORWARDED_PREFIXES.any { key.startsWith(it) }) forwarded[key] = value
+      }
+      forwarded.keys.removeAll(WORKER_OVERRIDDEN_PROPS)
+      return forwarded
+    }
+
+    /**
+     * Test seam: the argv a **spare** worker gets when launched from this JVM — the same inherited
+     * flags, forwarded properties and classpath a pooled worker gets, in spare mode. Production
+     * spares are launched by `daemon-client`'s `SandboxSparePool` from a launch descriptor; this
+     * lets the adoption test stand one up against the test JVM's own classpath.
+     */
+    internal fun spareWorkerCommandForTest(): List<String> = buildList {
+      add(File(File(System.getProperty("java.home"), "bin"), "java").absolutePath)
+      addAll(
+        ManagementFactory.getRuntimeMXBean().inputArguments.filter { arg ->
+          !arg.startsWith("-agentlib:") &&
+            !arg.startsWith("-agentpath:") &&
+            !arg.startsWith("-javaagent:") &&
+            !arg.startsWith("-Xrunjdwp") &&
+            !arg.startsWith("-D")
+        }
+      )
+      val props = forwardedSysprops()
+      props[SANDBOX_COUNT_PROP] = "1"
+      props[DaemonProperties.Names.SANDBOX_WORKER_SPARE] = "true"
+      props.forEach { (k, v) -> add("-D$k=$v") }
+      add("-cp")
+      add(System.getProperty("java.class.path") ?: "")
+      add(SandboxWorkerMain::class.java.name)
+    }
+
+    /** A listening spare answers a loopback connect at once; anything longer is a dead spare. */
+    private const val SPARE_CONNECT_TIMEOUT_MS = 5_000
+
+    /**
+     * The configure reply waits on a classloader rebuild in the spare, never on a sandbox boot —
+     * generous all the same, so a spare mid-warm-render is not written off for a slow frame.
+     */
+    private const val SPARE_CONFIGURE_TIMEOUT_MS = 60_000
 
     private const val SOCKET_READ_MARGIN_MS = 15_000L
     private const val SWAP_TIMEOUT_MS = 30_000L

@@ -214,6 +214,8 @@ public object DaemonProperties {
     public const val MAX_HEAP_MB: String = "composeai.daemon.maxHeapMb"
     public const val SANDBOX_WORKER_PORT: String = "composeai.daemon.sandboxWorker.port"
     public const val SANDBOX_WORKER_SLOT: String = "composeai.daemon.sandboxWorker.slot"
+    public const val SANDBOX_WORKER_SPARE: String = "composeai.daemon.sandboxWorker.spare"
+    public const val SANDBOX_WORKER_SPARES: String = "composeai.daemon.sandboxWorker.spares"
 
     public const val STARTUP_QUIET: String = "composeai.daemon.startupQuiet"
     public const val ATRACE: String = "composeai.daemon.atrace"
@@ -501,6 +503,24 @@ public object DaemonProperties {
       G_SANDBOX,
     )
 
+  public val sandboxWorkerSpare: BooleanProperty =
+    BooleanProperty(
+      Names.SANDBOX_WORKER_SPARE,
+      false,
+      "Whether `SandboxWorkerMain` runs as a pre-booted spare: it boots and warm-renders with no " +
+        "catalog, then listens on a loopback port for the daemon that adopts it. Set by the " +
+        "spare pool that spawns it.",
+      G_SANDBOX,
+    )
+
+  public val sandboxWorkerSpares: CsvListProperty =
+    CsvListProperty(
+      Names.SANDBOX_WORKER_SPARES,
+      "Loopback ports of pre-booted spare workers reserved for this daemon, adopted by " +
+        "`SandboxProcessPool` ahead of any cold worker boot. Set by the spare pool at launch.",
+      G_SANDBOX,
+    )
+
   // ---- Tracing and diagnostics --------------------------------------------------------------
 
   public val startupQuiet: BooleanProperty =
@@ -676,6 +696,8 @@ public object DaemonProperties {
       maxHeapMb,
       sandboxWorkerPort,
       sandboxWorkerSlot,
+      sandboxWorkerSpare,
+      sandboxWorkerSpares,
       startupQuiet,
       atrace,
       perfettoTrace,

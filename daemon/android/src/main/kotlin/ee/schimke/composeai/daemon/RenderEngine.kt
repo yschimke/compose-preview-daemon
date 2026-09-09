@@ -130,27 +130,28 @@ import okio.Path.Companion.toPath
  */
 class RenderEngine(
   /**
-   * Directory under which PNG files are written. Defaults to the `composeai.render.outputDir`
-   * system property (mirrors `:renderer-android`'s contract); falls back to
-   * `<userCache>/composeai/history/daemon-renders/` so unit tests don't need to set the property.
-   * Deliberately NOT under `user.dir` — an unset property must not scatter PNGs through whatever
-   * directory the daemon happened to be launched from.
+   * Directory under which PNG files are written. `null` (the default) resolves the
+   * `composeai.render.outputDir` system property **on every render** (mirrors `:renderer-android`'s
+   * contract), falling back to `<userCache>/composeai/history/daemon-renders/` so unit tests don't
+   * need to set the property. Per render rather than at construction because a pre-booted spare
+   * sandbox worker builds its engine (the boot-time warm render) before it knows which catalog will
+   * adopt it; the adopting daemon hands the property over later (`WorkerRequest.Configure`), and
+   * the next render has to land in that catalog's tree. Deliberately NOT under `user.dir` — an
+   * unset property must not scatter PNGs through whatever directory the daemon happened to be
+   * launched from.
    */
-  private val outputDir: File =
-    File(
-      System.getProperty(OUTPUT_DIR_PROP)
-        ?: composeAiCacheDir("history").resolve("daemon-renders").absolutePath
-    ),
+  outputDir: File? = null,
   /**
    * D2 — root of the per-preview data-product output tree
-   * (`<dataDir>/<previewId>/a11y-{atf,hierarchy}.json`). Defaults to `${outputDir.parent}/data` so
-   * the layout sits next to the renders dir, matching the design doc's
+   * (`<dataDir>/<previewId>/a11y-{atf,hierarchy}.json`). Defaults ([DERIVED_DATA_DIR]) to
+   * `${outputDir.parent}/data`, resolved beside the output directory on every render, so the layout
+   * sits next to the renders dir, matching the design doc's
    * `build/compose-previews/data/<id>/<kind>.json` convention. Unit tests override to a temp dir.
    *
    * `null` disables the a11y-on-render path entirely — useful for the harness fake-mode runs that
    * don't exercise the producer.
    */
-  private val dataDir: File? = (outputDir.parentFile ?: outputDir).resolve("data"),
+  dataDir: File? = DERIVED_DATA_DIR,
   /**
    * Registered [PreviewOverrideExtension]s the renderer queries on every render. The renderer
    * doesn't read individual override fields like `wallpaper` or `material3Theme` directly — each
@@ -175,6 +176,25 @@ class RenderEngine(
   private val dataArtifactExtensions: RenderDataArtifactExtensions =
     RenderDataArtifactExtensions.Empty,
 ) {
+
+  private val outputDirOverride: File? = outputDir
+  private val dataDirOverride: File? = dataDir
+
+  /**
+   * See the `outputDir` constructor parameter: an explicit directory, else the sysprop per call.
+   */
+  private fun outputDir(): File =
+    outputDirOverride
+      ?: File(
+        System.getProperty(OUTPUT_DIR_PROP)
+          ?: composeAiCacheDir("history").resolve("daemon-renders").absolutePath
+      )
+
+  /** See the `dataDir` constructor parameter: derived beside [outputDir] unless given or `null`. */
+  private fun dataDir(): File? =
+    if (dataDirOverride === DERIVED_DATA_DIR)
+      outputDir().let { (it.parentFile ?: it).resolve("data") }
+    else dataDirOverride
 
   /**
    * Renders one preview to a PNG on disk and returns a [RenderResult] populated with the absolute
@@ -212,6 +232,9 @@ class RenderEngine(
      */
     runAccessibility: Boolean? = null,
   ): RenderResult {
+    // Resolved per render: a spare worker learns its catalog's tree after the engine exists.
+    val outputDir = outputDir()
+    val dataDir = dataDir()
     // The rewritten Compose SlotTable opt-in, applied against the classloader this render composes
     // on — before its first composition, which is what the runtime latches. The daemon renders many
     // previews per JVM, so the flag is a whole-session property here rather than a per-request one;
@@ -1460,6 +1483,8 @@ class RenderEngine(
     requestId: Long,
     classLoader: ClassLoader,
   ): RenderResult {
+    val outputDir = outputDir()
+    val dataDir = dataDir()
     val previewId =
       spec.previewId
         ?: error(
@@ -1664,6 +1689,8 @@ class RenderEngine(
     requestId: Long,
     classLoader: ClassLoader,
   ): RenderResult? {
+    val outputDir = outputDir()
+    val dataDir = dataDir()
     val previewId =
       spec.previewId
         ?: error(
@@ -1896,6 +1923,8 @@ class RenderEngine(
     requestId: Long,
     classLoader: ClassLoader,
   ): RenderResult {
+    val outputDir = outputDir()
+    val dataDir = dataDir()
     val previewId =
       spec.previewId
         ?: error(
@@ -2595,6 +2624,12 @@ class RenderEngine(
      * side uses; the gradle plugin's daemon launch descriptor sets it once at JVM start.
      */
     const val OUTPUT_DIR_PROP: String = "composeai.render.outputDir"
+
+    /**
+     * Sentinel default for the `dataDir` constructor parameter: derive the data root beside the
+     * output directory at render time. Compared by identity, never by path.
+     */
+    val DERIVED_DATA_DIR: File = File("<derived-from-outputDir>")
 
     /**
      * Opt-in for the missing-resource placeholder fallback (see [PlaceholderFallbackResources]).

@@ -148,6 +148,64 @@ never queues on a still-booting worker.
 - **A worker that dies mid-request is dropped from the pool**, logged with its
   pid; the remaining slots keep serving.
 
+## Spare workers (adopt, don't boot)
+
+The 2-3 s target in [BOOT-ROADMAP.md](BOOT-ROADMAP.md) § A1. A sandbox does
+not depend on the catalog it renders: the catalog's classes ride the disposable
+child classloader, and the boot-time warm render touches none of them. So a
+worker booted and warm-rendered against *no* catalog can be handed to whichever
+daemon needs a slot next, and pays only that catalog's first real render.
+
+```
+ serve JVM (daemon-client)                          daemon JVM
+   SandboxSparePool                                   RobolectricHost.start()
+     ├── spare A  (signature S, warm, listening :p1)  ──adopt──▶ slot 1  ┐ serving in ms
+     ├── spare B  (signature S, warm, listening :p2)  ──adopt──▶ slot 2  ┘
+     └── spare C  (signature T, booting)               slot 0 boots BEHIND them (background)
+```
+
+- **A spare is `SandboxWorkerMain` in spare mode**
+  (`-Dcomposeai.daemon.sandboxWorker.spare=true`): it boots, warm-renders,
+  opens a loopback `ServerSocket` and prints one line on stdout —
+  `composeai-spare-worker: listening pid=… port=…`. It is a child of the
+  spare pool's JVM and halts with it.
+- **`SandboxSparePool`** (`:daemon-client`) launches spares from a
+  `DaemonLaunchDescriptor` and keys them by **overlay signature**: the daemon
+  classpath in order, the JVM flags (minus the per-JVM CDS archive path) and
+  the boot-time system properties (`robolectric.*`, `android.*`,
+  `roborazzi.*`, `userClassPackages`, …). A spare is launched with *only*
+  those properties — no class dirs, no previews manifest, no output dir —
+  because the sandbox is what they shape. It is demand-driven: every launch
+  tops the signature it just used back up to `perSignature`, inside a total
+  `maxSpares` budget with least-recently-reserved eviction across signatures.
+  The first launch of a signature is therefore cold; every later one adopts.
+- **Hand-off** is a launch-descriptor property. `SubprocessDaemonClientFactory`
+  reserves the warm spares of the launch's signature and passes their ports as
+  `composeai.daemon.sandboxWorker.spares`. `SandboxProcessPool.adoptSpare`
+  connects, sends `configure` — every `composeai.*` / `robolectric.*` /
+  `android.*` / `roborazzi.*` property the pool would have put on a cold
+  worker's command line, plus the daemon's pid — and reads `configured`. The
+  worker applies the properties, rebuilds its child classloader from the new
+  `userClassDirs` (`RobolectricHost.resetUserClassLoaderHolders`), and watches
+  the adopting daemon so it halts with it. Any failure falls through to a cold
+  boot of that slot, so a stale port list costs one connection attempt.
+- **`start()` adopts first.** Under background boot, a host handed spares
+  fills its worker slots from them *before* anything boots, marks them ready
+  and returns: `daemonReady` still means "a sandbox can render", just on a
+  worker. Slot 0 — the in-process sandbox, the one no spare can replace — then
+  boots on the background thread, followed by any slot the spares did not
+  cover. Readiness is per slot (no longer a contiguous prefix); the
+  interactive and `@PreviewParameter` paths, which need slot 0, wait for it
+  the way they already waited for a background-booted worker. `RenderEngine`
+  resolves `composeai.render.outputDir` per render, not at construction, which
+  is what lets a spare's engine — built by its warm render before any catalog
+  is known — write into the adopting catalog's tree.
+- **What the signature does not cover.** Android resource carriage
+  (`test_config.properties` for the app's own `R` table) is on the parent
+  classpath, so a catalog carrying resources has a signature of its own; it
+  still benefits when its replica is reopened. A held interactive session and
+  row enumeration live on slot 0 and gain nothing from spares.
+
 ## Memory
 
 The honest trade: this is a **process** pool, so per-slot cost is a whole JVM
@@ -171,6 +229,9 @@ turns the pool down the same way it always did (`replicasPerDaemon = 0`).
   out of scope.
 
 ## Cross-references
+
+- BOOT-ROADMAP.md § A1 — the plan the spare workers implement, and what comes
+  after (CRaC, a Robolectric fork).
 
 - DESIGN.md § 9 — sandbox bootstrap and recycle policy.
 - CLASSLOADER.md — parent/child classloader split per slot.
