@@ -132,9 +132,9 @@ renders inside the same second.
 ```
 
 The entry shape is published as a JSON schema —
-[`schema/history-entry.schema.json`](../../schema/history-entry.schema.json) —
+[`schema/history-entry.schema.json`](https://github.com/yschimke/compose-ai-tools/blob/main/schema/history-entry.schema.jsonNone) —
 and the per-render data products archived alongside it (a11y, semantics,
-theme, …) have their own schemas under [`schema/`](../../schema/README.md).
+theme, …) have their own schemas under [`schema/`](https://github.com/yschimke/compose-ai-tools/blob/main/schema/README.mdNone).
 The reporting branch (#1870) projects these inline snapshots into the
 per-product files (`a11y.json`, `theme.json`, …) described in
 [`REPORTING-BRANCH.md`](REPORTING-BRANCH.md).

@@ -1,19 +1,9 @@
 name: Release PR
 
-# Keeps a "chore(main): release X.Y.Z" pull request up to date based on
-# conventional-commit history since the last tag. Release creation and release-PR
-# creation run as separate release-please invocations so a newly cut, tagless
-# draft cannot be mistaken for an older release. When the release PR is merged,
-# release-please creates the GitHub Release, then this workflow starts the core
-# release and preview-host image paths in parallel from the new tag.
-#
-# One button: merging the release PR triggers the full publish. No manual
-# tag push, no dispatch step. See docs/RELEASING.md.
-#
-# This run ends when the release does. The long-running delivery-branch renders
-# hang off its completion instead: `post-release-design-artifacts.yml` watches this
-# workflow with `workflow_run` and regenerates design-artifacts/<system> in a run of
-# its own.
+# release-please opens and maintains the release PR from Conventional Commit titles on main
+# (PRs are squash-merged, so the PR title is the commit). Merging it creates the tag and a draft
+# GitHub Release; `release.yml` then publishes Maven Central and uploads the sidecar archives.
+# Every release here is a minor: a `!` in a title does not bump the major (pr-title.yml rejects it).
 
 on:
   push:
@@ -24,26 +14,8 @@ permissions:
   contents: read
 
 concurrency:
-  # Ordinary main pushes share one pending slot so release-please PR updates coalesce during a
-  # merge burst. A merged release PR must not share that slot: if it is still pending, the next
-  # main push can replace it before any publish job starts.
-  # Quoted: the `chore(main): release ` literal contains `: `, which YAML would otherwise read as a
-  # nested mapping and reject the whole workflow at startup.
-  group: "release-please-${{ github.ref }}-${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'chore(main): release ') && github.sha || 'updates' }}"
+  group: "release-please-${{ github.ref }}"
   cancel-in-progress: false
-
-# Is THIS run the one that may cut a release? Only the push that merged the release PR is, plus a
-# manual dispatch (a human doing it deliberately, one at a time). Every other push to main runs
-# release-please too, and until 2026-09-05 its invocation could cut a release as well — which is
-# how two runs came to race for the same pending PR #5148 at 08:23:2x: both went for the release,
-# the winner stripped `autorelease: pending`, and the loser died on `Label does not exist` holding
-# v1.78.0's freshly cut draft. The action sets its outputs last, so that throw left
-# `release_created` empty and the whole chain — tag, release.yml, finalize-release — skipped.
-# Cutting is one run's job now; `release-draft-sweeper.yml` is what recovers a cut that dies
-# anyway, instead of the next push to main happening to re-cut it.
-# Quoted for the same reason as the concurrency group above: the literal contains `: `.
-env:
-  RELEASE_MERGE: "${{ github.event_name != 'push' || startsWith(github.event.head_commit.message, 'chore(main): release ') }}"
 
 jobs:
   release-please:
@@ -60,269 +32,18 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-          # Only cut the release in this invocation. release-please normally also
-          # computes the next candidate PR immediately after cutting a release,
-          # but our release is still a tagless draft at that point. It therefore
-          # uses the previous published release as its baseline and briefly opens
-          # a phantom, stale-version PR. `reconcile-release-pr` runs the PR-only
-          # half after the tag exists and the release has been published.
-          skip-github-pull-request: true
-          # …and only the release-PR merge run cuts the release. An ordinary push's invocation is
-          # then a no-op that reports what is pending, which is all this job needs from it: the
-          # PR half belongs to `update-release-pr`, guarded by release-pr-race-guard.sh. See the
-          # RELEASE_MERGE comment above for the race this closes.
-          skip-github-release: ${{ env.RELEASE_MERGE != 'true' }}
-          # When the release PR is merged, release-please creates a DRAFT GitHub
-          # Release (config `"draft": true`), populated with the CHANGELOG entry
-          # as the body. The `release` job below uploads CLI + VSIX assets onto
-          # that draft; `finalize-release` un-drafts it once every required asset
-          # is verified present, so `/releases/latest` + `latest/download/…` never
-          # point at a version whose tarball hasn't uploaded yet (the "release not
-          # found" install race). Chaining within one run also sidesteps the
-          # GITHUB_TOKEN-doesn't-trigger-workflows limitation.
 
-      # A *draft* GitHub Release does NOT create its git tag — GitHub only writes
-      # the tag ref when the release is published. But the downstream build jobs
-      # (release.yml and the early preview-host image build) check out
-      # `ref: <tag>`, so create
-      # the tag now, at the release PR's merge commit. Idempotent: skips if the
-      # ref already exists (e.g. a re-run, or a future non-draft release-please).
-      #
-      # `!cancelled()` (not the default success-only gate) is deliberate and
-      # defensive: once the action reports `release_created=true`, a later action
-      # failure must not skip tag creation. Otherwise the manifest can name a
-      # version with no tag, wedging later runs into re-listing old history. This
-      # is the failure mode that stranded 0.16.34 (draft, untagged) until it was
-      # fixed by hand. The split PR pass removes the known post-release tree-write
-      # failure, while this guard continues to protect the release/tag invariant.
-      - name: Ensure the release tag exists for the draft
-        if: ${{ !cancelled() && steps.rp.outputs.release_created == 'true' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.rp.outputs.tag_name }}
-          SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
-            echo "tag ${TAG} already exists — leaving it."
-          else
-            gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \
-              -f ref="refs/tags/${TAG}" -f sha="${SHA}"
-            echo "created tag ${TAG} at ${SHA}."
-          fi
-
-  # On ordinary pushes there was no pending release to cut, so run the PR-only
-  # half now and keep the candidate release PR current. On a release-PR merge,
-  # wait for `reconcile-release-pr` instead: it runs only after the new release is
-  # tagged and published, preventing the transient stale-version PR.
-  #
-  # `release_created != 'true'` says only that THIS run cut nothing — it says nothing about a
-  # release cut by another run that is still publishing. The race guard covers that; see the
-  # steps below and `.github/scripts/release-pr-race-guard.sh`.
-  update-release-pr:
-    needs: release-please
-    if: ${{ !cancelled() && needs.release-please.outputs.release_created != 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write        # update the release branch
-      pull-requests: write   # open/update the release PR
-    env:
-      GH_TOKEN: ${{ github.token }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      # Skipping the release run's own PR half is not enough: an ordinary push and a release-PR
-      # merge deliberately hold SEPARATE concurrency slots (see `concurrency` above), so a feature
-      # merged seconds before the release PR leaves this job running straight through the cut —
-      # with a baseline that still reads the previous release, because ours are drafts until
-      # `finalize-release`. It then re-proposes the version being released, force-updating the
-      # release branch and opening a duplicate PR (#4645). The guard asks whether a release is in
-      # flight; `reconcile-release-pr` picks the release PR up afterwards either way, so skipping
-      # here loses nothing.
-      - name: Check whether a release is in flight
-        id: preflight
-        env:
-          MODE: check
-        run: ./.github/scripts/release-pr-race-guard.sh
-
-      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
-        id: rp
-        if: ${{ steps.preflight.outputs.in_flight != 'true' }}
-        # The failure this tolerates is the race's own: release-please updating a release PR that
-        # merged out from under it dies with "state cannot be changed. The pull request cannot be
-        # reopened." The repair step below re-raises anything that is not that.
-        continue-on-error: true
-        with:
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
-          skip-github-release: true
-
-      # The pre-flight check cannot close the window on its own — the release PR can merge while
-      # release-please is mid-invocation, which is precisely what produced #4645. Ask again, and
-      # if a release went in flight, close whatever this run opened for it.
-      - name: Discard a release PR the race produced
-        id: repair
-        if: ${{ always() && steps.preflight.outputs.in_flight != 'true' }}
-        env:
-          MODE: repair
-          RP_PR: ${{ steps.rp.outputs.pr }}
-        run: ./.github/scripts/release-pr-race-guard.sh
-
-      - name: Re-raise a release-please failure the race does not explain
-        if: ${{ always() && steps.rp.outcome == 'failure' && steps.repair.outputs.raced != 'true' }}
-        run: |
-          echo "::error::release-please failed and no release was in flight — see the step above."
-          exit 1
-
-  # Build and publish the artifacts whenever release-please actually cuts a
-  # release. Skipped on "just updating the release PR" runs.
-  #
-  # `!cancelled() && …release_created == 'true'` rather than a plain output check:
-  # the release-please job can report `release_created=true` (draft cut) and still
-  # end in failure afterward. We want the artifact build to proceed whenever a
-  # release was genuinely cut, so a post-cut failure doesn't strand it unpublished.
   release:
     needs: release-please
     if: ${{ !cancelled() && needs.release-please.outputs.release_created == 'true' }}
     uses: ./.github/workflows/release.yml
     with:
       tag: ${{ needs.release-please.outputs.tag_name }}
-    # Pass only the credentials this publishing workflow declares.
     secrets:
       MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
       SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
       SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-      VSCE_PAT: ${{ secrets.VSCE_PAT }}
-      OVSX_PAT: ${{ secrets.OVSX_PAT }}
     permissions:
-      contents: write   # needed by the called workflow's `release` job
-      # A called workflow cannot elevate what its caller granted: a job in
-      # release.yml asking for `id-token: write` gets nothing unless it is
-      # listed HERE. Without it npm Trusted Publishing has no OIDC token to
-      # exchange, and because `publish-design-map` is deliberately tolerant of a
-      # registry outage the failure would be invisible — every automatic release
-      # would quietly not reach npm. Only that job requests it; the rest of
-      # release.yml is unaffected by its presence.
-      id-token: write   # npm Trusted Publishing in `publish-design-map`
-
-  # Flip the draft Release to published once every required artifact is verified
-  # present — the gate that makes a release atomic from a consumer's view.
-  # `needs: release` means the whole release.yml run (asset upload + the
-  # irreversible Maven Central publish) succeeded first. We deliberately do not
-  # poll Central's CDN here: propagation is eventual and took 14 minutes for
-  # v0.19.32 even though the publish task had succeeded. The bootstrap installer
-  # independently requires a readiness asset produced by a clean public-Maven
-  # resolution before offering a version, while Maven-consuming downstream jobs
-  # retain their own readiness waits.
-  # The `!cancelled()` override tolerates a post-cut crash in the `release-please`
-  # JOB — but it must NOT tolerate a failed `release`. `release.yml` decouples the
-  # GitHub asset upload from the Maven Central publish, so `release` can fail with
-  # the required assets already attached (Maven publish failed). Finalizing then
-  # would un-draft a release whose Gradle plugin/runtime never actually published.
-  # So require `needs.release.result == 'success'` explicitly: skip release-please's
-  # failure, but never release's.
-  finalize-release:
-    needs: [release-please, release]
-    if: ${{ !cancelled() && needs.release-please.outputs.release_created == 'true' && needs.release.result == 'success' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write   # un-draft + mark latest
-    env:
-      GH_TOKEN: ${{ github.token }}
-      GH_REPO: ${{ github.repository }}
-      TAG: ${{ needs.release-please.outputs.tag_name }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Verify required GitHub Release assets are present
-        run: |
-          set -euo pipefail
-          V="${TAG#v}"
-          # The list lives in one file because `release-draft-sweeper.yml` publishes a stranded
-          # draft against the same gate out of band. Two copies that drift mean the sweeper
-          # either publishes what this job would have held back, or leaves every release for a
-          # human. See .github/scripts/required-release-assets.sh.
-          mapfile -t required < <(./.github/scripts/required-release-assets.sh "$V")
-          mapfile -t have < <(gh release view "$TAG" --json assets --jq '.assets[].name')
-          printf 'assets on %s:\n' "$TAG"; printf '  %s\n' "${have[@]}"
-          missing=0
-          for a in "${required[@]}"; do
-            printf '%s\n' "${have[@]}" | grep -qxF "$a" \
-              || { echo "::error::missing required asset $a"; missing=1; }
-          done
-          [ "$missing" -eq 0 ] \
-            || { echo "::error::$TAG missing required assets — leaving it as a draft"; exit 1; }
-      - name: Publish the release (un-draft + mark latest)
-        run: |
-          set -euo pipefail
-          gh release edit "$TAG" --draft=false --latest
-          echo "published $TAG."
-
-  # Prove the exact classpath used by CLI auto-injection resolves from the public
-  # Maven Central consumer endpoint, then attach a readiness marker for the
-  # bootstrap installer. This job deliberately follows finalization: Central CDN
-  # propagation must not hold the GitHub Release back, while a missing marker
-  # makes `compose-preview update` retain the previous usable version.
-  #
-  # A clean, standalone Gradle project avoids source checkout substitutions,
-  # mavenLocal(), and repository caches masking a partial Central publication.
-  verify-maven-readiness:
-    needs: [release-please, finalize-release]
-    if: ${{ !cancelled() && needs.release-please.outputs.release_created == 'true' && needs.finalize-release.result == 'success' }}
-    uses: ./.github/workflows/maven-readiness.yml
-    with:
-      tag: ${{ needs.release-please.outputs.tag_name }}
-    permissions:
-      contents: write        # upload the readiness marker to the published release
-      pull-requests: write   # post the "artifacts on Maven Central" milestone on the release PR
-
-  # The preview-host image is no longer built here. The preview server moved to
-  # yschimke/compose-preview-server, which publishes
-  # `ghcr.io/yschimke/compose-preview-host` from its own release workflow — one publisher for one
-  # GHCR package, which is what that package's Actions write access is now scoped to.
-
-  # The design-artifacts/<system> delivery branches are regenerated for the newly
-  # released runtime by `post-release-design-artifacts.yml`, which picks this run up
-  # on `workflow_run` once it completes. It used to be a job here, but an all-systems
-  # regeneration takes 31–38 minutes and it ran at the very tail of the release:
-  # everything was already published and the Release un-drafted, while this run stayed
-  # "in progress" throughout — and an in-progress run cannot be re-run, so a tolerated
-  # failure earlier in the release (`publish-design-map`)
-  # had no retry path until the renders finished.
-
-  # Create or reconcile the "next release" PR after a release fully publishes.
-  #
-  # A combined release-please invocation normally opens the next release PR in
-  # the SAME action step that cuts the release. At that moment the just-cut
-  # version is invisible to release-please: it's a *draft* GitHub Release (config
-  # `"draft": true`), which carries no git tag, and the tag is only written by
-  # the later "Ensure the release tag exists" step. It therefore falls back to
-  # older release history and can open a phantom stale-version PR with duplicated
-  # notes. The first invocation now sets `skip-github-pull-request`; this job is
-  # deliberately the separate PR-only half of the operation.
-  #
-  # This job fires after finalize-release (so both the tag and the now-published
-  # release exist), re-runs release-please with the same config, and sees the
-  # correct baseline. `skip-github-release` makes the separation explicit and
-  # prevents this second invocation from ever cutting a release. If genuinely new
-  # commits landed while the release was publishing, it opens the correct next PR;
-  # otherwise it creates no PR at all.
-  reconcile-release-pr:
-    needs: [release-please, finalize-release]
-    # Tolerate release-please's post-cut crash, but only reconcile once the release
-    # actually finalized (tag + published) — otherwise the re-run hits the same
-    # unanchored-manifest wedge it's meant to clear.
-    if: ${{ !cancelled() && needs.release-please.outputs.release_created == 'true' && needs.finalize-release.result == 'success' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write        # update the release branch
-      pull-requests: write   # close/open the next release PR
-    steps:
-      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
-        with:
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
-          skip-github-release: true
+      contents: write

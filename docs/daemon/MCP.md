@@ -35,7 +35,7 @@ receive notifications when bytes change.
 ## Daemon ↔ MCP surface mapping
 
 Implementation lives in
-[`mcp/src/main/kotlin/.../DaemonMcpServer.kt`](../../mcp/src/main/kotlin/ee/schimke/composeai/mcp/DaemonMcpServer.kt).
+[`mcp/src/main/kotlin/.../DaemonMcpServer.kt`](https://github.com/yschimke/compose-ai-tools/blob/main/mcp/src/main/kotlin/ee/schimke/composeai/mcp/DaemonMcpServer.ktNone).
 
 ### Resources
 
@@ -50,7 +50,7 @@ Each `@Preview` becomes one MCP `Resource`:
 }
 ```
 
-URI scheme details (parsed by [`PreviewUri`](../../mcp/src/main/kotlin/ee/schimke/composeai/mcp/PreviewResource.kt)):
+URI scheme details (parsed by [`PreviewUri`](https://github.com/yschimke/compose-ai-tools/blob/main/mcp/src/main/kotlin/ee/schimke/composeai/mcp/PreviewResource.ktNone)):
 
 - **Scheme**: `compose-preview://` for live previews,
   `compose-preview-history://` for historical entries.
@@ -80,7 +80,7 @@ Two subscription paths fan into per-URI updates:
 
 Both feed `renderFinished` → `notifications/resources/updated`. A session
 subscribed AND watching a URI receives one update, not two (set semantics
-in [`Subscriptions`](../../mcp/src/main/kotlin/ee/schimke/composeai/mcp/Subscriptions.kt)).
+in [`Subscriptions`](https://github.com/yschimke/compose-ai-tools/blob/main/mcp/src/main/kotlin/ee/schimke/composeai/mcp/Subscriptions.ktNone)).
 
 `discoveryUpdated` and `historyAdded` map to
 `notifications/resources/list_changed`.

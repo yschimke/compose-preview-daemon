@@ -19,7 +19,7 @@ daemon per scenario; a `main()` entry point drives a single scenario
 interactively for debugging.
 
 Depends on `:daemon:core` for
-[`Messages.kt`](../../daemon/core/src/main/kotlin/ee/schimke/composeai/daemon/protocol/Messages.kt)
+[`Messages.kt`](https://github.com/yschimke/compose-ai-tools/blob/main/daemon/core/src/main/kotlin/ee/schimke/composeai/daemon/protocol/Messages.ktNone)
 and `ContentLengthFramer`. Type-level drift between harness and daemon
 is impossible — they share the data classes.
 

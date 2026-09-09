@@ -1,6 +1,6 @@
 # Preview daemon — IPC protocol
 
-> **Status:** v2 contract. The wire shape may still break across artifact minor versions, in a coordinated daemon + client release — `protocolVersion` is decoupled from the artifact semver ([VERSIONING.md § 8](../VERSIONING.md#8-release-coordination)), and range negotiation is deferred past 1.0.0 ([§ 10](../VERSIONING.md#10-what-is-and-is-not-enforced)), so a bump means old clients fail the handshake rather than being served the old version. v2 made `initialize.capabilities.{dataProducts,dataExtensions,previewExtensions}` opt-in via `extensions/enable` (see § 3a); v1 clients fail the `protocolVersion` check.
+> **Status:** v2 contract. The wire shape may still break across artifact minor versions, in a coordinated daemon + client release — `protocolVersion` is decoupled from the artifact semver ([VERSIONING.md § 8](https://github.com/yschimke/compose-ai-tools/blob/main/docs/VERSIONING.md#8-release-coordination)), and range negotiation is deferred past 1.0.0 ([§ 10](https://github.com/yschimke/compose-ai-tools/blob/main/docs/VERSIONING.md#10-what-is-and-is-not-enforced)), so a bump means old clients fail the handshake rather than being served the old version. v2 made `initialize.capabilities.{dataProducts,dataExtensions,previewExtensions}` opt-in via `extensions/enable` (see § 3a); v1 clients fail the `protocolVersion` check.
 
 This document is the authoritative wire-format spec for the JSON-RPC channel between the VS Code extension and the per-module preview daemon. It is referenced by [DESIGN.md § 5](DESIGN.md).
 
@@ -391,7 +391,7 @@ The result resolves as soon as the request is queued, **not** when rendering com
 | `MyScreenPreview_Light_Dark` | the row whose derived fan-out label is `Dark` (exact first; case-insensitive only when unambiguous) |
 | `MyScreenPreview_Light_PARAM_4` | value 4, positionally |
 
-The row token is exactly the `<stem>_<suffix>` spelling the fan-out renderer writes to disk (see [RENDER_FILENAMES.md](../RENDER_FILENAMES.md#previewparameter-fan-out-labels)), so what a caller reads off a rendered directory is what they can address. Both `PreviewManifestRouter`s split `<baseId>_<row>` against the manifest entries that **declare a provider** — a preview with none has no rows, so nothing can be read as a row token of it — taking the longest such prefix, which is what keeps a multi-preview annotation's own `_Light` suffix part of the base. The row render reports the requested id and writes its own `<stem>_<row>.png`, so it never clobbers the base render's artifact or data products. `interactive/start`, `recording/start` and `stream/start` accept the same ids.
+The row token is exactly the `<stem>_<suffix>` spelling the fan-out renderer writes to disk (see [RENDER_FILENAMES.md](https://github.com/yschimke/compose-ai-tools/blob/main/docs/RENDER_FILENAMES.md#previewparameter-fan-out-labels)), so what a caller reads off a rendered directory is what they can address. Both `PreviewManifestRouter`s split `<baseId>_<row>` against the manifest entries that **declare a provider** — a preview with none has no rows, so nothing can be read as a row token of it — taking the longest such prefix, which is what keeps a multi-preview annotation's own `_Light` suffix part of the base. The row render reports the requested id and writes its own `<stem>_<row>.png`, so it never clobbers the base render's artifact or data products. `interactive/start`, `recording/start` and `stream/start` accept the same ids.
 
 An unknown row fails the render rather than silently falling back to value 0, and the failure lists the provider's actual rows. To *discover* the rows rather than probe for them, call [`preview/rows`](#previewrows) below. Cost is bounded: an unaddressed render still enumerates with `take(1)`, an index request stops at `n + 1`, and both addressed lanes are capped by `PreviewParameterSupport.MAX_ROW_SCAN` (256) — which is also the highest addressable index, rejected *before* enumeration, so neither an infinite `generateSequence` provider nor an arbitrarily large `PARAM_<n>` in a caller-supplied previewId can wedge the renderer.
 
@@ -617,7 +617,7 @@ result rather than an error.
 }
 ```
 
-`PreviewInfo` mirrors the JSON shape emitted by [DiscoverPreviewsTask](../../gradle-plugin/src/main/kotlin/ee/schimke/composeai/plugin/DiscoverPreviewsTask.kt) plus the `sourceFile` field added in P0.2:
+`PreviewInfo` mirrors the JSON shape emitted by [DiscoverPreviewsTask](https://github.com/yschimke/compose-ai-tools/blob/main/gradle-plugin/src/main/kotlin/ee/schimke/composeai/plugin/DiscoverPreviewsTask.ktNone) plus the `sourceFile` field added in P0.2:
 
 ```ts
 {
@@ -683,7 +683,7 @@ empty are interchangeable on the wire. See
 
 Render failures are not protocol errors — `renderNow` succeeded in queueing the work. A failure here means the render itself blew up.
 
-The daemon classifies the thrown cause into `kind` (see `RenderErrorClassifier`): the coarse stages (`compile` / `runtime` / `capture` / `timeout` / `internal`) plus fine-grained skew discriminants — `classpathSkew` (AndroidX Compose on a CMP-desktop classpath), `missingComposable` (target isn't an invokable zero-arg `@Composable`), `unsetParameter` (required parameter with no `@PreviewParameter`), and `sdkMismatch` (Robolectric SDK below the consumer's `compileSdk`). Recognised signatures also carry a one-line `suggestion`. `kind` is decoded **tolerantly** ([VERSIONING.md § 4.1](../VERSIONING.md#41-enum-discipline)): adding a discriminant is additive, and an old client maps an unknown value to its `UNKNOWN` sentinel and falls back to `suggestion` / `message`. Branch with an explicit default arm.
+The daemon classifies the thrown cause into `kind` (see `RenderErrorClassifier`): the coarse stages (`compile` / `runtime` / `capture` / `timeout` / `internal`) plus fine-grained skew discriminants — `classpathSkew` (AndroidX Compose on a CMP-desktop classpath), `missingComposable` (target isn't an invokable zero-arg `@Composable`), `unsetParameter` (required parameter with no `@PreviewParameter`), and `sdkMismatch` (Robolectric SDK below the consumer's `compileSdk`). Recognised signatures also carry a one-line `suggestion`. `kind` is decoded **tolerantly** ([VERSIONING.md § 4.1](https://github.com/yschimke/compose-ai-tools/blob/main/docs/VERSIONING.md#41-enum-discipline)): adding a discriminant is additive, and an old client maps an unknown value to its `UNKNOWN` sentinel and falls back to `suggestion` / `message`. Branch with an explicit default arm.
 
 ### `classpathDirty`
 

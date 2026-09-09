@@ -3,7 +3,7 @@
   "extends": [
     "github>yschimke/renovate-config"
   ],
-  "description": "Extends the shared preset at yschimke/renovate-config, which owns the release-train grouping — including the split of the ee.schimke.composeai group into its separate trains (compose-ai-tools, compose-preview-contracts, compose-preview-server, rc-players), which this repo consumes two of. The rules below are repo-specific and are appended AFTER the preset, so they override it. The preset replaces the config:recommended / :dependencyDashboard / :semanticCommits trio this file used to declare, and the `{{manager}} minor/patch` catch-all group is gone with it: one PR per manager per week overrode every release-train group the preset defines, since the last matching rule wins. `platformAutomerge` is set here rather than in the preset, which leaves it false: the preset already turns `automerge` on for minor/patch/digest/pin, but with platform automerge off Renovate has to do the merge itself during one of its own runs, and on this repository it never got there first — #4949, #4965, #4967, #5046 and #5070 were all merged by hand within minutes of opening. Native GitHub auto-merge lands them the moment the last REQUIRED check of the `Protect Main` ruleset reports green. It weakens nothing: the ruleset has no bypass actors, and a red required check leaves the PR open exactly as before. It does mean checks the ruleset does not require may still be running when the merge lands, and majors are unaffected — the preset automerges minor/patch/digest/pin only.",
+  "description": "Extends the shared preset at yschimke/renovate-config, which owns the release-train grouping for the ee.schimke.composeai group. platformAutomerge lets native GitHub auto-merge land minor/patch/digest/pin bumps once every required check is green.",
   "schedule": [
     "before 9am on Monday"
   ],
@@ -22,43 +22,14 @@
       "minimumReleaseAge": "14 days"
     },
     {
-      "description": "Keep the design-parity export toolchain on one release line.",
-      "matchDepNames": [
-        "@design-parity/adapter-figma",
-        "@design-parity/candidate",
-        "@design-parity/catalog-export"
-      ],
-      "groupName": "design-parity export toolchain"
-    },
-    {
-      "description": "Never take a `…-compat` backport artifact. JetBrains publishes compatibility variants of the kotlinx libraries under a `<version>-<oldline>.x-compat` suffix (e.g. `kotlinx-datetime:0.8.0-0.6.x-compat`, the 0.8.0 code recompiled against the 0.6.x API) and Renovate's gradle versioning ranks that suffix ABOVE the plain release, so it proposes a *downgrade of API surface* dressed as an upgrade (#3359). Filtering the suffix out of the candidate list — rather than disabling the update — keeps Renovate offering the next genuine release. Declared before the per-dep pins below so those stricter `allowedVersions` still win for their deps.",
+      "description": "Never take a `\u2026-compat` backport artifact. JetBrains publishes compatibility variants of the kotlinx libraries under a `<version>-<oldline>.x-compat` suffix (e.g. `kotlinx-datetime:0.8.0-0.6.x-compat`, the 0.8.0 code recompiled against the 0.6.x API) and Renovate's gradle versioning ranks that suffix ABOVE the plain release, so it proposes a *downgrade of API surface* dressed as an upgrade (#3359). Filtering the suffix out of the candidate list \u2014 rather than disabling the update \u2014 keeps Renovate offering the next genuine release. Declared before the per-dep pins below so those stricter `allowedVersions` still win for their deps.",
       "matchManagers": [
         "gradle"
       ],
       "allowedVersions": "!/-compat$/"
     },
     {
-      "description": "eclipse-temurin (cloudrun image): stay on the JDK 17 line. deploy/cloudrun/Dockerfile builds the tool from source inside the image, and the repo's Gradle daemon toolchain is pinned to 17 (gradle/gradle-daemon-jvm.properties) — a newer base JDK means Gradle's auto-detection finds no matching toolchain and the image build fails. Patch bumps inside 17.x are fine; changing the major is a manual decision that has to move the daemon toolchain with it (#3362).",
-      "matchManagers": [
-        "dockerfile"
-      ],
-      "matchFileNames": [
-        "deploy/cloudrun/Dockerfile"
-      ],
-      "matchDepNames": [
-        "eclipse-temurin"
-      ],
-      "allowedVersions": "/^17\\./"
-    },
-    {
-      "description": "Freeze the AGP 8.x minimum-supported fixture: every pin here is deliberate and must be bumped by hand.",
-      "matchFileNames": [
-        ".github/ci/fixtures/agp8-min/**"
-      ],
-      "enabled": false
-    },
-    {
-      "description": "compose-bom-compat: pin to the 2025.11.x line (compose-ui 1.9.5) — renderer-android's published bytecode targets the oldest supported Compose. Renovate must not drift this floor higher; bumping the supported-Compose-minimum is a manual decision.",
+      "description": "compose-bom-compat: pin to the 2025.11.x line (compose-ui 1.9.5) \u2014 renderer-android's published bytecode targets the oldest supported Compose. Renovate must not drift this floor higher; bumping the supported-Compose-minimum is a manual decision.",
       "matchManagers": [
         "gradle"
       ],
@@ -69,7 +40,7 @@
       "allowedVersions": "/^2025\\.11\\./"
     },
     {
-      "description": "material-kolor: pin to the 4.0.x line. `:data-wallpaper-connector` is published against the renderer-android Compose floor (`compose-bom-compat`, Compose 1.9.5); 4.1.0 rebuilt against Compose Multiplatform 1.10.0 + Kotlin 2.3.0 and migrated to a Multiplatform Android library, raising the transitive floor above our published surface. See gradle/libs.versions.toml for the full rationale — bumping the floor is a manual decision.",
+      "description": "material-kolor: pin to the 4.0.x line. `:data-wallpaper-connector` is published against the renderer-android Compose floor (`compose-bom-compat`, Compose 1.9.5); 4.1.0 rebuilt against Compose Multiplatform 1.10.0 + Kotlin 2.3.0 and migrated to a Multiplatform Android library, raising the transitive floor above our published surface. See gradle/libs.versions.toml for the full rationale \u2014 bumping the floor is a manual decision.",
       "matchManagers": [
         "gradle"
       ],
@@ -91,7 +62,7 @@
       "allowedVersions": "/^1\\.13\\./"
     },
     {
-      "description": "compose-multiplatform: pin to the 1.11.x line. `:data-render-compose` exposes `org.jetbrains.compose.{runtime,ui}` as `api` on a published artifact, so the Compose Multiplatform version is part of the supported-minimum floor for consumers, and the ref is also a CEILING on every catalog the serve host renders live (docs/RENDERER_COMPATIBILITY.md). 1.12.0 needs a coordinated move, not a minor/patch bump: its `androidx.compose.*` AARs declare `minCompileSdk = 37` (the repo default is 36), skiko 0.150.1 deletes the mutating `org.jetbrains.skia.Path` API our `conicTo` seams call, and `compose-multiplatform-material3` + `compottie` have to move with it. See gradle/libs.versions.toml — raising the floor is a manual decision. `matchCurrentValue` scopes this to the refs that are actually on 1.11.x; the explicit `ui-tooling-preview:1.10.3` coords in the cmp samples are held on their own line by the rule below.",
+      "description": "compose-multiplatform: pin to the 1.11.x line. `:data-render-compose` exposes `org.jetbrains.compose.{runtime,ui}` as `api` on a published artifact, so the Compose Multiplatform version is part of the supported-minimum floor for consumers, and the ref is also a CEILING on every catalog the serve host renders live (docs/RENDERER_COMPATIBILITY.md). 1.12.0 needs a coordinated move, not a minor/patch bump: its `androidx.compose.*` AARs declare `minCompileSdk = 37` (the repo default is 36), skiko 0.150.1 deletes the mutating `org.jetbrains.skia.Path` API our `conicTo` seams call, and `compose-multiplatform-material3` + `compottie` have to move with it. See gradle/libs.versions.toml \u2014 raising the floor is a manual decision. `matchCurrentValue` scopes this to the refs that are actually on 1.11.x; the explicit `ui-tooling-preview:1.10.3` coords in the cmp samples are held on their own line by the rule below.",
       "matchManagers": [
         "gradle"
       ],
@@ -103,29 +74,7 @@
       "allowedVersions": "/^1\\.11\\./"
     },
     {
-      "description": "org.jetbrains.compose.ui:ui-tooling-preview (explicit coords in `samples/cmp-shared` and `samples/cmp-android-only`): pin to the 1.10.x line. These two modules declare the JetBrains-relocated androidx artifact by hand — it ships `androidx.compose.ui.tooling.preview.Preview` on every target, which is the FQN `DiscoverPreviewsTask` scans for, whereas the CMP-bundled `compose.components.uiToolingPreview` republishes the annotation under `org.jetbrains.compose.ui.tooling.preview` and discovery does not recognise it. The explicit coords were renamed in the 1.10 line and are not reliably published to every mirror above it, so they deliberately do NOT track `compose-multiplatform`. Held here because the rule above is scoped by `matchCurrentValue` to the 1.11.x refs and no longer covers them; without this the generic minor/patch group would drift these to a line the preview-discovery contract has not been validated against. See each module's build.gradle.kts.",
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchDepNames": [
-        "org.jetbrains.compose.ui:ui-tooling-preview"
-      ],
-      "matchCurrentValue": "/^1\\.10\\./",
-      "allowedVersions": "/^1\\.10\\./"
-    },
-    {
-      "description": "org.slf4j:slf4j-nop: track gradle-tooling-api's bundled slf4j-api. Tooling API declares `slf4j-api {strictly <X>}` and bumping `-nop` past that drags in a newer `slf4j-api` that can't reconcile with the strict constraint. The matching `-nop` version moves whenever the Tooling-API release ships a newer slf4j-api floor — bump this pin in lockstep then.",
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchDepNames": [
-        "org.slf4j:slf4j-nop"
-      ],
-      "matchCurrentValue": "/^2\\.0\\.17$/",
-      "allowedVersions": "/^2\\.0\\.17$/"
-    },
-    {
-      "description": "compottie: pin to the 2.2.x line. `:lottie-preview-runtime` is built against JetBrains Compose foundation 1.11.0 (matching `compose-multiplatform = 1.11.x`); a compottie line built against a newer foundation drags a newer Compose onto the renderer classpath — the skew `docs/RENDERER_COMPATIBILITY.md` warns about. Bump only in lockstep with `compose-multiplatform`; see gradle/libs.versions.toml.",
+      "description": "compottie: pin to the 2.2.x line. `:lottie-preview-runtime` is built against JetBrains Compose foundation 1.11.0 (matching `compose-multiplatform = 1.11.x`); a compottie line built against a newer foundation drags a newer Compose onto the renderer classpath \u2014 the skew `docs/RENDERER_COMPATIBILITY.md` warns about. Bump only in lockstep with `compose-multiplatform`; see gradle/libs.versions.toml.",
       "matchManagers": [
         "gradle"
       ],
@@ -136,7 +85,7 @@
       "allowedVersions": "/^2\\.2\\./"
     },
     {
-      "description": "coil3: pin to the 3.5.x line. 3.6.0 depends on `org.jetbrains.compose.foundation:foundation-android:1.12.0`, which resolves `androidx.compose.foundation`/`ui` 1.12.0 — the Compose line this repo deliberately does not sit on (see the compose-multiplatform rule above). coil3 is `compileOnly` in `:renderer-android` but `testImplementation` for that module's own unit tests, so the upgrade lands on a test classpath compiled against `compose-bom-compat` and `FigmaSvgRasterizedTextFieldRenderTest` fails with `AbstractMethodError` (#4503). 3.5.0 resolves foundation 1.11.2 and is green. Bump in lockstep with the Compose floor, not on its own.",
+      "description": "coil3: pin to the 3.5.x line. 3.6.0 depends on `org.jetbrains.compose.foundation:foundation-android:1.12.0`, which resolves `androidx.compose.foundation`/`ui` 1.12.0 \u2014 the Compose line this repo deliberately does not sit on (see the compose-multiplatform rule above). coil3 is `compileOnly` in `:renderer-android` but `testImplementation` for that module's own unit tests, so the upgrade lands on a test classpath compiled against `compose-bom-compat` and `FigmaSvgRasterizedTextFieldRenderTest` fails with `AbstractMethodError` (#4503). 3.5.0 resolves foundation 1.11.2 and is green. Bump in lockstep with the Compose floor, not on its own.",
       "matchManagers": [
         "gradle"
       ],
@@ -147,7 +96,7 @@
       "allowedVersions": "/^3\\.5\\./"
     },
     {
-      "description": "robolectric: released versions only. Robolectric publishes a rolling `4.17-SNAPSHOT` to Sonatype and Renovate ranks it above `4.17-beta-2`, but the build declares no snapshot repository — so the bump resolves nowhere and fails every Android configuration. Betas and RCs are still fair game; only `-SNAPSHOT` is excluded.",
+      "description": "robolectric: released versions only. Robolectric publishes a rolling `4.17-SNAPSHOT` to Sonatype and Renovate ranks it above `4.17-beta-2`, but the build declares no snapshot repository \u2014 so the bump resolves nowhere and fails every Android configuration. Betas and RCs are still fair game; only `-SNAPSHOT` is excluded.",
       "matchManagers": [
         "gradle"
       ],
@@ -157,7 +106,7 @@
       "allowedVersions": "!/-SNAPSHOT$/"
     },
     {
-      "description": "Remote Compose, its Wear widget layer and Glance Wear resolve from Google Maven on released alpha coordinates, and the three groups only work together when built against the same `remote-creation*` — `remote-material3` and `androidx.glance.wear:*` name that version in their POMs. Renovate updates one dependency at a time, so an automated bump of any one group produces exactly the skew that has taken CI red before (a `NoClassDefFoundError` inside `RemoteButtonImpl` at render time, a wear pin that did not exist yet). Bump the three refs in gradle/libs.versions.toml as one set after checking the POMs, and re-verify a render, not just a compile.",
+      "description": "Remote Compose, its Wear widget layer and Glance Wear resolve from Google Maven on released alpha coordinates, and the three groups only work together when built against the same `remote-creation*` \u2014 `remote-material3` and `androidx.glance.wear:*` name that version in their POMs. Renovate updates one dependency at a time, so an automated bump of any one group produces exactly the skew that has taken CI red before (a `NoClassDefFoundError` inside `RemoteButtonImpl` at render time, a wear pin that did not exist yet). Bump the three refs in gradle/libs.versions.toml as one set after checking the POMs, and re-verify a render, not just a compile.",
       "matchManagers": [
         "gradle"
       ],
@@ -175,28 +124,12 @@
       ],
       "matchCurrentValue": "/^9\\.7\\.0$/",
       "allowedVersions": "/^9\\.7\\.0$/"
-    },
-    {
-      "description": "The export-driver pin tracks THIS repository's releases, and its whole purpose is to reach external callers promptly — a downstream repo running last release's driver is the failure #4107 was filed for. So it opts out of the weekly schedule and the 7-day soak that suit third-party dependencies: the tag it moves to is one this repo just cut and just tested. The shared preset automerges this minor update after every branch check is green. The commit type is pinned to `chore(ci)` deliberately: a squash merge uses the PR title as the headline and release-please cuts a patch release for `fix:`, so a `fix:`-titled bump would make every release propose another release, whose publish opens another bump. The hand-written bumps this lineage replaces were all titled `fix(ci):`, and each of them cut a release of its own.",
-      "matchManagers": [
-        "custom.regex"
-      ],
-      "matchDepNames": [
-        "yschimke/compose-ai-tools"
-      ],
-      "schedule": [
-        "at any time"
-      ],
-      "minimumReleaseAge": null,
-      "semanticCommitType": "chore",
-      "semanticCommitScope": "ci",
-      "commitMessageTopic": "the design-artifacts export driver"
     }
   ],
   "customManagers": [
     {
       "customType": "regex",
-      "description": "The `xr-composite` pin — the compositor's release version in compose-preview-xr. Invisible to the gradle manager: it is a bare `[versions]` entry with no library or plugin declaring `version.ref = \"xr-composite\"`, so there is no coordinate for Renovate to resolve. The CLI and the Gradle plugin both bake it in at build time and resolve the binary by it, so without this it is the one dependency here that could never be offered an update. Anchored to this single entry rather than written generically, because `extractVersionTemplate` below is specific to it: the catalog holds a bare `1.0.0` while the upstream tags are `v1.0.0`.",
+      "description": "The `xr-composite` pin \u2014 the compositor's release version in compose-preview-xr. Invisible to the gradle manager: it is a bare `[versions]` entry with no library or plugin declaring `version.ref = \"xr-composite\"`, so there is no coordinate for Renovate to resolve. The CLI and the Gradle plugin both bake it in at build time and resolve the binary by it, so without this it is the one dependency here that could never be offered an update. Anchored to this single entry rather than written generically, because `extractVersionTemplate` below is specific to it: the catalog holds a bare `1.0.0` while the upstream tags are `v1.0.0`.",
       "managerFilePatterns": [
         "/^gradle/libs\\.versions\\.toml$/"
       ],
@@ -208,7 +141,7 @@
     },
     {
       "customType": "regex",
-      "description": "The design-artifacts export-driver pin. External callers of `design-artifacts-reusable.yml` execute the revision of `scripts/design-artifacts/` named here, so until it moves they run the driver from the previous release — including fixes this repo has already merged (#4107). `sha` and `tag` are ONE dependency to Renovate: `currentDigest` and `currentValue` on a single match, resolved against this repository's own GitHub tags, so the pair cannot drift apart the way two independent entries could. This replaces `refresh-driver-pin.yml`, which opened the bump PR with `GITHUB_TOKEN` — whose pushes do not start workflow runs, so those PRs arrived with no checks reporting. Renovate is a GitHub App and its pushes do trigger them.",
+      "description": "The design-artifacts export-driver pin. External callers of `design-artifacts-reusable.yml` execute the revision of `scripts/design-artifacts/` named here, so until it moves they run the driver from the previous release \u2014 including fixes this repo has already merged (#4107). `sha` and `tag` are ONE dependency to Renovate: `currentDigest` and `currentValue` on a single match, resolved against this repository's own GitHub tags, so the pair cannot drift apart the way two independent entries could. This replaces `refresh-driver-pin.yml`, which opened the bump PR with `GITHUB_TOKEN` \u2014 whose pushes do not start workflow runs, so those PRs arrived with no checks reporting. Renovate is a GitHub App and its pushes do trigger them.",
       "managerFilePatterns": [
         "/^\\.github/design-artifacts-driver-pin\\.txt$/"
       ],
@@ -221,7 +154,7 @@
     },
     {
       "customType": "regex",
-      "description": "The rc-players tag `design-artifacts-reusable.yml` checks out for the two embedded player lanes. It is a literal rather than a value the workflow computes, because a computed `ref:` on `actions/checkout` is a checkout of untrusted code in a privileged context — critical, and the code lands somewhere `./gradlew` runs moments later (#5006 review). That leaves a second place holding the player version, so this keeps it in step with `rcplayers` in `gradle/libs.versions.toml`: both resolve against the same tags, so a bump moves them in one Renovate run rather than leaving the lanes skipping themselves on drift. Not a substitute for the workflow's own drift check, which is what catches the window between the two PRs.",
+      "description": "The rc-players tag `design-artifacts-reusable.yml` checks out for the two embedded player lanes. It is a literal rather than a value the workflow computes, because a computed `ref:` on `actions/checkout` is a checkout of untrusted code in a privileged context \u2014 critical, and the code lands somewhere `./gradlew` runs moments later (#5006 review). That leaves a second place holding the player version, so this keeps it in step with `rcplayers` in `gradle/libs.versions.toml`: both resolve against the same tags, so a bump moves them in one Renovate run rather than leaving the lanes skipping themselves on drift. Not a substitute for the workflow's own drift check, which is what catches the window between the two PRs.",
       "managerFilePatterns": [
         "/^\\.github/workflows/design-artifacts-reusable\\.yml$/"
       ],

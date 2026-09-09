@@ -27,7 +27,7 @@ A **data product** is `(kind, schemaVersion, payload)`:
 - `schemaVersion` — positive integer, owned by the kind. Bumped only
   on incompatible payload changes; additive fields don't bump. The main
   report payloads have **published JSON schemas** under
-  [`schema/`](../../schema/README.md), validated against representative
+  [`schema/`](https://github.com/yschimke/compose-ai-tools/blob/main/schema/README.mdNone), validated against representative
   payloads in CI so the wire shape and its schema can't drift.
 - `payload` — JSON. Shape per-kind, documented alongside the kind.
 

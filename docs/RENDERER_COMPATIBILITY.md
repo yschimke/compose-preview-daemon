@@ -17,7 +17,7 @@ The VS Code extension surfaces the same findings in the Problems panel (via
 ## What still lives here
 
 - **When to add a rule.** A new rule goes into
-  [`CompatRules.kt`](../gradle-plugin/src/main/kotlin/ee/schimke/composeai/plugin/tooling/CompatRules.kt)
+  [`CompatRules.kt`](https://github.com/yschimke/compose-ai-tools/blob/main/gradle-plugin/src/main/kotlin/ee/schimke/composeai/plugin/tooling/CompatRules.ktNone)
   when a new AndroidX AAR adds an R.id field that older transitives don't
   have, when Gradle can select a platform sibling whose bytecode shape does
   not match the Android renderer's expectations, or when an AGP step the
@@ -30,7 +30,7 @@ The VS Code extension surfaces the same findings in the Problems panel (via
      [`renderers/android/build.gradle.kts`](../renderers/android/build.gradle.kts).
      Consumer's versions win at runtime, so classes match their APK.
   2. `rendererConfig.extendsFrom(testConfig)` in
-     [`AndroidPreviewSupport.kt`](../gradle-plugin/src/main/kotlin/ee/schimke/composeai/plugin/AndroidPreviewSupport.kt).
+     [`AndroidPreviewSupport.kt`](https://github.com/yschimke/compose-ai-tools/blob/main/gradle-plugin/src/main/kotlin/ee/schimke/composeai/plugin/AndroidPreviewSupport.ktNone).
      Renderer transitives resolve in the same Gradle graph as consumer test
      deps — one coherent max-version set, no per-JAR classpath-ordering
      hazards.
