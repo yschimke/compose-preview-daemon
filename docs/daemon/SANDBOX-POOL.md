@@ -223,14 +223,26 @@ daemon needs a slot next, and pays only that catalog's first real render.
   of that into a mapped file on the served path), GC structures 49 MB under
   G1 (the serial collector serve uses has far less), code cache 22 MB, symbols
   27 MB — and ~110 MB outside the JVM's own accounting: the extracted native
-  runtime, fonts and what the boot malloc'd. Tried and dropped: a `System.gc()`
-  after the warm render (the heap is not where the memory is) and
-  `MALLOC_ARENA_MAX=2` (within noise). Kept: on JDK 21+
-  `-XX:TrimNativeHeapInterval=1000` on spare launches
-  (`SandboxSparePool.Config.trimNativeHeapMs`) — the JVM hands glibc's
-  retained freed memory back while the spare idles, 514 → 438 MB resident
-  after five idle seconds on the same box, with the catalog's first renders
-  unchanged.
+  runtime, fonts and what the boot malloc'd. Tried and dropped:
+  `MALLOC_ARENA_MAX=2` (within noise), the serial collector on its own (on a
+  512 MB ceiling it commits a *larger* heap, 219 MB, than G1's 150-170 MB;
+  the 20-25 % it saved in STARTUP.md's profile came from G1's region tables
+  under a 28 GB ceiling), and a `System.gc()` on its own (the default free
+  ratios keep the heap committed). Kept, both on spare launches:
+
+  - `-XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10` plus one collection
+    after the warm render (`SandboxWorkerMain`): the heap shrinks to ~130 MB
+    committed for ~87 MB live, 465 vs 495-500 MB resident;
+  - on JDK 21+, `-XX:TrimNativeHeapInterval=1000`
+    (`SandboxSparePool.Config.trimNativeHeapMs`): the JVM hands glibc's
+    retained freed memory back while the spare idles, 514 → 438 MB resident
+    after five idle seconds, first renders unchanged.
+
+  The lever this repository cannot pull is the heap **ceiling**: every JVM
+  on the deployed box inherits `-XX:MaxRAMPercentage=70` of the container,
+  and a spare inherits whatever `-Xmx` its launch descriptor carries. The
+  descriptor is the place to cap it (`composeai.daemon.maxHeapMb` exists for
+  exactly that), which is the serve-side wiring's job.
 - **Slot 0 can be deferred.** `composeai.daemon.lazyInProcessSandbox=true` makes an
   adopt-first start skip the background boot of the in-process sandbox
   altogether: it boots the first time a path only it can serve asks —

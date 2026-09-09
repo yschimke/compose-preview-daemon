@@ -91,6 +91,13 @@ class SandboxSparePoolTest {
     assertThat(command).contains("-Drobolectric.offline=true")
     assertThat(command).contains("-XX:SharedArchiveFile=/cds/android-abc-spare1.jsa")
     assertThat(command.last()).isEqualTo(SandboxSparePool.SANDBOX_WORKER_MAIN_CLASS)
+    assertThat(command).contains("-XX:MaxHeapFreeRatio=30")
+    assertThat(command).contains("-XX:MinHeapFreeRatio=10")
+    val decided = descriptor(jvmArgs = listOf("-XX:MaxHeapFreeRatio=50", "-XX:MinHeapFreeRatio=20"))
+    val respected = pool.spareCommand(decided, archiveSlot = 0)
+    assertThat(respected).contains("-XX:MaxHeapFreeRatio=50")
+    assertThat(respected).doesNotContain("-XX:MaxHeapFreeRatio=30")
+    assertThat(respected).doesNotContain("-XX:MinHeapFreeRatio=10")
     assertThat(command.any { it.contains("userClassDirs") }).isFalse()
     assertThat(command.any { it.contains("outputDir") }).isFalse()
   }

@@ -309,6 +309,16 @@ public class SandboxSparePool(
         add("$SHARED_ARCHIVE_FLAG$stem-spare$archiveSlot$ext")
       } else add(arg)
     }
+    // A spare idles with what its boot and warm render left committed. `SandboxWorkerMain`
+    // collects once after the warm render; these ratios let that collection give the heap
+    // back (the defaults, 40/70, keep it), ~35-45 MB resident per spare. Only when the
+    // descriptor does not decide the ratios itself.
+    if (descriptor.jvmArgs.none { it.startsWith("-XX:MaxHeapFreeRatio=") }) {
+      add("-XX:MaxHeapFreeRatio=30")
+    }
+    if (descriptor.jvmArgs.none { it.startsWith("-XX:MinHeapFreeRatio=") }) {
+      add("-XX:MinHeapFreeRatio=10")
+    }
     if (
       config.trimNativeHeapMs > 0 &&
         descriptor.javaLauncher == null &&
