@@ -8,7 +8,7 @@ local [filesystem history](HISTORY.md) archive.
 
 Part of the report-history epic (#1866); this document is sub-issue #1868. The
 writer that produces the branch is #1870; the per-file formats are the
-published schemas in [`schema/`](../../schema/README.md) (#1867).
+published schemas in [`schema/`](https://github.com/yschimke/compose-ai-tools/blob/main/schema/README.mdNone) (#1867).
 
 ## Model: git is the log
 
@@ -91,7 +91,7 @@ the tree directly.
 ```
 
 `formatVersion` versions the **branch layout**; each committed file independently
-declares its own report `schemaVersion` (per its schema in [`schema/`](../../schema/README.md)).
+declares its own report `schemaVersion` (per its schema in [`schema/`](https://github.com/yschimke/compose-ai-tools/blob/main/schema/README.mdNone)).
 
 ## entryId ↔ (commit, preview)
 

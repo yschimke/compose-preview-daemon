@@ -30,9 +30,9 @@ shapes (RedSquare, BlueLabel, GreenButton, Stack, Row) so per-preview
 render rows compare like-for-like across targets.
 
 - Android: `:samples:android-daemon-bench`, see
-  [`samples/android-daemon-bench/src/main/kotlin/com/example/daemonbench/BenchPreviews.kt`](../../samples/android-daemon-bench/src/main/kotlin/com/example/daemonbench/BenchPreviews.kt).
+  [`samples/android-daemon-bench/src/main/kotlin/com/example/daemonbench/BenchPreviews.kt`](https://github.com/yschimke/compose-ai-tools/blob/main/samples/android-daemon-bench/src/main/kotlin/com/example/daemonbench/BenchPreviews.ktNone).
 - Desktop: `:samples:desktop-daemon-bench`, see
-  [`samples/desktop-daemon-bench/src/main/kotlin/com/example/desktopdaemonbench/BenchPreviews.kt`](../../samples/desktop-daemon-bench/src/main/kotlin/com/example/desktopdaemonbench/BenchPreviews.kt).
+  [`samples/desktop-daemon-bench/src/main/kotlin/com/example/desktopdaemonbench/BenchPreviews.kt`](https://github.com/yschimke/compose-ai-tools/blob/main/samples/desktop-daemon-bench/src/main/kotlin/com/example/desktopdaemonbench/BenchPreviews.ktNone).
 
 Total render set per run: **5 captures**.
 
@@ -143,7 +143,7 @@ on both targets because it absorbs first-time classloader/runtime init.
 ```
 
 Both also run weekly (and on demand) via
-[`.github/workflows/daemon-bench.yml`](../../.github/workflows/daemon-bench.yml),
+[`.github/workflows/daemon-bench.yml`](https://github.com/yschimke/compose-ai-tools/blob/main/.github/workflows/daemon-bench.ymlNone),
 which uploads the CSV + per-target verdict as artifacts. That workflow is
 **non-blocking** — the per-PR critical path only runs the cheap
 `composePreviewRender` smoke (`ci.yml` build-samples job). Shared-runner numbers

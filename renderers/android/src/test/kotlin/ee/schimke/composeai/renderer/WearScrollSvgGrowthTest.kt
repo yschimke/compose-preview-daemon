@@ -468,8 +468,7 @@ class WearScrollSvgGrowthTest {
     // it after a renderer/stitcher change with `UPDATE_WEAR_SCROLL_FIXTURE=true`.
     val fixtureHtml =
       wearScrollLongPageFixture(inlineRasters(svg, File(rootDir, "wear-slice/figma-raster")))
-    val fixture =
-      File(repoRoot(), "preview-server/preview-harness/fixtures/pages/$WEAR_SCROLL_FIXTURE.html")
+    val fixture = File(repoRoot(), "renderers/android/fixtures/pages/$WEAR_SCROLL_FIXTURE.html")
     if (
       System.getenv("UPDATE_WEAR_SCROLL_FIXTURE") == "true" ||
         System.getProperty("updateWearScrollFixture") == "true"

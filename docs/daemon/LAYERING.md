@@ -5,7 +5,7 @@ cross-layer hook.
 
 **Layer 3 lives in another repository now.** `:mcp` moved to
 yschimke/compose-preview-server in #5176: the layer rule in
-[../design/REPOSITORY_LAYERS.md](../design/REPOSITORY_LAYERS.md) places a module
+[../design/REPOSITORY_LAYERS.md](https://github.com/yschimke/compose-ai-tools/blob/main/docs/design/REPOSITORY_LAYERS.mdNone) places a module
 that needs an HTTP server there, and the MCP server runs one. Nothing about the
 layering below changed — same three layers, same JSON-RPC link, same
 separate-process default — but `:mcp` names a module in that repository, and the

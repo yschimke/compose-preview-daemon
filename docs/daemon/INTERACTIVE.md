@@ -479,7 +479,7 @@ every frame of it) costs a header parse instead of a full decode. A frame
 that genuinely needs cropping still pays the decode/re-encode round trip.
 
 Measured on the live lane through `/status.json`'s `liveFrames` — see
-[public-preview-server.md](../public-preview-server.md#live-lane-frame-counters).
+[public-preview-server.md](https://github.com/yschimke/compose-ai-tools/blob/main/docs/public-preview-server.md#live-lane-frame-counters).
 
 ## 9.8 The `localeTag` scope is a process-wide reader/writer gate
 
