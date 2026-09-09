@@ -256,7 +256,13 @@ daemon needs a slot next, and pays only that catalog's first real render.
   return; a daemon that dies rather than shutting down still takes its
   workers with it (they watch its pid). On a serve box that reaps a catalog
   daemon and opens the next one all day, this is the difference between
-  booting a replacement spare per open and booting none.
+  booting a replacement spare per open and booting none. Two things had to
+  give for the release to be reached at all: the daemon's explicit `exit` and
+  its `classpathDirty` self-exit now run `host.shutdown()` (before this, both
+  flipped the server's running flag ahead of the teardown, whose guard then
+  returned early, and the workers died with the JVM), and `RobolectricHost`'s
+  shutdown joins only the worker threads of *ready* slots, so a slot still
+  booting no longer holds the exit for the whole join budget.
 - **Slot 0 can be deferred.** `composeai.daemon.lazyInProcessSandbox=true` makes an
   adopt-first start skip the background boot of the in-process sandbox
   altogether: it boots the first time a path only it can serve asks —

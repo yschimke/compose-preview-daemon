@@ -2270,11 +2270,12 @@ open class RobolectricHost(
     // Worker JVMs first: each gets a polite Shutdown over its socket and is force-killed if it
     // outlives the budget, so a wedged worker can never outlive the daemon that spawned it.
     processPool?.let { runCatching { it.shutdown(timeoutMs) } }
-    workerThreads.forEach { it.join(timeoutMs) }
-    // A worker whose sandbox never registered (still inside Robolectric bootstrap when shutdown
-    // raced a background pool boot) can't see the poison pill and legitimately outlives the join —
-    // same "orphaned in this JVM" outcome [abortPartialStart] documents, and the daemon exits via
-    // System.exit anyway. Only a *ready* slot's worker refusing to exit is a real bug.
+    // Only a *ready* slot's worker thread is joined. A worker whose sandbox never registered (still
+    // inside Robolectric bootstrap when shutdown raced a background or deferred boot) can't see the
+    // poison pill: joining it would just wait out [timeoutMs] — on the daemon's `exit` path, which
+    // now runs this — for the same "orphaned in this JVM" outcome [abortPartialStart] documents,
+    // and the daemon exits via System.exit anyway. Only a ready worker refusing to exit is a bug.
+    workerThreads.forEachIndexed { i, t -> if (slotReady.get(i) == 1) t.join(timeoutMs) }
     val stuck = workerThreads.filterIndexed { i, t -> t.isAlive && slotReady.get(i) == 1 }
     if (stuck.isNotEmpty()) {
       error(
