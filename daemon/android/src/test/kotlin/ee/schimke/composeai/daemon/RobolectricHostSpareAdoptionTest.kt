@@ -76,7 +76,11 @@ class RobolectricHostSpareAdoptionTest {
       assertEquals(listOf(sparePid), host.workerPidsForTest())
 
       // A render succeeds now, on the worker — slot 0 is still booting.
-      val early = host.submit(RenderRequest.Render(payload = "render-1"), timeoutMs = 120_000)
+      val early =
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Stub("render-1")),
+          timeoutMs = 120_000,
+        )
       assertNotNull(early)
 
       // The in-process sandbox comes up behind it and the pool completes.
@@ -84,7 +88,11 @@ class RobolectricHostSpareAdoptionTest {
       while (host.readySlotCountForTest() < 2 && System.currentTimeMillis() < deadline) Thread
         .sleep(200)
       assertEquals("slot 0 should boot in the background", 2, host.readySlotCountForTest())
-      val later = host.submit(RenderRequest.Render(payload = "render-2"), timeoutMs = 120_000)
+      val later =
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Stub("render-2")),
+          timeoutMs = 120_000,
+        )
       assertNotNull(later)
     } finally {
       System.clearProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES)
