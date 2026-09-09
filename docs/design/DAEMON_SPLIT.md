@@ -105,7 +105,7 @@ still holds the originals until its switch-over deletes them:
    line), the sidecar packaging, CI.
 2. **First release** from here is **3.0.0**: a new major marks the coordinates' change of
    repository, and the version line is continuous with the 2.4.x compose-ai-tools published.
-   `release-as` in `release-please-config.json` pins it and is removed once the tag exists;
+   `release-as` in `release-please-config.json` pinned it and was removed once `v3.0.0` was cut;
    every release after it is a minor, as `AGENTS.md` says.
 3. **compose-ai-tools** switches every reverse edge above to the released coordinates, deletes
    the 70 modules, points its release job at the sidecar archives published here, and drops the
