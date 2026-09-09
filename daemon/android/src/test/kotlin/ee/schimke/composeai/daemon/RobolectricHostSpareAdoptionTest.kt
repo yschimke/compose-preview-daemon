@@ -68,7 +68,11 @@ class RobolectricHostSpareAdoptionTest {
   @Test
   fun adoptedSpareServesRendersWhileTheInProcessSandboxBoots() {
     val outputDir = Files.createTempDirectory("spare-adoption").toFile()
+    val userClassesDir = stageFixtureClassesDir()
     val spare = launchSpare()
+    // Handed to the spare at adoption (`configure` forwards it), never at its launch: the spare
+    // booted knowing no catalog, and the fixture classes are this "catalog".
+    System.setProperty(UserClassLoaderHolder.USER_CLASS_DIRS_PROP, userClassesDir.absolutePath)
     System.setProperty(RenderEngine.OUTPUT_DIR_PROP, outputDir.absolutePath)
     System.setProperty("roborazzi.test.record", "true")
     System.setProperty(RobolectricHost.BACKGROUND_BOOT_PROP, "true")
@@ -91,6 +95,27 @@ class RobolectricHostSpareAdoptionTest {
       // A render succeeds now, on the worker — slot 0 is still booting.
       val early = host.submit(RenderRequest.Render(payload = "render-1"), timeoutMs = 120_000)
       assertNotNull(early)
+      // What the adopting catalog actually pays: its own first real renders, on a sandbox that
+      // was warmed against no catalog. Foundation-only first, then Material 3 twice, so the
+      // one-off class loading a richer warm-up could absorb is visible against a repeat.
+      fun timedRender(function: String, tag: String): Long {
+        val startedAt = System.nanoTime()
+        val result =
+          host.submit(
+            RenderRequest.Render(payload = fixturePayload(function, tag)),
+            timeoutMs = 120_000,
+          )
+        assertNotNull("$function should render a PNG", result.pngPath)
+        return (System.nanoTime() - startedAt) / 1_000_000
+      }
+      val red = timedRender("RedSquare", "first-red")
+      val m3First = timedRender("MaterialButtonInteractionState", "first-m3")
+      val m3Second = timedRender("MaterialButtonInteractionState", "second-m3")
+      val iconsFirst = timedRender("IconButtonRowInputBar", "first-icons")
+      System.err.println(
+        "[measure] adopted worker first renders: RedSquare ${red}ms, M3 first ${m3First}ms, " +
+          "M3 second ${m3Second}ms, icons+M3 first ${iconsFirst}ms"
+      )
 
       // The in-process sandbox comes up behind it and the pool completes.
       val deadline = System.currentTimeMillis() + 600_000
@@ -105,9 +130,11 @@ class RobolectricHostSpareAdoptionTest {
       val later = host.submit(RenderRequest.Render(payload = "render-2"), timeoutMs = 120_000)
       assertNotNull(later)
     } finally {
+      System.clearProperty(UserClassLoaderHolder.USER_CLASS_DIRS_PROP)
       System.clearProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES)
       System.clearProperty(RobolectricHost.BACKGROUND_BOOT_PROP)
       host.shutdown()
+      userClassesDir.deleteRecursively()
       // The adopted spare belongs to the host now: shutdown ends it.
       assertTrue(
         "adopted spare should exit with the host",
@@ -157,6 +184,47 @@ class RobolectricHostSpareAdoptionTest {
       assertTrue(spare.process.waitFor(30, TimeUnit.SECONDS))
       outputDir.deleteRecursively()
     }
+  }
+
+  private fun fixturePayload(function: String, tag: String): String =
+    "previewId=ee.schimke.composeai.daemon.RedFixturePreviewsKt.$function.$tag;" +
+      "className=ee.schimke.composeai.daemon.RedFixturePreviewsKt;" +
+      "functionName=$function;" +
+      "widthPx=256;heightPx=128;density=2.0;" +
+      "showBackground=true;" +
+      "outputBaseName=$tag"
+
+  /** The testFixtures classes, copied out so they can be a user-class dir of their own. */
+  private fun stageFixtureClassesDir(): File {
+    val tempDir = Files.createTempDirectory("spare-userClasses").toFile()
+    val resourceName = "ee/schimke/composeai/daemon/RedFixturePreviewsKt.class"
+    val url =
+      (Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()).getResource(
+        resourceName
+      ) ?: error("Can't locate testFixtures class on the test classpath: $resourceName")
+    val urlString = url.toString()
+    if (urlString.startsWith("file:")) {
+      val classFile = File(url.toURI())
+      var root: File = classFile.parentFile ?: error("classFile has no parent: $classFile")
+      repeat("ee/schimke/composeai/daemon".count { it == '/' } + 1) {
+        root = root.parentFile ?: error("ran off the top walking up from $classFile")
+      }
+      root.copyRecursively(tempDir, overwrite = true)
+      return tempDir
+    }
+    if (urlString.startsWith("jar:file:")) {
+      val jarPath = urlString.removePrefix("jar:file:").substringBefore("!").let { File(it) }
+      java.util.zip.ZipFile(jarPath).use { jar ->
+        for (entry in jar.entries()) {
+          if (!entry.name.startsWith("ee/schimke/composeai/daemon/") || entry.isDirectory) continue
+          val out = File(tempDir, entry.name)
+          out.parentFile?.mkdirs()
+          jar.getInputStream(entry).use { input -> out.outputStream().use { input.copyTo(it) } }
+        }
+      }
+      return tempDir
+    }
+    error("Unsupported testFixtures URL shape: $urlString")
   }
 
   private fun rssKb(pid: Long): Long? = runCatching {

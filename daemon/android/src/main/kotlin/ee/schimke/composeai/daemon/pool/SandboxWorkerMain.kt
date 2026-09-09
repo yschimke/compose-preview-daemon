@@ -140,6 +140,9 @@ object SandboxWorkerMain {
     // the font stack, the PNG encoder) now, off everyone's request path, so the adopting catalog
     // pays only its own first render.
     if (DaemonProperties.warmRenderOnBoot.read()) host.warmRenderInProcess()
+    // No collection here on purpose: measured, a warm spare holds ~90 MB live in a ~160 MB heap
+    // and ~500 MB resident — the rest is metaspace, the native runtime and mapped jars, which a
+    // GC does not return. SANDBOX-POOL.md § "Spare workers" has the numbers.
     StartupTimings.mark("spare worker: warm, listening")
     ServerSocket(0, 1, InetAddress.getLoopbackAddress()).use { server ->
       // Announced on the REAL stdout, unlike a daemon: a worker's stdout is diagnostics, and this

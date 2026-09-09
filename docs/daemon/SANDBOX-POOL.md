@@ -200,6 +200,25 @@ daemon needs a slot next, and pays only that catalog's first real render.
   resolves `composeai.render.outputDir` per render, not at construction, which
   is what lets a spare's engine — built by its warm render before any catalog
   is known — write into the adopting catalog's tree.
+- **Measured** (`RobolectricHostSpareAdoptionTest`, a loaded CI-shaped box, JDK
+  17; the idle-box figures in [STARTUP.md](STARTUP.md) are ~2× better):
+
+  | | |
+  |---|---|
+  | spare: JVM start → sandbox booted | 4-22 s (page cache) |
+  | spare: warm render | 4.3-9.5 s |
+  | spare, warm and idle: heap / resident | 90 MB live of 157 MB committed / ~500 MB |
+  | adopting host: `start()` entered → serving sandbox | **189 ms** |
+  | adopted worker, the catalog's first real render (foundation only) | 526 ms |
+  | adopted worker, first Material 3 render | 649 ms |
+  | adopted worker, second Material 3 render | 349 ms |
+  | host JVM, slot 0 deferred vs booted | 112 MB vs 334 MB; the boot 5.0 s |
+
+  So adoption plus the catalog's own first render is under a second — the
+  target — and a richer warm-up (Material on the classpath permitting) could
+  buy at most the ~300 ms between a first and a second Material render. A
+  `System.gc()` after the warm render was tried and dropped: the heap is not
+  where a spare's memory is.
 - **Slot 0 can be deferred.** `composeai.daemon.lazyInProcessSandbox=true` makes an
   adopt-first start skip the background boot of the in-process sandbox
   altogether: it boots the first time a path only it can serve asks —
