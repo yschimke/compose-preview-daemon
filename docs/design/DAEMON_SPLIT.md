@@ -71,6 +71,20 @@ Three paths run the renderers and extractors **without a daemon** — the Gradle
 `bundle render`, and the CLI's offline commands. They keep working the same way: the code they call
 is a library either side of the boundary.
 
+## Fixtures that crossed the boundary with the tests
+
+Three test oracles lived outside the closure and came along as copies, so the tools repository
+still holds the originals until its switch-over deletes them:
+
+- `schema/spatial-scene.schema.json`, `schema/xr-render-service.schema.json` and the fixtures
+  under `schema/fixtures/` — the source of truth for the generated Kotlin in `:preview-data-api`
+  and `:renderer-xr-client` (`scripts/codegen/*.mjs`, checked in CI). The rest of tools' `schema/`
+  (the data-product report schemas) describes what the extractors here emit and belongs at the
+  contracts layer; moving it is a follow-up, not this PR.
+- `renderers/android/fixtures/pages/serve-wear-scroll-long-capsule.html` — the drift guard
+  `WearScrollSvgGrowthTest` regenerates and compares. compose-preview-server vendors the same page
+  for its screenshot lane; this copy is now the one the renderer test owns.
+
 ## What it costs
 
 - **Two release trains for one change.** A new data product lands here, then a `composeai-tools`
