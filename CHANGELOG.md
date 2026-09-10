@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.1.0...v3.2.0) (2026-09-10)
+
+
+### Features
+
+* **client:** RobolectricLaunch, the renderer facts without a daemon ([#47](https://github.com/yschimke/compose-preview-daemon/issues/47)) ([d28d31e](https://github.com/yschimke/compose-preview-daemon/commit/d28d31e56fec2ea4da1c3ef411f0138de2254d53))
+
 ## [3.1.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.0.3...v3.1.0) (2026-09-10)
 
 
