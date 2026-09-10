@@ -30,8 +30,12 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--jvm-arg", action="append", default=[])
     parser.add_argument("--profiler", type=Path, help="Path to libasyncProfiler.so (4.5)")
-    parser.add_argument("--renders", type=int, default=10, help="Material renders after one red render")
+    parser.add_argument("--renders", type=int, default=10, help="Fixture renders after one red render")
+    parser.add_argument("--fixture", action="append", help="Repeat to cycle fixture functions from RedFixturePreviewsKt (default: MaterialButtonInteractionState)")
     args = parser.parse_args()
+    fixtures = args.fixture or ["MaterialButtonInteractionState"]
+    if any(not name.isidentifier() for name in fixtures):
+        parser.error("--fixture must be a function identifier")
     if args.renders < 1:
         parser.error("--renders must be positive")
     output = args.output.resolve()
@@ -53,7 +57,9 @@ def main():
     lines = queue.Queue()
     started = time.monotonic()
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    summary = {"java": args.java, "jvmArgs": args.jvm_arg, "profiled": bool(args.profiler), "renders": []}
+    summary = {"java": args.java, "jvmArgs": args.jvm_arg, "profiled": bool(args.profiler),
+        "fixtures": fixtures, "startedUnixSeconds": time.time(),
+        "hostLoadAverage": os.getloadavg(), "logicalCpus": os.cpu_count(), "renders": []}
 
     def pump():
         with (output / "worker.log").open("w") as log:
@@ -113,8 +119,9 @@ def main():
                 return json.loads(reply)
 
             for index in range(args.renders + 1):
-                function = "RedSquare" if index == 0 else "MaterialButtonInteractionState"
-                tag = "red" if index == 0 else f"material-{index - 1}"
+                function = "RedSquare" if index == 0 else fixtures[(index - 1) % len(fixtures)]
+                prefix = "material" if function == "MaterialButtonInteractionState" else function
+                tag = "red" if index == 0 else f"{prefix}-{index - 1}"
                 before = time.monotonic()
                 before_cpu = cpu_ms(process.pid)
                 reply = request({"type": "render", "id": index, "timeoutMs": 120000,
@@ -131,9 +138,11 @@ def main():
                 data = png.read_bytes()
                 if not data.startswith(b"\x89PNG\r\n\x1a\n"):
                     raise RuntimeError(f"invalid PNG: {png}")
-                summary["renders"].append({"tag": tag, "wallMs": wall_ms,
-                    "cpuMs": used_cpu, "pngSha256": hashlib.sha256(data).hexdigest()})
+                summary["renders"].append({"tag": tag, "fixture": function, "wallMs": wall_ms,
+                    "cpuMs": used_cpu, "pngSha256": hashlib.sha256(data).hexdigest(),
+                    "uiaSha256": hashlib.sha256((output / "data" / tag / "uia-hierarchy.json").read_bytes()).hexdigest()})
             summary["totalCpuMs"] = cpu_ms(process.pid)
+            summary["totalWallMs"] = round((time.monotonic() - started) * 1000)
             reply = request({"type": "shutdown"})
             if reply.get("type") != "ok":
                 raise RuntimeError(f"shutdown failed: {reply}")
