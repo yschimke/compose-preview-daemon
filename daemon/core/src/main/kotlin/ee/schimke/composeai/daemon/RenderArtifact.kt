@@ -114,6 +114,15 @@ public fun RenderArtifact?.pathOrNull(): String? = this?.path
  * every render by re-reading the PNG the engine had written moments earlier. A backend that fills
  * in `bytes` skips that hop entirely.
  *
+ * **Which backends fill it in, and why not all of them.** The desktop engine's `renderOnce` does:
+ * it encodes the frame to a `ByteArray` and writes *that*, so it holds the bytes at the moment it
+ * returns and handing them over costs nothing. The Android engine does not, and cannot cheaply — it
+ * captures through Roborazzi's `captureRoboImage(file = …)`, which owns the encode and the write
+ * and never surfaces the bytes; filling `bytes` there would mean reading back the very file this
+ * function would have read anyway. The remaining sites (scroll strips, Lottie APNGs, the figma-svg
+ * exports) are the same shape — a renderer helper is handed a `File`. So this read stays the
+ * correct answer whenever the producer genuinely never held the bytes, not a legacy path to retire.
+ *
  * Null rather than throwing when the file is missing, because a path on a result was never a
  * postcondition that one exists — a stub host names a `daemon-stub-<id>.png` it never writes.
  */
