@@ -1,9 +1,9 @@
 # Embedding the daemon
 
-**Status: decided; being built.** It exists to settle one question — *what does this repository own
+**Status: built.** It exists to settle one question — *what does this repository own
 when somebody wants to run a daemon, and what does the caller own?* The three questions it opened
 with are answered under "The decisions" below, and the status table there says which pieces exist.
-Pieces 3 (`DaemonSession`), 2 (`DaemonLaunchOptions`) and 1 (`DaemonLaunchPlan`) have landed; piece 4 has not.
+All four pieces have landed.
 
 The framing assumption, given: **this daemon should be generally reusable outside
 compose-ai-tools and compose-preview-server.** That raises the bar. An API that only has to satisfy
@@ -327,6 +327,23 @@ around it.
 It lands last, because pieces 1–3 are independently valuable and this one benefits from seeing them
 settle.
 
+**As landed.** `ManagedDaemon(workspaceId, descriptor, factory, listener)` → `start(workspaceRoot,
+…)` → `session` → `close()`, with a forward-only `State` (`NEW → STARTING → READY →
+CLOSING → CLOSED`, or `→ DIED`). Three things are worth naming because they are the mistakes the
+type exists to remove:
+
+- **The listener is a constructor parameter, not a `start` parameter.** Handlers wired after the
+  first frame miss whatever already arrived, and the daemon does emit during the handshake. Making
+  the ordering impossible to get wrong is better than documenting it, which is what
+  `DaemonSpawn.client`'s KDoc was already doing.
+- **A failed handshake shuts the process down before it throws.** Both consumers got this right;
+  a third party would leak a JVM, and on the Android backend that JVM holds a Robolectric sandbox.
+- **`DIED` is a state, not a callback contract.** Because `State` never goes backwards, a caller
+  that wants a restart makes a new `ManagedDaemon` — there is nowhere to put restart policy even
+  by accident. `DaemonDeath` reports *when* the transport closed (during the handshake, or while
+  running) rather than why: EOF on a pipe does not carry a reason, and inventing one would be the
+  library guessing on the application's behalf.
+
 ## Status
 
 | piece | state |
@@ -334,4 +351,4 @@ settle.
 | 3. `DaemonSession` interface | **landed** |
 | 2. `DaemonLaunchOptions` | **landed** — with `DaemonProperty.render`, the inverse of `parse` |
 | 1. `DaemonLaunchPlan` | **landed** — with `DaemonBackend`, `RobolectricConfig`, `AndroidSdk` and golden descriptors |
-| 4. `ManagedDaemon` | not started |
+| 4. `ManagedDaemon` | **landed** — the loop, a `Listener`, and a forward-only state machine |

@@ -222,6 +222,11 @@ public final class ee/schimke/composeai/daemon/client/DaemonSpawn$DefaultImpls {
 	public static fun shutdown-LRDsOJo (Lee/schimke/composeai/daemon/client/DaemonSpawn;J)V
 }
 
+public final class ee/schimke/composeai/daemon/client/DaemonStartException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class ee/schimke/composeai/daemon/client/DataProductWireException : java/lang/RuntimeException {
 	public static final field BUDGET_EXCEEDED I
 	public static final field Companion Lee/schimke/composeai/daemon/client/DataProductWireException$Companion;
@@ -236,6 +241,61 @@ public final class ee/schimke/composeai/daemon/client/DataProductWireException :
 
 public final class ee/schimke/composeai/daemon/client/DataProductWireException$Companion {
 	public final fun from (Lkotlinx/serialization/json/JsonObject;)Lee/schimke/composeai/daemon/client/DataProductWireException;
+}
+
+public final class ee/schimke/composeai/daemon/client/ManagedDaemon : java/io/Closeable {
+	public static final field Companion Lee/schimke/composeai/daemon/client/ManagedDaemon$Companion;
+	public fun <init> (Lee/schimke/composeai/daemon/client/WorkspaceId;Lee/schimke/composeai/daemon/protocol/DaemonLaunchDescriptor;Lee/schimke/composeai/daemon/client/DaemonClientFactory;Lee/schimke/composeai/daemon/client/ManagedDaemon$Listener;)V
+	public synthetic fun <init> (Lee/schimke/composeai/daemon/client/WorkspaceId;Lee/schimke/composeai/daemon/protocol/DaemonLaunchDescriptor;Lee/schimke/composeai/daemon/client/DaemonClientFactory;Lee/schimke/composeai/daemon/client/ManagedDaemon$Listener;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public final fun getDescriptor ()Lee/schimke/composeai/daemon/protocol/DaemonLaunchDescriptor;
+	public final fun getInitializeResult ()Lee/schimke/composeai/daemon/protocol/InitializeResult;
+	public final fun getSession ()Lee/schimke/composeai/daemon/client/DaemonSession;
+	public final fun getState ()Lee/schimke/composeai/daemon/client/ManagedDaemon$State;
+	public final fun getWorkspaceId ()Lee/schimke/composeai/daemon/client/WorkspaceId;
+	public final fun shutdown-BwNAW2A (Lkotlin/time/Duration;)V
+	public static synthetic fun shutdown-BwNAW2A$default (Lee/schimke/composeai/daemon/client/ManagedDaemon;Lkotlin/time/Duration;ILjava/lang/Object;)V
+	public final fun start-96iq8Lo (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/ClientCapabilities;Ljava/util/List;Lkotlin/time/Duration;J)Lee/schimke/composeai/daemon/protocol/InitializeResult;
+	public static synthetic fun start-96iq8Lo$default (Lee/schimke/composeai/daemon/client/ManagedDaemon;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/ClientCapabilities;Ljava/util/List;Lkotlin/time/Duration;JILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/InitializeResult;
+}
+
+public final class ee/schimke/composeai/daemon/client/ManagedDaemon$Companion {
+	public final fun getDEFAULT_HANDSHAKE_TIMEOUT-UwyO8pc ()J
+}
+
+public final class ee/schimke/composeai/daemon/client/ManagedDaemon$DaemonDeath {
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getObservedIn ()Lee/schimke/composeai/daemon/client/ManagedDaemon$State;
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ee/schimke/composeai/daemon/client/ManagedDaemon$Listener {
+	public static final field Companion Lee/schimke/composeai/daemon/client/ManagedDaemon$Listener$Companion;
+	public fun onDied (Lee/schimke/composeai/daemon/client/ManagedDaemon$DaemonDeath;)V
+	public fun onNotification (Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)V
+	public fun onStateChange (Lee/schimke/composeai/daemon/client/ManagedDaemon$State;Lee/schimke/composeai/daemon/client/ManagedDaemon$State;)V
+}
+
+public final class ee/schimke/composeai/daemon/client/ManagedDaemon$Listener$Companion {
+	public final fun getNONE ()Lee/schimke/composeai/daemon/client/ManagedDaemon$Listener;
+}
+
+public final class ee/schimke/composeai/daemon/client/ManagedDaemon$Listener$DefaultImpls {
+	public static fun onDied (Lee/schimke/composeai/daemon/client/ManagedDaemon$Listener;Lee/schimke/composeai/daemon/client/ManagedDaemon$DaemonDeath;)V
+	public static fun onNotification (Lee/schimke/composeai/daemon/client/ManagedDaemon$Listener;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)V
+	public static fun onStateChange (Lee/schimke/composeai/daemon/client/ManagedDaemon$Listener;Lee/schimke/composeai/daemon/client/ManagedDaemon$State;Lee/schimke/composeai/daemon/client/ManagedDaemon$State;)V
+}
+
+public final class ee/schimke/composeai/daemon/client/ManagedDaemon$State : java/lang/Enum {
+	public static final field CLOSED Lee/schimke/composeai/daemon/client/ManagedDaemon$State;
+	public static final field CLOSING Lee/schimke/composeai/daemon/client/ManagedDaemon$State;
+	public static final field DIED Lee/schimke/composeai/daemon/client/ManagedDaemon$State;
+	public static final field NEW Lee/schimke/composeai/daemon/client/ManagedDaemon$State;
+	public static final field READY Lee/schimke/composeai/daemon/client/ManagedDaemon$State;
+	public static final field STARTING Lee/schimke/composeai/daemon/client/ManagedDaemon$State;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/daemon/client/ManagedDaemon$State;
+	public static fun values ()[Lee/schimke/composeai/daemon/client/ManagedDaemon$State;
 }
 
 public final class ee/schimke/composeai/daemon/client/RobolectricConfig {
