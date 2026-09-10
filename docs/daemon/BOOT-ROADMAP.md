@@ -109,19 +109,17 @@ with the shadow set frozen after the first sandbox.
 ### B2. Boot without JUnit, on the sandbox / simulator API
 
 The daemon boots through `JUnitCore.runClasses(SandboxRunner)` with a dummy
-`@Test` that holds the sandbox open (DESIGN.md § 9). The JUnit layer itself
-is cheap (~130 classes, config resolution), but it dictates the lifecycle:
-`AndroidTestEnvironment.setUpApplicationState` runs in full — manifest
-parsing, `ActivityThread`, every `SystemServiceRegistry` initializer (97
-`*FrameworkInitializer` classes loaded at boot for telephony, wifi, NFC,
-health, UWB, virtualization…), a `FakeMediaProvider`, Espresso hooks. Since
-4.15 Robolectric ships **`robolectric-simulator`**, a supported non-JUnit
-entry point that builds an `AndroidSandbox` and drives an app from plain
-`main`; its `pluginapi` package is already on the sandbox's do-not-acquire
-list in 4.17. Booting on that API (or directly on `SandboxManager` /
-`AndroidSandbox`) lets the daemon own the lifecycle, skip the test-only
-setup, and never load a test class into the sandbox. Return: modest on its
-own (a few hundred ms and ~700 classes), large as the foundation for B1/B4.
+`@Test` that holds the sandbox open. The [B2 spike](BOOT-ROADMAP-B2-SPIKE.md)
+implements a test-only comparison that bypasses JUnit execution while preserving
+the daemon runner's configuration and application lifecycle.
+
+Robolectric 4.17-beta-4's simulator can build a sandbox outside JUnit, but its
+`AppLoader` still calls `AndroidTestEnvironment.setUpApplicationState`. Its builder
+also lacks hooks for the daemon's custom acquisition rules and extra shadows.
+Switching entry points alone therefore does not remove application setup,
+framework-service initialization, or crypto-provider registration. Reducing those
+costs is separate work, potentially paired with B4. Keep the production runner
+until a measured saving justifies owning its configuration and lifecycle.
 
 ### B3. Our own SDK artifact
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.0.2...v3.0.3) (2026-09-10)
+
+
+### Refactoring
+
+* merge overrides onto the RenderSpec, not a separate DTO ([#28](https://github.com/yschimke/compose-preview-daemon/issues/28)) ([1892eda](https://github.com/yschimke/compose-preview-daemon/commit/1892eda74e463dbfa0eec8c8b59dd0786e8cf84f))
+
 ## [3.0.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.0.1...v3.0.2) (2026-09-10)
 
 

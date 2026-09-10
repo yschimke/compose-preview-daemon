@@ -2,6 +2,9 @@
 
 - [`design/DAEMON_SPLIT.md`](design/DAEMON_SPLIT.md) — the extraction from compose-ai-tools: what
   moved, what stayed, the layer rule, and the consumer switch-over.
+- [`design/EMBEDDING.md`](design/EMBEDDING.md) — **proposal, not built.** What this repository should
+  own when a caller wants to run a daemon, and what the caller owns. Argues the seam from what the
+  two current consumers actually do today.
 - [`daemon/README.md`](daemon/README.md) — the render daemon: design, protocol, classloaders, the
   sandbox pool, startup profile and tunables.
 - [`daemon/BOOT-ROADMAP.md`](daemon/BOOT-ROADMAP.md) — the ranked plan for a 2-3 s sandbox boot.

@@ -3,7 +3,9 @@
 The exploratory task that follows [BOOT-ROADMAP.md](BOOT-ROADMAP.md) Tier A.
 Written for whoever picks it up cold: what is already done and measured, what
 the cold boot still costs and where, what each Tier B item would buy, how to
-measure any of it, and the order to try things in. Nothing here is started.
+measure any of it, and the order to try things in. One spike has run: B2's,
+recorded in [BOOT-ROADMAP-B2-SPIKE.md](BOOT-ROADMAP-B2-SPIKE.md) and folded
+in below. Everything else is unstarted.
 
 ## Where Tier A left things
 
@@ -63,30 +65,29 @@ verification flag. Everything below that line is inside Robolectric.
 Ordered by expected return per unit of risk. Each has the measurement that
 decides it *before* building the whole thing.
 
-### B2. Boot on the sandbox API instead of JUnit
+### B2. Boot on the sandbox API instead of JUnit — spiked, deprioritised
 
 **What.** The daemon boots through `JUnitCore.runClasses(SandboxRunner)` with a
 dummy `@Test` that holds the sandbox open (`SandboxHoldingRunner`, DESIGN.md
-§ 9). Robolectric 4.15+ ships `robolectric-simulator`, a supported non-JUnit
-entry point that builds an `AndroidSandbox` from plain `main`; its `pluginapi`
-package is already on the daemon's do-not-acquire list. Booting on that API, or
-directly on `SandboxManager` / `AndroidSandbox`, lets the daemon own the
-lifecycle and skip the test-only setup: `AndroidTestEnvironment.setUpApplicationState`
-in full (manifest parsing, `ActivityThread`, all 97 `*FrameworkInitializer`
-classes for telephony, wifi, NFC, health, UWB, virtualization…), a
-`FakeMediaProvider`, Espresso hooks.
+§ 9). The idea was to boot on Robolectric's simulator / sandbox API instead,
+own the lifecycle, and skip the test-only application setup.
 
-**Return.** Modest alone: a few hundred ms and ~700 classes off the boot. Its
-value is as the foundation: B1 and B4 both want a boot the daemon controls,
-and the fork's surface stays small if the daemon never touches JUnit.
+**Measured** ([BOOT-ROADMAP-B2-SPIKE.md](BOOT-ROADMAP-B2-SPIKE.md),
+`SandboxBootstrapSpikeTest`, run with `COMPOSEAI_BOOT_SPIKE=true`). Bypassing
+JUnit *execution* while keeping the runner's configuration and application
+lifecycle saves 48 ms to sandbox-ready and 88 ms to first PNG (medians of three
+trials, ~2 %), with byte-identical PNGs and hierarchy exports. The earlier
+estimate of a few hundred ms and ~700 classes was wrong: the JUnit layer is
+not where the time is. Two upstream facts limit what more B2 can do on
+4.17-beta-4: the simulator's `AppLoader` still runs
+`setUpApplicationState`, and its `SandboxBuilder` has no hooks for the
+daemon's acquisition rules or extra shadows, so it is not a drop-in entry
+point. Skipping application setup (framework initializers, BouncyCastle) is a
+separate experiment that also needs a replacement for the state
+`ActivityScenario` and the data extractors read, which is B4's territory.
 
-**Spike (a day).** In a scratch test on `:daemon:android`, build an
-`AndroidSandbox` through `robolectric-simulator` with the same
-`SandboxHoldingRunner` configuration (`doNotAcquirePackage` set, SDK 35,
-`graphicsMode=NATIVE`), render one fixture through `RenderEngine` on it, and
-time JVM start to first PNG against `RobolectricHostPoolTest`'s numbers. If
-`captureRoboImage` still works without a JUnit runner in scope, B2 is a daemon
-change, not a fork change, and should ship on its own.
+**Decision.** Keep the production runner. Revisit only as part of B4 or if
+B1 needs the daemon to own the boot.
 
 ### B1. Closed-world shadow binding (the big one)
 
@@ -107,22 +108,28 @@ the warm render (about half). Because nothing is defined at runtime any more,
 every sandbox class becomes archivable (B5), which is what makes a sub-second
 cold boot reachable.
 
-**Spike (two to three days).** Do not start with the instrumenter. First
-measure the ceiling: run the adoption test's spare with
-`-Xlog:class+load` and count hidden `LambdaForm`/`Species` classes and the
-time between the first and last of them; that is the most B1 can save at
-boot. Then prototype on one class: hand-rewrite a single hot instrumented
-framework class (a `View` method with a known shadow) to direct calls, load
-it ahead of android-all on the sandbox classpath, and confirm Robolectric's
-`ShadowWrangler` tolerates a class it did not instrument. If it does, the
-fork work is in `org.robolectric.internal.bytecode.ClassInstrumentor`, behind
-a `-Drobolectric.instrumentation=static` switch, with the shadow set frozen
+**Spike (two to three days).** Do not start with the instrumenter, and do
+not take a class-load count as the ceiling: the B2 spike counted ~2,900
+`LambdaForm`/`Species` load events at sandbox-ready and ~5,200 at first PNG,
+but that span includes unrelated work and the prefixes include JVM machinery
+Robolectric does not own. The ceiling needs CPU attribution: profile a spare's
+boot and warm render (async-profiler or JFR on the child JVM through
+`COMPOSEAI_TEST_SPARE_JVM_ARGS`) and sum the time under `ShadowWrangler`,
+`MethodHandle` linking and `LambdaForm` compilation. Then prototype on one
+class: hand-rewrite a single hot instrumented framework class (a `View`
+method with a known shadow) to direct calls, load it ahead of android-all on
+the sandbox classpath, and confirm `ShadowWrangler` tolerates a class it did
+not instrument. The prototype must preserve instance-shadow state,
+constructors, `@RealObject`, SDK-dependent shadow selection and fallback
+dispatch; replacing every shadow call with `invokestatic` is not the general
+implementation. If it holds, the fork work is in
+`org.robolectric.internal.bytecode.ClassInstrumentor`, behind a
+`-Drobolectric.instrumentation=static` switch, with the shadow set frozen
 after the first sandbox.
 
 **Risk.** Shadows registered at runtime (`@Config(shadows=…)`, the daemon's
-own `ShadowNativeAllocationRegistry`-style additions) must be in the frozen
-set, or their targets silently call the real method. Enumerate the daemon's
-shadow set first; it is small.
+own additions) must be in the frozen set, or their targets silently call the
+real method. Enumerate the daemon's shadow set first; it is small.
 
 ### B5. Make the sandbox archivable
 
@@ -205,13 +212,14 @@ coroutines trap noted in the roadmap.
 
 ## Suggested order
 
-1. B2 spike. If `robolectric-simulator` carries the daemon's boot, ship it as
-   daemon code and stop paying the JUnit lifecycle.
-2. B1 ceiling measurement (the `class+load` count), then the one-class
+1. B1 ceiling by profiling (not by class counts), then the one-class
    prototype. This is the go/no-go for the fork.
-3. B4 spike in parallel; it is independent and daemon-only.
-4. Only if B1's prototype holds: the instrumenter change, B3 publishing, B5
+2. B4 spike in parallel; it is independent, daemon-only, and the only place
+   where skipping application setup can be evaluated safely.
+3. Only if B1's prototype holds: the instrumenter change, B3 publishing, B5
    archive, in that order.
+4. B2 stays parked (spiked at ~2 %); it comes back only if B1 or B4 needs the
+   daemon to own the boot lifecycle.
 
 ## Out of scope for this task
 
