@@ -17,38 +17,6 @@ import ee.schimke.composeai.daemon.protocol.RemoteComposeOverride
 import ee.schimke.composeai.daemon.protocol.UiMode
 import ee.schimke.composeai.daemon.protocol.WallpaperOverride
 
-/**
- * Backend-neutral subset of a render spec that [PreviewOverrides] can mutate.
- *
- * Concrete hosts keep backend-local `RenderSpec` types, but recording and render override semantics
- * need to stay identical across hosts. This small DTO lets hosts adapt their local spec into a
- * shared merge function, then copy the merged fields back into their local type.
- */
-public data class PreviewOverrideBaseSpec(
-  val widthPx: Int,
-  val heightPx: Int,
-  val density: Float,
-  val device: String?,
-  val localeTag: String?,
-  val fontScale: Float?,
-  val uiMode: UiMode?,
-  val orientation: Orientation?,
-  val inspectionMode: Boolean?,
-  val material3Theme: Material3ThemeOverrides? = null,
-  val wallpaper: WallpaperOverride? = null,
-  val ambient: AmbientOverride? = null,
-  val gestures: GestureOverride? = null,
-  val focus: FocusOverride? = null,
-  val touchOverlay: Boolean? = null,
-  val talkBack: Boolean? = null,
-  val keyboard: KeyboardOverride? = null,
-  val permissions: PermissionsOverride? = null,
-  val remoteCompose: RemoteComposeOverride? = null,
-  val launcherWidget: LauncherWidgetOverride? = null,
-  val lottie: LottieOverride? = null,
-  val namedOverrides: Map<String, PreviewOverrideValue>? = null,
-)
-
 public data class MergedPreviewOverrides(
   val widthPx: Int,
   val heightPx: Int,
@@ -136,52 +104,6 @@ public data class MergedPreviewOverrides(
     )
   }
 }
-
-/**
- * Fill every **extension-consumed** field of this base spec from the discovery-time overrides bag
- * [carried] the host resolved alongside it (`RenderSpec.overrides`).
- *
- * The held-session lane (`interactive/start` → `stream/start` → `setOverrides`, and the recording
- * twin) reaches [mergePreviewOverrides] through each host's `applyOverrides`, which adapts its
- * backend-local `RenderSpec` into a [PreviewOverrideBaseSpec]. Every field the adapter forgets is a
- * field the live render silently loses — the merge fills it from `null`, [toExtensionOverrides]
- * projects `null` back out, and the renderer composes as if the base had never carried it. Both
- * hosts hand-picked a *subset* here, which is how a `@OverrideVariant` preview browsed in the
- * viewer's **Live** lane rendered its base state: `namedOverrides` — the baked seed
- * `renderSpecFromInfo` resolves from `previews.json` — was never copied across, so
- * `switchbutton__ideal__split` composed the un-split switch its primary draws
- * (yschimke/wear-m3-catalog#33). `focus`, `talkBack`, `touchOverlay`, `permissions`,
- * `remoteCompose`, `launcherWidget`, `keyboard` and `lottie` were dropped the same way.
- *
- * So the copy lives here, once, beside the field list it has to stay exhaustive over — a new
- * extension-consumed field is added in this file and both hosts inherit it, rather than being
- * hand-added to two adapters that already disagreed with each other. The per-render overlay still
- * wins per key: this is only the floor the overlay lands on. `PreviewOverrideMergeTest` guards the
- * round trip (populated bag → base spec → merge with no overlay → [toExtensionOverrides]).
- *
- * Display-geometry fields (`widthPx`, `density`, `uiMode`, …) are deliberately NOT touched: the
- * host resolves those from its own spec, where the discovery-time values already live.
- */
-public fun PreviewOverrideBaseSpec.withCarriedOverrides(
-  carried: PreviewOverrides?
-): PreviewOverrideBaseSpec =
-  if (carried == null) this
-  else
-    copy(
-      material3Theme = carried.material3Theme,
-      wallpaper = carried.wallpaper,
-      ambient = carried.ambient,
-      gestures = carried.gestures,
-      focus = carried.focus,
-      touchOverlay = carried.touchOverlay,
-      talkBack = carried.talkBack,
-      keyboard = carried.keyboard,
-      permissions = carried.permissions,
-      remoteCompose = carried.remoteCompose,
-      launcherWidget = carried.launcherWidget,
-      lottie = carried.lottie,
-      namedOverrides = carried.namedOverrides,
-    )
 
 /**
  * Fold a `themeProvider` FQN back onto an (optionally null) held-session overrides bag. The held /
@@ -327,17 +249,47 @@ public fun PreviewOverrides?.layeredOver(base: PreviewOverrides?): PreviewOverri
 }
 
 /**
- * Merge per-call [PreviewOverrides] over a discovery-time spec.
+ * Merge per-call [PreviewOverrides] over a discovery-time [RenderSpec].
  *
  * Explicit `widthPx` / `heightPx` / `density` overrides win over `device`-resolved values. Device
  * resolution matches `renderNow.overrides.device`: resolve the supplied device id/spec, derive
  * pixels from its dp geometry at the effective density, then let explicit pixel dimensions replace
  * either axis.
+ *
+ * **The base used to be a `PreviewOverrideBaseSpec`** — a 22-field DTO whose own KDoc explained it
+ * as an adapter needed because "concrete hosts keep backend-local `RenderSpec` types". That stopped
+ * being true when `RenderSpec` moved into this module, and the DTO outlived the reason for it: by
+ * the end there was exactly one caller ([RenderSpec.mergedWith]) building one adapter, and a
+ * `withCarriedOverrides` helper whose whole job was copying the thirteen extension-consumed fields
+ * out of `RenderSpec.overrides` and into the DTO so the merge could read them.
+ *
+ * That copy was load-bearing and it had already failed once: both hosts hand-picked a *subset* of
+ * those thirteen, so a `@OverrideVariant` preview browsed in the viewer's Live lane rendered its
+ * base state — the baked `namedOverrides` seed was never copied across
+ * (yschimke/wear-m3-catalog#33), and `focus`, `talkBack`, `touchOverlay`, `permissions`,
+ * `remoteCompose`, `launcherWidget`, `keyboard` and `lottie` were dropped the same way.
+ * Centralising the copy fixed the instances; reading [RenderSpec.overrides] directly removes the
+ * copy, and with it the whole class of bug. A field added to [PreviewOverrides] now reaches the
+ * merge because it is on the object, not because a list somewhere stayed exhaustive.
  */
 public fun mergePreviewOverrides(
-  base: PreviewOverrideBaseSpec,
+  base: RenderSpec,
   overrides: PreviewOverrides?,
 ): MergedPreviewOverrides {
+  // The discovery-time extension bag: what `withCarriedOverrides` used to hand-copy field by field.
+  val carried = base.overrides
+  val baseUiMode =
+    when (base.uiMode) {
+      RenderSpec.SpecUiMode.LIGHT -> UiMode.LIGHT
+      RenderSpec.SpecUiMode.DARK -> UiMode.DARK
+      null -> null
+    }
+  val baseOrientation =
+    when (base.orientation) {
+      RenderSpec.SpecOrientation.PORTRAIT -> Orientation.PORTRAIT
+      RenderSpec.SpecOrientation.LANDSCAPE -> Orientation.LANDSCAPE
+      null -> null
+    }
   if (overrides == null) {
     return MergedPreviewOverrides(
       widthPx = base.widthPx,
@@ -346,22 +298,22 @@ public fun mergePreviewOverrides(
       device = base.device,
       localeTag = base.localeTag,
       fontScale = base.fontScale,
-      uiMode = base.uiMode,
-      orientation = base.orientation,
+      uiMode = baseUiMode,
+      orientation = baseOrientation,
       inspectionMode = base.inspectionMode,
-      material3Theme = base.material3Theme,
-      wallpaper = base.wallpaper,
-      ambient = base.ambient,
-      gestures = base.gestures,
-      focus = base.focus,
-      touchOverlay = base.touchOverlay,
-      talkBack = base.talkBack,
-      keyboard = base.keyboard,
-      permissions = base.permissions,
-      remoteCompose = base.remoteCompose,
-      launcherWidget = base.launcherWidget,
-      lottie = base.lottie,
-      namedOverrides = base.namedOverrides,
+      material3Theme = carried?.material3Theme,
+      wallpaper = carried?.wallpaper,
+      ambient = carried?.ambient,
+      gestures = carried?.gestures,
+      focus = carried?.focus,
+      touchOverlay = carried?.touchOverlay,
+      talkBack = carried?.talkBack,
+      keyboard = carried?.keyboard,
+      permissions = carried?.permissions,
+      remoteCompose = carried?.remoteCompose,
+      launcherWidget = carried?.launcherWidget,
+      lottie = carried?.lottie,
+      namedOverrides = carried?.namedOverrides,
     )
   }
   val deviceOverride = overrides.device?.takeIf { it.isNotBlank() }
@@ -375,7 +327,7 @@ public fun mergePreviewOverrides(
     overrides.heightPx
       ?: deviceSpec?.let { (it.heightDp * effectiveDensity).toInt().coerceAtLeast(1) }
       ?: base.heightPx
-  val effectiveOrientation = overrides.orientation ?: base.orientation
+  val effectiveOrientation = overrides.orientation ?: baseOrientation
   // Rotate the frame when the effective orientation contradicts it (#3547) — the live-session
   // (`stream/start`, `setOverrides`) twin of the same swap in `JsonRpcServer.renderTargetFor`
   // and both routers, so the viewer's Orientation control means the same thing on every lane.
@@ -395,26 +347,26 @@ public fun mergePreviewOverrides(
     device = deviceOverride ?: base.device,
     localeTag = overrides.localeTag?.takeIf { it.isNotBlank() } ?: base.localeTag,
     fontScale = overrides.fontScale ?: base.fontScale,
-    uiMode = overrides.uiMode ?: base.uiMode,
+    uiMode = overrides.uiMode ?: baseUiMode,
     orientation = effectiveOrientation,
     inspectionMode = overrides.inspectionMode ?: base.inspectionMode,
-    material3Theme = overrides.material3Theme ?: base.material3Theme,
-    wallpaper = overrides.wallpaper ?: base.wallpaper,
-    ambient = overrides.ambient ?: base.ambient,
-    gestures = overrides.gestures ?: base.gestures,
-    focus = overrides.focus ?: base.focus,
-    touchOverlay = overrides.touchOverlay ?: base.touchOverlay,
-    talkBack = overrides.talkBack ?: base.talkBack,
-    keyboard = overrides.keyboard ?: base.keyboard,
-    permissions = overrides.permissions ?: base.permissions,
-    remoteCompose = overrides.remoteCompose ?: base.remoteCompose,
-    launcherWidget = overrides.launcherWidget ?: base.launcherWidget,
-    lottie = overrides.lottie ?: base.lottie,
+    material3Theme = overrides.material3Theme ?: carried?.material3Theme,
+    wallpaper = overrides.wallpaper ?: carried?.wallpaper,
+    ambient = overrides.ambient ?: carried?.ambient,
+    gestures = overrides.gestures ?: carried?.gestures,
+    focus = overrides.focus ?: carried?.focus,
+    touchOverlay = overrides.touchOverlay ?: carried?.touchOverlay,
+    talkBack = overrides.talkBack ?: carried?.talkBack,
+    keyboard = overrides.keyboard ?: carried?.keyboard,
+    permissions = overrides.permissions ?: carried?.permissions,
+    remoteCompose = overrides.remoteCompose ?: carried?.remoteCompose,
+    launcherWidget = overrides.launcherWidget ?: carried?.launcherWidget,
+    lottie = overrides.lottie ?: carried?.lottie,
     // Per-key merge (not whole-map replace): editing one knob in a follow-up render must not drop
     // the
     // others the caller already set. Override entries win over base entries with the same key.
     namedOverrides =
-      if (base.namedOverrides == null && overrides.namedOverrides == null) null
-      else (base.namedOverrides ?: emptyMap()) + (overrides.namedOverrides ?: emptyMap()),
+      if (carried?.namedOverrides == null && overrides.namedOverrides == null) null
+      else (carried?.namedOverrides ?: emptyMap()) + (overrides.namedOverrides ?: emptyMap()),
   )
 }
