@@ -57,8 +57,6 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -88,7 +86,7 @@ public class DaemonClient(
   /** Optional: invoked when the read thread observes EOF. Supervisor uses this for respawn. */
   private val onClose: () -> Unit = {},
   threadName: String = "mcp-daemon-client-reader",
-) : Closeable {
+) : DaemonSession, Closeable {
 
   private val json = Json { ignoreUnknownKeys = true }
   private val nextId = AtomicLong(1)
@@ -101,14 +99,14 @@ public class DaemonClient(
     }
 
   /** Drives `initialize` + `initialized`. Returns the daemon's [InitializeResult]. */
-  public fun initialize(
+  override fun initialize(
     workspaceRoot: String,
     moduleId: String,
     moduleProjectDir: String,
-    capabilities: ClientCapabilities = ClientCapabilities(visibility = true, metrics = true),
-    attachDataProducts: List<String>? = null,
-    maxRenderMs: Long? = null,
-    timeout: Duration = 30.seconds,
+    capabilities: ClientCapabilities,
+    attachDataProducts: List<String>?,
+    maxRenderMs: Long?,
+    timeout: Duration,
   ): InitializeResult {
     val id = nextId.getAndIncrement()
     val params =
@@ -144,22 +142,22 @@ public class DaemonClient(
     return result
   }
 
-  public fun setVisible(ids: List<String>): Unit =
+  override fun setVisible(ids: List<String>): Unit =
     sendNotification(
       "setVisible",
       json.encodeToJsonElement(SetVisibleParams.serializer(), SetVisibleParams(ids = ids)),
     )
 
-  public fun setFocus(ids: List<String>): Unit =
+  override fun setFocus(ids: List<String>): Unit =
     sendNotification(
       "setFocus",
       json.encodeToJsonElement(SetFocusParams.serializer(), SetFocusParams(ids = ids)),
     )
 
-  public fun fileChanged(
+  override fun fileChanged(
     path: String,
-    kind: FileKind = FileKind.SOURCE,
-    changeType: ChangeType = ChangeType.MODIFIED,
+    kind: FileKind,
+    changeType: ChangeType,
   ): Unit =
     sendNotification(
       "fileChanged",
@@ -170,12 +168,12 @@ public class DaemonClient(
     )
 
   /** Drives `renderNow` for the given preview ids at the given [tier]. */
-  public fun renderNow(
+  override fun renderNow(
     previews: List<String>,
-    tier: RenderTier = RenderTier.FULL,
-    reason: String? = null,
-    overrides: PreviewOverrides? = null,
-    timeout: Duration = 30.seconds,
+    tier: RenderTier,
+    reason: String?,
+    overrides: PreviewOverrides?,
+    timeout: Duration,
   ): RenderNowResult {
     val id = nextId.getAndIncrement()
     val params =
@@ -199,9 +197,9 @@ public class DaemonClient(
   // ---------------------------------------------------------------------------
 
   /** Drives `history/list`. Default no-filter call returns recent entries across all previews. */
-  public fun historyList(
-    params: HistoryListParams = HistoryListParams(),
-    timeout: Duration = 30.seconds,
+  override fun historyList(
+    params: HistoryListParams,
+    timeout: Duration,
   ): HistoryListResult {
     val id = nextId.getAndIncrement()
     val request =
@@ -218,10 +216,10 @@ public class DaemonClient(
   }
 
   /** Drives `history/read`. With [inline] = true the daemon returns base64 PNG bytes inline. */
-  public fun historyRead(
+  override fun historyRead(
     entryId: String,
-    inline: Boolean = false,
-    timeout: Duration = 30.seconds,
+    inline: Boolean,
+    timeout: Duration,
   ): HistoryReadResultDto {
     val id = nextId.getAndIncrement()
     val params = HistoryReadParams(id = entryId, inline = inline)
@@ -239,11 +237,11 @@ public class DaemonClient(
   }
 
   /** Drives `history/diff` (metadata mode by default). */
-  public fun historyDiff(
+  override fun historyDiff(
     fromId: String,
     toId: String,
-    mode: HistoryDiffMode = HistoryDiffMode.METADATA,
-    timeout: Duration = 30.seconds,
+    mode: HistoryDiffMode,
+    timeout: Duration,
   ): HistoryDiffResult {
     val id = nextId.getAndIncrement()
     val params = HistoryDiffParams(from = fromId, to = toId, mode = mode)
@@ -276,12 +274,12 @@ public class DaemonClient(
    * the tool result so the agent sees the exact wire-error name (`DataProductUnknown`,
    * `DataProductNotAvailable`, `DataProductFetchFailed`, `DataProductBudgetExceeded`).
    */
-  public fun dataFetch(
+  override fun dataFetch(
     previewId: String,
     kind: String,
-    params: kotlinx.serialization.json.JsonElement? = null,
-    inline: Boolean = false,
-    timeout: Duration = 30.seconds,
+    params: kotlinx.serialization.json.JsonElement?,
+    inline: Boolean,
+    timeout: Duration,
   ): DataFetchResult {
     val id = nextId.getAndIncrement()
     val request =
@@ -306,17 +304,17 @@ public class DaemonClient(
    * — the daemon drops them automatically when the preview leaves the most recent `setVisible` set
    * (see DATA-PRODUCTS.md). Re-subscribe when the preview returns to view.
    */
-  public fun dataSubscribe(
+  override fun dataSubscribe(
     previewId: String,
     kind: String,
-    timeout: Duration = 15.seconds,
+    timeout: Duration,
   ): DataSubscribeResult = dataSubOrUnsub("data/subscribe", previewId, kind, timeout)
 
   /** Drives `data/unsubscribe`. See [dataSubscribe]. */
-  public fun dataUnsubscribe(
+  override fun dataUnsubscribe(
     previewId: String,
     kind: String,
-    timeout: Duration = 15.seconds,
+    timeout: Duration,
   ): DataSubscribeResult = dataSubOrUnsub("data/unsubscribe", previewId, kind, timeout)
 
   // ---------------------------------------------------------------------------
@@ -327,7 +325,7 @@ public class DaemonClient(
   // requirements). Disabling them on shutdown is unnecessary — the daemon dies with the spawn.
   // ---------------------------------------------------------------------------
 
-  public fun extensionsList(timeout: Duration = 15.seconds): ExtensionsListResult {
+  override fun extensionsList(timeout: Duration): ExtensionsListResult {
     val id = nextId.getAndIncrement()
     val request =
       JsonRpcRequest(id = id, method = "extensions/list", params = JsonObject(emptyMap()))
@@ -336,9 +334,9 @@ public class DaemonClient(
     return json.decodeFromJsonElement(ExtensionsListResult.serializer(), resultElem)
   }
 
-  public fun extensionsEnable(
+  override fun extensionsEnable(
     ids: List<String>,
-    timeout: Duration = 15.seconds,
+    timeout: Duration,
   ): ExtensionsEnableResult {
     val id = nextId.getAndIncrement()
     val params = ExtensionsEnableParams(ids = ids)
@@ -353,9 +351,9 @@ public class DaemonClient(
     return json.decodeFromJsonElement(ExtensionsEnableResult.serializer(), resultElem)
   }
 
-  public fun extensionsDisable(
+  override fun extensionsDisable(
     ids: List<String>,
-    timeout: Duration = 15.seconds,
+    timeout: Duration,
   ): ExtensionsDisableResult {
     val id = nextId.getAndIncrement()
     val params = ExtensionsDisableParams(ids = ids)
@@ -404,12 +402,12 @@ public class DaemonClient(
   // ---------------------------------------------------------------------------
 
   /** Drives `recording/start`. Returns the daemon-allocated `recordingId`. */
-  public fun recordingStart(
+  override fun recordingStart(
     previewId: String,
-    fps: Int? = null,
-    scale: Float? = null,
-    overrides: PreviewOverrides? = null,
-    timeout: Duration = 30.seconds,
+    fps: Int?,
+    scale: Float?,
+    overrides: PreviewOverrides?,
+    timeout: Duration,
   ): RecordingStartResult {
     val id = nextId.getAndIncrement()
     val params =
@@ -431,7 +429,7 @@ public class DaemonClient(
   }
 
   /** Drives `recording/script` (notification — no response). */
-  public fun recordingScript(recordingId: String, events: List<RecordingScriptEvent>): Unit =
+  override fun recordingScript(recordingId: String, events: List<RecordingScriptEvent>): Unit =
     sendNotification(
       "recording/script",
       json.encodeToJsonElement(
@@ -441,9 +439,9 @@ public class DaemonClient(
     )
 
   /** Drives `recording/stop`. Blocks until the daemon's playback loop finishes writing frames. */
-  public fun recordingStop(
+  override fun recordingStop(
     recordingId: String,
-    timeout: Duration = 5.minutes,
+    timeout: Duration,
   ): RecordingStopResult {
     val id = nextId.getAndIncrement()
     val params = RecordingStopParams(recordingId = recordingId)
@@ -464,10 +462,10 @@ public class DaemonClient(
   }
 
   /** Drives `recording/encode`. Returns `{ videoPath, mimeType, sizeBytes }`. */
-  public fun recordingEncode(
+  override fun recordingEncode(
     recordingId: String,
-    format: RecordingFormat = RecordingFormat.APNG,
-    timeout: Duration = 60.seconds,
+    format: RecordingFormat,
+    timeout: Duration,
   ): RecordingEncodeResult {
     val id = nextId.getAndIncrement()
     val params = RecordingEncodeParams(recordingId = recordingId, format = format)
@@ -494,12 +492,12 @@ public class DaemonClient(
    * [sendAndAwait] / the error branch) when the daemon doesn't implement streaming — callers fall
    * back to per-frame renders.
    */
-  public fun streamStart(
+  override fun streamStart(
     previewId: String,
-    codec: StreamCodec? = null,
-    maxFps: Int? = null,
-    overrides: PreviewOverrides? = null,
-    timeout: Duration = 30.seconds,
+    codec: StreamCodec?,
+    maxFps: Int?,
+    overrides: PreviewOverrides?,
+    timeout: Duration,
   ): StreamStartResult {
     val id = nextId.getAndIncrement()
     val params =
@@ -526,7 +524,7 @@ public class DaemonClient(
   }
 
   /** Drives `stream/stop` (notification — no response). Tears down the held stream. */
-  public fun streamStop(frameStreamId: String): Unit =
+  override fun streamStop(frameStreamId: String): Unit =
     sendNotification(
       "stream/stop",
       json.encodeToJsonElement(StreamStopParams.serializer(), StreamStopParams(frameStreamId)),
@@ -538,7 +536,7 @@ public class DaemonClient(
    * rate and — since the daemon's frame loop reads the same gate — the render rate behind it. [fps]
    * overrides the throttled rate; the daemon's default is 1 fps.
    */
-  public fun streamVisibility(frameStreamId: String, visible: Boolean, fps: Int? = null): Unit =
+  override fun streamVisibility(frameStreamId: String, visible: Boolean, fps: Int?): Unit =
     sendNotification(
       "stream/visibility",
       json.encodeToJsonElement(
@@ -552,16 +550,16 @@ public class DaemonClient(
    * [frameStreamId]; the daemon dispatches the input into the live composition and emits the
    * resulting `streamFrame`.
    */
-  public fun interactiveInput(
+  override fun interactiveInput(
     frameStreamId: String,
     kind: InteractiveInputKind,
-    pixelX: Int? = null,
-    pixelY: Int? = null,
-    pointerId: Int? = null,
-    scrollDeltaY: Float? = null,
-    keyCode: String? = null,
-    text: String? = null,
-    pointerType: String? = null,
+    pixelX: Int?,
+    pixelY: Int?,
+    pointerId: Int?,
+    scrollDeltaY: Float?,
+    keyCode: String?,
+    text: String?,
+    pointerType: String?,
   ): Unit =
     sendNotification(
       "interactive/input",
@@ -585,7 +583,7 @@ public class DaemonClient(
    * Sends `shutdown` (drains in-flight renders) then `exit`. Does not wait for process exit — the
    * [DaemonSpawn] owner does that.
    */
-  public fun shutdownAndExit(timeout: Duration = 15.seconds) {
+  override fun shutdownAndExit(timeout: Duration) {
     if (closed.get()) return
     runCatching {
       val id = nextId.getAndIncrement()
