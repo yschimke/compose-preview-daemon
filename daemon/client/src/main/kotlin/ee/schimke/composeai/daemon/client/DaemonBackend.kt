@@ -78,37 +78,16 @@ public sealed interface DaemonBackend {
     /** Clamped, not rejected: an out-of-range level is a caller guess, not a failure. */
     public val effectiveSdkLevel: Int = sdkLevel.coerceIn(AndroidSdk.MIN_SDK, AndroidSdk.MAX_SDK)
 
-    /**
-     * Without the `--add-opens` set Robolectric's reflective access into `java.base` internals
-     * fails with `IllegalAccessException` on SDK 36 sandboxes (compose-ai-tools#1328).
-     */
-    override fun jvmArgs(): List<String> =
-      listOf(
-        ENABLE_NATIVE_ACCESS,
-        "--add-opens=java.base/java.io=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
-        "--add-opens=java.base/java.nio=ALL-UNNAMED",
-        "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
-      )
+    /** [RobolectricLaunch.jvmArgs] — a renderer fact, and identical for a jar-less caller. */
+    override fun jvmArgs(): List<String> = RobolectricLaunch.jvmArgs()
 
-    override fun systemProperties(): Map<String, String> = buildMap {
-      put("robolectric.graphicsMode", "NATIVE")
-      put("robolectric.looperMode", "PAUSED")
-      put("robolectric.conscryptMode", "OFF")
-      put("robolectric.pixelCopyRenderMode", "hardware")
-      put("roborazzi.test.record", "true")
-      putAll(fontSystemProperties())
-      // Android-only: the interceptor that fails a preview on an unresolved downloadable font is
-      // in `renderers/android`.
-      forwardIfSet("composeai.fonts.failOnFallback")
-    }
+    override fun systemProperties(): Map<String, String> = RobolectricLaunch.systemProperties()
 
     override val requiredArtifacts: List<DaemonRuntimeArtifact>
       get() = listOf(DaemonRuntimeArtifact.DAEMON_ANDROID, DaemonRuntimeArtifact.RENDERER)
 
     /** The `robolectric.properties` files Robolectric merges for this SDK level. */
-    public fun robolectricConfig(): RobolectricConfig = RobolectricConfig(effectiveSdkLevel)
+    public fun robolectricConfig(): RobolectricConfig = RobolectricLaunch.config(effectiveSdkLevel)
   }
 
   public companion object {
@@ -130,7 +109,7 @@ public sealed interface DaemonBackend {
     }
 
     /** Copies a property from this process to the child, only when this process actually set it. */
-    private fun MutableMap<String, String>.forwardIfSet(name: String) {
+    internal fun MutableMap<String, String>.forwardIfSet(name: String) {
       System.getProperty(name)?.let { put(name, it) }
     }
 

@@ -184,6 +184,19 @@ tarball, a Gradle configuration, a Maven resolution, an IDE plugin's bundled jar
   — the composable lane pins the stub `application=`, the app-tour lane must not — and their
   packages are **siblings**, since Robolectric merges a parent package's file into a child's.
 
+**A fifth piece, found by the first adoption.** `DaemonBackend.Android` carries an `android.jar`
+because a *daemon's classpath* needs one — but its `jvmArgs()` and `systemProperties()` never read
+it, so a caller launching the **renderer** directly for a one-shot batch render had to invent a jar
+to reach facts it needed. compose-ai-tools threaded one through three call sites to do exactly that,
+which broke `AndroidBundleLaunch`'s published constructor — a type compose-preview-server calls
+across a repository boundary (yschimke/compose-ai-tools#5379). The facts were in the right
+repository and behind the wrong door.
+
+`RobolectricLaunch` is the door: `jvmArgs()`, `systemProperties()` and `config(sdkLevel)` with no
+backend and no jar, and `DaemonBackend.Android` delegating to it so the two cannot drift. It is the
+positive form of the seam rule — *facts about the daemon here* is about the fact, not about the type
+that happened to hold it first.
+
 The whole descriptor is pinned by golden files (`daemon/client/src/test/resources/golden/`) rather
 than by per-field assertions. Every part of it is load-bearing and none of it is checked by a
 compiler in any consumer, so the only thing that catches a dropped `--add-opens` or a dropped font

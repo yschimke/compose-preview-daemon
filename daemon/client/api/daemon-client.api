@@ -315,6 +315,15 @@ public final class ee/schimke/composeai/daemon/client/RobolectricConfig {
 public final class ee/schimke/composeai/daemon/client/RobolectricConfig$Companion {
 }
 
+public final class ee/schimke/composeai/daemon/client/RobolectricLaunch {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/client/RobolectricLaunch;
+	public final fun config (IZ)Lee/schimke/composeai/daemon/client/RobolectricConfig;
+	public static synthetic fun config$default (Lee/schimke/composeai/daemon/client/RobolectricLaunch;IZILjava/lang/Object;)Lee/schimke/composeai/daemon/client/RobolectricConfig;
+	public final fun jvmArgs ()Ljava/util/List;
+	public final fun rendererJars (Lee/schimke/composeai/daemon/client/DaemonRuntimeLocation;)Ljava/util/List;
+	public final fun systemProperties ()Ljava/util/Map;
+}
+
 public final class ee/schimke/composeai/daemon/client/SandboxSparePool : java/lang/AutoCloseable {
 	public static final field Companion Lee/schimke/composeai/daemon/client/SandboxSparePool$Companion;
 	public static final field DEFAULT_MAX_SPARES I
