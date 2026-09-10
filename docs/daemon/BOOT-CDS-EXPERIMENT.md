@@ -137,3 +137,6 @@ and 514 compiler threads. Of 1,849 warm-render samples, 1,371 are application,
 [Full phase report](profiles/bindings-cds-profile.json). Activity-free hosting and
 further linkage/setup reductions remain concrete options; this is not a minimum
 completion claim.
+
+The [JDK 25 AOT comparison](BOOT-JDK25-AOT-EXPERIMENT.md) tests the next cache
+option against ordinary CDS on one JDK, retaining pixel/hierarchy parity checks.
