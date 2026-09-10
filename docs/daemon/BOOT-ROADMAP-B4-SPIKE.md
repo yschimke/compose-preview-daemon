@@ -215,3 +215,49 @@ production held-session compatibility. Production hosting remains unchanged.
 After adding input mode, one fresh broad static trial also passed all 117 frames,
 default hierarchies and matched-host full hierarchies. The input-specific settings
 do not change the static path's inspection mode or synchronization.
+
+### Android key and editing-connection checks
+
+The input mode now also includes `EditableTextFieldNativeKey` and
+`EditableTextFieldImeCommit`, both backed by the same self-focusing text fixture.
+The first injects an Android A key-down/key-up through Compose's root key injector.
+The second obtains the Android view's `InputConnection` with `onCreateInputConnection`
+and calls `commitText("x", 1)`, requiring a non-null connection and accepted commit.
+Neither uses `performTextInput`. Both must reach the fixture's exactly-one-character
+green state; a double insertion produces a different color and fails.
+
+One fresh Activity JVM and one standalone-window JVM passed all five input cases
+for three cycles: **30 frames**, with independent green-state checks and exact
+PNG/default/full hierarchy parity. This verifies Android key delivery and the
+editing-connection route. It does not simulate an entire IME service, visible
+keyboard/insets, keyboard switching, or cross-window focus transfer.
+[Recorded checks](profiles/activity-free-native-input-spike.json).
+
+### Popup capture and window stacking
+
+The broad static mode now includes `MultipleSemanticsRoots` and
+`VisualOnlySurfaceWithPopup` (15 fixtures total). The latter draws a main surface
+with no semantics children, so it also checks that the popup does not become the
+hierarchy's subject just because it has more semantics.
+
+The first run failed: both minimal hosts exported the main red surface but omitted
+the blue popup from the image. Production's Roborazzi semantics capture composites
+multiple windows; the spike's direct view bitmap fetch did not. Using screen capture
+for multiple non-dialog Compose roots fixed the Activity control, but the standalone
+window still hid the popup. Its `TYPE_APPLICATION_OVERLAY` put the main surface above
+the popup in window stacking order. Changing it to `TYPE_APPLICATION` fixed that
+second defect. No Activity or ActivityScenario is introduced in the window mode.
+
+One fresh trial then matched **135 PNGs and default hierarchy artifacts**, plus
+**90 full hierarchy artifacts**, across all 15 fixtures and three cycles.
+[Recorded checks](profiles/activity-free-popup-spike.json). The earlier 13-fixture
+performance table is historical; these correctness runs do not establish an updated
+speed estimate. Current broad and input commands run 15 and 5 fixtures respectively.
+
+These fixes remain in the opt-in test host. General popup positioning, dimming,
+focus transfer, non-Compose windows and arbitrary dialog geometry still require
+coverage before production adoption.
+
+After the window-type correction, the five-case input workload was rerun in fresh
+Activity/window JVMs. All 30 frames, both hierarchies and independent green-state
+checks passed again, including native key delivery and the editing connection.

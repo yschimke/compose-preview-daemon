@@ -14,11 +14,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.ViewRootForTest
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.lifecycle.Lifecycle
@@ -34,6 +36,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
 import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.github.takahirom.roborazzi.captureScreenRoboImage
 import com.github.takahirom.roborazzi.fetchImage
 import ee.schimke.composeai.daemon.pool.SandboxProcessPool
 import ee.schimke.composeai.renderer.uiautomator.UiAutomatorHierarchyExtractor
@@ -132,7 +135,14 @@ class ActivityFreeCaptureSpikeTest {
 object ActivityFreeCaptureSpikeMain {
   val inputMode = System.getenv("COMPOSEAI_ACTIVITY_FREE_INPUT") == "true"
   val fixtures =
-    if (inputMode) listOf("ClickToggleSquare", "ClickableToggleSquare", "EditableTextFieldSquare")
+    if (inputMode)
+      listOf(
+        "ClickToggleSquare",
+        "ClickableToggleSquare",
+        "EditableTextFieldSquare",
+        "EditableTextFieldNativeKey",
+        "EditableTextFieldImeCommit",
+      )
     else
       listOf(
         "RedSquare",
@@ -151,6 +161,8 @@ object ActivityFreeCaptureSpikeMain {
             "LazyColumnListPreview",
             "EditableTextFieldSquare",
             "GenericOutlineShapeSquare",
+            "MultipleSemanticsRoots",
+            "VisualOnlySurfaceWithPopup",
           )
         } else emptyList()
 
@@ -231,7 +243,7 @@ object ActivityFreeCaptureSpikeMain {
     }
   }
 
-  @OptIn(ExperimentalRoborazziApi::class)
+  @OptIn(ExperimentalRoborazziApi::class, ExperimentalTestApi::class)
   @Suppress("DEPRECATION")
   private fun captureWindow(name: String, outputName: String, useActivity: Boolean) {
     var phaseStart = System.nanoTime()
@@ -336,7 +348,7 @@ object ActivityFreeCaptureSpikeMain {
                   WindowManager.LayoutParams(
                       320,
                       320,
-                      WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                      WindowManager.LayoutParams.TYPE_APPLICATION,
                       WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                       PixelFormat.TRANSLUCENT,
                     )
@@ -373,6 +385,22 @@ object ActivityFreeCaptureSpikeMain {
             if (inputMode) {
               if (name == "EditableTextFieldSquare") {
                 rule.onNode(hasSetTextAction()).performTextInput("x")
+              } else if (name == "EditableTextFieldNativeKey") {
+                rule.onRoot().performKeyInput { keyDown(androidx.compose.ui.input.key.Key.A) }
+                advanceInputClocks(32)
+                rule.waitForIdle()
+                rule.onRoot().performKeyInput { keyUp(androidx.compose.ui.input.key.Key.A) }
+              } else if (name == "EditableTextFieldImeCommit") {
+                val root = rule.onRoot().fetchSemanticsNode().root as ViewRootForTest
+                rule.runOnUiThread {
+                  val connection =
+                    checkNotNull(
+                      root.view.onCreateInputConnection(android.view.inputmethod.EditorInfo())
+                    ) {
+                      "Focused text field did not expose an Android InputConnection"
+                    }
+                  check(connection.commitText("x", 1)) { "InputConnection rejected commitText" }
+                }
               } else {
                 rule.onRoot().performTouchInput { down(center) }
                 advanceInputClocks(16)
@@ -408,6 +436,10 @@ object ActivityFreeCaptureSpikeMain {
                 )
               android.graphics.Bitmap.createScaledBitmap(bitmap, 320, 320, true)
                 .captureRoboImage(file = renders.resolve("$outputName.png"))
+            } else if (roots.size > 1) {
+              // Production's semantics capture composites popup windows into the screen. Fetching
+              // only the main view silently omits them even when its semantics root is correct.
+              captureScreenRoboImage(file = renders.resolve("$outputName.png"))
             } else {
               requireNotNull(
                   (roots[index].root as ViewRootForTest)
@@ -468,6 +500,8 @@ object ActivityFreeCaptureSpikeMain {
       "MaterialButtonInteractionState" -> MaterialButtonInteractionState()
       "SerifTextPreview" -> SerifTextPreview()
       "DialogWindowSurface" -> DialogWindowSurface()
+      "MultipleSemanticsRoots" -> MultipleSemanticsRoots()
+      "VisualOnlySurfaceWithPopup" -> VisualOnlySurfaceWithPopup()
       "OpaqueImageSquare" -> OpaqueImageSquare()
       "GradientBackgroundCard" -> GradientBackgroundCard()
       "RadialGradientBackgroundCard" -> RadialGradientBackgroundCard()
@@ -475,7 +509,9 @@ object ActivityFreeCaptureSpikeMain {
       "GraphicsLayerAndWideVector" -> GraphicsLayerAndWideVector()
       "IconButtonRowInputBar" -> IconButtonRowInputBar()
       "LazyColumnListPreview" -> LazyColumnListPreview()
-      "EditableTextFieldSquare" -> EditableTextFieldSquare()
+      "EditableTextFieldSquare",
+      "EditableTextFieldNativeKey",
+      "EditableTextFieldImeCommit" -> EditableTextFieldSquare()
       "GenericOutlineShapeSquare" -> GenericOutlineShapeSquare()
       else -> error(name)
     }
