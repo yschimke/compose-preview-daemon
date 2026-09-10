@@ -1,3 +1,57 @@
+public final class ee/schimke/composeai/daemon/client/AndroidSdk {
+	public static final field DEFAULT_SDK I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/client/AndroidSdk;
+	public static final field MAX_SDK I
+	public static final field MIN_SDK I
+	public final fun discover (Ljava/io/File;Lkotlin/jvm/functions/Function1;)Ljava/io/File;
+	public static synthetic fun discover$default (Lee/schimke/composeai/daemon/client/AndroidSdk;Ljava/io/File;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/io/File;
+}
+
+public abstract interface class ee/schimke/composeai/daemon/client/DaemonBackend {
+	public static final field Companion Lee/schimke/composeai/daemon/client/DaemonBackend$Companion;
+	public abstract fun getRequiredArtifacts ()Ljava/util/List;
+	public abstract fun jvmArgs ()Ljava/util/List;
+	public abstract fun systemProperties ()Ljava/util/Map;
+}
+
+public final class ee/schimke/composeai/daemon/client/DaemonBackend$Android : ee/schimke/composeai/daemon/client/DaemonBackend {
+	public fun <init> (Ljava/io/File;I)V
+	public synthetic fun <init> (Ljava/io/File;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/io/File;
+	public final fun component2 ()I
+	public final fun copy (Ljava/io/File;I)Lee/schimke/composeai/daemon/client/DaemonBackend$Android;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/client/DaemonBackend$Android;Ljava/io/File;IILjava/lang/Object;)Lee/schimke/composeai/daemon/client/DaemonBackend$Android;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAndroidJar ()Ljava/io/File;
+	public final fun getEffectiveSdkLevel ()I
+	public fun getRequiredArtifacts ()Ljava/util/List;
+	public final fun getSdkLevel ()I
+	public fun hashCode ()I
+	public fun jvmArgs ()Ljava/util/List;
+	public final fun robolectricConfig ()Lee/schimke/composeai/daemon/client/RobolectricConfig;
+	public fun systemProperties ()Ljava/util/Map;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/client/DaemonBackend$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/client/DaemonBackend$Desktop : ee/schimke/composeai/daemon/client/DaemonBackend {
+	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lee/schimke/composeai/daemon/client/DaemonBackend$Desktop;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/client/DaemonBackend$Desktop;ZILjava/lang/Object;)Lee/schimke/composeai/daemon/client/DaemonBackend$Desktop;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBackgroundAgent ()Z
+	public fun getRequiredArtifacts ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun jvmArgs ()Ljava/util/List;
+	public fun systemProperties ()Ljava/util/Map;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class ee/schimke/composeai/daemon/client/DaemonClient : ee/schimke/composeai/daemon/client/DaemonSession, java/io/Closeable {
 	public fun <init> (Ljava/io/InputStream;Ljava/io/OutputStream;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/io/InputStream;Ljava/io/OutputStream;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -54,6 +108,40 @@ public final class ee/schimke/composeai/daemon/client/DaemonLaunchOptions {
 	public final fun getWarmSpare ()Ljava/lang/Boolean;
 	public final fun getWorkspaceRoot ()Ljava/lang/String;
 	public final fun toSystemProperties ()Ljava/util/Map;
+}
+
+public final class ee/schimke/composeai/daemon/client/DaemonLaunchPlan {
+	public static final field Companion Lee/schimke/composeai/daemon/client/DaemonLaunchPlan$Companion;
+	public static final field DAEMON_LAUNCH_SCHEMA_VERSION I
+	public static final field DAEMON_MAIN_CLASS Ljava/lang/String;
+	public static final field ROBOLECTRIC_CONFIG_DIR Ljava/lang/String;
+	public fun <init> (Lee/schimke/composeai/daemon/client/DaemonBackend;Ljava/util/List;Lee/schimke/composeai/daemon/client/DaemonRuntimeLocation;Ljava/io/File;Lee/schimke/composeai/daemon/client/DaemonLaunchOptions;Ljava/lang/String;Ljava/io/File;)V
+	public synthetic fun <init> (Lee/schimke/composeai/daemon/client/DaemonBackend;Ljava/util/List;Lee/schimke/composeai/daemon/client/DaemonRuntimeLocation;Ljava/io/File;Lee/schimke/composeai/daemon/client/DaemonLaunchOptions;Ljava/lang/String;Ljava/io/File;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun describe ()Lee/schimke/composeai/daemon/protocol/DaemonLaunchDescriptor;
+	public final fun getApplicationClasspath ()Ljava/util/List;
+	public final fun getBackend ()Lee/schimke/composeai/daemon/client/DaemonBackend;
+	public final fun getJavaLauncher ()Ljava/io/File;
+	public final fun getModulePath ()Ljava/lang/String;
+	public final fun getOptions ()Lee/schimke/composeai/daemon/client/DaemonLaunchOptions;
+	public final fun getRuntime ()Lee/schimke/composeai/daemon/client/DaemonRuntimeLocation;
+	public final fun getWorkingDirectory ()Ljava/io/File;
+	public final fun missingArtifacts ()Ljava/util/List;
+}
+
+public final class ee/schimke/composeai/daemon/client/DaemonLaunchPlan$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/client/DaemonRuntimeArtifact : java/lang/Enum {
+	public static final field DAEMON_ANDROID Lee/schimke/composeai/daemon/client/DaemonRuntimeArtifact;
+	public static final field DAEMON_DESKTOP Lee/schimke/composeai/daemon/client/DaemonRuntimeArtifact;
+	public static final field RENDERER Lee/schimke/composeai/daemon/client/DaemonRuntimeArtifact;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/daemon/client/DaemonRuntimeArtifact;
+	public static fun values ()[Lee/schimke/composeai/daemon/client/DaemonRuntimeArtifact;
+}
+
+public abstract interface class ee/schimke/composeai/daemon/client/DaemonRuntimeLocation {
+	public abstract fun jarsFor (Lee/schimke/composeai/daemon/client/DaemonRuntimeArtifact;)Ljava/util/List;
 }
 
 public abstract interface class ee/schimke/composeai/daemon/client/DaemonSession : java/io/Closeable {
@@ -148,6 +236,23 @@ public final class ee/schimke/composeai/daemon/client/DataProductWireException :
 
 public final class ee/schimke/composeai/daemon/client/DataProductWireException$Companion {
 	public final fun from (Lkotlinx/serialization/json/JsonObject;)Lee/schimke/composeai/daemon/client/DataProductWireException;
+}
+
+public final class ee/schimke/composeai/daemon/client/RobolectricConfig {
+	public static final field APP_TOUR_PACKAGE Ljava/lang/String;
+	public static final field Companion Lee/schimke/composeai/daemon/client/RobolectricConfig$Companion;
+	public static final field FILE_NAME Ljava/lang/String;
+	public static final field RENDERER_PACKAGE Ljava/lang/String;
+	public fun <init> (IZ)V
+	public synthetic fun <init> (IZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun appTourLaneBody ()Ljava/lang/String;
+	public final fun composableLaneBody ()Ljava/lang/String;
+	public final fun getSdkLevel ()I
+	public final fun getUseConsumerApplication ()Z
+	public final fun writeTo (Ljava/io/File;)Ljava/io/File;
+}
+
+public final class ee/schimke/composeai/daemon/client/RobolectricConfig$Companion {
 }
 
 public final class ee/schimke/composeai/daemon/client/SandboxSparePool : java/lang/AutoCloseable {

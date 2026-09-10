@@ -1,0 +1,29 @@
+schemaVersion=2
+modulePath=:app
+variant=android
+enabled=true
+mainClass=ee.schimke.composeai.daemon.DaemonMain
+javaLauncher=/jdk/bin/java
+workingDirectory=<work>
+manifestPath=
+classpath:
+  <work>/robolectric-config
+  /sdk/platforms/android-35/android.jar
+  /app/classes
+  /runtime/daemon-android.jar
+  /runtime/renderer.jar
+jvmArgs:
+  --enable-native-access=ALL-UNNAMED
+  --add-opens=java.base/java.io=ALL-UNNAMED
+  --add-opens=java.base/java.lang=ALL-UNNAMED
+  --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+  --add-opens=java.base/java.nio=ALL-UNNAMED
+  --add-opens=java.base/jdk.internal.access=ALL-UNNAMED
+systemProperties:
+  composeai.daemon.userClassDirs=/app/classes
+  composeai.fonts.cacheDir=<fontsCache>
+  robolectric.conscryptMode=OFF
+  robolectric.graphicsMode=NATIVE
+  robolectric.looperMode=PAUSED
+  robolectric.pixelCopyRenderMode=hardware
+  roborazzi.test.record=true

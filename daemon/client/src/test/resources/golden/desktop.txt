@@ -1,0 +1,22 @@
+schemaVersion=2
+modulePath=:app
+variant=desktop
+enabled=true
+mainClass=ee.schimke.composeai.daemon.DaemonMain
+javaLauncher=<inherit>
+workingDirectory=<work>
+manifestPath=/app/build/compose-previews/previews.json
+classpath:
+  /app/classes
+  /app/libs/kotlin-stdlib.jar
+  /runtime/daemon-desktop.jar
+  /runtime/renderer.jar
+jvmArgs:
+  --enable-native-access=ALL-UNNAMED
+  -Dapple.awt.UIElement=true
+systemProperties:
+  composeai.daemon.idleTimeoutMs=90000
+  composeai.daemon.previewsJsonPath=/app/build/compose-previews/previews.json
+  composeai.daemon.sandboxCount=2
+  composeai.daemon.userClassDirs=/app/classes
+  composeai.fonts.cacheDir=<fontsCache>

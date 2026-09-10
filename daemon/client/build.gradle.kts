@@ -42,6 +42,12 @@ kotlin {
 // change would pass CI silently. Wire it explicitly — the gate is only worth having if it runs.
 tasks.named("check") { dependsOn("checkKotlinAbi") }
 
+// The golden descriptor files are recorded, not hand-written. `-Dcomposeai.updateGolden=true` has
+// to reach the test JVM to rewrite them, and a system property set on Gradle's own JVM does not.
+tasks.withType<Test>().configureEach {
+  System.getProperty("composeai.updateGolden")?.let { systemProperty("composeai.updateGolden", it) }
+}
+
 dependencies {
   // Protocol message types (`RenderNowParams`, `InitializeResult`, `PreviewOverrides`, …) and
   // `DaemonLaunchDescriptor` are all over this module's public surface, so `api` rather than

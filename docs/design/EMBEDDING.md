@@ -3,7 +3,7 @@
 **Status: decided; being built.** It exists to settle one question — *what does this repository own
 when somebody wants to run a daemon, and what does the caller own?* The three questions it opened
 with are answered under "The decisions" below, and the status table there says which pieces exist.
-Pieces 3 (`DaemonSession`) and 2 (`DaemonLaunchOptions`) have landed; pieces 1 and 4 have not.
+Pieces 3 (`DaemonSession`), 2 (`DaemonLaunchOptions`) and 1 (`DaemonLaunchPlan`) have landed; piece 4 has not.
 
 The framing assumption, given: **this daemon should be generally reusable outside
 compose-ai-tools and compose-preview-server.** That raises the bar. An API that only has to satisfy
@@ -167,6 +167,28 @@ CLI install *is* the CLI's business and stays there — but which artifacts a ba
 the daemon states the requirement and the caller satisfies it however its packaging works (a CLI
 tarball, a Gradle configuration, a Maven resolution, an IDE plugin's bundled jars).
 
+**As landed**, four differences from the sketch above, each forced by the code rather than chosen:
+
+- `Desktop` is a `data class` with `backgroundAgent: Boolean = true`, not an `object`.
+  `-Dapple.awt.UIElement=true` has to be a **JVM arg**, because AWT initialises before the daemon
+  reads any property, and a headless embedder needs to be able to turn it off.
+- SDK discovery is `AndroidSdk.discover(localPropertiesFile, env)` rather than a companion on
+  `Android`, and it reads `sdk.dir` from a `local.properties` before the environment — which is the
+  order a Gradle build already resolves in, and the reason the Gradle-plugin path could find an SDK
+  the CLI path could not. Both inputs are parameters, so the resolution is testable without
+  mutating the process environment.
+- An out-of-range `sdkLevel` is **clamped**, not rejected: the ceiling is whichever
+  `android-all-instrumented` jars the bundled Robolectric ships, which is our fact, not a caller
+  error.
+- `robolectric.properties` synthesis is its own type, `RobolectricConfig`, because it has two lanes
+  — the composable lane pins the stub `application=`, the app-tour lane must not — and their
+  packages are **siblings**, since Robolectric merges a parent package's file into a child's.
+
+The whole descriptor is pinned by golden files (`daemon/client/src/test/resources/golden/`) rather
+than by per-field assertions. Every part of it is load-bearing and none of it is checked by a
+compiler in any consumer, so the only thing that catches a dropped `--add-opens` or a dropped font
+property is an assertion over the entire output.
+
 ### 2. `DaemonLaunchOptions` — the writer side of the registry
 
 Typed fields that render into the sysprop map, so no caller spells a name:
@@ -311,5 +333,5 @@ settle.
 | --- | --- |
 | 3. `DaemonSession` interface | **landed** |
 | 2. `DaemonLaunchOptions` | **landed** — with `DaemonProperty.render`, the inverse of `parse` |
-| 1. `DaemonLaunchPlan` | not started |
+| 1. `DaemonLaunchPlan` | **landed** — with `DaemonBackend`, `RobolectricConfig`, `AndroidSdk` and golden descriptors |
 | 4. `ManagedDaemon` | not started |
