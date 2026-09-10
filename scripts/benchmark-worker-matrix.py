@@ -2,7 +2,7 @@
 """Run sequential, rotated fresh-worker trials and require visual/hierarchy parity.
 
 Matrix JSON is a list of {"name": "default", "jvmArgs": [], "java": "/path/to/java"}.
-The java field can be omitted when --java supplies the default. Results keep each
+Optional java and classpath fields override --java and --classpath per variant. Results keep each
 worker's summary and logs; no production launch settings are changed.
 """
 import argparse
@@ -60,7 +60,7 @@ def main():
             name = variant["name"]
             directory = output / f"{trial}-{name}"
             command = [sys.executable, str(Path(__file__).with_name("benchmark-worker-startup.py")),
-                "--classpath", str(args.classpath.resolve()),
+                "--classpath", str(Path(variant.get("classpath") or args.classpath).resolve()),
                 "--java", variant.get("java") or args.java,
                 "--output", str(directory), "--renders", str(args.renders)]
             for fixture in args.fixture:

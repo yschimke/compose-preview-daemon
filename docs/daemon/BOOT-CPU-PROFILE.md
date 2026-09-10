@@ -150,3 +150,6 @@ wall timestamps and process CPU counters. It is still opt-in.
 
 The [method-handle follow-up](BOOT-METHOD-HANDLE-EXPERIMENT.md) extends this to rotated
 91-frame mixed workloads and records which apparent JVM-setting gains survive repetition.
+
+The [frozen-binding experiment](BOOT-FROZEN-BINDINGS-EXPERIMENT.md) measures the
+cost of shadow-map invalidation machinery with guarded, isolated dependency jars.
