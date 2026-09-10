@@ -1601,6 +1601,10 @@ public final class ee/schimke/composeai/daemon/RenderSpec$SpecUiMode : java/lang
 	public static fun values ()[Lee/schimke/composeai/daemon/RenderSpec$SpecUiMode;
 }
 
+public final class ee/schimke/composeai/daemon/RenderSpecMergeKt {
+	public static final fun mergedWith (Lee/schimke/composeai/daemon/RenderSpec;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/daemon/RenderSpec;
+}
+
 public abstract interface class ee/schimke/composeai/daemon/RenderTarget {
 	public static final field Companion Lee/schimke/composeai/daemon/RenderTarget$Companion;
 }

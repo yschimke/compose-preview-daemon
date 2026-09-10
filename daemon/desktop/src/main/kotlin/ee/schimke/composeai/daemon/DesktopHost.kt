@@ -2,8 +2,6 @@ package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.protocol.DataExtensionDescriptor
-import ee.schimke.composeai.daemon.protocol.Orientation
-import ee.schimke.composeai.daemon.protocol.UiMode
 import ee.schimke.composeai.data.render.extensions.RecordingScriptDataExtensions
 import ee.schimke.composeai.io.composeAiCacheDir
 import java.io.File
@@ -598,133 +596,18 @@ open class DesktopHost(
   ): RenderSpec = applyOverrides(base, overrides, "test-session")
 
   /**
-   * Merge [overrides] over [base], resolving `device` against [DeviceDimensions] when present.
-   * Mirrors what `JsonRpcServer.renderTargetFor` + [specFromPreviewTarget] do on the renderNow
-   * path; recording resolves its spec once when the session opens rather than per frame.
+   * Merge [overrides] over [base] for a held session (`recording/start`, `stream/start`).
    *
-   * Explicit `widthPx` / `heightPx` / `density` overrides win over `device`-resolved values.
-   * Issue #1208 — `orientation` swaps the resolved `widthPx`/`heightPx` when the request conflicts
-   * with the current aspect ratio; otherwise the swap is a no-op (an idempotent hint, not a forced
-   * rotation). Only an explicit pixel dimension suppresses it — a `device` token does not, since
-   * the device is the frame being rotated (issue #3547). `mergePreviewOverrides` performs the swap
-   * and reports it as `rotated`, which this function reads to trade the wrap flags with it.
-   * `outputBaseName` is rewritten to `recording-<recordingId>` so a stray engine fast-path encode
-   * (only used by the one-shot `engine.render` wrapper, not by the recording flow) wouldn't collide
-   * with another preview's PNG. The recording flow itself never reads it.
+   * The merge itself is [mergedWith], shared with every other lane; the only thing this adds is the
+   * output stem. `outputBaseName` is rewritten to `recording-<recordingId>` so a stray engine
+   * fast-path encode (used by the one-shot `engine.render` wrapper, not by the recording flow)
+   * cannot collide with another preview's PNG. The recording flow itself never reads it.
    */
   private fun applyOverrides(
     base: RenderSpec,
     overrides: ee.schimke.composeai.daemon.protocol.PreviewOverrides?,
     recordingId: String,
-  ): RenderSpec {
-    val merged =
-      mergePreviewOverrides(
-        base =
-          PreviewOverrideBaseSpec(
-              widthPx = base.widthPx,
-              heightPx = base.heightPx,
-              density = base.density,
-              device = base.device,
-              localeTag = base.localeTag,
-              fontScale = base.fontScale,
-              uiMode =
-                when (base.uiMode) {
-                  RenderSpec.SpecUiMode.LIGHT -> ee.schimke.composeai.daemon.protocol.UiMode.LIGHT
-                  RenderSpec.SpecUiMode.DARK -> ee.schimke.composeai.daemon.protocol.UiMode.DARK
-                  null -> null
-                },
-              orientation =
-                when (base.orientation) {
-                  RenderSpec.SpecOrientation.PORTRAIT ->
-                    ee.schimke.composeai.daemon.protocol.Orientation.PORTRAIT
-                  RenderSpec.SpecOrientation.LANDSCAPE ->
-                    ee.schimke.composeai.daemon.protocol.Orientation.LANDSCAPE
-                  null -> null
-                },
-              inspectionMode = base.inspectionMode,
-            )
-            // Every extension-consumed field the resolved spec already carries — the baked
-            // `@OverrideVariant` seed above all, but also focus / talkBack / permissions / … —
-            // becomes the floor the per-render overlay lands on. Copied wholesale rather than
-            // named here, so this adapter can't fall behind the protocol (see
-            // `withCarriedOverrides`; yschimke/wear-m3-catalog#33).
-            .withCarriedOverrides(base.overrides),
-        overrides = overrides,
-      )
-    val uiMode =
-      when (merged.uiMode) {
-        ee.schimke.composeai.daemon.protocol.UiMode.LIGHT -> RenderSpec.SpecUiMode.LIGHT
-        ee.schimke.composeai.daemon.protocol.UiMode.DARK -> RenderSpec.SpecUiMode.DARK
-        null -> null
-      }
-    val orientation =
-      when (merged.orientation) {
-        ee.schimke.composeai.daemon.protocol.Orientation.PORTRAIT ->
-          RenderSpec.SpecOrientation.PORTRAIT
-        ee.schimke.composeai.daemon.protocol.Orientation.LANDSCAPE ->
-          RenderSpec.SpecOrientation.LANDSCAPE
-        null -> null
-      }
-    // Issue #1208 — orientation is an idempotent hint meaning "make it look like X", not a forced
-    // rotation: only swap when the requested orientation conflicts with the current aspect ratio.
-    // A base whose shape already matches the request (e.g. landscape 120×60 + LANDSCAPE) stays
-    // put, otherwise repeated calls would flip back and forth. Explicit `widthPx` / `heightPx`
-    // still win over the hint; `device` no longer does (#3547 — a device is the frame being
-    // rotated, not a caller naming exact pixels).
-    //
-    // `mergePreviewOverrides` performs that swap now, so this host reads the result rather than
-    // repeating the decision — a second `shouldSwap` here would always be false against the
-    // already-rotated dimensions, which is precisely how the wrap-flag swap below went stale.
-    val effectiveWidthPx = merged.widthPx
-    val effectiveHeightPx = merged.heightPx
-    // A held-session override that pins an axis (explicit px, or a device that pins both) must
-    // clear
-    // that axis's wrap flag — otherwise a no-size preview forced to a device / explicit canvas
-    // would
-    // still wrap-content inside the override box, unlike the renderNow router path which omits the
-    // wrap token when a size/device is supplied. `mergePreviewOverrides` already replaced the px
-    // with
-    // the override value; here we drop the now-stale wrap intent for the pinned axis.
-    val deviceSupplied = overrides?.device?.takeIf { it.isNotBlank() } != null
-    val wrapWidth = base.wrapWidth && overrides?.widthPx == null && !deviceSupplied
-    val wrapHeight = base.wrapHeight && overrides?.heightPx == null && !deviceSupplied
-    return base.copy(
-      widthPx = effectiveWidthPx,
-      heightPx = effectiveHeightPx,
-      wrapWidth = if (merged.rotated) wrapHeight else wrapWidth,
-      wrapHeight = if (merged.rotated) wrapWidth else wrapHeight,
-      density = merged.density,
-      device = merged.device,
-      localeTag = merged.localeTag,
-      fontScale = merged.fontScale,
-      uiMode = uiMode,
-      orientation = orientation,
-      inspectionMode = merged.inspectionMode,
-      // `clearBackground` isn't a `mergePreviewOverrides` field (it's not a display-geometry knob),
-      // so carry it straight from the override bag onto the held/recording spec — otherwise the
-      // live `stream/start` + recording paths would keep the opaque background when the viewer's
-      // Background → Clear toggle sends `PreviewOverrides(clearBackground = true)`. Null preserves
-      // the discovery-time value.
-      clearBackground = overrides?.clearBackground ?: base.clearBackground,
-      // Per-render figma-svg background mode. Null (say nothing) leaves the export
-      // background-free. See RenderSpec.svgBackground.
-      svgBackground = overrides?.svgBackground ?: base.svgBackground,
-      // Carry a `themeProvider` selection through the held/live path: toExtensionOverrides() drops
-      // it
-      // (it's renderer-read, not extension-consumed), but the renderer reads spec.overrides
-      // directly,
-      // so without this a live App-theme change would keep the default wrapper.
-      overrides =
-        merged
-          .toExtensionOverrides()
-          .withThemeProvider(overrides?.themeProvider ?: base.overrides?.themeProvider)
-          // Size bounds (Max / Min / Within) are renderer-read like themeProvider, so carry them
-          // through the held/live projection or a live size-mode change would drop to unbounded
-          // wrap.
-          .withSizeBounds(overrides ?: base.overrides),
-      outputBaseName = "recording-$recordingId",
-    )
-  }
+  ): RenderSpec = base.mergedWith(overrides).copy(outputBaseName = "recording-$recordingId")
 
   /**
    * Sends the poison pill, drains the in-flight render (DESIGN § 9 invariant: never aborts a render
@@ -854,76 +737,20 @@ open class DesktopHost(
    * Resolves an unresolved [RenderTarget.Preview] into the [RenderSpec] the engine renders — the
    * lane the bundle-backed live daemon (`serve` / preview.coo.ee) takes for a `renderNow`.
    *
+   * The merge is [mergedWith], shared with the held-session and router lanes; what belongs to this
+   * lane is only the identity carried off the request. The *requested* id is what goes on the spec,
+   * not the base entry's — a `@PreviewParameter` row render is its own preview as far as every
+   * downstream consumer keyed by previewId is concerned (data products, history, the panel's card).
+   *
    * Visible for testing; otherwise reachable only by standing up a host and rendering.
    */
   internal fun specFromPreviewTarget(target: RenderTarget.Preview): RenderSpec? {
     val previewId = target.previewId.takeIf { it.isNotBlank() } ?: return null
     val resolver = previewSpecResolver ?: return null
     val base = resolver(previewId) ?: return null
-    val overrides = target.overrides
-    val widthOverride = overrides?.widthPx
-    val heightOverride = overrides?.heightPx
-    val orientation =
-      when (overrides?.orientation) {
-        Orientation.PORTRAIT -> RenderSpec.SpecOrientation.PORTRAIT
-        Orientation.LANDSCAPE -> RenderSpec.SpecOrientation.LANDSCAPE
-        null -> base.orientation
-      }
-    // Issue #1208 — desktop has no display rotation, but `LANDSCAPE` / `PORTRAIT` reduce to a
-    // `widthPx ↔ heightPx` swap. The hint is idempotent: only swap when the requested orientation
-    // conflicts with the current aspect ratio (e.g. landscape-base + LANDSCAPE = no-op). Explicit
-    // pixel overrides — including the device-derived dims `JsonRpcServer.renderTargetFor` resolves
-    // onto the overrides — win over the hint, so we only swap when neither axis was supplied.
-    // `PreviewManifestRouter` resolves its manifest defaults onto both axes, so the swap fires on
-    // the router side instead — see [PreviewManifestRouter.routeTarget].
-    val baseWidthPx = widthOverride ?: base.widthPx
-    val baseHeightPx = heightOverride ?: base.heightPx
-    val shouldSwap =
-      widthOverride == null &&
-        heightOverride == null &&
-        when (orientation) {
-          RenderSpec.SpecOrientation.LANDSCAPE -> baseHeightPx > baseWidthPx
-          RenderSpec.SpecOrientation.PORTRAIT -> baseWidthPx > baseHeightPx
-          null -> false
-        }
-    return base.copy(
-      previewId = previewId,
-      renderMode = target.renderMode?.takeIf { it.isNotBlank() },
-      widthPx = if (shouldSwap) baseHeightPx else baseWidthPx,
-      heightPx = if (shouldSwap) baseWidthPx else baseHeightPx,
-      // The wrap flags name an *axis*, so a rotated frame trades them — without this a
-      // fixed-width / wrapped-height preview turned portrait keeps wrapping height and the
-      // measure-and-crop pass sizes the axis that is no longer free (#3552 review). Same trade as
-      // `applyOverrides`, `reshapeRenderTarget` and both routers.
-      //
-      // The `@CaptureGutter` edges carried on `base` are deliberately NOT traded with them, and
-      // ride through this `copy` untouched (issue #4443). A wrap flag names an axis of the frame;
-      // a gutter edge names a direction the component draws in, and a `widthPx ↔ heightPx` swap
-      // does not turn the component over — its shadow still falls downward, so `bottom` stays
-      // `bottom`. See `RenderSpec.captureGutterPx`.
-      wrapWidth = if (shouldSwap) base.wrapHeight else base.wrapWidth,
-      wrapHeight = if (shouldSwap) base.wrapWidth else base.wrapHeight,
-      density = overrides?.density ?: base.density,
-      localeTag = overrides?.localeTag?.takeIf { it.isNotBlank() } ?: base.localeTag,
-      fontScale = overrides?.fontScale ?: base.fontScale,
-      uiMode =
-        when (overrides?.uiMode) {
-          UiMode.LIGHT -> RenderSpec.SpecUiMode.LIGHT
-          UiMode.DARK -> RenderSpec.SpecUiMode.DARK
-          null -> base.uiMode
-        },
-      orientation = orientation,
-      inspectionMode = overrides?.inspectionMode ?: base.inspectionMode,
-      slotMode = overrides?.slotMode ?: base.slotMode,
-      clearBackground = overrides?.clearBackground ?: base.clearBackground,
-      svgBackground = overrides?.svgBackground ?: base.svgBackground,
-      // The per-call bag is a sparse overlay — it carries only the field the caller edited — so
-      // layer it *over* `base.overrides` (per-key for `namedOverrides`) rather than replacing
-      // wholesale, or a one-knob edit would drop any theme / wallpaper / other seeds the resolved
-      // base spec already declares. Today's serve resolver leaves `base.overrides` null, but
-      // interactive / recording resolvers don't, and this keeps the seam correct for them.
-      overrides = overrides?.layeredOver(base.overrides) ?: base.overrides,
-    )
+    return base
+      .mergedWith(target.overrides)
+      .copy(previewId = previewId, renderMode = target.renderMode?.takeIf { it.isNotBlank() })
   }
 
   /**

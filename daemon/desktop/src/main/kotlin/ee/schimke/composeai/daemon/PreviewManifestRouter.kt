@@ -1,11 +1,8 @@
 package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.devices.DeviceDimensions
-import ee.schimke.composeai.daemon.devices.FrameOrientation
 import ee.schimke.composeai.daemon.devices.frameDpOverriddenBy
-import ee.schimke.composeai.daemon.protocol.Orientation
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
-import ee.schimke.composeai.daemon.protocol.UiMode
 import ee.schimke.composeai.data.overrides.OverrideVariantSpec
 import ee.schimke.composeai.io.SystemFileSystem
 import java.io.File
@@ -78,14 +75,12 @@ class PreviewManifestRouter(
    * Resolves an unresolved [RenderTarget.Preview] against the manifest into the [RenderTarget.Spec]
    * the parent host renders. Any already-resolved target passes through.
    *
-   * Split out of [submit] — as on the Android twin — so the routing rules are unit-testable without
-   * standing a render thread up. It used to rewrite one `;`-delimited payload string into another;
-   * it now builds the [RenderSpec] directly, which is what the string was a serialization of.
+   * The merge is [mergedWith], shared with the host's `renderNow` and held-session lanes. What is
+   * this lane's own is the manifest lookup — including row addressing — and the output stem.
    */
   internal fun routeTarget(target: RenderTarget): RenderTarget {
     val preview = target as? RenderTarget.Preview ?: return target
     val previewId = preview.previewId
-    val overrides = preview.overrides
     // Issue #3749 — an exact manifest hit is the ordinary case; a miss may still be a
     // `@PreviewParameter` **row** of a known base id (`<baseId>_Dark` / `<baseId>_PARAM_4`), which
     // discovery could not have enumerated. [rowAddressed] resolves that against the entries we
@@ -96,137 +91,29 @@ class PreviewManifestRouter(
           "PreviewManifestRouter: no manifest entry for previewId='$previewId'. " +
             "Manifest knows: ${byId.keys}"
         )
-    val entry = addressed.entry
     // An explicit inbound row wins over the one parsed out of the id, so a caller can render a row
     // of the bare base id without minting a row id for it.
     val row = preview.previewParameterRow?.takeIf { it.isNotBlank() } ?: addressed.row
-    val resolved = entry.resolved()
-
-    // PROTOCOL.md § 5 (`renderNow.overrides.device`) — a `device` token resolves against the
-    // catalog and its geometry becomes the BASE for this render, replacing the manifest's
-    // per-preview defaults. Explicit `widthPx` / `heightPx` / `density` still win over it, so a
-    // caller can say `device=id:pixel_5` + `widthPx=600` to force a wider window at the Pixel's
-    // density. In the production lane `JsonRpcServer.renderTargetFor` has already resolved the
-    // device onto the overrides; this branch is what serves a direct caller that has not.
-    val deviceOverride = overrides?.device?.takeIf { it.isNotBlank() }
-    val deviceSpec = deviceOverride?.let { DeviceDimensions.resolve(it) }
-    val baseWidthPx =
-      deviceSpec?.let { (it.widthDp * it.density).toInt().coerceAtLeast(1) } ?: resolved.widthPx
-    val baseHeightPx =
-      deviceSpec?.let { (it.heightDp * it.density).toInt().coerceAtLeast(1) } ?: resolved.heightPx
-    val baseDensity = deviceSpec?.density ?: resolved.density
-    val effectiveDevice = deviceOverride ?: resolved.device
-
-    // Issue #1208 — `orientation` on desktop is a `widthPx ↔ heightPx` swap, idempotent: only swap
-    // when the requested orientation conflicts with the current aspect ratio.
-    //
-    // A `device=` token is deliberately NOT treated as "explicit dims" here (#3547). The device
-    // supplies the frame's *natural* geometry — `id:pixel_tablet` is 1280×800, landscape — and
-    // rotating that frame is the whole point of asking for `orientation=portrait` alongside it.
-    // Excluding the device lane meant the commonest spelling of the request (pick a tablet, then
-    // pick portrait) silently rendered landscape. Only `widthPx` / `heightPx`, where the caller
-    // named the pixels outright, outrank the rotation.
-    val orientationCanSwap = overrides?.widthPx == null && overrides?.heightPx == null
-    val (effectiveBaseWidthPx, effectiveBaseHeightPx) =
-      if (orientationCanSwap)
-        FrameOrientation.orientedPx(baseWidthPx, baseHeightPx, overrides?.orientation)
-      else baseWidthPx to baseHeightPx
-    // The wrap flags name an *axis*, so a rotated frame trades them with the dimensions: a
-    // fixed-width / wrapped-height preview turned landscape must wrap width instead, or the
-    // measure-and-crop pass sizes the axis that is no longer the free one.
-    val rotated = effectiveBaseWidthPx != baseWidthPx || effectiveBaseHeightPx != baseHeightPx
-    val resolvedWrapWidth = if (rotated) resolved.wrapHeight else resolved.wrapWidth
-    val resolvedWrapHeight = if (rotated) resolved.wrapWidth else resolved.wrapHeight
-
+    // Resolve the *base* entry's own id, not the requested one: [rowAddressed] has already done
+    // the row split, and asking the resolver to redo it would be a second lookup whose failure
+    // branch is unreachable. The row is applied below.
+    val base =
+      manifestPreviewSpecResolver(byId)(addressed.entry.id)
+        ?: error("PreviewManifestRouter: entry '${addressed.entry.id}' resolved to no spec")
     val spec =
-      RenderSpec(
-        // The *requested* id, not the base entry's — a row render is its own preview as far as
-        // every downstream consumer keyed by previewId is concerned (data products, history, the
-        // panel's card).
-        previewId = previewId,
-        renderMode = preview.renderMode?.takeIf { it.isNotBlank() },
-        className = entry.className,
-        functionName = entry.functionName,
-        // Inbound explicit override wins over both the device-derived value and the per-preview
-        // manifest default.
-        widthPx = overrides?.widthPx ?: effectiveBaseWidthPx,
-        heightPx = overrides?.heightPx ?: effectiveBaseHeightPx,
-        // AS-parity wrap-content: a no-size preview crops to its intrinsic size (the widthPx /
-        // heightPx above are then a sandbox bound, not a fixed frame). An inbound explicit size —
-        // or a device-derived one — pins that axis, so wrap survives only where neither did.
-        wrapWidth = overrides?.widthPx == null && deviceSpec == null && resolvedWrapWidth,
-        wrapHeight = overrides?.heightPx == null && deviceSpec == null && resolvedWrapHeight,
-        density = overrides?.density ?: baseDensity,
-        showBackground = resolved.showBackground,
-        backgroundColor = resolved.backgroundColor,
-        device = effectiveDevice?.takeIf { it.isNotBlank() },
-        // `@Preview(showSystemUi = ...)` (issue #1930) — the render body wraps the composition in
-        // the synthetic `SystemBarsFrame`.
-        showSystemUi = resolved.showSystemUi,
-        // `@CaptureGutter` (issue #4443) — NOT rotated alongside the wrap flags above, and that
-        // asymmetry is the decision rather than an oversight: a wrap flag names an axis of the
-        // frame, so rotating the frame trades them; a gutter edge names a direction the *component*
-        // draws in, and swapping the sandbox's width and height does not turn the component over or
-        // move where its shadow falls. See `RenderSpec.captureGutterPx`.
-        gutterStartDp = resolved.captureGutter.start,
-        gutterTopDp = resolved.captureGutter.top,
-        gutterEndDp = resolved.captureGutter.end,
-        gutterBottomDp = resolved.captureGutter.bottom,
-        // PROTOCOL.md § 5 (`renderNow.overrides`) — locale / fontScale / uiMode / orientation pass
-        // straight through. `orientation` is applied above as a swap of the resolved dimensions;
-        // the value still rides along so downstream consumers see the resolved orientation.
-        localeTag = overrides?.localeTag?.takeIf { it.isNotBlank() },
-        fontScale = overrides?.fontScale,
-        // An inbound override wins; otherwise derive from the manifest-declared
-        // `@Preview(uiMode = …)` so a night `showSystemUi` preview paints dark `SystemBarsFrame`
-        // chrome in the live daemon, matching the standalone Gradle renderer (which gets the raw
-        // uiMode arg). Light/unset stays null — the daemon's default.
-        uiMode =
-          when (overrides?.uiMode) {
-            UiMode.LIGHT -> RenderSpec.SpecUiMode.LIGHT
-            UiMode.DARK -> RenderSpec.SpecUiMode.DARK
-            null -> if ((resolved.uiMode and 0x30) == 0x20) RenderSpec.SpecUiMode.DARK else null
-          },
-        orientation =
-          when (overrides?.orientation) {
-            Orientation.PORTRAIT -> RenderSpec.SpecOrientation.PORTRAIT
-            Orientation.LANDSCAPE -> RenderSpec.SpecOrientation.LANDSCAPE
-            null -> null
-          },
-        captureAdvanceMs = overrides?.captureAdvanceMs,
-        inspectionMode = overrides?.inspectionMode,
-        slotMode = overrides?.slotMode,
-        clearBackground = overrides?.clearBackground ?: false,
-        svgBackground = overrides?.svgBackground,
-        // A synthetic `_VARIANT_` preview carries its `@OverrideVariant` seed on the manifest
-        // entry, not on the wire — the inbound target for a batch render names a previewId and
-        // nothing else. Layer the two rather than forwarding the inbound bag alone, or the baked
-        // seed is dropped and every variant composes its base state (issue #3616, and
-        // yschimke/m3-catalog#201 for the desktop half this router lane kept reproducing).
-        overrides = overrides.layeredOver(resolved.overrides) ?: resolved.overrides,
-        // `@PreviewWrapper(SomeProvider::class)` FQN sourced from `previews.json` — the gradle
-        // plugin's `extractWrapperFqn` reads it off the class-file annotation tables, since the
-        // upstream annotation is `AnnotationRetention.BINARY` and invisible to `Method.annotations`
-        // at runtime, so this manifest-side plumbing is the only path that can recover it for the
-        // render body. See issue #1440.
-        wrapperClassName = resolved.wrapperClassName?.takeIf { it.isNotBlank() },
-        // `@PreviewParameter` provider FQN, same BINARY-retention provenance as the wrapper. When
-        // set the render body renders the provider's first value under the bare id; the limit rides
-        // along so the resolver's `limit <= 0` guard matches the annotation, and [row] names which
-        // row to bind (issue #3749) — absent means value 0, the pre-existing contract.
-        previewParameterProviderClassName =
-          resolved.previewParameterProviderClassName?.takeIf { it.isNotBlank() },
-        previewParameterLimit = resolved.previewParameterLimit,
-        previewParameterRow = resolved.previewParameterProviderClassName?.let { row },
-        // kind=LOTTIE + the asset path so the engine inflates the asset instead of reflecting a
-        // (non-existent) class. Plain Compose previews carry neither.
-        kind = resolved.kind?.takeIf { it.isNotBlank() && it != "COMPOSE" },
-        assetPath = resolved.assetPath?.takeIf { it.isNotBlank() },
-        // A row render writes its own artifact, keyed the way the fan-out renderer keys it
-        // (`<stem>_<row>.png`), so rendering row 4 cannot clobber row 0's PNG or the data products
-        // the file-backed registry resolves from it.
-        outputBaseName = resolved.outputBaseName + (row?.let { "_$it" } ?: ""),
-      )
+      base
+        .mergedWith(preview.overrides)
+        .copy(
+          // The *requested* id, not the base entry's — a row render is its own preview as far as
+          // every downstream consumer keyed by previewId is concerned.
+          previewId = previewId,
+          renderMode = preview.renderMode?.takeIf { it.isNotBlank() },
+          previewParameterRow = base.previewParameterProviderClassName?.let { row },
+          // A row render writes its own artifact, keyed the way the fan-out renderer keys it
+          // (`<stem>_<row>.png`), so rendering row 4 cannot clobber row 0's PNG or the data
+          // products the file-backed registry resolves from it.
+          outputBaseName = base.outputBaseName + (row?.let { "_$it" } ?: ""),
+        )
     return RenderTarget.Spec(spec)
   }
 
