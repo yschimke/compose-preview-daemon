@@ -3,6 +3,7 @@ package ee.schimke.composeai.buildlogic
 import com.ncorti.ktfmt.gradle.KtfmtExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.configure
@@ -63,8 +64,7 @@ class ComposeAiBaseConventionsPlugin : Plugin<Project> {
       inputs.property("composeai.cacheSalt", cacheSalt)
     }
 
-    registerLayerBoundaryCheck(project)
-    registerHttpServerFloorCheck(project)
+    registerDependencyChecks(project)
   }
 
   /**
@@ -74,73 +74,46 @@ class ComposeAiBaseConventionsPlugin : Plugin<Project> {
    * is the case that matters and the case a build-file scan misses. Shared by both boundary checks
    * so they cannot disagree about what is on the classpath.
    */
-  private fun resolvedRuntimeModules(project: Project) =
-    project.configurations.named("runtimeClasspath").flatMap { configuration ->
-      configuration.incoming.artifacts.resolvedArtifacts.map { artifacts ->
-        artifacts
-          .mapNotNull { artifact ->
-            (artifact.id.componentIdentifier as? ModuleComponentIdentifier)?.let {
-              "${it.group}:${it.module}"
-            }
+  private fun resolvedRuntimeModules(configuration: Configuration) =
+    configuration.incoming.resolutionResult.rootComponent.map {
+      configuration.incoming.resolutionResult.allComponents
+        .mapNotNull { component ->
+          (component.id as? ModuleComponentIdentifier)?.let {
+            "${it.group}:${it.module}"
           }
-          .toSet()
+        }
+        .map { module -> "${configuration.name}\t$module" }
+    }
+
+  /** Registers both checks on every module and feeds them every covered production configuration. */
+  private fun registerDependencyChecks(project: Project) {
+    val ownership =
+      project.tasks.register<CheckDependencyOwnership>("checkDependencyOwnership") {
+        description = "Fails if a tools- or server-owned artifact reaches production runtime."
+        group = "verification"
+        resolvedModules.convention(emptyList())
+      }
+    val httpFloor =
+      project.tasks.register<CheckHttpServerFloor>("checkHttpServerFloor") {
+        description = "Fails if an HTTP server engine reaches production runtime."
+        group = "verification"
+        resolvedModules.convention(emptyList())
+        serverPrefixes.set(CheckHttpServerFloor.serverPrefixes)
+      }
+
+    project.configurations.configureEach {
+      if (isCanBeResolved && DependencyOwnership.isProductionRuntimeClasspath(name)) {
+        val modules = resolvedRuntimeModules(this)
+        ownership.configure { resolvedModules.addAll(modules) }
+        httpFloor.configure { resolvedModules.addAll(modules) }
       }
     }
 
-  /**
-   * Wires [CheckLayerBoundary] onto every project that has a `runtimeClasspath`, and onto `check`
-   * so it runs where CI already looks rather than needing its own job.
-   *
-   * Registered from base-conventions for the same reason the cache salt is: this is the plugin
-   * every module applies. `plugins.withId("org.gradle.java")` is the guard because the java plugin
-   * is what creates `runtimeClasspath` — a project without one (the Android modules, the artwork
-   * and fixture projects) silently gets no task rather than a configuration failure.
-   */
-  private fun registerLayerBoundaryCheck(project: Project) {
-    project.plugins.withId("org.gradle.java") {
-      val task =
-        project.tasks.register<CheckLayerBoundary>("checkLayerBoundary") {
-          description =
-            "Fails if a compose-preview-server artifact reaches this project's runtime classpath."
-          group = "verification"
-
-          resolvedModules.set(resolvedRuntimeModules(project))
-
-          allowedPreviewModules.set(
-            CheckLayerBoundary.ownPreviewModules + CheckLayerBoundary.knownLayerTwoEdges
-          )
-        }
-
-      project.tasks.named("check") { dependsOn(task) }
-    }
-  }
-
-  /**
-   * Wires [CheckHttpServerFloor] onto every project that has a `runtimeClasspath`, skipping any
-   * project allowed to carry a server engine.
-   *
-   * That list is empty since the MCP server moved (#5176), so today this skips nothing and every
-   * JVM module is checked. The branch stays because it is what makes an exemption *visible*: a
-   * project on the list gets no task at all rather than a task that quietly passes, so adding one
-   * is a diff in [CheckHttpServerFloor.httpServerProjects] that a reviewer reads against
-   * `docs/design/REPOSITORY_LAYERS.md`.
-   */
-  private fun registerHttpServerFloorCheck(project: Project) {
-    if (project.path in CheckHttpServerFloor.httpServerProjects) return
-
-    project.plugins.withId("org.gradle.java") {
-      val task =
-        project.tasks.register<CheckHttpServerFloor>("checkHttpServerFloor") {
-          description =
-            "Fails if an HTTP server engine reaches this project's runtime classpath. " +
-              "Preview-serving behaviour is compose-preview-server's."
-          group = "verification"
-
-          resolvedModules.set(resolvedRuntimeModules(project))
-          serverPrefixes.set(CheckHttpServerFloor.serverPrefixes)
-        }
-
-      project.tasks.named("check") { dependsOn(task) }
+    project.plugins.withId("base") {
+      project.tasks.named("check") {
+        dependsOn(ownership)
+        dependsOn(httpFloor)
+      }
     }
   }
 }

@@ -268,7 +268,6 @@ compose-ui-prerelease = "1.12.1"
 kotlinx-coroutines = "1.11.0"
 kotlinx-datetime = "0.8.0"
 kotlinx-serialization = "1.11.0"
-mcp-kotlin-sdk = "0.15.0"
 okio = "3.18.2"
 fontbox = "3.0.8"
 junit = "4.13.2"
@@ -287,13 +286,6 @@ junit = "4.13.2"
 skiko-encode-probe = "0.150.1"
 truth = "1.4.5"
 maven-publish = "0.37.0"
-# Google's host-side screenshot testing plugin (Layoutlib-backed). Used only
-# by `:samples:android-screenshot-test`, which exercises our co-existence
-# path: our renderer discovers previews in the `screenshotTest` source set
-# that Google's plugin creates, and renders them via Robolectric without
-# driving Google's own `validate*ScreenshotTest` tasks. Still alpha —
-# re-check compatibility when bumping AGP.
-android-compose-screenshot = "0.0.1-alpha16"
 # Checker Framework qualifier annotations. ATF (`accessibility-test-framework`,
 # pulled in transitively by `roborazzi-accessibility-check`) annotates its
 # nullable getters with `@org.checkerframework.checker.nullness.qual.Nullable`.
@@ -327,14 +319,8 @@ material-kolor = "4.0.5"
 # building under JDK 17. Kotlin 2.3.21 is supported per Metro's
 # compatibility table (`docs/compatibility.md` upstream).
 metro = "1.4.3"
-# Ktor HTTP client (+ OkHttp engine) for downloading bundles given a URL. Ktor 3.x is current and
-# compatible with Kotlin 2.3 / coroutines 1.11; OkHttp 5.x is the stable engine backing it.
-ktor = "3.5.2"
+# HTTP client used by renderer image support and the Google Fonts resolver.
 okhttp = "5.5.0"
-# Pure-Java mDNS/DNS-SD (Bonjour) responder used by `compose-preview serve --lan` to advertise the
-# `_composeai._tcp` service the mobile/wear clients browse for. No slf4j dep (uses java.util.logging),
-# so it doesn't perturb the strict slf4j pin in :cli.
-jmdns = "3.6.3"
 # Coil — image loading. `compileOnly` in `:renderer-android` (see `CoilPreviewSupport`), which
 # swaps the singleton `ImageLoader` for an inline-dispatcher one so `AsyncImage` resolves before a
 # preview is captured (issue #2952). Both majors are pinned because they are separate,
@@ -357,75 +343,6 @@ coil3 = "3.5.0"
 # reaches this build only through a release there — see that repository's docs/VERSIONING.md.
 # A point pin, deliberately: a range would let a contract change arrive without a pull request.
 composeai-contracts = "2.15.0"
-
-# The preview server, published from yschimke/compose-preview-server since its 2.0.0 — the
-# extraction #4732 planned. This repository no longer owns `cli/serve`: `compose-preview serve`,
-# `bundle render` and `history manifest` consume the published library, so a server change reaches
-# this build only through a release there. A point pin for the same reason as the contracts above:
-# a range would let the server move under the CLI without a pull request.
-#
-# Note the version lines are independent. `compose-preview-serve` went to 2.0.0 when it left; this
-# repository is still on 1.x. The server's own POM depends back on this repository's 1.53.0
-# contracts, which Gradle resolves to the workspace projects (same coordinates, project wins), so
-# the loop is closed at build time rather than by a version bump on either side.
-#
-# 2.2.0 also brought `compose-preview-render-host` — the render host, the bundle daemon and the
-# git-backed preview history, split out of the server so a caller that only renders offline does not
-# link a web server (yschimke/compose-preview-server#38, this repository's #4832). That artifact is
-# GONE from this catalog: the module moved here in 1.77.0 (#5137), the server now consumes it from
-# this repository (compose-preview-server#289), and 3.0.0 retired the old coordinate at its final
-# 2.x. `:cli` depends on `project(":render-host")`; there is no version ref to share any more.
-#
-# This pin names what this repository BUILDS AND TESTS AGAINST, and nothing else. Two consumers,
-# which must stay equal to each other:
-#
-#   * `testImplementation(libs.composeai.preview.serve)` in `:cli` — the published jar the
-#     wire-drift tests check this CLI's half against;
-#   * the `v<pin>` tag ci.yml's "Fetch the pinned preview-server mirror sources" step reads five
-#     source files from, so the mirror is compared against the same release as the artifact on the
-#     classpath. That step's own comment says why: checking head would fail a PR for drift that has
-#     not been released yet.
-#
-# What this pin no longer names is the server an INSTALLED CLI downloads. See
-# `composeai-preview-server-dist` below.
-#
-# 3.9.0 is the first release since 3.2.0 whose POM a consumer can actually resolve. 3.3.0 through
-# 3.8.0 each published a `compose-preview-ui-builder-runtime` POM naming
-# `compose-preview-ui-builder-render-bundle` at compile scope, an artifact that was never uploaded —
-# so `compose-preview-serve` was unresolvable for six consecutive releases and this pin could not
-# have moved off 3.2.0 even if something had wanted it to. compose-preview-server#449 made the
-# publish set derive from the modules that apply the publishing plugin, and #452's release published
-# the missing coordinate.
-composeai-preview-serve = "3.23.0"
-
-# The compose-preview-server RELEASE the installed CLI fetches at run time — a different question
-# from the one above, which is why it is a different pin.
-#
-# RUNTIME-load-bearing, for two commands since #5176. `compose-preview serve` is a launcher, and
-# since #5183 the CLI fetches the server itself on first use: this value is baked into the jar as
-# `SERVE_VERSION` and names the release whose `compose-preview-server-<pin>.tar.gz`
-# `ServerDistributionProvision` downloads. `compose-preview mcp serve` is a launcher over
-# `compose-preview-mcp-<pin>.tar.gz` from the SAME release, so one pin still governs that pair —
-# there is no cadence on which the two archives would skew usefully. A pin naming a release that
-# does not exist, or one carrying only one of the two archives, is a command that cannot start;
-# `check_preview_server_pin.py` fails the PR rather than letting that reach an install, and it
-# checks both archives. docs/VERSIONING.md § 8.1.
-#
-# Split from `composeai-preview-serve` because the two answer different questions and the server
-# now releases on lanes that can move one without the other. compose-preview-server can cut a
-# release carrying only the distributions and no Maven artifacts (its `release:no-maven` label), and
-# a single pin could not name such a release at all: pointing at it would break `:cli`'s
-# `testImplementation` even though the thing `serve` launches was exactly what changed.
-#
-# They may differ, and when they do this one is normally the newer. Moving either is a reviewed act;
-# moving this one changes which server every installed CLI downloads, so it is the one with user
-# impact even though the other is the one that shows up in a compile error.
-#
-# 3.2.0 was the first release carrying the MCP distribution (compose-preview-server#308 moved the
-# module there, #314 released it), which is why this pin sat there. Every release since has carried
-# both archives; 3.9.0 is verified to carry `compose-preview-server-3.9.0.tar.gz` and
-# `compose-preview-mcp-3.9.0.tar.gz`, which is the property `check_preview_server_pin.py` enforces.
-composeai-preview-server-dist = "3.9.0"
 
 # The Remote Compose players, published by yschimke/rc-players (the CMP player stack, the vendored
 # AndroidX embedded player, and the Wasm browser bundle). They were project deps here until the
@@ -465,61 +382,11 @@ composeai-common-io = { module = "ee.schimke.composeai:common-io", version.ref =
 # (layer 0) owns the wire shape; `:render-host` owns validation and storage over it.
 composeai-parity-issues-protocol = { module = "ee.schimke.composeai:parity-issues-protocol", version.ref = "composeai-contracts" }
 
-# The preview server (see `composeai-preview-serve`). `-test-fixtures` rides the same coordinates
-# as a Gradle feature variant, so `testFixtures(libs.composeai.preview.serve)` picks it up without
-# a second catalog entry.
-composeai-preview-serve = { module = "ee.schimke.composeai:compose-preview-serve", version.ref = "composeai-preview-serve" }
-
-# The Remote Compose players (see `rcplayers`).
-rcplayer-trace = { module = "ee.schimke.composeai:rc-player-trace", version.ref = "rcplayers" }
-rcplayer-protocol = { module = "ee.schimke.composeai:rc-player-protocol", version.ref = "rcplayers" }
-rcplayer-runtime = { module = "ee.schimke.composeai:rc-player-runtime", version.ref = "rcplayers" }
-rcplayer-compose = { module = "ee.schimke.composeai:rc-player-compose", version.ref = "rcplayers" }
-# The browser bundle `compose-preview serve` stages into `rc-player-wasm/`. A zip, not a jar — the
-# `dist` classifier is the distribution directory packaged for Maven; see that module's build file
-# in yschimke/rc-players for why it is a module of its own rather than a second publication on the
-# wasmJs one.
-rcplayer-wasm-dist = { module = "ee.schimke.composeai:rc-player-wasm-dist", version.ref = "rcplayers" }
 # The vendored, locally patched AndroidX embedded player — the Android comparison lane. NOT a
 # supported API; pinned to one AndroidX alpha and versioned with the player stack rather than with
 # upstream.
 rcplayer-embedded-android = { module = "ee.schimke.composeai:third-party-rc-embedded-player", version.ref = "rcplayers" }
-# The desktop-JVM cut of the same vendored player, staged into `lib-rcjvm/` for serve's cmp-jvm lane.
-rcplayer-embedded-jvm = { module = "ee.schimke.composeai:third-party-rc-embedded-player-jvm", version.ref = "rcplayers" }
-# The vendored TypeScript player's browser bundle — the client-side render lane the `rc-*` browser
-# tests and the design-artifacts job drive with `--player <bundle.js>`. A zip, `dist` classifier.
-rcplayer-js-dist = { module = "ee.schimke.composeai:remote-compose-player-js-dist", version.ref = "rcplayers" }
-# `@com.android.tools.screenshot.PreviewTest` — the marker Google's screenshot plugin requires on a
-# `@Preview` before it will render it (alpha15+ discovers nothing without it). Only the Studio-parity
-# fixtures in `:samples:android-screenshot-test` need it, on the `screenshotTest` classpath; version
-# is pinned to the plugin's own so the annotation and the JUnit engine reading it can't skew.
-android-screenshot-validation-api = { module = "com.android.tools.screenshot:screenshot-validation-api", version.ref = "android-compose-screenshot" }
-# Ktor HTTP client (OkHttp engine) — backs the `:cli` / `:bundle-viewer` bundle downloader. Same
-# `ktor` version ref as the server below so the two can't skew and re-trip the strict slf4j pin in
-# :cli. (The `ktor-client-websockets` entry was dropped when the session-viewer clients — its only
-# consumer — moved to yschimke/compose-preview-client; see issue #2533.)
-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
-# Embedded Ktor server (CIO engine — pure-Kotlin/coroutines, no Netty) backing the
-# `compose-preview serve` LAN preview server. Same `ktor` version ref as the client so the two
-# can't skew and re-trip the strict slf4j pin in :cli (see cli/build.gradle.kts constraints).
-ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
-ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
-ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
-# WebSockets plugin for the embedded server — backs the `serve` streamed-frame lane (`/ws/{id}`).
-# Same `ktor` version ref so it can't skew the slf4j pin in :cli.
-ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
-# Response compression for the embedded server. Text-ish payloads only (see ServeHttpServer) —
-# the catalog PNG/bundle lanes are already-compressed bytes and are excluded. Same `ktor` version
-# ref so it can't skew the slf4j pin in :cli.
-ktor-server-compression = { module = "io.ktor:ktor-server-compression", version.ref = "ktor" }
-# HEAD-answers-GET for the embedded server. Every `serve` route is registered with `get`, so
-# without this plugin a HEAD probe — what link unfurlers, link checkers and `curl -I` send before
-# committing to a download — got a 404/405 across the whole site. Same `ktor` version ref so it
-# can't skew the slf4j pin in :cli.
-ktor-server-auto-head-response = { module = "io.ktor:ktor-server-auto-head-response", version.ref = "ktor" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
-jmdns = { module = "org.jmdns:jmdns", version.ref = "jmdns" }
 # Coil 2 / coil 3 — see the version comments above. `coil-compose` (not `coil-base`) because the
 # `:samples:android` fixture renders a real `AsyncImage`; the renderer itself only needs the
 # `ImageLoader` / `EventListener` surface from the base artifact, which `coil-compose` brings in.
@@ -633,7 +500,6 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 # types, defaults) of a discovered target composable — the JVM bytecode alone drops names and
 # carries Compose's synthetic Composer/changed params. Version tracks the Kotlin toolchain.
 kotlin-metadata-jvm = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlin" }
-mcp-kotlin-sdk-server = { module = "io.modelcontextprotocol:kotlin-sdk-server", version.ref = "mcp-kotlin-sdk" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 fontbox = { module = "org.apache.pdfbox:fontbox", version.ref = "fontbox" }
@@ -669,7 +535,6 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
-android-compose-screenshot = { id = "com.android.compose.screenshot", version.ref = "android-compose-screenshot" }
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
 tapmoc = { id = "com.gradleup.tapmoc", version.ref = "tapmoc" }
 # Metro compiler plugin — `:samples:android-metro-viewmodel` applies this to
