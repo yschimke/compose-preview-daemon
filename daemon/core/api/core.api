@@ -1903,6 +1903,8 @@ public final class ee/schimke/composeai/daemon/config/BooleanProperty : ee/schim
 	public fun getTypeLabel ()Ljava/lang/String;
 	public fun parse (Ljava/lang/String;)Ljava/lang/Boolean;
 	public synthetic fun parse (Ljava/lang/String;)Ljava/lang/Object;
+	public synthetic fun render (Ljava/lang/Object;)Ljava/lang/String;
+	public fun render (Z)Ljava/lang/String;
 }
 
 public final class ee/schimke/composeai/daemon/config/CsvListProperty : ee/schimke/composeai/daemon/config/DaemonProperty {
@@ -1911,6 +1913,8 @@ public final class ee/schimke/composeai/daemon/config/CsvListProperty : ee/schim
 	public fun getTypeLabel ()Ljava/lang/String;
 	public synthetic fun parse (Ljava/lang/String;)Ljava/lang/Object;
 	public fun parse (Ljava/lang/String;)Ljava/util/List;
+	public synthetic fun render (Ljava/lang/Object;)Ljava/lang/String;
+	public fun render (Ljava/util/List;)Ljava/lang/String;
 }
 
 public final class ee/schimke/composeai/daemon/config/DaemonProperties {
@@ -2042,6 +2046,7 @@ public abstract class ee/schimke/composeai/daemon/config/DaemonProperty {
 	public abstract fun parse (Ljava/lang/String;)Ljava/lang/Object;
 	public final fun read (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public static synthetic fun read$default (Lee/schimke/composeai/daemon/config/DaemonProperty;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun render (Ljava/lang/Object;)Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -2051,6 +2056,8 @@ public final class ee/schimke/composeai/daemon/config/IntProperty : ee/schimke/c
 	public fun getTypeLabel ()Ljava/lang/String;
 	public fun parse (Ljava/lang/String;)Ljava/lang/Integer;
 	public synthetic fun parse (Ljava/lang/String;)Ljava/lang/Object;
+	public fun render (I)Ljava/lang/String;
+	public synthetic fun render (Ljava/lang/Object;)Ljava/lang/String;
 }
 
 public final class ee/schimke/composeai/daemon/config/LongProperty : ee/schimke/composeai/daemon/config/DaemonProperty {
@@ -2059,6 +2066,8 @@ public final class ee/schimke/composeai/daemon/config/LongProperty : ee/schimke/
 	public fun getTypeLabel ()Ljava/lang/String;
 	public fun parse (Ljava/lang/String;)Ljava/lang/Long;
 	public synthetic fun parse (Ljava/lang/String;)Ljava/lang/Object;
+	public fun render (J)Ljava/lang/String;
+	public synthetic fun render (Ljava/lang/Object;)Ljava/lang/String;
 }
 
 public final class ee/schimke/composeai/daemon/config/PathListProperty : ee/schimke/composeai/daemon/config/DaemonProperty {
@@ -2067,6 +2076,8 @@ public final class ee/schimke/composeai/daemon/config/PathListProperty : ee/schi
 	public fun getTypeLabel ()Ljava/lang/String;
 	public synthetic fun parse (Ljava/lang/String;)Ljava/lang/Object;
 	public fun parse (Ljava/lang/String;)Ljava/util/List;
+	public synthetic fun render (Ljava/lang/Object;)Ljava/lang/String;
+	public fun render (Ljava/util/List;)Ljava/lang/String;
 }
 
 public final class ee/schimke/composeai/daemon/config/PathProperty : ee/schimke/composeai/daemon/config/DaemonProperty {
@@ -2074,6 +2085,8 @@ public final class ee/schimke/composeai/daemon/config/PathProperty : ee/schimke/
 	public fun getTypeLabel ()Ljava/lang/String;
 	public synthetic fun parse (Ljava/lang/String;)Ljava/lang/Object;
 	public fun parse (Ljava/lang/String;)Ljava/lang/String;
+	public synthetic fun render (Ljava/lang/Object;)Ljava/lang/String;
+	public fun render (Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class ee/schimke/composeai/daemon/config/StringProperty : ee/schimke/composeai/daemon/config/DaemonProperty {
@@ -2082,6 +2095,8 @@ public final class ee/schimke/composeai/daemon/config/StringProperty : ee/schimk
 	public fun getTypeLabel ()Ljava/lang/String;
 	public synthetic fun parse (Ljava/lang/String;)Ljava/lang/Object;
 	public fun parse (Ljava/lang/String;)Ljava/lang/String;
+	public synthetic fun render (Ljava/lang/Object;)Ljava/lang/String;
+	public fun render (Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class ee/schimke/composeai/daemon/forensics/ClassloaderForensics {
