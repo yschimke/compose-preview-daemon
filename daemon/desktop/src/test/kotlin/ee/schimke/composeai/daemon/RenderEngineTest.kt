@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.abs
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -33,6 +34,54 @@ import org.junit.rules.TemporaryFolder
 class RenderEngineTest {
 
   @get:Rule val tempFolder: TemporaryFolder = TemporaryFolder()
+
+  @Test
+  fun renderResultCarriesTheEncodedFrameNotJustItsPath() {
+    val outputDir = tempFolder.newFolder("renders")
+    val engine = RenderEngine(outputDir = outputDir)
+    val host = DesktopHost(engine = engine)
+    host.start()
+    try {
+      val request =
+        RenderRequest.Render(
+          target =
+            RenderTarget.Spec(
+              RenderSpec(
+                className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                functionName = "RedSquare",
+                widthPx = 64,
+                heightPx = 64,
+                density = 1.0f,
+                showBackground = true,
+                outputBaseName = "carried-bytes",
+              )
+            )
+        )
+      val result = host.submit(request, timeoutMs = 60_000)
+
+      val pngFile = File(result.artifact.pathOrNull()!!)
+      val onDisk = pngFile.readBytes()
+      assertTrue("the engine must hand back the encoded frame", onDisk.isNotEmpty())
+      assertArrayEquals(
+        "the carried bytes must be the same frame that was written to disk",
+        onDisk,
+        result.artifact?.bytes,
+      )
+
+      // The point of carrying them: `bytesOrNull` answers from memory, so the live-frame lane
+      // stops re-reading the PNG the engine wrote moments earlier. Deleting the file is how the
+      // test tells "answered from memory" apart from "read it back off disk again" — the old
+      // `pngPath` string could not have survived this.
+      assertTrue("precondition: the render wrote a file", pngFile.delete())
+      assertArrayEquals(
+        "bytesOrNull must answer from the carried bytes without touching the filesystem",
+        onDisk,
+        result.artifact.bytesOrNull(),
+      )
+    } finally {
+      host.shutdown()
+    }
+  }
 
   @Test
   fun redSquareRendersToValidPng() {

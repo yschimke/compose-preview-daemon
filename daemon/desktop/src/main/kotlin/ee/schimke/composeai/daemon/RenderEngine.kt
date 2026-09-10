@@ -1073,7 +1073,16 @@ class RenderEngine(
       id = requestId,
       classLoaderHashCode = System.identityHashCode(state.classLoader),
       classLoaderName = state.classLoader.javaClass.name,
-      artifact = RenderArtifact(state.outputFile.absolutePath),
+      // The bytes, not just the path. This is the one engine site that genuinely holds the
+      // encoded frame at the moment it returns — `pngBytes` above is what `render:writePng` just
+      // wrote — so handing it over costs nothing and saves `JsonRpcServer` re-reading the file it
+      // was written from, on every `renderFinished`, to hash the frame and feed `stream/start`.
+      // That read is the round-trip `RenderArtifact` was introduced to make removable; this is
+      // where it is actually removed.
+      //
+      // The path stays populated beside it: `renderFinished.pngPath`, the history archive and
+      // every `<img src=…>` client still want the file, and it is on disk either way.
+      artifact = RenderArtifact(state.outputFile.absolutePath, bytes = pngBytes),
       metrics = metrics,
       previewContext = previewContext,
       outputBaseName = state.spec.outputBaseName,
