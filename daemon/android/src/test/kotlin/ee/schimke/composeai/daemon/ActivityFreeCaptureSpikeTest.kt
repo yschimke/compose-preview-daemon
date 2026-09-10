@@ -14,9 +14,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.ViewRootForTest
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
@@ -61,14 +65,19 @@ class ActivityFreeCaptureSpikeTest {
   @Test
   fun compareWindowCaptureWithProductionEngine() {
     assumeTrue(System.getenv("COMPOSEAI_ACTIVITY_FREE_SPIKE") == "true")
-    val root = File("build/activity-free-spike").absoluteFile.apply { mkdirs() }
+    val inputMode = System.getenv("COMPOSEAI_ACTIVITY_FREE_INPUT") == "true"
+    val root =
+      File(if (inputMode) "build/activity-free-input-spike" else "build/activity-free-spike")
+        .absoluteFile
+        .apply { mkdirs() }
     val trials = (System.getenv("COMPOSEAI_ACTIVITY_FREE_TRIALS") ?: "1").toInt()
     require(trials in 1..10)
     for (trial in 0 until trials) {
       val trialDir = root.resolve("trial-$trial").apply { mkdirs() }
-      val modes = listOf("engine", "activity", "window")
+      val modes =
+        if (inputMode) listOf("activity", "window") else listOf("engine", "activity", "window")
       // Rotate process order so the candidate isn't always last on an already-warm host.
-      for (mode in modes.drop(trial % 3) + modes.take(trial % 3)) {
+      for (mode in modes.drop(trial % modes.size) + modes.take(trial % modes.size)) {
         val output =
           trialDir.resolve(mode).apply {
             deleteRecursively()
@@ -95,7 +104,8 @@ class ActivityFreeCaptureSpikeTest {
       }
       for (cycle in 0..2) for (name in ActivityFreeCaptureSpikeMain.fixtures) {
         val outputName = "$cycle-$name"
-        val expected = trialDir.resolve("engine/renders/$outputName.png")
+        val referenceMode = if (inputMode) "activity" else "engine"
+        val expected = trialDir.resolve("$referenceMode/renders/$outputName.png")
         for (mode in listOf("activity", "window")) {
           val actual = trialDir.resolve("$mode/renders/$outputName.png")
           assertArrayEquals(
@@ -105,7 +115,7 @@ class ActivityFreeCaptureSpikeTest {
           )
           assertEquals(
             "hierarchy parity: $mode $outputName",
-            trialDir.resolve("engine/data/$outputName/uia-hierarchy.json").readText(),
+            trialDir.resolve("$referenceMode/data/$outputName/uia-hierarchy.json").readText(),
             trialDir.resolve("$mode/data/$outputName/uia-hierarchy.json").readText(),
           )
         }
@@ -120,26 +130,29 @@ class ActivityFreeCaptureSpikeTest {
 }
 
 object ActivityFreeCaptureSpikeMain {
+  val inputMode = System.getenv("COMPOSEAI_ACTIVITY_FREE_INPUT") == "true"
   val fixtures =
-    listOf(
-      "RedSquare",
-      "MaterialButtonInteractionState",
-      "SerifTextPreview",
-      "DialogWindowSurface",
-    ) +
-      if (System.getenv("COMPOSEAI_ACTIVITY_FREE_BROAD") == "true") {
-        listOf(
-          "OpaqueImageSquare",
-          "GradientBackgroundCard",
-          "RadialGradientBackgroundCard",
-          "EmojiAndAnnotatedText",
-          "GraphicsLayerAndWideVector",
-          "IconButtonRowInputBar",
-          "LazyColumnListPreview",
-          "EditableTextFieldSquare",
-          "GenericOutlineShapeSquare",
-        )
-      } else emptyList()
+    if (inputMode) listOf("ClickToggleSquare", "ClickableToggleSquare", "EditableTextFieldSquare")
+    else
+      listOf(
+        "RedSquare",
+        "MaterialButtonInteractionState",
+        "SerifTextPreview",
+        "DialogWindowSurface",
+      ) +
+        if (System.getenv("COMPOSEAI_ACTIVITY_FREE_BROAD") == "true") {
+          listOf(
+            "OpaqueImageSquare",
+            "GradientBackgroundCard",
+            "RadialGradientBackgroundCard",
+            "EmojiAndAnnotatedText",
+            "GraphicsLayerAndWideVector",
+            "IconButtonRowInputBar",
+            "LazyColumnListPreview",
+            "EditableTextFieldSquare",
+            "GenericOutlineShapeSquare",
+          )
+        } else emptyList()
 
   @JvmStatic
   fun main(args: Array<String>) {
@@ -240,6 +253,16 @@ object ActivityFreeCaptureSpikeMain {
     }
     val activityRule = if (useActivity) createAndroidComposeRule<ComponentActivity>() else null
     val rule = activityRule ?: createEmptyComposeRule()
+    fun advanceInputClocks(totalMs: Long) {
+      val looper = org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+      var remaining = totalMs
+      while (remaining > 0) {
+        val step = minOf(remaining, 16L)
+        rule.mainClock.advanceTimeBy(step)
+        looper.idleFor(java.time.Duration.ofMillis(step))
+        remaining -= step
+      }
+    }
     phase("rule-created")
     val statement =
       object : Statement() {
@@ -261,7 +284,9 @@ object ActivityFreeCaptureSpikeMain {
                 cleanup = { view.disposeComposition() }
                 activityRule.activity.setContentView(view)
                 view.setContent {
-                  CompositionLocalProvider(LocalInspectionMode provides true) { content(name) }
+                  CompositionLocalProvider(LocalInspectionMode provides !inputMode) {
+                    content(name)
+                  }
                 }
               }
             } else
@@ -301,7 +326,9 @@ object ActivityFreeCaptureSpikeMain {
                 }
                 owners.lifecycle.currentState = Lifecycle.State.RESUMED
                 view.setContent {
-                  CompositionLocalProvider(LocalInspectionMode provides true) { content(name) }
+                  CompositionLocalProvider(LocalInspectionMode provides !inputMode) {
+                    content(name)
+                  }
                 }
                 window.setContentView(frame)
                 manager.addView(
@@ -343,6 +370,22 @@ object ActivityFreeCaptureSpikeMain {
             phase("drain-attach")
             rule.mainClock.advanceTimeBy(32)
             rule.waitForIdle()
+            if (inputMode) {
+              if (name == "EditableTextFieldSquare") {
+                rule.onNode(hasSetTextAction()).performTextInput("x")
+              } else {
+                rule.onRoot().performTouchInput { down(center) }
+                advanceInputClocks(16)
+                rule.waitForIdle()
+                rule.onRoot().performTouchInput { move() }
+                advanceInputClocks(84)
+                rule.waitForIdle()
+                rule.onRoot().performTouchInput { up() }
+                rule.waitForIdle()
+              }
+              advanceInputClocks(500)
+              rule.waitForIdle()
+            }
             phase("settle")
             val interactions = rule.onAllNodes(isRoot(), useUnmergedTree = true)
             val roots = interactions.fetchSemanticsNodes()
@@ -372,6 +415,22 @@ object ActivityFreeCaptureSpikeMain {
                     .fetchImage(RoborazziOptions.RecordOptions(applyDeviceCrop = false))
                 )
                 .captureRoboImage(file = renders.resolve("$outputName.png"))
+            }
+            if (inputMode) {
+              val image = javax.imageio.ImageIO.read(renders.resolve("$outputName.png"))
+              var green = 0
+              for (y in 0 until image.height) for (x in 0 until image.width) {
+                val pixel = image.getRGB(x, y)
+                if (
+                  kotlin.math.abs(((pixel shr 16) and 255) - 0x66) <= 8 &&
+                    kotlin.math.abs(((pixel shr 8) and 255) - 0xbb) <= 8 &&
+                    kotlin.math.abs((pixel and 255) - 0x6a) <= 8
+                )
+                  green++
+              }
+              check(green.toDouble() / (image.width * image.height) >= 0.95) {
+                "Input did not change $name to its expected green state: $green pixels"
+              }
             }
             phase("capture")
             val root = interactions[index].fetchSemanticsNode()
@@ -404,6 +463,8 @@ object ActivityFreeCaptureSpikeMain {
   private fun content(name: String) {
     when (name) {
       "RedSquare" -> RedSquare()
+      "ClickToggleSquare" -> ClickToggleSquare()
+      "ClickableToggleSquare" -> ClickableToggleSquare()
       "MaterialButtonInteractionState" -> MaterialButtonInteractionState()
       "SerifTextPreview" -> SerifTextPreview()
       "DialogWindowSurface" -> DialogWindowSurface()

@@ -175,3 +175,43 @@ This expands static capture coverage and fixes one focus defect. It does not yet
 establish input dispatch, IME behavior, focus transfer between multiple windows,
 consumer Activity dependencies or general dialog/gutter geometry. Those remain
 requirements for a production host abstraction and its compatibility fallback.
+
+## Input probe
+
+`COMPOSEAI_ACTIVITY_FREE_INPUT=true` selects a separate matched-Activity/window
+workload: `ClickToggleSquare` (raw pointer handler), `ClickableToggleSquare`, and
+`EditableTextFieldSquare`. Each fixture latches an input-driven state change to a
+known green frame. Both hosts must independently produce at least 95% expected
+green pixels (8/channel tolerance), then their PNG bytes, default hierarchy and
+full hierarchy must agree. A pair of equally inert red frames cannot pass.
+
+The probe mirrors the live lane's `LocalInspectionMode=false`. Touch input uses
+Compose's root injector with the production down/move/up sequence and advances
+both Compose's clock and Robolectric's looper clock in 16 ms steps. Earlier
+simplifications failed even on the Activity control; changing inspection mode or
+merely separating down/up was not sufficient. Reproducing the complete held-session
+sequence and clock handling made both hosts pass. After input, 500 ms of simulated
+time lets the test capture the final state; this is a correctness probe, not a
+measurement of live response latency or ripple motion.
+
+Three rotated fresh-process trials passed all **54 frames**, their default and full
+hierarchies, and the independent green-state assertions.
+[Recorded per-frame checks](profiles/activity-free-input-spike.json).
+
+```sh
+COMPOSEAI_ACTIVITY_FREE_SPIKE=true COMPOSEAI_ACTIVITY_FREE_INPUT=true \
+  COMPOSEAI_ACTIVITY_FREE_TRIALS=3 \
+  ./gradlew :daemon:android:testDebugUnitTest --rerun \
+  --tests '*ActivityFreeCaptureSpikeTest' --max-workers=4
+```
+
+Artifacts are under `daemon/android/build/activity-free-input-spike/`, separate
+from static measurements. Text uses `performTextInput`, which exercises Compose's
+text action rather than a native key/IME route. This probe establishes these three
+state changes and subsequent capture; it does not establish drag/selection,
+native keyboard/IME, accessibility actions, multiple-window focus transfer or full
+production held-session compatibility. Production hosting remains unchanged.
+
+After adding input mode, one fresh broad static trial also passed all 117 frames,
+default hierarchies and matched-host full hierarchies. The input-specific settings
+do not change the static path's inspection mode or synchronization.
