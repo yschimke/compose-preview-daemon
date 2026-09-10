@@ -26,11 +26,10 @@ import ee.schimke.composeai.daemon.protocol.UiMode
  * is genuinely its own — the output stem, the preview id, the render mode. There is no subset left
  * to get wrong.
  *
- * **Why it can live here now.** [PreviewOverrideBaseSpec]'s KDoc explains itself as an adapter
- * because "concrete hosts keep backend-local `RenderSpec` types". That stopped being true when
- * `RenderSpec` moved into this module, so the merge can be expressed directly on the spec. The DTO
- * survives underneath as [mergePreviewOverrides]'s parameter — collapsing it is a follow-up, not a
- * prerequisite.
+ * **Why it can live here.** `PreviewOverrideBaseSpec`'s KDoc explained itself as an adapter because
+ * "concrete hosts keep backend-local `RenderSpec` types". That stopped being true when `RenderSpec`
+ * moved into this module, so the merge is expressed directly on the spec — [mergePreviewOverrides]
+ * now takes one, and the DTO and its `withCarriedOverrides` field-copy are gone.
  *
  * What this deliberately does **not** do is anything lane-specific:
  * - it never sets [RenderSpec.outputBaseName] — a recording names it after the session, a row
@@ -42,38 +41,7 @@ import ee.schimke.composeai.daemon.protocol.UiMode
  *   previous render's `night` bit — a fact about Robolectric, not about overrides).
  */
 public fun RenderSpec.mergedWith(overrides: PreviewOverrides?): RenderSpec {
-  val merged =
-    mergePreviewOverrides(
-      base =
-        PreviewOverrideBaseSpec(
-            widthPx = widthPx,
-            heightPx = heightPx,
-            density = density,
-            device = device,
-            localeTag = localeTag,
-            fontScale = fontScale,
-            uiMode =
-              when (uiMode) {
-                RenderSpec.SpecUiMode.LIGHT -> UiMode.LIGHT
-                RenderSpec.SpecUiMode.DARK -> UiMode.DARK
-                null -> null
-              },
-            orientation =
-              when (orientation) {
-                RenderSpec.SpecOrientation.PORTRAIT -> Orientation.PORTRAIT
-                RenderSpec.SpecOrientation.LANDSCAPE -> Orientation.LANDSCAPE
-                null -> null
-              },
-            inspectionMode = inspectionMode,
-          )
-          // Every extension-consumed field the resolved spec already carries — the baked
-          // `@OverrideVariant` seed above all, but also focus / talkBack / permissions / … —
-          // becomes the floor the per-render overlay lands on. Copied wholesale rather than named
-          // here, so this adapter can't fall behind the protocol (see `withCarriedOverrides`;
-          // yschimke/wear-m3-catalog#33).
-          .withCarriedOverrides(this.overrides),
-      overrides = overrides,
-    )
+  val merged = mergePreviewOverrides(base = this, overrides = overrides)
 
   // An override that pins an axis — explicit pixels, or a device that pins both — clears that
   // axis's wrap flag: the frame is no longer free to size itself there, and a stale wrap intent
