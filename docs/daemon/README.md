@@ -56,6 +56,9 @@ the CI-canonical render path.
 - **[STARTUP.md](STARTUP.md)** — daemon startup latency analysis.
 - **[BOOT-ROADMAP.md](BOOT-ROADMAP.md)** — the ranked plan for a 2-3 s sandbox boot: adoptable
   warmed workers, and what a Robolectric fork would change.
+- **[BOOT-ROADMAP-B-HANDOFF.md](BOOT-ROADMAP-B-HANDOFF.md)** — the handoff for Tier B (a
+  Robolectric fork): where Tier A left the numbers, what each item buys, the spike that decides it.
+
 - **[HISTORY.md](HISTORY.md)** — preview history archive: on-disk
   schema, JSON-RPC API, MCP mappings, `HistorySource` backends.
 - **[INTERACTIVE.md](INTERACTIVE.md)** — focus-mode live stream and
