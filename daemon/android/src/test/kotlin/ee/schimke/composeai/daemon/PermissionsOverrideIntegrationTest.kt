@@ -155,8 +155,8 @@ class PermissionsOverrideIntegrationTest {
   ): java.awt.image.BufferedImage {
     val request = RenderRequest.Render(target = target)
     val result = host.submit(request, timeoutMs = 120_000)
-    assertNotNull("$label: pngPath must be populated", result.pngPath)
-    val pngFile = File(result.pngPath!!)
+    assertNotNull("$label: pngPath must be populated", result.artifact.pathOrNull())
+    val pngFile = File(result.artifact.pathOrNull()!!)
     assertTrue("$label: rendered PNG must exist", pngFile.exists())
     return ByteArrayInputStream(pngFile.readBytes()).use { ImageIO.read(it) }
       ?: error("$label: PNG failed to decode")

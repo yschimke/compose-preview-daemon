@@ -41,7 +41,7 @@ class RenderEngineLottieTest {
     // setUp installs it as the context loader, which `LottiePreview` consults first.
     val result = engine.render(spec, requestId = 1L, classLoader = javaClass.classLoader)
 
-    val pngFile = File(result.pngPath!!)
+    val pngFile = File(result.artifact.pathOrNull()!!)
     assertTrue("rendered PNG must exist", pngFile.exists() && pngFile.length() > 0)
     val img = ByteArrayInputStream(pngFile.readBytes()).use { ImageIO.read(it) }!!
     // Count pixels close to the asset's fill colour (#3380E6-ish). A blank/failed render would be

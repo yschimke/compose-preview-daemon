@@ -74,10 +74,10 @@ class AndroidInteractiveIrReplayTest {
         )
       try {
         val result = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull("held IR replay must produce a PNG path", result.pngPath)
+        assertNotNull("held IR replay must produce a PNG path", result.artifact.pathOrNull())
         // The fake replay composable paints solid green. Any other outcome — a blank frame, the
         // activity background — means the held loop did not route through IR replay.
-        val greenPct = greenPct(File(result.pngPath!!))
+        val greenPct = greenPct(File(result.artifact.pathOrNull()!!))
         assertTrue(
           "expected the held frame to be ≥95% the replay composable's green " +
             "(got ${"%.2f".format(greenPct * 100)}%)",

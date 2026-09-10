@@ -74,7 +74,7 @@ class ClassloaderForensicsDaemonTest {
         )
       val result = host.submit(request, timeoutMs = 180_000)
       // `pngPath` carries the dump path back via the same field (no need to widen RenderResult).
-      val reported = result.pngPath
+      val reported = result.artifact.pathOrNull()
       assertTrue(
         "host should report the dump path through pngPath; got $reported",
         reported != null && reported == outFile.absolutePath,

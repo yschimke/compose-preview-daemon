@@ -150,7 +150,7 @@ class CancellationInvariantTest {
 
       val result = resultRef.get()
       assertNotNull("submit must produce a RenderResult", result)
-      val pngPath = result!!.pngPath
+      val pngPath = result!!.artifact.pathOrNull()
       assertNotNull(
         "RenderResult.pngPath must be populated — render must have run to completion",
         pngPath,

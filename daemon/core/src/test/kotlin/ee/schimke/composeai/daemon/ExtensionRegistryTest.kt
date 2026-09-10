@@ -239,7 +239,7 @@ class ExtensionRegistryTest {
     registry.enable(listOf("ext/a"))
 
     val result =
-      RenderResult(id = 1L, classLoaderHashCode = 0, classLoaderName = "test", pngPath = null)
+      RenderResult(id = 1L, classLoaderHashCode = 0, classLoaderName = "test", artifact = null)
     registry.activeDataProducts().onRender(previewId = "p1", result = result)
     assertEquals(1, a.onRenderCount.get())
     assertEquals(1, b.onRenderCount.get())

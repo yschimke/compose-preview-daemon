@@ -52,7 +52,7 @@ class RenderEngineLottieScrubTest {
         overrides = progress?.let { PreviewOverrides(lottie = LottieOverride(progress = it)) },
       )
     val result = engine.render(spec, requestId = 1L, classLoader = javaClass.classLoader)
-    return File(result.pngPath!!)
+    return File(result.artifact.pathOrNull()!!)
   }
 
   @Test

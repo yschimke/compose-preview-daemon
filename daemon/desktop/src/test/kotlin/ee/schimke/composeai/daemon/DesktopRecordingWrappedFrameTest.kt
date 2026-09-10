@@ -726,7 +726,7 @@ class DesktopRecordingWrappedFrameTest {
         requestId = 1L,
         classLoader = javaClass.classLoader,
       )
-    val png = File(result.pngPath ?: error("$label: pngPath must be populated"))
+    val png = File(result.artifact.pathOrNull() ?: error("$label: pngPath must be populated"))
     return decode(png.readBytes())
   }
 

@@ -60,8 +60,8 @@ class DesktopCaptureGutterLaneTest {
         gutterBottomDp = gutterBottomDp,
       )
     val result = engine.render(spec, requestId = 1L, classLoader = javaClass.classLoader)
-    assertNotNull("pngPath must be populated", result.pngPath)
-    val png = File(result.pngPath!!)
+    assertNotNull("pngPath must be populated", result.artifact.pathOrNull())
+    val png = File(result.artifact.pathOrNull()!!)
     assertTrue("rendered PNG must exist: ${png.absolutePath}", png.exists())
     return png
   }

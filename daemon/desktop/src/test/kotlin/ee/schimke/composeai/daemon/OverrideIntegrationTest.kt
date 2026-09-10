@@ -1708,8 +1708,11 @@ class OverrideIntegrationTest {
       val request =
         RenderRequest.Render(target = preview("overridable", namedBag("fill", "#FF42A5F5")))
       val result = host.submit(request, timeoutMs = 30_000)
-      assertNotNull("pngPath must be populated", result.pngPath)
-      val png = ByteArrayInputStream(File(result.pngPath!!).readBytes()).use { ImageIO.read(it) }
+      assertNotNull("pngPath must be populated", result.artifact.pathOrNull())
+      val png =
+        ByteArrayInputStream(File(result.artifact.pathOrNull()!!).readBytes()).use {
+          ImageIO.read(it)
+        }
       val bluePct = pixelMatchPct(png, expectedRgb = 0x42A5F5, perChannelTolerance = 8)
       assertTrue(
         "a named override on the previewId payload path must repaint blue; got " +
@@ -1768,8 +1771,11 @@ class OverrideIntegrationTest {
       val request =
         RenderRequest.Render(target = preview("knobbed", textBag("topArgb" to blue.toString())))
       val result = host.submit(request, timeoutMs = 30_000)
-      assertNotNull("pngPath must be populated", result.pngPath)
-      val png = ByteArrayInputStream(File(result.pngPath!!).readBytes()).use { ImageIO.read(it) }
+      assertNotNull("pngPath must be populated", result.artifact.pathOrNull())
+      val png =
+        ByteArrayInputStream(File(result.artifact.pathOrNull()!!).readBytes()).use {
+          ImageIO.read(it)
+        }
       val bluePct = pixelMatchPct(png, expectedRgb = 0x42A5F5, perChannelTolerance = 8)
       val greenPct = pixelMatchPct(png, expectedRgb = 0x66BB6A, perChannelTolerance = 8)
       assertTrue(
@@ -1906,8 +1912,11 @@ class OverrideIntegrationTest {
           RenderRequest.Render(target = RenderTarget.Preview(previewId = "knobbed")),
           30_000,
         )
-      assertNotNull("pngPath must be populated", result.pngPath)
-      val png = ByteArrayInputStream(File(result.pngPath!!).readBytes()).use { ImageIO.read(it) }
+      assertNotNull("pngPath must be populated", result.artifact.pathOrNull())
+      val png =
+        ByteArrayInputStream(File(result.artifact.pathOrNull()!!).readBytes()).use {
+          ImageIO.read(it)
+        }
       assertTrue(
         "an unseeded parameter-knob preview must render its author defaults (red top band)",
         pixelMatchPct(png, expectedRgb = 0xEF5350, perChannelTolerance = 8) >= 0.4,
@@ -2374,8 +2383,8 @@ class OverrideIntegrationTest {
       )
     try {
       val result = session.render(requestId = RenderHost.nextRequestId())
-      assertNotNull("$label: pngPath must be populated", result.pngPath)
-      val pngFile = File(result.pngPath!!)
+      assertNotNull("$label: pngPath must be populated", result.artifact.pathOrNull())
+      val pngFile = File(result.artifact.pathOrNull()!!)
       assertTrue("$label: rendered PNG must exist", pngFile.exists())
       return ByteArrayInputStream(pngFile.readBytes()).use { ImageIO.read(it) }
         ?: error("$label: PNG failed to decode")
@@ -2391,8 +2400,8 @@ class OverrideIntegrationTest {
   ): java.awt.image.BufferedImage {
     val request = RenderRequest.Render(target = target)
     val result = host.submit(request, timeoutMs = 30_000)
-    assertNotNull("$label: pngPath must be populated", result.pngPath)
-    val pngFile = File(result.pngPath!!)
+    assertNotNull("$label: pngPath must be populated", result.artifact.pathOrNull())
+    val pngFile = File(result.artifact.pathOrNull()!!)
     assertTrue("$label: rendered PNG must exist", pngFile.exists())
     return ByteArrayInputStream(pngFile.readBytes()).use { ImageIO.read(it) }
       ?: error("$label: PNG failed to decode")

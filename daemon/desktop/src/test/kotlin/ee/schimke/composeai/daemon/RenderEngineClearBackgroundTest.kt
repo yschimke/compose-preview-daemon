@@ -43,8 +43,8 @@ class RenderEngineClearBackgroundTest {
       )
     val result =
       host.submit(RenderRequest.Render(target = RenderTarget.Spec(spec)), timeoutMs = 60_000)
-    assertNotNull("pngPath must be populated", result.pngPath)
-    val png = File(result.pngPath!!)
+    assertNotNull("pngPath must be populated", result.artifact.pathOrNull())
+    val png = File(result.artifact.pathOrNull()!!)
     assertTrue("rendered PNG must exist: ${png.absolutePath}", png.exists())
     return png
   }

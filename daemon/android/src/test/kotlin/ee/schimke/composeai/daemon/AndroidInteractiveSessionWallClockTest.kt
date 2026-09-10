@@ -179,7 +179,7 @@ class AndroidInteractiveSessionWallClockTest {
         id = 0L,
         classLoaderHashCode = 0,
         classLoaderName = "test",
-        pngPath = "/tmp/fake-render.png",
+        artifact = RenderArtifact("/tmp/fake-render.png"),
         metrics = mapOf("test" to 1L),
       )
   }

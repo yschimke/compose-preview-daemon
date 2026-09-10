@@ -1073,7 +1073,7 @@ class RenderEngine(
       id = requestId,
       classLoaderHashCode = System.identityHashCode(state.classLoader),
       classLoaderName = state.classLoader.javaClass.name,
-      pngPath = state.outputFile.absolutePath,
+      artifact = RenderArtifact(state.outputFile.absolutePath),
       metrics = metrics,
       previewContext = previewContext,
       outputBaseName = state.spec.outputBaseName,
@@ -1512,7 +1512,7 @@ class RenderEngine(
       id = requestId,
       classLoaderHashCode = System.identityHashCode(classLoader),
       classLoaderName = classLoader.javaClass.name,
-      pngPath = outputFile.absolutePath,
+      artifact = RenderArtifact(outputFile.absolutePath),
       metrics = mapOf("tookMs" to tookMs),
     )
   }
@@ -1665,7 +1665,7 @@ class RenderEngine(
       id = requestId,
       classLoaderHashCode = System.identityHashCode(classLoader),
       classLoaderName = classLoader.javaClass.name,
-      pngPath = destSvg.absolutePath,
+      artifact = RenderArtifact(destSvg.absolutePath, mediaType = RenderArtifact.SVG),
       metrics = mapOf("tookMs" to tookMs),
     )
   }
@@ -2218,7 +2218,7 @@ class RenderEngine(
       id = requestId,
       classLoaderHashCode = System.identityHashCode(classLoader),
       classLoaderName = classLoader.javaClass.name,
-      pngPath = outputFile.absolutePath,
+      artifact = RenderArtifact(outputFile.absolutePath),
       metrics = mapOf("tookMs" to tookMs),
     )
   }

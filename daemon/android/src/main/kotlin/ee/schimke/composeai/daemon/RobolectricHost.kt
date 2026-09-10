@@ -1440,7 +1440,7 @@ open class RobolectricHost(
     val name = cls.getMethod("getClassLoaderName").invoke(raw) as String
     // pngPath / metrics fields landed in B1.4. Read them reflectively too so a sandbox-side
     // RenderResult instance carries its real-render payload back to the host caller.
-    val pngPath = cls.getMethod("getPngPath").invoke(raw) as String?
+    val artifactJson = cls.getMethod("getArtifactJson").invoke(raw) as String?
     val outputBaseName = cls.getMethod("getOutputBaseName").invoke(raw) as String?
     @Suppress("UNCHECKED_CAST")
     val metrics = cls.getMethod("getMetrics").invoke(raw) as Map<String, Long>?
@@ -1450,7 +1450,7 @@ open class RobolectricHost(
       id = id,
       classLoaderHashCode = hash,
       classLoaderName = name,
-      pngPath = pngPath,
+      artifact = artifactJson?.let(RenderArtifact::decode),
       // Re-wrap into the host-classloader's Map type — the sandbox-side instance is a
       // java.util.LinkedHashMap whose generic params survive the bridge unchanged (java.util.* is
       // a do-not-acquire boundary by default), so this is effectively a no-op copy. Done
@@ -2636,7 +2636,7 @@ open class RobolectricHost(
         id = id,
         classLoaderHashCode = System.identityHashCode(cl),
         classLoaderName = cl?.javaClass?.name ?: "<null>",
-        pngPath = outFile.absolutePath,
+        artifact = RenderArtifact(outFile.absolutePath),
         metrics = null,
       )
     }
@@ -3270,7 +3270,7 @@ open class RobolectricHost(
                         id = cmd.requestId,
                         classLoaderHashCode = System.identityHashCode(cl),
                         classLoaderName = cl?.javaClass?.name ?: "<null>",
-                        pngPath = outputFile.absolutePath,
+                        artifact = RenderArtifact(outputFile.absolutePath),
                         metrics = mapOf<String, Long>("tookMs" to 0L, "interactive" to 1L),
                       )
                     } catch (t: Throwable) {

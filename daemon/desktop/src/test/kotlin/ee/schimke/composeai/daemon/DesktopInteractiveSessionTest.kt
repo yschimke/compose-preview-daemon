@@ -76,8 +76,8 @@ class DesktopInteractiveSessionTest {
         // 1. Bootstrap render — no input dispatched yet, scene paints the `clicked = false`
         //    branch (red).
         val first = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull("first render must produce a pngPath", first.pngPath)
-        val firstImage = readPng(File(first.pngPath!!))
+        assertNotNull("first render must produce a pngPath", first.artifact.pathOrNull())
+        val firstImage = readPng(File(first.artifact.pathOrNull()!!))
         val redMatch = pixelMatchPct(firstImage, expectedRgb = 0xEF5350, perChannelTolerance = 8)
         assertTrue(
           "expected ≥ 95% red pixels on bootstrap render; got ${"%.2f".format(redMatch * 100)}%",
@@ -97,8 +97,8 @@ class DesktopInteractiveSessionTest {
 
         // 3. Re-render — the second frame should now paint the `clicked = true` branch (green).
         val second = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull("second render must produce a pngPath", second.pngPath)
-        val secondImage = readPng(File(second.pngPath!!))
+        assertNotNull("second render must produce a pngPath", second.artifact.pathOrNull())
+        val secondImage = readPng(File(second.artifact.pathOrNull()!!))
         val greenMatch = pixelMatchPct(secondImage, expectedRgb = 0x66BB6A, perChannelTolerance = 8)
         assertTrue(
           "expected ≥ 95% green pixels after click; got ${"%.2f".format(greenMatch * 100)}% — " +
@@ -148,7 +148,7 @@ class DesktopInteractiveSessionTest {
         val first = session.render(requestId = RenderHost.nextRequestId())
         assertTrue(
           "fixture must start red",
-          pixelMatchPct(readPng(File(first.pngPath!!)), 0xEF5350, 8) >= 0.95,
+          pixelMatchPct(readPng(File(first.artifact.pathOrNull()!!)), 0xEF5350, 8) >= 0.95,
         )
 
         // The target occupies x=115.5..168 and y=0..52.5 natural pixels. Its centre is well
@@ -164,7 +164,11 @@ class DesktopInteractiveSessionTest {
 
         val second = session.render(requestId = RenderHost.nextRequestId())
         val greenMatch =
-          pixelMatchPct(readPng(File(second.pngPath!!)), 0x66BB6A, perChannelTolerance = 8)
+          pixelMatchPct(
+            readPng(File(second.artifact.pathOrNull()!!)),
+            0x66BB6A,
+            perChannelTolerance = 8,
+          )
         assertTrue(
           "expected the natural-pixel click to hit at density 2.625; got " +
             "${"%.2f".format(greenMatch * 100)}% green",
@@ -399,7 +403,7 @@ class DesktopInteractiveSessionTest {
         )
       try {
         val first = session.render(requestId = RenderHost.nextRequestId())
-        val firstImage = readPng(File(first.pngPath!!))
+        val firstImage = readPng(File(first.artifact.pathOrNull()!!))
         val redMatch = pixelMatchPct(firstImage, expectedRgb = 0xEF5350, perChannelTolerance = 8)
         assertTrue(
           "expected frame-clock fixture to start red; got ${"%.2f".format(redMatch * 100)}%",
@@ -407,7 +411,7 @@ class DesktopInteractiveSessionTest {
         )
 
         val second = session.render(requestId = RenderHost.nextRequestId())
-        val secondImage = readPng(File(second.pngPath!!))
+        val secondImage = readPng(File(second.artifact.pathOrNull()!!))
         val greenMatch = pixelMatchPct(secondImage, expectedRgb = 0x66BB6A, perChannelTolerance = 8)
         assertTrue(
           "expected frame-clock fixture to turn green after 300ms of render time; got " +
@@ -501,7 +505,7 @@ class DesktopInteractiveSessionTest {
         val first = session.render(requestId = RenderHost.nextRequestId())
         assertTrue(
           "fixture must start red",
-          pixelMatchPct(readPng(File(first.pngPath!!)), 0xEF5350, 8) >= 0.95,
+          pixelMatchPct(readPng(File(first.artifact.pathOrNull()!!)), 0xEF5350, 8) >= 0.95,
         )
 
         // Negative control: a bottom-right corner pixel click misses the top-left target → still
@@ -518,7 +522,7 @@ class DesktopInteractiveSessionTest {
         val afterMiss = session.render(requestId = RenderHost.nextRequestId())
         assertTrue(
           "opposite-corner click must miss the top-left target-box; card should still be red",
-          pixelMatchPct(readPng(File(afterMiss.pngPath!!)), 0xEF5350, 8) >= 0.95,
+          pixelMatchPct(readPng(File(afterMiss.artifact.pathOrNull()!!)), 0xEF5350, 8) >= 0.95,
         )
 
         // The payload: a CLICK with NO pixel coords, only a testTag target.
@@ -530,7 +534,7 @@ class DesktopInteractiveSessionTest {
           )
         )
         val afterHit = session.render(requestId = RenderHost.nextRequestId())
-        val greenMatch = pixelMatchPct(readPng(File(afterHit.pngPath!!)), 0x66BB6A, 8)
+        val greenMatch = pixelMatchPct(readPng(File(afterHit.artifact.pathOrNull()!!)), 0x66BB6A, 8)
         assertTrue(
           "testTag target must resolve to the corner node's centre and flip green; got " +
             "${"%.2f".format(greenMatch * 100)}% — load-bearing #1784 assertion (resolution ran, " +
@@ -648,8 +652,8 @@ class DesktopInteractiveSessionTest {
       try {
         // Bootstrap render — no key dispatched yet, `pressed = false` so the box is red.
         val first = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull("first render must produce a pngPath", first.pngPath)
-        val firstImage = readPng(File(first.pngPath!!))
+        assertNotNull("first render must produce a pngPath", first.artifact.pathOrNull())
+        val firstImage = readPng(File(first.artifact.pathOrNull()!!))
         val redMatch = pixelMatchPct(firstImage, expectedRgb = 0xEF5350, perChannelTolerance = 8)
         assertTrue(
           "expected ≥ 95% red pixels on bootstrap render; got ${"%.2f".format(redMatch * 100)}%",
@@ -671,8 +675,8 @@ class DesktopInteractiveSessionTest {
         // should paint green. Load-bearing for the issue #1203 contract: without the new
         // dispatch wiring this would still be red (the old no-op branch).
         val second = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull("second render must produce a pngPath", second.pngPath)
-        val secondImage = readPng(File(second.pngPath!!))
+        assertNotNull("second render must produce a pngPath", second.artifact.pathOrNull())
+        val secondImage = readPng(File(second.artifact.pathOrNull()!!))
         val greenMatch = pixelMatchPct(secondImage, expectedRgb = 0x66BB6A, perChannelTolerance = 8)
         assertTrue(
           "expected ≥ 95% green pixels after KEY_DOWN(KEYCODE_A); got " +
@@ -729,7 +733,7 @@ class DesktopInteractiveSessionTest {
       try {
         // Bootstrap.
         val first = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull(first.pngPath)
+        assertNotNull(first.artifact.pathOrNull())
 
         // Dispatch a wire keycode that the desktop translation table doesn't cover (Android
         // `KEYCODE_F13 == 183`; intentionally outside `InteractiveKeyCodes`). Must NOT throw,
@@ -743,8 +747,8 @@ class DesktopInteractiveSessionTest {
         )
 
         val second = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull(second.pngPath)
-        val secondImage = readPng(File(second.pngPath!!))
+        assertNotNull(second.artifact.pathOrNull())
+        val secondImage = readPng(File(second.artifact.pathOrNull()!!))
         val redMatch = pixelMatchPct(secondImage, expectedRgb = 0xEF5350, perChannelTolerance = 8)
         assertTrue(
           "unmapped keycode must not flip state; expected ≥ 95% red; got " +

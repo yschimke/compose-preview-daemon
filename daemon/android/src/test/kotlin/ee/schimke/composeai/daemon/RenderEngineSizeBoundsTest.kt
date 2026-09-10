@@ -66,8 +66,8 @@ class RenderEngineSizeBoundsTest {
         ),
         timeoutMs = 120_000,
       )
-    assertNotNull("$base: pngPath must be populated", result.pngPath)
-    val png = File(result.pngPath!!)
+    assertNotNull("$base: pngPath must be populated", result.artifact.pathOrNull())
+    val png = File(result.artifact.pathOrNull()!!)
     assertTrue("$base: rendered PNG must exist", png.exists())
     // Keep the size-mode renders for the PR's visual evidence (build dir, not committed).
     File("build/size-evidence").apply { mkdirs() }.let { png.copyTo(File(it, "$base.png"), true) }

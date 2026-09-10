@@ -1,6 +1,7 @@
 package ee.schimke.composeai.daemon.pool
 
 import ee.schimke.composeai.daemon.MATERIAL3_THEME_PAYLOAD_CONTEXT_KEY
+import ee.schimke.composeai.daemon.RenderArtifact
 import ee.schimke.composeai.daemon.RenderResult
 import ee.schimke.composeai.daemon.RenderTarget
 import ee.schimke.composeai.data.render.PreviewContext
@@ -125,7 +126,7 @@ data class RenderResultDto(
   val id: Long,
   val classLoaderHashCode: Int,
   val classLoaderName: String,
-  val pngPath: String? = null,
+  val artifact: RenderArtifact? = null,
   val metrics: Map<String, Long>? = null,
   val previewContext: PreviewContextDto? = null,
   val outputBaseName: String? = null,
@@ -135,7 +136,7 @@ data class RenderResultDto(
       id = id,
       classLoaderHashCode = classLoaderHashCode,
       classLoaderName = classLoaderName,
-      pngPath = pngPath,
+      artifact = artifact,
       metrics = metrics?.let { LinkedHashMap(it) },
       previewContext = previewContext?.toPreviewContext(),
       outputBaseName = outputBaseName,
@@ -147,7 +148,7 @@ data class RenderResultDto(
         id = result.id,
         classLoaderHashCode = result.classLoaderHashCode,
         classLoaderName = result.classLoaderName,
-        pngPath = result.pngPath,
+        artifact = result.artifact,
         metrics = result.metrics,
         previewContext = result.previewContext?.let(PreviewContextDto::of),
         outputBaseName = result.outputBaseName,

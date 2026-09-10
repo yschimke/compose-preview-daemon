@@ -153,7 +153,10 @@ class RobolectricHostSpareAdoptionTest {
             RenderRequest.Render(target = fixtureTarget("RedSquare", "after-release")),
             timeoutMs = 120_000,
           )
-        assertNotNull("the re-adopted worker should render the new catalog", result.pngPath)
+        assertNotNull(
+          "the re-adopted worker should render the new catalog",
+          result.artifact.pathOrNull(),
+        )
         System.err.println(
           "[measure] re-adopted worker: start ${startMs}ms, first catalog render " +
             "${(System.nanoTime() - renderStartedAt) / 1_000_000}ms"
@@ -219,7 +222,7 @@ class RobolectricHostSpareAdoptionTest {
             RenderRequest.Render(target = fixtureTarget(function, tag)),
             timeoutMs = 120_000,
           )
-        assertNotNull("$function should render a PNG", result.pngPath)
+        assertNotNull("$function should render a PNG", result.artifact.pathOrNull())
         return (System.nanoTime() - startedAt) / 1_000_000
       }
       val red = timedRender("RedSquare", "first-red")

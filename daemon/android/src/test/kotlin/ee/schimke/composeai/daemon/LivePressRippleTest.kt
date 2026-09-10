@@ -104,8 +104,8 @@ class LivePressRippleTest {
 
   private fun renderTo(session: InteractiveSession): File {
     val result = session.render(requestId = RenderHost.nextRequestId())
-    assertNotNull("render must produce a PNG path", result.pngPath)
-    return File(result.pngPath!!)
+    assertNotNull("render must produce a PNG path", result.artifact.pathOrNull())
+    return File(result.artifact.pathOrNull()!!)
   }
 
   private fun previewSpecResolver(): (String) -> RenderSpec? = { previewId ->
