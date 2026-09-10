@@ -261,3 +261,45 @@ coverage before production adoption.
 After the window-type correction, the five-case input workload was rerun in fresh
 Activity/window JVMs. All 30 frames, both hierarchies and independent green-state
 checks passed again, including native key delivery and the editing connection.
+
+## Host cost with C1 tuning
+
+`COMPOSEAI_ACTIVITY_FREE_C1=true` adds `-XX:TieredStopAtLevel=1` and
+`-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30` to each child JVM. The
+method-handle property is an internal JDK tuning knob, not a supported application
+API. This mode uses the normal Robolectric dependency and no application CDS
+archive; it isolates whether the host saving survives compiler tuning.
+
+Three rotated trials on the current 15-fixture host passed **405 PNG/default
+hierarchy artifacts** and **270 full hierarchy artifacts**. The matched Activity's
+median first render was **1427 ms**, versus **1292 ms** for the standalone window
+(a **135 ms / 9.5%** saving). First-frame JVM uptime was 3309 versus 3199 ms;
+median warm render was 28.5 versus 24 ms. Warm medians are computed within each
+trial over cycles 1–2, then across the three trials.
+[Raw tuned measurements](profiles/activity-free-c1-spike.json).
+
+```sh
+COMPOSEAI_ACTIVITY_FREE_SPIKE=true COMPOSEAI_ACTIVITY_FREE_BROAD=true \
+  COMPOSEAI_ACTIVITY_FREE_C1=true COMPOSEAI_ACTIVITY_FREE_TRIALS=3 \
+  ./gradlew :daemon:android:testDebugUnitTest --rerun \
+  --tests '*ActivityFreeCaptureSpikeTest' --max-workers=4
+```
+
+This remains a fixture-process host comparison, not worker readiness. In
+particular, the 135 ms cannot be subtracted from the separately measured 2.480 s
+JDK 25/CDS/constant-binding readiness to claim a combined result.
+
+Phase medians explain the modest net saving: rule entry falls from 752 to 107 ms,
+but attachment rises from 261 to 478 ms and draining attachment/composition from
+32 to 345 ms. Work moves into the first real window and composition; removing
+Activity launch does not eliminate those costs. Bitmap capture is effectively
+unchanged at 226 versus 221 ms. Phase medians are independently aggregated and
+need not sum to the median total.
+
+A fresh untuned comparison on the same code also passed 405 PNG/default artifacts
+and 270 full hierarchies. Its first-render medians were 1491 ms (Activity) and
+1356 ms (window), again a 135 ms saving. Warm medians were 35 and 29 ms. Thus the
+Activity-free benefit survives C1 tuning in this workload; it does not disappear
+once compiler overhead falls. The configuration batches ran sequentially (tuned,
+then untuned), with host order rotated within each batch, so small cross-configuration
+differences can include host drift. [Current untuned measurements](profiles/activity-free-current-default-spike.json).

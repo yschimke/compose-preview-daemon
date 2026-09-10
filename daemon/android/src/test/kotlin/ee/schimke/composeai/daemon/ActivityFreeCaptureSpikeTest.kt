@@ -87,6 +87,10 @@ class ActivityFreeCaptureSpikeTest {
             mkdirs()
           }
         val command = SandboxProcessPool.spareWorkerCommandForTest().dropLast(1).toMutableList()
+        if (System.getenv("COMPOSEAI_ACTIVITY_FREE_C1") == "true") {
+          command += "-XX:TieredStopAtLevel=1"
+          command += "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30"
+        }
         command += ActivityFreeCaptureSpikeMain::class.java.name
         command += listOf(mode, output.absolutePath)
         val log = trialDir.resolve("$mode.log")
