@@ -491,6 +491,38 @@ open class RobolectricHost(
     if (slotReady.compareAndSet(slot, 0, 1)) readySlotCount.incrementAndGet()
   }
 
+  /**
+   * Serialises every boot of the in-process sandbox (slot 0) that happens after [start] returned:
+   * the background thread behind an adopt-first start, and the on-demand paths under
+   * `composeai.daemon.lazyInProcessSandbox`. Two threads starting `workerThreads[0]` would be two
+   * Robolectric bootstraps racing for one slot; one waits for the other instead.
+   */
+  private val slot0BootLock = Any()
+
+  /**
+   * Boot slot 0 now if it is not up, and return once it is. Called from the background booter and
+   * from every path that can only be served by the in-process sandbox — a held interactive session,
+   * `@PreviewParameter` row enumeration, and a render with no worker to route to — so a daemon that
+   * deferred slot 0 (`composeai.daemon.lazyInProcessSandbox`) pays the boot the first time
+   * something needs it, bounded by the sandbox boot budget, and never twice. A boot already in
+   * flight on another thread is waited for, not duplicated. Throws what the boot threw.
+   */
+  private fun ensureInProcessSandbox(reason: String) {
+    if (slotReady.get(0) == 1) return
+    synchronized(slot0BootLock) {
+      if (slotReady.get(0) == 1 || DaemonHostBridge.shutdown.get()) return
+      val startedAt = System.nanoTime()
+      bootSlotWithRetries(0, DaemonProperties.sandboxBootTimeoutMs.read())
+      markSlotReady(0)
+      StartupTimings.mark(
+        "sandbox 0 ready ($reason; ${(System.nanoTime() - startedAt) / 1_000_000}ms)"
+      )
+    }
+  }
+
+  /** Test seam for the on-demand boot of a lazily deferred slot 0. */
+  internal fun ensureInProcessSandboxForTest() = ensureInProcessSandbox("test")
+
   /** Background pool-boot thread (see [start]); null when background boot isn't active. */
   @Volatile private var backgroundBootWorker: Thread? = null
 
@@ -558,13 +590,24 @@ open class RobolectricHost(
     if (backgroundBoot && processPool?.hasUntriedSpare() == true) {
       val adopted = adoptSpares()
       if (adopted > 0) {
+        // `lazyInProcessSandbox`: with workers already serving, the in-process sandbox is a boot
+        // and ~300 MB this daemon may never need — a serve catalog daemon holds no interactive
+        // session and enumerates no rows in the common case. Defer it to the first path that
+        // needs it ([ensureInProcessSandbox]) rather than booting it behind the spares.
+        val lazySlot0 = DaemonProperties.lazyInProcessSandbox.read()
         StartupTimings.mark(
-          "sandbox-ready latch fired ($adopted adopted spare(s); slot 0 and " +
-            "${sandboxCount - 1 - adopted} more booting in background)"
+          "sandbox-ready latch fired ($adopted adopted spare(s); " +
+            (if (lazySlot0) "slot 0 deferred until needed" else "slot 0") +
+            " and ${sandboxCount - 1 - adopted} more booting in background)"
         )
         backgroundBootWorker =
           Thread(
-              { runCatching { bootBehindAdoptedSpares(timeoutMs) } },
+              {
+                runCatching {
+                  if (lazySlot0) bootRemainingSlots(timeoutMs, background = true)
+                  else bootBehindAdoptedSpares(timeoutMs)
+                }
+              },
               "compose-ai-daemon-pool-boot",
             )
             .apply {
@@ -731,9 +774,7 @@ open class RobolectricHost(
   private fun bootBehindAdoptedSpares(timeoutMs: Long) {
     if (DaemonHostBridge.shutdown.get()) return
     try {
-      bootSlotWithRetries(0, timeoutMs)
-      markSlotReady(0)
-      StartupTimings.mark("sandbox 0 ready (background boot behind adopted spares)")
+      ensureInProcessSandbox("background boot behind adopted spares")
     } catch (t: Throwable) {
       System.err.println(
         "RobolectricHost: background boot of the in-process sandbox (slot 0) failed permanently " +
@@ -1102,9 +1143,14 @@ open class RobolectricHost(
             "re-dispatching to slot $fallback (${t.javaClass.simpleName}: ${t.message})"
         )
         if (fallback > 0) return pool.submit(fallback - 1, typed, timeoutMs)
+        ensureInProcessSandbox("render with no routable worker")
         return submitInProcess(typed, timeoutMs)
       }
     }
+    // Slot 0 is where a render lands when no worker is routable. After an adopt-first start that
+    // can be a sandbox still booting in the background, or one deferred until needed: either way
+    // it must be up before the request is queued on it, or the queue is the timeout.
+    if (slotReady.get(0) == 0) ensureInProcessSandbox("render with no routable worker")
     return submitInProcess(typed, timeoutMs)
   }
 
@@ -1170,6 +1216,8 @@ open class RobolectricHost(
     // rather than a slow answer. Fail immediately and tell the caller what to do instead.
     checkNotPinnedByInteractiveSession(previewId)
     val slotIdx = INTERACTIVE_SLOT_INDEX
+    // Only slot 0 can answer, so a deferred or still-booting slot 0 is booted or waited for here.
+    ensureInProcessSandbox("parameter-row enumeration")
     val slot = DaemonHostBridge.slot(slotIdx)
     // Same publish-then-enqueue order `submitInProcess` uses, so the enumeration reads the same
     // (possibly just-swapped) bytecode the next render would.
@@ -1586,6 +1634,10 @@ open class RobolectricHost(
     // unlike the pre-#3072 shape this never waits on a background boot. The await stays as a cheap
     // guard for callers that reach acquire before `start()` has returned.
     val interactiveSlot = DaemonHostBridge.slot(INTERACTIVE_SLOT_INDEX)
+    // An adopt-first start may still be booting slot 0 in the background, or — under
+    // `lazyInProcessSandbox` — have deferred it to exactly this moment. Either way this is the
+    // path that needs it: boot it, or wait for the boot in flight, within the sandbox boot budget.
+    runCatching { ensureInProcessSandbox("interactive session") }
     interactiveSlot.awaitSandboxReady(INTERACTIVE_START_TIMEOUT_MS)
     if (interactiveSlot.sandboxClassLoaderRef.get() == null) {
       throw UnsupportedOperationException(
@@ -2068,11 +2120,12 @@ open class RobolectricHost(
     // Worker JVMs first: each gets a polite Shutdown over its socket and is force-killed if it
     // outlives the budget, so a wedged worker can never outlive the daemon that spawned it.
     processPool?.let { runCatching { it.shutdown(timeoutMs) } }
-    workerThreads.forEach { it.join(timeoutMs) }
-    // A worker whose sandbox never registered (still inside Robolectric bootstrap when shutdown
-    // raced a background pool boot) can't see the poison pill and legitimately outlives the join —
-    // same "orphaned in this JVM" outcome [abortPartialStart] documents, and the daemon exits via
-    // System.exit anyway. Only a *ready* slot's worker refusing to exit is a real bug.
+    // Only a *ready* slot's worker thread is joined. A worker whose sandbox never registered (still
+    // inside Robolectric bootstrap when shutdown raced a background or deferred boot) can't see the
+    // poison pill: joining it would just wait out [timeoutMs] — on the daemon's `exit` path, which
+    // now runs this — for the same "orphaned in this JVM" outcome [abortPartialStart] documents,
+    // and the daemon exits via System.exit anyway. Only a ready worker refusing to exit is a bug.
+    workerThreads.forEachIndexed { i, t -> if (slotReady.get(i) == 1) t.join(timeoutMs) }
     val stuck = workerThreads.filterIndexed { i, t -> t.isAlive && slotReady.get(i) == 1 }
     if (stuck.isNotEmpty()) {
       error(

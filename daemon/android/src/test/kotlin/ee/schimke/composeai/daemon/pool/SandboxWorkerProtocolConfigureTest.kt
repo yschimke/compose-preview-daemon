@@ -37,6 +37,16 @@ class SandboxWorkerProtocolConfigureTest {
   }
 
   @Test
+  fun `release round-trips as a request of its own`() {
+    val line = workerJson.encodeToString(WorkerRequest.serializer(), WorkerRequest.Release)
+    assertTrue(line, line.contains("\"type\":\"release\""))
+    assertEquals(
+      WorkerRequest.Release,
+      workerJson.decodeFromString(WorkerRequest.serializer(), line),
+    )
+  }
+
+  @Test
   fun `the spare handshake prefix is what the spare pool scans for`() {
     assertEquals("composeai-spare-worker: listening", SandboxWorkerMain.SPARE_HANDSHAKE_PREFIX)
   }

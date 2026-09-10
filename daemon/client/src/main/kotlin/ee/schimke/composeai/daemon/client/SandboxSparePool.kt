@@ -31,7 +31,11 @@ import kotlin.concurrent.withLock
  *
  * **Lifecycle.** A spare is a child of this JVM. It halts when this JVM exits, when the pool evicts
  * it, or with the daemon that adopted it (`SandboxWorkerMain` watches both). [reserve] hands out
- * only spares that are warm and alive; a handed-out spare is the adopting daemon's from then on.
+ * only spares that are warm and alive; a handed-out spare is the adopting daemon's until that
+ * daemon is done with it. A daemon that shuts down cleanly **releases** its adopted workers rather
+ * than killing them: each drops the catalog and announces a fresh port on the same stdout, and the
+ * pool takes it back as warm — the reaped daemon's sandboxes are the next daemon's, no boot at all.
+ * A daemon that dies takes its workers with it, and the pool boots replacements as usual.
  *
  * Wired by whoever spawns daemons — [SubprocessDaemonClientFactory] takes one and reserves spares
  * for every Android launch with a pool of more than one sandbox. Threading: one boot at a time, on
@@ -65,6 +69,15 @@ public class SandboxSparePool(
     val bootTimeoutMs: Long = DaemonProperties.sandboxBootTimeoutMs.read(),
     /** Where spare JVMs run; they write nothing there, but a daemon's own tree may be deleted. */
     val workingDirectory: File = File(System.getProperty("java.io.tmpdir")),
+    /**
+     * `-XX:TrimNativeHeapInterval`, in milliseconds, for a spare launched on this JVM's own JDK
+     * when that JDK is 21 or newer; `0` leaves the flag off. A warm spare idles holding what the
+     * boot and the warm render malloc'd and freed — glibc keeps it — and the JVM's periodic
+     * `malloc_trim` gives it back: measured on the adoption test's box, 514 → 438 MB resident after
+     * five idle seconds, with the catalog's first renders unchanged. Not applied under a
+     * `javaLauncher` override, whose version this pool cannot see.
+     */
+    val trimNativeHeapMs: Long = DEFAULT_TRIM_NATIVE_HEAP_MS,
   )
 
   /**
@@ -80,19 +93,30 @@ public class SandboxSparePool(
       get() = process?.isAlive ?: true
   }
 
+  /**
+   * A spare handed to a daemon by [reserve] and not yet back. The daemon may release it (a later
+   * handshake line on its stdout, see [returned]) or take it down with itself; until one of the two
+   * happens it is neither warm nor booting, and it costs the pool nothing but this entry.
+   */
+  private class Lent(val spare: Spare, val port: Int)
+
   public data class Snapshot(
     val warm: Int,
     val booting: Int,
     val signatures: Int,
     val adopted: Long,
     val coldLaunches: Long,
+    /** Adopted spares their daemon handed back warm, re-entering the pool without a boot. */
+    val returned: Long = 0L,
   )
 
   private val lock = ReentrantLock()
   private val spares = mutableListOf<Spare>() // guarded by [lock]
   private val lastReserved = mutableMapOf<String, Long>() // signature → nanoTime; guarded by [lock]
+  private val lent = mutableMapOf<Spare, Lent>() // guarded by [lock]
   private var adopted = 0L
   private var coldLaunches = 0L
+  private var returned = 0L
   @Volatile private var closed = false
   private val booter = Executors.newSingleThreadExecutor { r ->
     Thread(r, "compose-ai-spare-boot").apply { isDaemon = true }
@@ -113,7 +137,12 @@ public class SandboxSparePool(
         spares.filter { it.signature == signature && it.port != null && it.alive }.take(wanted)
       spares.removeAll(ready)
       if (ready.isEmpty()) coldLaunches++ else adopted += ready.size
-      ready.mapNotNull { it.port }
+      ready.map { spare ->
+        val port = checkNotNull(spare.port)
+        lent[spare] = Lent(spare, port)
+        spare.port = null
+        port
+      }
     }
   }
 
@@ -143,7 +172,9 @@ public class SandboxSparePool(
         room++
       }
       List(minOf(missing, room).coerceAtLeast(0)) {
-        val used = spares.filter { it.signature == signature }.map { it.archiveSlot }.toSet()
+        // Lent spares still hold their archive files, and may come back.
+        val used =
+          (spares + lent.keys).filter { it.signature == signature }.map { it.archiveSlot }.toSet()
         val slot = (0 until config.perSignature).firstOrNull { it !in used } ?: spares.size
         Spare(signature, slot).also { spares += it }
       }
@@ -178,6 +209,7 @@ public class SandboxSparePool(
       signatures = spares.map { it.signature }.distinct().size,
       adopted = adopted,
       coldLaunches = coldLaunches,
+      returned = returned,
     )
   }
 
@@ -186,6 +218,8 @@ public class SandboxSparePool(
     booter.shutdownNow()
     val all = lock.withLock { spares.toList().also { spares.clear() } }
     all.forEach { it.process?.destroyForcibly() }
+    // Lent spares are their daemons' now; a daemon that releases one after this finds the pool
+    // closed and the returnee is killed on arrival ([returned]).
   }
 
   // ---- internals -----------------------------------------------------------------------------
@@ -208,7 +242,8 @@ public class SandboxSparePool(
     // The handshake is the one stdout line we parse; everything else is diagnostics.
     val handshake = awaitHandshake(spare, process)
     if (handshake == null) {
-      log("spare for $signature did not come up within ${config.bootTimeoutMs}ms; killing it")
+      if (closed) log("spare for $signature was still booting when the pool closed")
+      else log("spare for $signature did not come up within ${config.bootTimeoutMs}ms; killing it")
       lock.withLock { spares.remove(spare) }
       process.destroyForcibly()
       return
@@ -229,8 +264,11 @@ public class SandboxSparePool(
           try {
             process.inputStream.bufferedReader().useLines { lines ->
               for (line in lines) {
-                if (!result.isDone && line.startsWith(SPARE_HANDSHAKE_PREFIX)) {
-                  result.complete(parseHandshake(line))
+                if (line.startsWith(SPARE_HANDSHAKE_PREFIX)) {
+                  val handshake = parseHandshake(line)
+                  if (!result.isDone) result.complete(handshake)
+                  // A later handshake is the worker back from a daemon that released it.
+                  else if (handshake != null) returned(spare, handshake.second)
                 } else {
                   System.err.println("[spare-${spare.signature}] $line")
                 }
@@ -268,9 +306,38 @@ public class SandboxSparePool(
       }
   }
 
+  /**
+   * A lent spare announced a fresh port: its daemon released it on shutdown. Back into the pool as
+   * warm, unless the pool has closed or is full — then it is killed, like any spare over budget. (A
+   * returnee never displaces a warm spare of another signature: those were kept on purpose.)
+   */
+  private fun returned(spare: Spare, port: Int) {
+    val verdict = lock.withLock {
+      val loan = lent.remove(spare)
+      when {
+        loan == null -> "returned a port it was never lent on"
+        closed -> "returned after the pool closed"
+        spares.size >= config.maxSpares -> "returned to a full pool"
+        else -> {
+          spare.port = port
+          spares += spare
+          returned++
+          null
+        }
+      }
+    }
+    if (verdict == null) {
+      log("spare for ${spare.signature} (pid=${spare.pid}) returned warm, port=$port")
+    } else {
+      log("spare for ${spare.signature} (pid=${spare.pid}) $verdict; killing it")
+      spare.process?.destroyForcibly()
+    }
+  }
+
   /** Caller holds [lock]. Drops spares whose JVM is gone (a boot failure, or a kill). */
   private fun pruneDead() {
     spares.removeAll { !it.alive }
+    lent.keys.removeAll { !it.alive } // died with its daemon: nothing is coming back
   }
 
   /** Caller holds [lock]. */
@@ -284,26 +351,49 @@ public class SandboxSparePool(
    * The spare's argv: the daemon's own launcher, flags and classpath, the boot-time system
    * properties, and the worker entry point in spare mode. Pure; the test reads it.
    */
-  internal fun spareCommand(descriptor: DaemonLaunchDescriptor, archiveSlot: Int): List<String> =
-    buildList {
-      add(descriptor.javaLauncher ?: File(System.getProperty("java.home"), "bin/java").absolutePath)
-      // One class-data-sharing archive per spare slot, like the daemon gives each worker slot:
-      // two JVMs dumping into one file at exit is a torn archive.
-      descriptor.jvmArgs.forEach { arg ->
-        if (arg.startsWith(SHARED_ARCHIVE_FLAG)) {
-          val path = arg.removePrefix(SHARED_ARCHIVE_FLAG)
-          val stem = path.removeSuffix(".jsa")
-          val ext = if (path.endsWith(".jsa")) ".jsa" else ""
-          add("$SHARED_ARCHIVE_FLAG$stem-spare$archiveSlot$ext")
-        } else add(arg)
-      }
-      bootSystemProperties(descriptor).forEach { (k, v) -> add("-D$k=$v") }
-      add("-D${DaemonProperties.Names.SANDBOX_WORKER_SPARE}=true")
-      add("-D${DaemonProperties.Names.SANDBOX_COUNT}=1")
-      add("-D${DaemonProperties.Names.BACKGROUND_SANDBOX_BOOT}=false")
-      add(classpathArgFile(descriptor.classpath))
-      add(SANDBOX_WORKER_MAIN_CLASS)
+  internal fun spareCommand(
+    descriptor: DaemonLaunchDescriptor,
+    archiveSlot: Int,
+    javaFeatureVersion: Int = Runtime.version().feature(),
+  ): List<String> = buildList {
+    add(descriptor.javaLauncher ?: File(System.getProperty("java.home"), "bin/java").absolutePath)
+    // One class-data-sharing archive per spare slot, like the daemon gives each worker slot:
+    // two JVMs dumping into one file at exit is a torn archive.
+    descriptor.jvmArgs.forEach { arg ->
+      if (arg.startsWith(SHARED_ARCHIVE_FLAG)) {
+        val path = arg.removePrefix(SHARED_ARCHIVE_FLAG)
+        val stem = path.removeSuffix(".jsa")
+        val ext = if (path.endsWith(".jsa")) ".jsa" else ""
+        add("$SHARED_ARCHIVE_FLAG$stem-spare$archiveSlot$ext")
+      } else add(arg)
     }
+    // A spare idles with what its boot and warm render left committed. `SandboxWorkerMain`
+    // collects once after the warm render; these ratios let that collection give the heap
+    // back (the defaults, 40/70, keep it), ~35-45 MB resident per spare. Only when the
+    // descriptor does not decide the ratios itself.
+    if (descriptor.jvmArgs.none { it.startsWith("-XX:MaxHeapFreeRatio=") }) {
+      add("-XX:MaxHeapFreeRatio=30")
+    }
+    if (descriptor.jvmArgs.none { it.startsWith("-XX:MinHeapFreeRatio=") }) {
+      add("-XX:MinHeapFreeRatio=10")
+    }
+    if (
+      config.trimNativeHeapMs > 0 &&
+        descriptor.javaLauncher == null &&
+        descriptor.jvmArgs.none { it.startsWith(TRIM_NATIVE_HEAP_FLAG) } &&
+        javaFeatureVersion >= 21
+    ) {
+      // Experimental on 21, a product flag from 22; the unlock is harmless either way.
+      add("-XX:+UnlockExperimentalVMOptions")
+      add("$TRIM_NATIVE_HEAP_FLAG${config.trimNativeHeapMs}")
+    }
+    bootSystemProperties(descriptor).forEach { (k, v) -> add("-D$k=$v") }
+    add("-D${DaemonProperties.Names.SANDBOX_WORKER_SPARE}=true")
+    add("-D${DaemonProperties.Names.SANDBOX_COUNT}=1")
+    add("-D${DaemonProperties.Names.BACKGROUND_SANDBOX_BOOT}=false")
+    add(classpathArgFile(descriptor.classpath))
+    add(SANDBOX_WORKER_MAIN_CLASS)
+  }
 
   /**
    * The system properties a sandbox boot depends on, and therefore the only ones a spare is
@@ -320,6 +410,9 @@ public class SandboxSparePool(
   public companion object {
     public const val DEFAULT_MAX_SPARES: Int = 4
     public const val DEFAULT_PER_SIGNATURE: Int = 2
+    public const val DEFAULT_TRIM_NATIVE_HEAP_MS: Long = 1_000L
+
+    private const val TRIM_NATIVE_HEAP_FLAG = "-XX:TrimNativeHeapInterval="
 
     /** Mirrors `SandboxWorkerMain.SPARE_HANDSHAKE_PREFIX`; the two must agree as bytes. */
     public const val SPARE_HANDSHAKE_PREFIX: String = "composeai-spare-worker: listening"

@@ -3472,6 +3472,12 @@ public class JsonRpcServer(
               break
             }
           }
+          // The host goes down here — an Android daemon hands its adopted sandbox workers back to
+          // the spare pool from `host.shutdown()` — but the writer stays up until the process
+          // exits, so a `renderNow` racing the exit still gets its ClasspathDirty refusal rather
+          // than EOF. [cleanShutdown]'s full teardown (writer sentinel, thread joins) is for the
+          // paths where the client is already gone; with `running` cleared first it is a no-op.
+          shutdownHost()
           running.set(false)
           cleanShutdown()
           invokeExit(0)
@@ -3495,15 +3501,16 @@ public class JsonRpcServer(
     // graceful classpath-dirty exit. 1 otherwise (client sent `exit` without `shutdown` first,
     // PROTOCOL.md § 3 — that path is a protocol violation).
     val exitCode = if (shutdownRequested.get() || classpathDirtyEmitted.get()) 0 else 1
-    // Close interactive sessions BEFORE flipping running=false: cleanShutdown's body guards
-    // against double-execution via compareAndSet(running, true→false), so once we set
-    // running=false here it would early-return without closing the sessions itself. The helper
-    // is idempotent (clears the map), so the duplicate call inside cleanShutdown's body is a
-    // safe no-op on this path.
+    // Sessions first, then the full teardown. [cleanShutdown] flips `running` itself
+    // (compareAndSet true→false) and is what shuts the host down — an explicit `exit` used to set
+    // `running=false` ahead of it, which made its guard return early and left `host.shutdown()`
+    // to the JVM's death: fine for an in-process sandbox, wrong for adopted sandbox workers,
+    // which a daemon hands back to the spare pool from `host.shutdown()`
+    // (SANDBOX-POOL.md § "Reaping hands the workers back"). The session helpers are idempotent,
+    // so their second call inside [cleanShutdown] is a no-op.
     closeAllInteractiveSessions()
     closeAllRecordingSessions()
     closeXrSessions()
-    running.set(false)
     cleanShutdown()
     invokeExit(exitCode)
   }
@@ -3668,6 +3675,14 @@ public class JsonRpcServer(
     }
   }
 
+  private fun shutdownHost() {
+    try {
+      host.shutdown()
+    } catch (e: Throwable) {
+      System.err.println("compose-ai-daemon: host.shutdown failed: ${e.message}")
+    }
+  }
+
   private fun cleanShutdown() {
     if (!running.compareAndSet(true, false)) return
     // Wait for any outstanding renders to drain so we honour the
@@ -3697,11 +3712,7 @@ public class JsonRpcServer(
     closeAllInteractiveSessions()
     closeAllRecordingSessions()
     closeXrSessions()
-    try {
-      host.shutdown()
-    } catch (e: Throwable) {
-      System.err.println("compose-ai-daemon: host.shutdown failed: ${e.message}")
-    }
+    shutdownHost()
     // Tell the writer to exit, then drain it so any pending bytes flush.
     outbound.put(SHUTDOWN_SENTINEL)
     try {

@@ -204,9 +204,10 @@ the definition cost; skip if B1/B5 land first.
   hands their ports to each Android daemon launch; `RobolectricHost.start()`
   adopts them before its own sandbox boots and returns on them
   ([SANDBOX-POOL.md § "Spare workers"](SANDBOX-POOL.md#spare-workers-adopt-dont-boot)).
-  Not yet in this cut: returning a reaped daemon's workers to the spare pool
-  (reaping still kills three JVMs; the next open adopts *replenished* spares),
-  and charging spares to the server's live-seat budget.
+  A reaped daemon releases its adopted workers back to the pool (a fresh
+  handshake on the same stdout), so the next open adopts the *same* warm
+  sandboxes rather than replenished ones. Not yet in this cut: charging
+  spares to the server's live-seat budget, and the serve-side wiring itself.
 - Worker `i+1` boots underneath worker `i`'s warm render
   ([SANDBOX-POOL.md](SANDBOX-POOL.md)).
 - Serve-spawned catalog daemons get a per-classpath auto-created CDS archive

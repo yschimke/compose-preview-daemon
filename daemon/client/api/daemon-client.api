@@ -81,6 +81,7 @@ public final class ee/schimke/composeai/daemon/client/SandboxSparePool : java/la
 	public static final field Companion Lee/schimke/composeai/daemon/client/SandboxSparePool$Companion;
 	public static final field DEFAULT_MAX_SPARES I
 	public static final field DEFAULT_PER_SIGNATURE I
+	public static final field DEFAULT_TRIM_NATIVE_HEAP_MS J
 	public static final field SANDBOX_WORKER_MAIN_CLASS Ljava/lang/String;
 	public static final field SPARE_HANDSHAKE_PREFIX Ljava/lang/String;
 	public fun <init> ()V
@@ -98,36 +99,41 @@ public final class ee/schimke/composeai/daemon/client/SandboxSparePool$Companion
 
 public final class ee/schimke/composeai/daemon/client/SandboxSparePool$Config {
 	public fun <init> ()V
-	public fun <init> (IIJLjava/io/File;)V
-	public synthetic fun <init> (IIJLjava/io/File;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (IIJLjava/io/File;J)V
+	public synthetic fun <init> (IIJLjava/io/File;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()I
 	public final fun component2 ()I
 	public final fun component3 ()J
 	public final fun component4 ()Ljava/io/File;
-	public final fun copy (IIJLjava/io/File;)Lee/schimke/composeai/daemon/client/SandboxSparePool$Config;
-	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/client/SandboxSparePool$Config;IIJLjava/io/File;ILjava/lang/Object;)Lee/schimke/composeai/daemon/client/SandboxSparePool$Config;
+	public final fun component5 ()J
+	public final fun copy (IIJLjava/io/File;J)Lee/schimke/composeai/daemon/client/SandboxSparePool$Config;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/client/SandboxSparePool$Config;IIJLjava/io/File;JILjava/lang/Object;)Lee/schimke/composeai/daemon/client/SandboxSparePool$Config;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBootTimeoutMs ()J
 	public final fun getMaxSpares ()I
 	public final fun getPerSignature ()I
+	public final fun getTrimNativeHeapMs ()J
 	public final fun getWorkingDirectory ()Ljava/io/File;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class ee/schimke/composeai/daemon/client/SandboxSparePool$Snapshot {
-	public fun <init> (IIIJJ)V
+	public fun <init> (IIIJJJ)V
+	public synthetic fun <init> (IIIJJJILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()I
 	public final fun component2 ()I
 	public final fun component3 ()I
 	public final fun component4 ()J
 	public final fun component5 ()J
-	public final fun copy (IIIJJ)Lee/schimke/composeai/daemon/client/SandboxSparePool$Snapshot;
-	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/client/SandboxSparePool$Snapshot;IIIJJILjava/lang/Object;)Lee/schimke/composeai/daemon/client/SandboxSparePool$Snapshot;
+	public final fun component6 ()J
+	public final fun copy (IIIJJJ)Lee/schimke/composeai/daemon/client/SandboxSparePool$Snapshot;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/client/SandboxSparePool$Snapshot;IIIJJJILjava/lang/Object;)Lee/schimke/composeai/daemon/client/SandboxSparePool$Snapshot;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAdopted ()J
 	public final fun getBooting ()I
 	public final fun getColdLaunches ()J
+	public final fun getReturned ()J
 	public final fun getSignatures ()I
 	public final fun getWarm ()I
 	public fun hashCode ()I

@@ -70,6 +70,7 @@ flips a knob.
 | `composeai.daemon.sandboxWorker.slot` | Int | `0` | Pool slot index a spawned sandbox worker owns. Set by `SandboxProcessPool`. |
 | `composeai.daemon.sandboxWorker.spare` | Boolean | `false` | Whether `SandboxWorkerMain` runs as a pre-booted spare: it boots and warm-renders with no catalog, then listens on a loopback port for the daemon that adopts it. Set by the spare pool that spawns it. |
 | `composeai.daemon.sandboxWorker.spares` | list | empty | Loopback ports of pre-booted spare workers reserved for this daemon, adopted by `SandboxProcessPool` ahead of any cold worker boot. Set by the spare pool at launch. |
+| `composeai.daemon.lazyInProcessSandbox` | Boolean | `false` | When the daemon adopted spare workers, whether its own in-process sandbox (slot 0) boots only on demand — a held interactive session, a `@PreviewParameter` enumeration, or every worker gone — instead of in the background. Saves a boot and a sandbox's memory per daemon; costs one slot of render capacity until something needs slot 0. |
 
 ## Tracing and diagnostics
 

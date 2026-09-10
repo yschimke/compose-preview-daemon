@@ -200,6 +200,80 @@ daemon needs a slot next, and pays only that catalog's first real render.
   resolves `composeai.render.outputDir` per render, not at construction, which
   is what lets a spare's engine — built by its warm render before any catalog
   is known — write into the adopting catalog's tree.
+- **Measured** (`RobolectricHostSpareAdoptionTest`, a loaded CI-shaped box, JDK
+  17; the idle-box figures in [STARTUP.md](STARTUP.md) are ~2× better):
+
+  | | |
+  |---|---|
+  | spare: JVM start → sandbox booted | 4-22 s (page cache) |
+  | spare: warm render | 4.3-9.5 s |
+  | spare, warm and idle: heap / resident | 90 MB live of 157 MB committed / ~500 MB |
+  | adopting host: `start()` entered → serving sandbox | **189 ms** |
+  | adopted worker, the catalog's first real render (foundation only) | 526 ms |
+  | adopted worker, first Material 3 render | 649 ms |
+  | adopted worker, second Material 3 render | 349 ms |
+  | host JVM, slot 0 deferred vs booted | 112 MB vs 334 MB; the boot 5.0 s |
+
+  So adoption plus the catalog's own first render is under a second — the
+  target — and a richer warm-up (Material on the classpath permitting) could
+  buy at most the ~300 ms between a first and a second Material render.
+
+  Where a warm spare's ~500 MB goes (native memory tracking, JDK 17): heap
+  171 MB committed for ~90 MB live, metaspace 94 MB (a CDS archive moves most
+  of that into a mapped file on the served path), GC structures 49 MB under
+  G1 (the serial collector serve uses has far less), code cache 22 MB, symbols
+  27 MB — and ~110 MB outside the JVM's own accounting: the extracted native
+  runtime, fonts and what the boot malloc'd. Tried and dropped:
+  `MALLOC_ARENA_MAX=2` (within noise), the serial collector on its own (on a
+  512 MB ceiling it commits a *larger* heap, 219 MB, than G1's 150-170 MB;
+  the 20-25 % it saved in STARTUP.md's profile came from G1's region tables
+  under a 28 GB ceiling), and a `System.gc()` on its own (the default free
+  ratios keep the heap committed). Kept, both on spare launches:
+
+  - `-XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10` plus one collection
+    after the warm render (`SandboxWorkerMain`): the heap shrinks to ~130 MB
+    committed for ~87 MB live, 465 vs 495-500 MB resident;
+  - on JDK 21+, `-XX:TrimNativeHeapInterval=1000`
+    (`SandboxSparePool.Config.trimNativeHeapMs`): the JVM hands glibc's
+    retained freed memory back while the spare idles, 514 → 438 MB resident
+    after five idle seconds, first renders unchanged.
+
+  The lever this repository cannot pull is the heap **ceiling**: every JVM
+  on the deployed box inherits `-XX:MaxRAMPercentage=70` of the container,
+  and a spare inherits whatever `-Xmx` its launch descriptor carries. The
+  descriptor is the place to cap it (`composeai.daemon.maxHeapMb` exists for
+  exactly that), which is the serve-side wiring's job.
+- **Reaping hands the workers back.** A daemon's `SandboxProcessPool.shutdown`
+  sends an *adopted* worker `release` instead of `shutdown`: the worker drops
+  the catalog (its child classloader and its watch on the daemon's pid),
+  answers `ok`, and goes back to listening on a fresh loopback port, which it
+  announces with a second `composeai-spare-worker: listening` line on the same
+  stdout. `SandboxSparePool` keeps reading that stdout after the first
+  handshake, so a later one re-registers the worker as warm — counted as
+  `returned` in its snapshot — and the next daemon of that signature adopts a
+  sandbox that has already rendered a catalog, for a classloader swap. A
+  worker with no pool to go back to (the pool closed, or full) is killed on
+  return; a daemon that dies rather than shutting down still takes its
+  workers with it (they watch its pid). On a serve box that reaps a catalog
+  daemon and opens the next one all day, this is the difference between
+  booting a replacement spare per open and booting none. Two things had to
+  give for the release to be reached at all: the daemon's explicit `exit` and
+  its `classpathDirty` self-exit now run `host.shutdown()` (before this, both
+  flipped the server's running flag ahead of the teardown, whose guard then
+  returned early, and the workers died with the JVM), and `RobolectricHost`'s
+  shutdown joins only the worker threads of *ready* slots, so a slot still
+  booting no longer holds the exit for the whole join budget.
+- **Slot 0 can be deferred.** `composeai.daemon.lazyInProcessSandbox=true` makes an
+  adopt-first start skip the background boot of the in-process sandbox
+  altogether: it boots the first time a path only it can serve asks —
+  `acquireInteractiveSession`, `previewParameterRows`, or a render with no
+  worker left to route to (`RobolectricHost.ensureInProcessSandbox`, one boot
+  ever, bounded by the sandbox boot budget). A serve catalog daemon holds no
+  interactive session and enumerates no rows in the common case, so on the
+  deployed box this is a boot and a sandbox's worth of resident memory per
+  daemon that is never paid, at the cost of one slot of render capacity
+  until something needs it. Off by default: the Gradle/VS Code path wants
+  slot 0 for the panel's live toggle.
 - **What the signature does not cover.** Android resource carriage
   (`test_config.properties` for the app's own `R` table) is on the parent
   classpath, so a catalog carrying resources has a signature of its own; it

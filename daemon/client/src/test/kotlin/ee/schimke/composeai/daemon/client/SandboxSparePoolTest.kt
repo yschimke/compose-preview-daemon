@@ -91,8 +91,38 @@ class SandboxSparePoolTest {
     assertThat(command).contains("-Drobolectric.offline=true")
     assertThat(command).contains("-XX:SharedArchiveFile=/cds/android-abc-spare1.jsa")
     assertThat(command.last()).isEqualTo(SandboxSparePool.SANDBOX_WORKER_MAIN_CLASS)
+    assertThat(command).contains("-XX:MaxHeapFreeRatio=30")
+    assertThat(command).contains("-XX:MinHeapFreeRatio=10")
+    val decided = descriptor(jvmArgs = listOf("-XX:MaxHeapFreeRatio=50", "-XX:MinHeapFreeRatio=20"))
+    val respected = pool.spareCommand(decided, archiveSlot = 0)
+    assertThat(respected).contains("-XX:MaxHeapFreeRatio=50")
+    assertThat(respected).doesNotContain("-XX:MaxHeapFreeRatio=30")
+    assertThat(respected).doesNotContain("-XX:MinHeapFreeRatio=10")
     assertThat(command.any { it.contains("userClassDirs") }).isFalse()
     assertThat(command.any { it.contains("outputDir") }).isFalse()
+  }
+
+  @Test
+  fun `the native heap trim rides along only on a JDK that has it`() {
+    val pool = pool(SandboxSparePool.Config(maxSpares = 1, perSignature = 1))
+    val on21 = pool.spareCommand(descriptor(), archiveSlot = 0, javaFeatureVersion = 21)
+    assertThat(on21).contains("-XX:TrimNativeHeapInterval=1000")
+    assertThat(on21).contains("-XX:+UnlockExperimentalVMOptions")
+    val on17 = pool.spareCommand(descriptor(), archiveSlot = 0, javaFeatureVersion = 17)
+    assertThat(on17.any { it.contains("TrimNativeHeap") }).isFalse()
+    // A launcher the pool did not pick, or a descriptor that already decides, is left alone.
+    val other = descriptor().copy(javaLauncher = "/opt/jdk/bin/java")
+    assertThat(
+        pool.spareCommand(other, 0, javaFeatureVersion = 21).any { it.contains("TrimNativeHeap") }
+      )
+      .isFalse()
+    val off = pool(SandboxSparePool.Config(maxSpares = 1, perSignature = 1, trimNativeHeapMs = 0))
+    assertThat(
+        off.spareCommand(descriptor(), 0, javaFeatureVersion = 21).any {
+          it.contains("TrimNativeHeap")
+        }
+      )
+      .isFalse()
   }
 
   @Test
@@ -116,6 +146,53 @@ class SandboxSparePoolTest {
     val snapshot = pool.snapshot()
     assertThat(snapshot.adopted).isEqualTo(2)
     assertThat(snapshot.coldLaunches).isEqualTo(4)
+    pool.close()
+  }
+
+  @Test
+  fun `a lent spare its daemon released comes back warm on a later handshake`() {
+    val pool = pool(SandboxSparePool.Config(maxSpares = 2, perSignature = 1))
+    val d = descriptor()
+    pool.ensure(d)
+    awaitLaunched(1)
+    launched[0].second.handshake(pid = 101, port = 40001)
+    awaitWarm(pool, 1)
+    assertThat(pool.reserve(d, 1)).containsExactly(40001)
+    assertThat(pool.snapshot().warm).isEqualTo(0)
+
+    // The daemon shut down and released the worker: it listens again, on a fresh port.
+    launched[0].second.handshake(pid = 101, port = 40011)
+    awaitWarm(pool, 1)
+    assertThat(pool.snapshot().returned).isEqualTo(1)
+    assertThat(launched[0].second.destroyed).isFalse()
+    assertThat(pool.reserve(d, 1)).containsExactly(40011)
+    assertThat(pool.snapshot().adopted).isEqualTo(2)
+    assertThat(pool.snapshot().coldLaunches).isEqualTo(0)
+    pool.close()
+  }
+
+  @Test
+  fun `a returned spare the pool has no room for is killed`() {
+    val pool = pool(SandboxSparePool.Config(maxSpares = 1, perSignature = 1))
+    val d = descriptor()
+    pool.ensure(d)
+    awaitLaunched(1)
+    launched[0].second.handshake(pid = 101, port = 40001)
+    awaitWarm(pool, 1)
+    assertThat(pool.reserve(d, 1)).containsExactly(40001)
+    // The launch topped the signature up meanwhile; the budget is spoken for.
+    pool.ensure(d)
+    awaitLaunched(2)
+    launched[1].second.handshake(pid = 102, port = 40002)
+    awaitWarm(pool, 1)
+
+    launched[0].second.handshake(pid = 101, port = 40011)
+    val deadline = System.currentTimeMillis() + 5_000
+    while (!launched[0].second.destroyed && System.currentTimeMillis() < deadline) Thread.sleep(10)
+    assertThat(launched[0].second.destroyed).isTrue()
+    assertThat(pool.snapshot().returned).isEqualTo(0)
+    assertThat(pool.snapshot().warm).isEqualTo(1)
+    assertThat(pool.reserve(d, 1)).containsExactly(40002)
     pool.close()
   }
 

@@ -115,7 +115,14 @@ val androidDaemonClasspath =
     }
   }
 
-dependencies { androidDaemonClasspath(project(":daemon:android")) }
+dependencies {
+  androidDaemonClasspath(project(":daemon:android"))
+  // The production client path — `SubprocessDaemonClientFactory` + `SandboxSparePool` +
+  // `DaemonClient` — for the real-mode integration tests that spin daemons up through it and hand
+  // pre-booted spare workers between them (`SpareAdoptionAndroidRealModeTest`). Test-only: the
+  // harness's production classpath stays renderer- and client-agnostic.
+  testImplementation(project(":daemon-client"))
+}
 
 tasks.withType<Test>().configureEach {
   // Make the classpath descriptor file's path available to the test JVM via a system property.

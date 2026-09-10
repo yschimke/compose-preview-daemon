@@ -216,6 +216,7 @@ public object DaemonProperties {
     public const val SANDBOX_WORKER_SLOT: String = "composeai.daemon.sandboxWorker.slot"
     public const val SANDBOX_WORKER_SPARE: String = "composeai.daemon.sandboxWorker.spare"
     public const val SANDBOX_WORKER_SPARES: String = "composeai.daemon.sandboxWorker.spares"
+    public const val LAZY_IN_PROCESS_SANDBOX: String = "composeai.daemon.lazyInProcessSandbox"
 
     public const val STARTUP_QUIET: String = "composeai.daemon.startupQuiet"
     public const val ATRACE: String = "composeai.daemon.atrace"
@@ -521,6 +522,17 @@ public object DaemonProperties {
       G_SANDBOX,
     )
 
+  public val lazyInProcessSandbox: BooleanProperty =
+    BooleanProperty(
+      Names.LAZY_IN_PROCESS_SANDBOX,
+      false,
+      "When the daemon adopted spare workers, whether its own in-process sandbox (slot 0) boots " +
+        "only on demand — a held interactive session, a `@PreviewParameter` enumeration, or every " +
+        "worker gone — instead of in the background. Saves a boot and a sandbox's memory per " +
+        "daemon; costs one slot of render capacity until something needs slot 0.",
+      G_SANDBOX,
+    )
+
   // ---- Tracing and diagnostics --------------------------------------------------------------
 
   public val startupQuiet: BooleanProperty =
@@ -698,6 +710,7 @@ public object DaemonProperties {
       sandboxWorkerSlot,
       sandboxWorkerSpare,
       sandboxWorkerSpares,
+      lazyInProcessSandbox,
       startupQuiet,
       atrace,
       perfettoTrace,
