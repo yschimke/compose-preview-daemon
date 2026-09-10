@@ -1,8 +1,9 @@
 # Embedding the daemon
 
-**Status: proposal.** Nothing here is built. It exists to settle one question — *what does this
-repository own when somebody wants to run a daemon, and what does the caller own?* — before any of
-it is written.
+**Status: decided; being built.** It exists to settle one question — *what does this repository own
+when somebody wants to run a daemon, and what does the caller own?* The three questions it opened
+with are answered under "The decisions" below, and the status table there says which pieces exist.
+Piece 3 (`DaemonSession`) has landed; the rest have not.
 
 The framing assumption, given: **this daemon should be generally reusable outside
 compose-ai-tools and compose-preview-server.** That raises the bar. An API that only has to satisfy
@@ -246,11 +247,69 @@ knowledge live on?" has to be answered for every file anyway. Doing it then cost
 call sites. Doing it later costs a second pass plus a deprecation cycle on whatever the switch-over
 froze in place.
 
-## The decision being asked for
+## The decisions, and what they turned on
 
-1. Is the seam in the right place — facts about the daemon here, decisions about the application
-   there?
-2. Is `DaemonRuntimeLocation` the right shape for the distribution problem, or should the daemon
-   ship a resolver rather than an interface?
-3. Piece 4 (`ManagedDaemon`) is the one that most resembles "a supervisor". Is the inner loop worth
-   owning, or should the daemon stop at pieces 1–3 and leave lifecycle entirely to callers?
+The three questions this document opened with have been answered. Recorded here rather than in a
+pull request comment, because a reader six months out needs the reasoning and not just the outcome.
+
+### 1. The seam is facts-here, decisions-there — **and the negative rule is part of it**
+
+The rule earns its place by being decidable at review time: *could a second reasonable caller want
+this different?* The Robolectric `--add-opens` set — no, our host determines it, so it is ours. LRU
+eviction — obviously yes, so it is theirs. Most cases fall out immediately.
+
+It separates cleanly for **mechanisms** and badly for **defaults**. `sandboxCount = 4` is a
+deployment decision (a memory budget); the sandbox-count *wiring* is a fact about us. Without that
+distinction stated, the daemon accretes defaults that are really somebody's deployment policy, each
+one locally justified.
+
+So the negative rule is normative alongside the positive one:
+
+> **The daemon never decides how many daemons exist, how long they live, or what happens when one
+> dies.** It may state a default where a caller must supply *something*, but a default is a
+> suggestion the caller overrides, never a policy the caller inherits.
+
+### 2. `DaemonRuntimeLocation` is an interface **in core, with a resolver as a separate artifact**
+
+The question was posed as a choice and should not have been. Each end fails on its own:
+
+- *Interface only* keeps us out of dependency resolution — a swamp of transitive conflicts, offline
+  mode, checksums, proxies and credentials — and works against a CLI tarball, a Gradle
+  configuration, an IDE's bundled jars or an air-gapped mirror. But it leaves a wall at step one,
+  and "solve a 200 MB artifact-distribution problem before your first render" is precisely the wall
+  that makes a library not reusable.
+- *Resolver in core* gives one-line adoption and puts an HTTP client, a cache directory, checksum
+  policy and proxy configuration into the daemon — the surface most likely to be wrong in somebody
+  else's environment, which is exactly the population it exists to serve. Implicitly downloading the
+  Android sidecar is also hostile behaviour for a library.
+
+So: the interface and its required-artifact list are the contract, in `daemon-client`. A separate,
+optional artifact implements it against published coordinates. Core stays free of resolution,
+convenience is opt-in, and an enterprise caller swaps the implementation while keeping the contract.
+The cost is one more published module, which is cheap against either failure above.
+
+### 3. `ManagedDaemon` is worth owning, but **event-emitting, never policy-taking**
+
+The loop has subtlety that is invisible from outside — `DaemonSpawn.client()`'s own KDoc requires
+notification handlers to be wired *before the first frame*, an ordering constraint a newcomer
+violates once and then debugs as a dropped event. Add the handshake timeout, stderr forwarding, hard
+TTL arming, and telling "died" apart from "idle". Both consumers solved these independently; a third
+party will get at least one wrong.
+
+The risk is that it becomes a supervisor under a smaller name. It is prevented from doing so by
+construction: **no restart, no backoff, no retry, no in-flight-request policy.** It sequences and it
+reports; `onDied(cause)` fires and the caller decides. The test of whether the seam held is whether
+the server's seat budget and the MCP registry can be built *on* it without fighting it or reaching
+around it.
+
+It lands last, because pieces 1–3 are independently valuable and this one benefits from seeing them
+settle.
+
+## Status
+
+| piece | state |
+| --- | --- |
+| 3. `DaemonSession` interface | **landed** |
+| 2. `DaemonLaunchOptions` | not started |
+| 1. `DaemonLaunchPlan` | not started |
+| 4. `ManagedDaemon` | not started |
