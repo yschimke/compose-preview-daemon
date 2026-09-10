@@ -1024,60 +1024,6 @@ public final class ee/schimke/composeai/daemon/PreviewKnobSeeds {
 	public final fun texts (Ljava/util/Map;)Ljava/util/Map;
 }
 
-public final class ee/schimke/composeai/daemon/PreviewOverrideBaseSpec {
-	public fun <init> (IIFLjava/lang/String;Ljava/lang/String;Ljava/lang/Float;Lee/schimke/composeai/daemon/protocol/UiMode;Lee/schimke/composeai/daemon/protocol/Orientation;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/Material3ThemeOverrides;Lee/schimke/composeai/daemon/protocol/WallpaperOverride;Lee/schimke/composeai/daemon/protocol/AmbientOverride;Lee/schimke/composeai/daemon/protocol/GestureOverride;Lee/schimke/composeai/daemon/protocol/FocusOverride;Ljava/lang/Boolean;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/KeyboardOverride;Lee/schimke/composeai/daemon/protocol/PermissionsOverride;Lee/schimke/composeai/daemon/protocol/RemoteComposeOverride;Lee/schimke/composeai/daemon/protocol/LauncherWidgetOverride;Lee/schimke/composeai/daemon/protocol/LottieOverride;Ljava/util/Map;)V
-	public synthetic fun <init> (IIFLjava/lang/String;Ljava/lang/String;Ljava/lang/Float;Lee/schimke/composeai/daemon/protocol/UiMode;Lee/schimke/composeai/daemon/protocol/Orientation;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/Material3ThemeOverrides;Lee/schimke/composeai/daemon/protocol/WallpaperOverride;Lee/schimke/composeai/daemon/protocol/AmbientOverride;Lee/schimke/composeai/daemon/protocol/GestureOverride;Lee/schimke/composeai/daemon/protocol/FocusOverride;Ljava/lang/Boolean;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/KeyboardOverride;Lee/schimke/composeai/daemon/protocol/PermissionsOverride;Lee/schimke/composeai/daemon/protocol/RemoteComposeOverride;Lee/schimke/composeai/daemon/protocol/LauncherWidgetOverride;Lee/schimke/composeai/daemon/protocol/LottieOverride;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()I
-	public final fun component10 ()Lee/schimke/composeai/daemon/protocol/Material3ThemeOverrides;
-	public final fun component11 ()Lee/schimke/composeai/daemon/protocol/WallpaperOverride;
-	public final fun component12 ()Lee/schimke/composeai/daemon/protocol/AmbientOverride;
-	public final fun component13 ()Lee/schimke/composeai/daemon/protocol/GestureOverride;
-	public final fun component14 ()Lee/schimke/composeai/daemon/protocol/FocusOverride;
-	public final fun component15 ()Ljava/lang/Boolean;
-	public final fun component16 ()Ljava/lang/Boolean;
-	public final fun component17 ()Lee/schimke/composeai/daemon/protocol/KeyboardOverride;
-	public final fun component18 ()Lee/schimke/composeai/daemon/protocol/PermissionsOverride;
-	public final fun component19 ()Lee/schimke/composeai/daemon/protocol/RemoteComposeOverride;
-	public final fun component2 ()I
-	public final fun component20 ()Lee/schimke/composeai/daemon/protocol/LauncherWidgetOverride;
-	public final fun component21 ()Lee/schimke/composeai/daemon/protocol/LottieOverride;
-	public final fun component22 ()Ljava/util/Map;
-	public final fun component3 ()F
-	public final fun component4 ()Ljava/lang/String;
-	public final fun component5 ()Ljava/lang/String;
-	public final fun component6 ()Ljava/lang/Float;
-	public final fun component7 ()Lee/schimke/composeai/daemon/protocol/UiMode;
-	public final fun component8 ()Lee/schimke/composeai/daemon/protocol/Orientation;
-	public final fun component9 ()Ljava/lang/Boolean;
-	public final fun copy (IIFLjava/lang/String;Ljava/lang/String;Ljava/lang/Float;Lee/schimke/composeai/daemon/protocol/UiMode;Lee/schimke/composeai/daemon/protocol/Orientation;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/Material3ThemeOverrides;Lee/schimke/composeai/daemon/protocol/WallpaperOverride;Lee/schimke/composeai/daemon/protocol/AmbientOverride;Lee/schimke/composeai/daemon/protocol/GestureOverride;Lee/schimke/composeai/daemon/protocol/FocusOverride;Ljava/lang/Boolean;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/KeyboardOverride;Lee/schimke/composeai/daemon/protocol/PermissionsOverride;Lee/schimke/composeai/daemon/protocol/RemoteComposeOverride;Lee/schimke/composeai/daemon/protocol/LauncherWidgetOverride;Lee/schimke/composeai/daemon/protocol/LottieOverride;Ljava/util/Map;)Lee/schimke/composeai/daemon/PreviewOverrideBaseSpec;
-	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/PreviewOverrideBaseSpec;IIFLjava/lang/String;Ljava/lang/String;Ljava/lang/Float;Lee/schimke/composeai/daemon/protocol/UiMode;Lee/schimke/composeai/daemon/protocol/Orientation;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/Material3ThemeOverrides;Lee/schimke/composeai/daemon/protocol/WallpaperOverride;Lee/schimke/composeai/daemon/protocol/AmbientOverride;Lee/schimke/composeai/daemon/protocol/GestureOverride;Lee/schimke/composeai/daemon/protocol/FocusOverride;Ljava/lang/Boolean;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/KeyboardOverride;Lee/schimke/composeai/daemon/protocol/PermissionsOverride;Lee/schimke/composeai/daemon/protocol/RemoteComposeOverride;Lee/schimke/composeai/daemon/protocol/LauncherWidgetOverride;Lee/schimke/composeai/daemon/protocol/LottieOverride;Ljava/util/Map;ILjava/lang/Object;)Lee/schimke/composeai/daemon/PreviewOverrideBaseSpec;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAmbient ()Lee/schimke/composeai/daemon/protocol/AmbientOverride;
-	public final fun getDensity ()F
-	public final fun getDevice ()Ljava/lang/String;
-	public final fun getFocus ()Lee/schimke/composeai/daemon/protocol/FocusOverride;
-	public final fun getFontScale ()Ljava/lang/Float;
-	public final fun getGestures ()Lee/schimke/composeai/daemon/protocol/GestureOverride;
-	public final fun getHeightPx ()I
-	public final fun getInspectionMode ()Ljava/lang/Boolean;
-	public final fun getKeyboard ()Lee/schimke/composeai/daemon/protocol/KeyboardOverride;
-	public final fun getLauncherWidget ()Lee/schimke/composeai/daemon/protocol/LauncherWidgetOverride;
-	public final fun getLocaleTag ()Ljava/lang/String;
-	public final fun getLottie ()Lee/schimke/composeai/daemon/protocol/LottieOverride;
-	public final fun getMaterial3Theme ()Lee/schimke/composeai/daemon/protocol/Material3ThemeOverrides;
-	public final fun getNamedOverrides ()Ljava/util/Map;
-	public final fun getOrientation ()Lee/schimke/composeai/daemon/protocol/Orientation;
-	public final fun getPermissions ()Lee/schimke/composeai/daemon/protocol/PermissionsOverride;
-	public final fun getRemoteCompose ()Lee/schimke/composeai/daemon/protocol/RemoteComposeOverride;
-	public final fun getTalkBack ()Ljava/lang/Boolean;
-	public final fun getTouchOverlay ()Ljava/lang/Boolean;
-	public final fun getUiMode ()Lee/schimke/composeai/daemon/protocol/UiMode;
-	public final fun getWallpaper ()Lee/schimke/composeai/daemon/protocol/WallpaperOverride;
-	public final fun getWidthPx ()I
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class ee/schimke/composeai/daemon/PreviewOverrideExtensions {
 	public static final field Companion Lee/schimke/composeai/daemon/PreviewOverrideExtensions$Companion;
 	public fun <init> (Ljava/util/List;Lkotlin/jvm/functions/Function1;)V
@@ -1092,8 +1038,7 @@ public final class ee/schimke/composeai/daemon/PreviewOverrideExtensions$Compani
 
 public final class ee/schimke/composeai/daemon/PreviewOverrideMergeKt {
 	public static final fun layeredOver (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/daemon/protocol/PreviewOverrides;
-	public static final fun mergePreviewOverrides (Lee/schimke/composeai/daemon/PreviewOverrideBaseSpec;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/daemon/MergedPreviewOverrides;
-	public static final fun withCarriedOverrides (Lee/schimke/composeai/daemon/PreviewOverrideBaseSpec;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/daemon/PreviewOverrideBaseSpec;
+	public static final fun mergePreviewOverrides (Lee/schimke/composeai/daemon/RenderSpec;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/daemon/MergedPreviewOverrides;
 	public static final fun withPseudolocaleFrom (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Ljava/lang/String;)Lee/schimke/composeai/daemon/protocol/PreviewOverrides;
 	public static final fun withSizeBounds (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/daemon/protocol/PreviewOverrides;
 	public static final fun withThemeProvider (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Ljava/lang/String;)Lee/schimke/composeai/daemon/protocol/PreviewOverrides;

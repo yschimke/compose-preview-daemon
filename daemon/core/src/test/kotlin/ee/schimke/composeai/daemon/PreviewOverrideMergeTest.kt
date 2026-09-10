@@ -33,7 +33,7 @@ class PreviewOverrideMergeTest {
   @Test
   fun `null overrides preserve base spec`() {
     val base =
-      PreviewOverrideBaseSpec(
+      spec(
         widthPx = 100,
         heightPx = 200,
         density = 2.0f,
@@ -61,7 +61,7 @@ class PreviewOverrideMergeTest {
   @Test
   fun `device override resolves dimensions and explicit fields win`() {
     val base =
-      PreviewOverrideBaseSpec(
+      spec(
         widthPx = 100,
         heightPx = 200,
         density = 1.0f,
@@ -101,7 +101,7 @@ class PreviewOverrideMergeTest {
   @Test
   fun `focus override merges into the bag and clears via toExtensionOverrides`() {
     val base =
-      PreviewOverrideBaseSpec(
+      spec(
         widthPx = 320,
         heightPx = 480,
         density = 2.0f,
@@ -133,7 +133,7 @@ class PreviewOverrideMergeTest {
   @Test
   fun `permissions override merges into the bag and flows through toExtensionOverrides`() {
     val base =
-      PreviewOverrideBaseSpec(
+      spec(
         widthPx = 320,
         heightPx = 480,
         density = 2.0f,
@@ -158,7 +158,7 @@ class PreviewOverrideMergeTest {
   @Test
   fun `gestures override merges into the bag and flows through toExtensionOverrides`() {
     val base =
-      PreviewOverrideBaseSpec(
+      spec(
         widthPx = 320,
         heightPx = 480,
         density = 2.0f,
@@ -186,7 +186,7 @@ class PreviewOverrideMergeTest {
     // the
     // merge → toExtensionOverrides projection so DesktopRecordingSession can read it off the spec.
     val base =
-      PreviewOverrideBaseSpec(
+      spec(
         widthPx = 320,
         heightPx = 480,
         density = 2.0f,
@@ -209,7 +209,7 @@ class PreviewOverrideMergeTest {
   @Test
   fun `remoteCompose override merges into the bag and flows through toExtensionOverrides`() {
     val base =
-      PreviewOverrideBaseSpec(
+      spec(
         widthPx = 320,
         heightPx = 480,
         density = 2.0f,
@@ -235,7 +235,7 @@ class PreviewOverrideMergeTest {
   @Test
   fun `pseudolocale localeTag flows through toExtensionOverrides so the planner runs`() {
     val base =
-      PreviewOverrideBaseSpec(
+      spec(
         widthPx = 400,
         heightPx = 800,
         density = 3.0f,
@@ -304,7 +304,7 @@ class PreviewOverrideMergeTest {
   @Test
   fun `namedOverrides per-key merge over base and flow through toExtensionOverrides`() {
     val base =
-      PreviewOverrideBaseSpec(
+      spec(
         widthPx = 320,
         heightPx = 480,
         density = 2.0f,
@@ -314,10 +314,13 @@ class PreviewOverrideMergeTest {
         uiMode = null,
         orientation = null,
         inspectionMode = null,
-        namedOverrides =
-          mapOf(
-            "rowCount" to PreviewOverrideValue.IntValue(3),
-            "label" to PreviewOverrideValue.StringValue("base"),
+        carried =
+          PreviewOverrides(
+            namedOverrides =
+              mapOf(
+                "rowCount" to PreviewOverrideValue.IntValue(3),
+                "label" to PreviewOverrideValue.StringValue("base"),
+              )
           ),
       )
 
@@ -381,33 +384,21 @@ class PreviewOverrideMergeTest {
   }
 
   /**
-   * Exhaustiveness guard for [withCarriedOverrides] — the held/live lane's counterpart of the
+   * Exhaustiveness guard for the discovery-time carry — the held/live lane's counterpart of the
    * [layeredOver] canary below.
    *
-   * A fully-populated discovery-time bag carried onto a base spec must survive the merge and come
-   * back out of [MergedPreviewOverrides.toExtensionOverrides] intact when the per-render overlay is
-   * empty, because that is exactly what browsing a `@OverrideVariant` preview in the viewer's Live
-   * lane does. Both hosts used to hand-pick a subset here, so the variant's `namedOverrides` seed
-   * (and focus / talkBack / permissions / …) never reached the held composition and the split
-   * switch composed as its un-split primary (yschimke/wear-m3-catalog#33). Whole-object
-   * [assertEquals] against the expected projection, so a field the carry forgets fails here.
+   * A fully-populated discovery-time bag on the spec must survive the merge and come back out of
+   * [MergedPreviewOverrides.toExtensionOverrides] intact when the per-render overlay is empty,
+   * because that is exactly what browsing a `@OverrideVariant` preview in the viewer's Live lane
+   * does. Both hosts used to hand-pick a subset here, so the variant's `namedOverrides` seed (and
+   * focus / talkBack / permissions / …) never reached the held composition and the split switch
+   * composed as its un-split primary (yschimke/wear-m3-catalog#33). Whole-object [assertEquals]
+   * against the expected projection, so a field the carry forgets fails here.
    */
   @Test
-  fun `withCarriedOverrides keeps every extension field on a held session with no overlay`() {
+  fun `the carried bag keeps every extension field on a held session with no overlay`() {
     val carried = fullyPopulatedOverrides()
-    val base =
-      PreviewOverrideBaseSpec(
-          widthPx = 320,
-          heightPx = 480,
-          density = 2.0f,
-          device = null,
-          localeTag = null,
-          fontScale = null,
-          uiMode = null,
-          orientation = null,
-          inspectionMode = null,
-        )
-        .withCarriedOverrides(carried)
+    val base = spec(widthPx = 320, heightPx = 480, density = 2.0f, carried = carried)
 
     val projected = mergePreviewOverrides(base, null).toExtensionOverrides()
 
@@ -439,26 +430,19 @@ class PreviewOverrideMergeTest {
     // The floor is the baked `@OverrideVariant` seed; a knob the viewer actually edited still wins,
     // and the seeds it did not touch survive.
     val base =
-      PreviewOverrideBaseSpec(
-          widthPx = 320,
-          heightPx = 480,
-          density = 2.0f,
-          device = null,
-          localeTag = null,
-          fontScale = null,
-          uiMode = null,
-          orientation = null,
-          inspectionMode = null,
-        )
-        .withCarriedOverrides(
+      spec(
+        widthPx = 320,
+        heightPx = 480,
+        density = 2.0f,
+        carried =
           PreviewOverrides(
             namedOverrides =
               mapOf(
                 "split" to PreviewOverrideValue.BooleanValue(true),
                 "label" to PreviewOverrideValue.StringValue("Primary"),
               )
-          )
-        )
+          ),
+      )
 
     val merged =
       mergePreviewOverrides(
@@ -472,22 +456,19 @@ class PreviewOverrideMergeTest {
     assertEquals(PreviewOverrideValue.StringValue("edited"), merged.namedOverrides?.get("label"))
   }
 
+  /**
+   * The other half of the carry: a spec whose discovery-time `overrides` bag is absent projects to
+   * no extension bag at all, so the renderer skips the data-extension pipeline entirely.
+   *
+   * This used to assert that `withCarriedOverrides(null)` returned the base spec unchanged. That
+   * helper is gone — the merge reads [RenderSpec.overrides] rather than copying out of it, so
+   * "carrying nothing" is no longer an operation that could get it wrong. What still needs guarding
+   * is the projection, which is what remains here.
+   */
   @Test
-  fun `withCarriedOverrides on a null bag leaves the base spec alone`() {
-    val base =
-      PreviewOverrideBaseSpec(
-        widthPx = 320,
-        heightPx = 480,
-        density = 2.0f,
-        device = null,
-        localeTag = null,
-        fontScale = null,
-        uiMode = null,
-        orientation = null,
-        inspectionMode = null,
-      )
+  fun `a spec with no carried bag projects no extension overrides`() {
+    val base = spec(widthPx = 320, heightPx = 480, density = 2.0f)
 
-    assertEquals(base, base.withCarriedOverrides(null))
     assertNull(mergePreviewOverrides(base, null).toExtensionOverrides())
   }
 
@@ -685,12 +666,58 @@ class PreviewOverrideMergeTest {
     assertEquals(300, explicit.widthPx)
   }
 
+  /**
+   * A minimal [RenderSpec] to merge onto, in the vocabulary these tests actually care about.
+   *
+   * This is a test factory, not the `PreviewOverrideBaseSpec` DTO under another name: it exists so
+   * a merge case does not have to spell out a className and a functionName it never looks at, and
+   * nothing in production builds one. [carried] lands on [RenderSpec.overrides] — the
+   * discovery-time bag the merge now reads directly, where it used to be hand-copied field by
+   * field.
+   */
+  private fun spec(
+    widthPx: Int = 100,
+    heightPx: Int = 200,
+    density: Float = 1.0f,
+    device: String? = null,
+    localeTag: String? = null,
+    fontScale: Float? = null,
+    uiMode: UiMode? = null,
+    orientation: Orientation? = null,
+    inspectionMode: Boolean? = null,
+    carried: PreviewOverrides? = null,
+  ): RenderSpec =
+    RenderSpec(
+      className = "ee.schimke.composeai.fixtures.MergeFixturesKt",
+      functionName = "MergeFixture",
+      widthPx = widthPx,
+      heightPx = heightPx,
+      density = density,
+      device = device,
+      localeTag = localeTag,
+      fontScale = fontScale,
+      uiMode =
+        when (uiMode) {
+          UiMode.LIGHT -> RenderSpec.SpecUiMode.LIGHT
+          UiMode.DARK -> RenderSpec.SpecUiMode.DARK
+          null -> null
+        },
+      orientation =
+        when (orientation) {
+          Orientation.PORTRAIT -> RenderSpec.SpecOrientation.PORTRAIT
+          Orientation.LANDSCAPE -> RenderSpec.SpecOrientation.LANDSCAPE
+          null -> null
+        },
+      inspectionMode = inspectionMode,
+      overrides = carried,
+    )
+
   private fun baseSpec(
     widthPx: Int = 100,
     heightPx: Int = 200,
     orientation: Orientation? = null,
-  ): PreviewOverrideBaseSpec =
-    PreviewOverrideBaseSpec(
+  ): RenderSpec =
+    spec(
       widthPx = widthPx,
       heightPx = heightPx,
       density = 1.0f,
