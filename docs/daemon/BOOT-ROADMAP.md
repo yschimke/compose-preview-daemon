@@ -77,6 +77,9 @@ because it also covers the *first* worker of a signature after a deploy.
 
 ## Tier B — make a cold boot itself cheap (a Robolectric fork)
 
+Picking this up? Start from [BOOT-ROADMAP-B-HANDOFF.md](BOOT-ROADMAP-B-HANDOFF.md):
+it carries the post-Tier-A numbers, the spike that decides each item, and the order.
+
 Robolectric is where the cold cost lives, and every item here is a change
 to it. The daemon already runs an unusual Robolectric — one sandbox held
 open for the JVM's life, no per-test reconfiguration — and several of
