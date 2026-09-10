@@ -152,16 +152,17 @@ remain prerequisites for an opt-in production host with fallback.
 
 ### B5. Make the sandbox archivable
 
-CDS/AppCDS can archive classes from custom loaders, but only ones the JVM
-saw come from a jar (`source:` in the classlist). `SandboxClassLoader`
-reads bytes and calls `defineClass` for *everything* it acquires, so the JVM
-records no source and nothing is archived — the shipped archive covers the
-~3,500 builtin-loader classes only. Two fork changes: delegate
-un-instrumented classes to `URLClassLoader.findClass` so they become
-archivable, and — with B1 — stop needing a custom loader at all, at which
-point Project Leyden's AOT cache (JDK 24+, `-XX:AOTCache`, loaded *and
-linked* classes with training-run profiles) covers the whole sandbox and a
-cold boot is sub-second before the warm render.
+The [dynamic CDS experiment](BOOT-CDS-EXPERIMENT.md) corrects the original premise:
+JDK 17 can archive and reload classes from the existing byte-array-defining sandbox
+loader. Its trained archive contains Compose classes under an unregistered loader.
+A jar-backed `URLClassLoader.findClass` prototype does not unlock additional class
+coverage in the measured workload. Do not make a loader rewrite a prerequisite for
+CDS. Train and verify an archive against the actual worker JVM/classpath, keeping
+first-run training cost distinct from subsequent fresh-process startup.
+
+Static instrumentation and Project Leyden remain separate experiments: they may
+remove more runtime linkage/init work than CDS, but sub-second startup is not yet
+established by measurements here.
 
 ### B6. Parallel class definition
 
@@ -225,6 +226,7 @@ the definition cost; skip if B1/B5 land first.
 1. A1 (adoptable warmed workers keyed by overlay signature) — reaches the
    target on today's Robolectric; the serve-side churn fix falls out of it.
 2. B2 then B1 in a fork, published as B3 — makes the first boot of a
-   signature and every capacity burst cheap, and unlocks B5.
+   signature and every capacity burst cheap. Measure B5 independently; dynamic CDS
+   already works with the current loader.
 3. B4 alongside, since it also speeds every catalog's cold first render.
 4. A2 / Leyden as spikes once 1-2 exist.
