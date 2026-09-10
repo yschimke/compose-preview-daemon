@@ -174,11 +174,11 @@ the definition cost; skip if B1/B5 land first.
 
 ### B7. Smaller items
 
-- `libandroid_runtime.so` and the font set are extracted from the
-  nativeruntime jar into a temp directory on every JVM start; pointing
-  `robolectric.nativeruntime.fontdir` (and a matching library-dir override,
-  which 4.17 lacks) at a pre-extracted image path saves the I/O on a box
-  whose page cache is under pressure.
+- Native runtime: this repository's `SharedNativeRuntimeLoader` already caches a
+  versioned extraction of fonts, ICU and hyphenation data across JVMs. The original
+  suggestion to eliminate repeated extraction is therefore already implemented.
+  A sandbox still copies/loads its native library and initializes fonts and
+  hyphenation; profile those operations separately before attempting another cache.
 - BouncyCastle: `AndroidTestEnvironment` constructs and installs the
   provider unconditionally (~0.75 s, 709 classes from a signed jar). A fork
   makes it lazy; nothing outside a fork can.

@@ -5,7 +5,11 @@ Written for whoever picks it up cold: what is already done and measured, what
 the cold boot still costs and where, what each Tier B item would buy, how to
 measure any of it, and the order to try things in. One spike has run: B2's,
 recorded in [BOOT-ROADMAP-B2-SPIKE.md](BOOT-ROADMAP-B2-SPIKE.md) and folded
-in below. Everything else is unstarted.
+in below. Later measurements supersede several original hypotheses:
+[fixed bindings](BOOT-FROZEN-BINDINGS-EXPERIMENT.md),
+[Activity-free capture](BOOT-ROADMAP-B4-SPIKE.md) and
+[dynamic CDS](BOOT-CDS-EXPERIMENT.md). Use those reports for measured results;
+the return estimates below are historical hypotheses, not established gains.
 
 ## Where Tier A left things
 
@@ -133,19 +137,13 @@ real method. Enumerate the daemon's shadow set first; it is small.
 
 ### B5. Make the sandbox archivable
 
-**What.** CDS archives classes from custom loaders only when the JVM saw them
-come from a jar (a `source:` in the classlist). `SandboxClassLoader` reads
-bytes and calls `defineClass` for everything, so nothing in the sandbox is
-archived; the shipped archive covers the ~3,500 builtin-loader classes only.
-Two fork changes: delegate un-instrumented classes to `URLClassLoader.findClass`
-so they become archivable, and, with B1, stop needing a custom loader at all,
-at which point Project Leyden's AOT cache (JDK 24+, `-XX:AOTCache`, loaded
-and linked classes with training-run profiles) covers the whole sandbox.
-
-**Return.** With B1 in place, a cold boot is sub-second before the warm
-render. Without B1, only the un-instrumented share of the 2,154 sandbox
-classes is archivable; measure that share before deciding whether B5 alone is
-worth a fork (the `class+load` log from the B1 spike answers it).
+**Measured correction.** The existing Robolectric 4.17-beta-4 loader already
+archives sandbox classes with JDK 17 dynamic CDS. `Composer` appears under an
+unregistered loader in the archive and loads from shared objects on restart.
+The [controlled comparison](BOOT-CDS-EXPERIMENT.md) rejects the proposed jar-backed
+loader rewrite: it is slower and restores the same measured AndroidX/Kotlin classes.
+CDS is independent of B1. It still requires training on the matching JVM/classpath;
+sub-second cold startup and Leyden gains remain unproven.
 
 ### B4. A capture path without an Activity
 

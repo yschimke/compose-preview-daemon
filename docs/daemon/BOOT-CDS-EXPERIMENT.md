@@ -96,3 +96,44 @@ an absolute minimum or a first-ever-launch time of 2.726 seconds.
 
 [Raw trials](profiles/cds-loader-matrix.json) and
 [diagnostic class-source counts](profiles/cds-loader-class-sources.json).
+
+## Do constant bindings still help with CDS?
+
+A separate three-trial comparison trains an unchanged Robolectric jar with the
+same RedSquare/three-Material-render workload. Both variants use their own archive,
+JDK 17, C1 and threshold 30. All 438 frames match exactly as PNG bytes and UIA
+hashes. Median measurements:
+
+| Bindings | Ready wall ms | Ready CPU ms | Render ms | Total wall ms | Total CPU ms |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| unmodified | 2943 | 4370.0 | 161.0 | 16547 | 32130.0 |
+| constant | 2767 | 4020.0 | 139.5 | 14728 | 25050.0 |
+
+Constant bindings still help: 176 ms (6.0%) lower readiness, 1,819 ms (11.0%) lower
+total wall time and 7,080 ms (22.0%) lower total CPU. CDS does not make the binding
+experiment redundant. The unmodified jar already reaches 2.943s readiness under
+these JVM flags with a trained archive, without a dependency patch.
+
+Reproduce with the same matrix workload: train the unmodified runtime-classpath
+archive as above, then compare it against the constant-binding archive, both with
+`-Xshare:on`. [Raw trials](profiles/bindings-cds-matrix.json).
+
+## Remaining CPU with CDS and constant bindings
+
+A separate async-profiler run (not a timing trial) measures 1,365 ms sandbox boot
+and 1,487 ms warm render. Of 1,789 boot CPU samples, 1,222 are application threads
+and 514 compiler threads. Of 1,849 warm-render samples, 1,371 are application,
+209 compiler and 243 GC. Inclusive hotspots overlap:
+
+- Boot: 273 native-runtime-init samples, 254 application-creation, 162 class
+  definition, 146 BouncyCastle setup and 127 dynamic linkage.
+- Warm render: 535 Activity-launch samples, 186 dynamic linkage, 155 capture and
+  135 class definition.
+- Within native boot, shared-cache lookup/extraction has 22 samples and library
+  copying only 3. `System.load` has 109, deferred static initializers 89 and
+  preinstalled-font-map loading 50. Another extraction-cache rewrite is not the
+  next priority: the repository already shares the large extracted assets.
+
+[Full phase report](profiles/bindings-cds-profile.json). Activity-free hosting and
+further linkage/setup reductions remain concrete options; this is not a minimum
+completion claim.
