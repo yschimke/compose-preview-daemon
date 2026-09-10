@@ -41,8 +41,8 @@ class MultipleSemanticsRootsRenderTest {
           RenderRequest.Render(target = RenderTarget.Preview(previewId = "$previewId")),
           timeoutMs = 120_000,
         )
-      assertNotNull("PNG path must be populated", result.pngPath)
-      assertTrue("rendered PNG must exist", File(result.pngPath!!).isFile)
+      assertNotNull("PNG path must be populated", result.artifact.pathOrNull())
+      assertTrue("rendered PNG must exist", File(result.artifact.pathOrNull()!!).isFile)
 
       val previewDataDir = outputDir.parentFile!!.resolve("data/$previewId")
       val rootDependentProducts =

@@ -86,7 +86,7 @@ class InteractiveTouchOverlayTest {
           )
         )
         val pressed = session.render(requestId = RenderHost.nextRequestId())
-        val pressedImage = TouchOverlayTestSupport.readPng(File(pressed.pngPath!!))
+        val pressedImage = TouchOverlayTestSupport.readPng(File(pressed.artifact.pathOrNull()!!))
         val cyanMatch =
           TouchOverlayTestSupport.pixelMatchPctApprox(
             pressedImage,

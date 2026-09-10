@@ -118,7 +118,8 @@ class RenderBodyDivergenceTest {
           ),
           timeoutMs = 120_000,
         )
-      val path = requireNotNull(result.pngPath) { "daemon render returned no pngPath" }
+      val path =
+        requireNotNull(result.artifact.pathOrNull()) { "daemon render returned no pngPath" }
       return File(path).readBytes()
     } finally {
       host.shutdown(timeoutMs = 30_000)

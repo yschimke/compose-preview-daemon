@@ -141,7 +141,8 @@ class AndroidRippleFrameTest {
   ): java.awt.image.BufferedImage {
     val result =
       session.render(requestId = RenderHost.nextRequestId(), advanceTimeMs = advanceTimeMs)
-    val png = File(requireNotNull(result.pngPath) { "held render produced no PNG for $name" })
+    val png =
+      File(requireNotNull(result.artifact.pathOrNull()) { "held render produced no PNG for $name" })
     png.copyTo(File(into, "$name.png"), overwrite = true)
     return ImageIO.read(png)
   }

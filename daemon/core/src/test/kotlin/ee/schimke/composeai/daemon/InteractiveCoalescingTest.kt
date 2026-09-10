@@ -266,7 +266,7 @@ private class SlowFakeHost(private val pngFile: File) : RenderHost {
       id = request.id,
       classLoaderHashCode = 0,
       classLoaderName = "slow-fake",
-      pngPath = pngFile.absolutePath,
+      artifact = RenderArtifact(pngFile.absolutePath),
       metrics = mapOf("tookMs" to 0L),
     )
   }
@@ -322,7 +322,7 @@ private class SlowSession(override val previewId: String, private val pngFile: F
       id = requestId,
       classLoaderHashCode = 0,
       classLoaderName = "slow-session",
-      pngPath = pngFile.absolutePath,
+      artifact = RenderArtifact(pngFile.absolutePath),
       metrics = mapOf("tookMs" to 0L),
     )
   }

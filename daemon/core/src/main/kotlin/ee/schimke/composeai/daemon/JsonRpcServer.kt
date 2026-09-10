@@ -1212,7 +1212,7 @@ public class JsonRpcServer(
     // the `streamFrame` payload's base64, and the frame's declared pixel size are all derived from
     // these bytes; before #4283 each of those re-read the same file (three reads per live frame at
     // the interactive loop's cadence, on top of the capture's write).
-    val frameBytes = readFrameBytes(result.pngPath)
+    val frameBytes = result.artifact.bytesOrNull(fileSystem)
     val frameHash = frameBytes?.let(::sha256Hex)
     val isUnchanged =
       frameHash != null && lastFrameHashes[previewId] == frameHash && firstRenderFinishedSeen.get()
@@ -1235,7 +1235,7 @@ public class JsonRpcServer(
       val frames =
         streamRegistry.consumeForPreview(
           previewId = previewId,
-          pngPath = result.pngPath,
+          pngPath = result.artifact.pathOrNull(),
           pngHash = frameHash,
           widthPx = widthPx,
           heightPx = heightPx,
@@ -1307,7 +1307,7 @@ public class JsonRpcServer(
   ) {
     val mgr = historyManager ?: return
     if (!mgr.isEnabled) return
-    val pngPath = result.pngPath ?: return
+    val pngPath = result.artifact.pathOrNull() ?: return
     val pngFile = pngPath.toPath()
     if (!fileSystem.exists(pngFile)) {
       // Stub-host path — pngPath is the deterministic `daemon-stub-${id}.png` placeholder that
@@ -1460,31 +1460,6 @@ public class JsonRpcServer(
    * (the B1.5-era stub hosts that don't measure anything) keep the pre-B2.3 `metrics: null`
    * behaviour.
    */
-  /**
-   * The rendered frame's bytes, or null when [pngPath] is absent / unreadable / a B1.5-era stub
-   * placeholder. Null means "no bytes", which every caller reads as "definitely changed": without
-   * bytes we can't dedup, so the frame is emitted normally.
-   *
-   * Read once per render and passed around, not re-read per consumer — see the call site in
-   * [emitRenderFinished]. The read itself is cheap on the typical preview size (sub-MB PNGs) and
-   * usually served from OS page cache because the daemon just wrote the file; doing it three times
-   * a frame was still three times as much of it as the frame needs.
-   */
-  private fun readFrameBytes(pngPath: String?): ByteArray? {
-    if (pngPath == null) return null
-    val path =
-      try {
-        pngPath.toPath()
-      } catch (_: Throwable) {
-        return null
-      }
-    if (!fileSystem.exists(path)) return null
-    return try {
-      fileSystem.read(path) { readByteArray() }
-    } catch (_: Throwable) {
-      null
-    }
-  }
 
   /** SHA-256 hex of [bytes] — the live lane's dedup key, and history's frame identity. */
   private fun sha256Hex(bytes: ByteArray): String {
@@ -1503,7 +1478,7 @@ public class JsonRpcServer(
     result: RenderResult,
     tookMs: Long,
   ): RenderFinishedParams {
-    val pngPath = result.pngPath ?: "$historyDir/daemon-stub-${result.id}.png"
+    val pngPath = result.artifact.pathOrNull() ?: "$historyDir/daemon-stub-${result.id}.png"
     val metrics =
       when (val outcome = RenderMetrics.fromFlatMap(result.metrics)) {
         is RenderMetrics.FromFlatMapResult.AbsentSource -> null

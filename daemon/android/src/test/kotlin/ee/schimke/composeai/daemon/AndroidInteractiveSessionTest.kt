@@ -73,8 +73,8 @@ class AndroidInteractiveSessionTest {
 
         // First frame: held composition starts on red (initial state of `ClickToggleSquare`).
         val firstResult = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull("first render must produce a PNG path", firstResult.pngPath)
-        val firstImg = decode(File(firstResult.pngPath!!))
+        assertNotNull("first render must produce a PNG path", firstResult.artifact.pathOrNull())
+        val firstImg = decode(File(firstResult.artifact.pathOrNull()!!))
         val redBefore = pixelMatchPct(firstImg, RED_RGB, perChannelTolerance = 8)
         assertTrue(
           "expected initial held capture to be ≥95% red (got ${"%.2f".format(redBefore * 100)}%)",
@@ -95,7 +95,7 @@ class AndroidInteractiveSessionTest {
 
         // Second frame: state should now be green.
         val secondResult = session.render(requestId = RenderHost.nextRequestId())
-        val secondImg = decode(File(secondResult.pngPath!!))
+        val secondImg = decode(File(secondResult.artifact.pathOrNull()!!))
         val greenAfter = pixelMatchPct(secondImg, GREEN_RGB, perChannelTolerance = 8)
         val redAfter = pixelMatchPct(secondImg, RED_RGB, perChannelTolerance = 8)
         assertTrue(
@@ -136,9 +136,9 @@ class AndroidInteractiveSessionTest {
       assertEquals(followupId, followupResult.id)
       assertNotNull(
         "post-interactive normal render must still produce a PNG (slot 0 stayed alive)",
-        followupResult.pngPath,
+        followupResult.artifact.pathOrNull(),
       )
-      val followupImg = decode(File(followupResult.pngPath!!))
+      val followupImg = decode(File(followupResult.artifact.pathOrNull()!!))
       val followupRed = pixelMatchPct(followupImg, RED_RGB, perChannelTolerance = 8)
       assertTrue(
         "post-interactive RedSquare render should still be ≥95% red (got " +
@@ -166,7 +166,8 @@ class AndroidInteractiveSessionTest {
           classLoader = javaClass.classLoader!!,
         )
       try {
-        val before = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val before =
+          decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         assertTrue(
           "clickable fixture should start red",
           pixelMatchPct(before, RED_RGB, perChannelTolerance = 8) >= 0.95,
@@ -181,7 +182,7 @@ class AndroidInteractiveSessionTest {
           )
         )
 
-        val after = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         val greenAfter = pixelMatchPct(after, GREEN_RGB, perChannelTolerance = 8)
         assertTrue(
           "click should drive Modifier.clickable state to green; got " +
@@ -221,7 +222,8 @@ class AndroidInteractiveSessionTest {
           classLoader = javaClass.classLoader!!,
         )
       try {
-        val before = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val before =
+          decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         assertTrue(
           "ClickableToggleSquare must start red before the uia.click",
           pixelMatchPct(before, RED_RGB, perChannelTolerance = 8) >= 0.95,
@@ -240,7 +242,7 @@ class AndroidInteractiveSessionTest {
           matched,
         )
 
-        val after = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         val greenAfter = pixelMatchPct(after, GREEN_RGB, perChannelTolerance = 8)
         assertTrue(
           "expected post-uia.click held capture to be ≥95% green (got " +
@@ -346,7 +348,8 @@ class AndroidInteractiveSessionTest {
           classLoader = javaClass.classLoader!!,
         )
       try {
-        val before = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val before =
+          decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         assertTrue(
           "scroll fixture should initially show the red top item",
           pixelMatchPct(before, RED_RGB, perChannelTolerance = 8) >= 0.95,
@@ -377,7 +380,7 @@ class AndroidInteractiveSessionTest {
           )
         )
 
-        val after = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         val greenAfter = pixelMatchPct(after, GREEN_RGB, perChannelTolerance = 8)
         assertTrue(
           "finger drag should scroll the verticalScroll content enough to reveal green; got " +
@@ -405,7 +408,7 @@ class AndroidInteractiveSessionTest {
   @Test
   fun keyDownWithTextTypesIntoTheField() {
     withTextFieldSession { session ->
-      val before = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+      val before = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
       assertTrue(
         "text field fixture should start untouched (red)",
         topStripMatchPct(before, RED_RGB) >= 0.8,
@@ -420,7 +423,7 @@ class AndroidInteractiveSessionTest {
         )
       )
 
-      val after = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+      val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
       assertTrue(
         "KEY_DOWN carrying text must change the field's value (green); got " +
           "${"%.2f".format(topStripMatchPct(after, GREEN_RGB) * 100)}% green above the band",
@@ -450,7 +453,7 @@ class AndroidInteractiveSessionTest {
         )
       )
 
-      val after = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+      val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
       // A key press makes the soft keyboard visible, so measure only the content above its band.
       val once = topStripMatchPct(after, GREEN_RGB)
       val duplicated = topStripMatchPct(after, DUPLICATED_RGB)
@@ -493,7 +496,7 @@ class AndroidInteractiveSessionTest {
         )
       )
 
-      val after = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+      val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
       assertTrue(
         "a press/release pair over a focused field must type exactly one character and must not " +
           "fail dispatching an unpaired release; got " +
@@ -522,7 +525,7 @@ class AndroidInteractiveSessionTest {
         )
       )
 
-      val after = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+      val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
       assertTrue(
         "a keycode-less KEY_DOWN carrying a character must still type it; got " +
           "${"%.2f".format(pixelMatchPct(after, GREEN_RGB, perChannelTolerance = 8) * 100)}% green",
@@ -541,7 +544,8 @@ class AndroidInteractiveSessionTest {
       session.render(RenderHost.nextRequestId())
 
       dragAcrossText(session, pointerType = null)
-      val afterTouch = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+      val afterTouch =
+        decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
       assertTrue(
         "a touch drag must not select text (touch selection needs long-press + handles); got " +
           "${"%.2f".format(topStripMatchPct(afterTouch, BLUE_RGB) * 100)}% blue",
@@ -549,7 +553,8 @@ class AndroidInteractiveSessionTest {
       )
 
       dragAcrossText(session, pointerType = "mouse")
-      val afterMouse = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+      val afterMouse =
+        decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
       assertTrue(
         "a mouse drag across the text must leave a selection (blue); got " +
           "${"%.2f".format(topStripMatchPct(afterMouse, BLUE_RGB) * 100)}% blue above the band — " +
@@ -622,7 +627,8 @@ class AndroidInteractiveSessionTest {
           classLoader = javaClass.classLoader!!,
         )
       try {
-        val before = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val before =
+          decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         assertTrue(
           "release-position fixture should start red",
           pixelMatchPct(before, RED_RGB, perChannelTolerance = 8) >= 0.95,
@@ -653,7 +659,7 @@ class AndroidInteractiveSessionTest {
           )
         )
 
-        val after = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         val greenAfter = pixelMatchPct(after, GREEN_RGB, perChannelTolerance = 8)
         assertTrue(
           "pointerUp should release at its command coordinates, not the last move; got " +
@@ -684,7 +690,8 @@ class AndroidInteractiveSessionTest {
           classLoader = javaClass.classLoader!!,
         )
       try {
-        val before = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val before =
+          decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         assertTrue(
           "rotary fixture should start red",
           pixelMatchPct(before, RED_RGB, perChannelTolerance = 8) >= 0.95,
@@ -700,7 +707,7 @@ class AndroidInteractiveSessionTest {
           )
         )
 
-        val after = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         val greenAfter = pixelMatchPct(after, GREEN_RGB, perChannelTolerance = 8)
         assertTrue(
           "rotary scroll should reach the focused onRotaryScrollEvent handler; got " +
@@ -747,7 +754,7 @@ class AndroidInteractiveSessionTest {
         )
       try {
         val result = session.render(requestId = RenderHost.nextRequestId())
-        val pngPath = result.pngPath
+        val pngPath = result.artifact.pathOrNull()
         assertNotNull(
           "held notification render must produce a PNG instead of blanking the preview",
           pngPath,
@@ -783,7 +790,7 @@ class AndroidInteractiveSessionTest {
           classLoader = javaClass.classLoader!!,
         )
       try {
-        val image = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val image = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         val green = pixelMatchPct(image, GREEN_RGB, perChannelTolerance = 8)
         assertTrue(
           "held frame should be rendered by the wrapper-backed preview (got " +
@@ -1025,8 +1032,8 @@ class AndroidInteractiveSessionTest {
         )
       try {
         val result = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull("dark-mode held render must produce a PNG", result.pngPath)
-        val img = decode(File(result.pngPath!!))
+        assertNotNull("dark-mode held render must produce a PNG", result.artifact.pathOrNull())
+        val img = decode(File(result.artifact.pathOrNull()!!))
         // DarkAwareSquare paints white in light, black in dark. The DARK uiMode override should
         // route through `night` qualifier → `Configuration.UI_MODE_NIGHT_YES` → the composable's
         // `isSystemInDarkTheme()` returns true → black.
@@ -1146,7 +1153,8 @@ class AndroidInteractiveSessionTest {
         )
       try {
         // Bootstrap render — red.
-        val before = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val before =
+          decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         assertTrue(
           "tagged-target fixture should start red",
           pixelMatchPct(before, RED_RGB, perChannelTolerance = 8) >= 0.95,
@@ -1161,7 +1169,8 @@ class AndroidInteractiveSessionTest {
             pixelY = INTERACTIVE_HEIGHT_PX / 2,
           )
         )
-        val afterMiss = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val afterMiss =
+          decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         assertTrue(
           "centre pixel click must miss the corner target-box; card should still be red",
           pixelMatchPct(afterMiss, RED_RGB, perChannelTolerance = 8) >= 0.95,
@@ -1177,7 +1186,8 @@ class AndroidInteractiveSessionTest {
             target = SemanticsInputTarget(testTag = "target-box"),
           )
         )
-        val afterHit = decode(File(session.render(RenderHost.nextRequestId()).pngPath!!))
+        val afterHit =
+          decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
         val green = pixelMatchPct(afterHit, GREEN_RGB, perChannelTolerance = 8)
         assertTrue(
           "testTag target must resolve sandbox-side to the corner node's centre and flip green; " +
@@ -1246,9 +1256,9 @@ class AndroidInteractiveSessionTest {
         val result = session.render(requestId = RenderHost.nextRequestId())
         assertNotNull(
           "held render must produce a PNG once the missing resource falls back to a placeholder",
-          result.pngPath,
+          result.artifact.pathOrNull(),
         )
-        val img = decode(File(result.pngPath!!))
+        val img = decode(File(result.artifact.pathOrNull()!!))
         // The fixture paints green when the (placeholder) label is non-blank — i.e. the fallback
         // supplied a string rather than throwing.
         val greenPct = pixelMatchPct(img, GREEN_RGB, perChannelTolerance = 8)
@@ -1300,7 +1310,10 @@ class AndroidInteractiveSessionTest {
       try {
         // Frame one covers the 32ms bootstrap settle — well short of the fixture's 100ms delay, so
         // the callback is scheduled but not yet due.
-        val first = decode(File(session.render(requestId = RenderHost.nextRequestId()).pngPath!!))
+        val first =
+          decode(
+            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!)
+          )
         val redFirst = pixelMatchPct(first, RED_RGB, perChannelTolerance = 8)
         assertTrue(
           "the first held frame must still be red — a callback due at " +
@@ -1319,7 +1332,8 @@ class AndroidInteractiveSessionTest {
                   requestId = RenderHost.nextRequestId(),
                   advanceTimeMs = POST_DELAYED_SQUARE_DELAY_MS * 2,
                 )
-                .pngPath!!
+                .artifact
+                .pathOrNull()!!
             )
           )
         val greenSecond = pixelMatchPct(second, GREEN_RGB, perChannelTolerance = 8)

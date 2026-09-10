@@ -633,7 +633,7 @@ private class SessionAwareFakeHost(
       id = request.id,
       classLoaderHashCode = 0,
       classLoaderName = "session-aware-fake",
-      pngPath = defaultPng.absolutePath,
+      artifact = RenderArtifact(defaultPng.absolutePath),
       metrics = mapOf("tookMs" to 0L),
     )
   }
@@ -738,7 +738,7 @@ private class RecordingSession(
       id = requestId,
       classLoaderHashCode = 0,
       classLoaderName = "recording-session",
-      pngPath = pngFile.absolutePath,
+      artifact = RenderArtifact(pngFile.absolutePath),
       metrics = mapOf("tookMs" to 0L),
     )
   }
@@ -770,7 +770,7 @@ private class NoSessionFakeHost(private val defaultPng: File) : RenderHost {
       id = request.id,
       classLoaderHashCode = 0,
       classLoaderName = "no-session-fake",
-      pngPath = defaultPng.absolutePath,
+      artifact = RenderArtifact(defaultPng.absolutePath),
       metrics = mapOf("tookMs" to 0L),
     )
   }
@@ -790,7 +790,7 @@ private class FailingSessionHost(private val defaultPng: File) : RenderHost {
       id = request.id,
       classLoaderHashCode = 0,
       classLoaderName = "failing-session-fake",
-      pngPath = defaultPng.absolutePath,
+      artifact = RenderArtifact(defaultPng.absolutePath),
       metrics = mapOf("tookMs" to 0L),
     )
   }

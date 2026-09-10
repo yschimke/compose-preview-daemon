@@ -111,10 +111,11 @@ class PermissionsDataFetchE2ETest {
       // Pixel correctness — sanity check that the override actually drove the granted branch.
       // If this drops, the failure isn't the data-fetch path; it's the override-application path
       // (see `PermissionsOverrideIntegrationTest` for the dedicated regression).
-      assertNotNull("pngPath must be populated", result.pngPath)
+      assertNotNull("pngPath must be populated", result.artifact.pathOrNull())
       val img =
-        ByteArrayInputStream(File(result.pngPath!!).readBytes()).use { ImageIO.read(it) }
-          ?: error("PNG failed to decode")
+        ByteArrayInputStream(File(result.artifact.pathOrNull()!!).readBytes()).use {
+          ImageIO.read(it)
+        } ?: error("PNG failed to decode")
       val greenPct = pixelMatchPct(img, expectedRgb = 0x66BB6A, perChannelTolerance = 8)
       assertTrue(
         "render should land on the granted (green) branch; got ${"%.2f".format(greenPct * 100)}% green",

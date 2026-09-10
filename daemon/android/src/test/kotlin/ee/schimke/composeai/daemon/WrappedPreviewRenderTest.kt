@@ -199,8 +199,8 @@ class WrappedPreviewRenderTest {
           ),
           timeoutMs = 120_000,
         )
-      assertNotNull("scroll-long must return its stitched PNG", result.pngPath)
-      val image = renderAndDecode(result.pngPath!!, "wrapped scroll-long")
+      assertNotNull("scroll-long must return its stitched PNG", result.artifact.pathOrNull())
+      val image = renderAndDecode(result.artifact.pathOrNull()!!, "wrapped scroll-long")
       assertTrue(
         "stitched LONG capture should exceed one 96px viewport (was ${image.height}px)",
         image.height > 96,
@@ -295,8 +295,8 @@ class WrappedPreviewRenderTest {
   ): BufferedImage {
     val request = RenderRequest.Render(target = target)
     val result = host.submit(request, timeoutMs = 120_000)
-    assertNotNull("$label: pngPath must be populated", result.pngPath)
-    val pngFile = File(result.pngPath!!)
+    assertNotNull("$label: pngPath must be populated", result.artifact.pathOrNull())
+    val pngFile = File(result.artifact.pathOrNull()!!)
     assertTrue("$label: rendered PNG must exist", pngFile.exists())
     return ByteArrayInputStream(pngFile.readBytes()).use { ImageIO.read(it) }
       ?: error("$label: PNG failed to decode")

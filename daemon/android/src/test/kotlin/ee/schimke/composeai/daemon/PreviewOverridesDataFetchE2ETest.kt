@@ -77,7 +77,7 @@ class PreviewOverridesDataFetchE2ETest {
           RenderRequest.Render(target = RenderTarget.Preview(previewId = "$previewId")),
           timeoutMs = 120_000,
         )
-      assertNotNull("pngPath must be populated", result.pngPath)
+      assertNotNull("pngPath must be populated", result.artifact.pathOrNull())
 
       // Hand the result to the registry the way `JsonRpcServer.handleRenderFinished` does. The
       // registry's `onRender` reads the bridge snapshot (host-CL read of the sandbox-CL
@@ -133,7 +133,7 @@ class PreviewOverridesDataFetchE2ETest {
           RenderRequest.Render(target = RenderTarget.Preview(previewId = "$previewId")),
           timeoutMs = 120_000,
         )
-      assertNotNull("pngPath must be populated", result.pngPath)
+      assertNotNull("pngPath must be populated", result.artifact.pathOrNull())
       registry.onRender(previewId, result, overrides = null, previewContext = result.previewContext)
       assertTrue(
         "a preview with no previewOverride* calls must not advertise compose/overrides",

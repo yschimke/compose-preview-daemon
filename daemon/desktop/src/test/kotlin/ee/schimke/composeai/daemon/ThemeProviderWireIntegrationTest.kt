@@ -161,7 +161,7 @@ class ThemeProviderWireIntegrationTest {
         "the render must complete within the timeout",
         host.completed.await(90, TimeUnit.SECONDS),
       )
-      val pngPath = host.lastResult.get()?.pngPath
+      val pngPath = host.lastResult.get()?.artifact.pathOrNull()
       assertNotNull("pngPath must be populated", pngPath)
       val pngFile = File(pngPath!!)
       assertTrue("rendered PNG must exist", pngFile.exists())

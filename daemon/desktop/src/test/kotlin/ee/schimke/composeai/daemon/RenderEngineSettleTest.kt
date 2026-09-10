@@ -85,7 +85,7 @@ class RenderEngineSettleTest {
         requestId = 1L,
         classLoader = javaClass.classLoader,
       )
-    val png = File(result.pngPath!!)
+    val png = File(result.artifact.pathOrNull()!!)
     assertTrue("PNG must be produced: ${png.absolutePath}", png.exists())
     // Best-effort: keep a copy outside the auto-cleaned TemporaryFolder so the frames can be
     // inspected — and embedded as evidence — after the run. Never fails the test.
@@ -158,7 +158,7 @@ class RenderEngineSettleTest {
       // END-scroll and static interaction drives advance through this same cursor helper.
       state.nextVirtualFrameNanos()
       val result = engine.renderOnce(state, requestId = 1L)
-      val png = File(result.pngPath!!)
+      val png = File(result.artifact.pathOrNull()!!)
       assertTrue(png.exists())
       assertFalse(DesktopRenderWarningsSidecar.pathFor(png).exists())
     } finally {

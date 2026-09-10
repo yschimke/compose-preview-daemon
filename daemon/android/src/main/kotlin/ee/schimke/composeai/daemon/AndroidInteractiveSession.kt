@@ -825,14 +825,17 @@ internal constructor(
     val id = cls.getMethod("getId").invoke(raw) as Long
     val hash = cls.getMethod("getClassLoaderHashCode").invoke(raw) as Int
     val name = cls.getMethod("getClassLoaderName").invoke(raw) as String
-    val pngPath = cls.getMethod("getPngPath").invoke(raw) as String?
+    // The sandbox-side `RenderResult` is a different Class object (instrumented package), so the
+    // artifact crosses as its JSON rather than as an object — same rule as the render target going
+    // the other way. See `DaemonHostBridge`'s package KDoc.
+    val artifactJson = cls.getMethod("getArtifactJson").invoke(raw) as String?
     @Suppress("UNCHECKED_CAST")
     val metrics = cls.getMethod("getMetrics").invoke(raw) as Map<String, Long>?
     return RenderResult(
       id = id,
       classLoaderHashCode = hash,
       classLoaderName = name,
-      pngPath = pngPath,
+      artifact = artifactJson?.let(RenderArtifact::decode),
       metrics = metrics?.let { LinkedHashMap(it) },
     )
   }

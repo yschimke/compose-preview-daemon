@@ -2214,7 +2214,7 @@ class AndroidRecordingSessionTest {
         id = requestId,
         classLoaderHashCode = 0,
         classLoaderName = "recording-delta-session",
-        pngPath = png.absolutePath,
+        artifact = RenderArtifact(png.absolutePath),
         metrics = mapOf("tookMs" to 0L),
       )
     }

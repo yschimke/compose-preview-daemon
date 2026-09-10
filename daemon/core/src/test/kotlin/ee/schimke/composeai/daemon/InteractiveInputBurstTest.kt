@@ -229,7 +229,7 @@ private class CountingFakeHost(private val pngFile: File) : RenderHost {
       id = request.id,
       classLoaderHashCode = 0,
       classLoaderName = "counting-fake",
-      pngPath = pngFile.absolutePath,
+      artifact = RenderArtifact(pngFile.absolutePath),
       metrics = mapOf("tookMs" to 0L),
     )
   }
@@ -267,7 +267,7 @@ private class CountingSession(override val previewId: String, private val pngFil
       id = requestId,
       classLoaderHashCode = 0,
       classLoaderName = "counting-session",
-      pngPath = pngFile.absolutePath,
+      artifact = RenderArtifact(pngFile.absolutePath),
       metrics = mapOf("tookMs" to 0L),
     )
   }

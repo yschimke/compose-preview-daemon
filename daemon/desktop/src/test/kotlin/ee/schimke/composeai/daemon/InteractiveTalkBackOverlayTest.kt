@@ -92,7 +92,7 @@ class InteractiveTalkBackOverlayTest {
         session.render(requestId = RenderHost.nextRequestId())
         val frame = session.render(requestId = RenderHost.nextRequestId())
         TouchOverlayTestSupport.pixelMatchPctApprox(
-          TouchOverlayTestSupport.readPng(File(frame.pngPath!!)),
+          TouchOverlayTestSupport.readPng(File(frame.artifact.pathOrNull()!!)),
           expectedRgb = FOCUS_GREEN_RGB,
           perChannelTolerance = 24,
         )

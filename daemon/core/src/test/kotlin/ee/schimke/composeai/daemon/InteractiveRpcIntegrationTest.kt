@@ -461,7 +461,7 @@ private class BytesAwareFakeHost(
                     id = req.id,
                     classLoaderHashCode = 0,
                     classLoaderName = "fake",
-                    pngPath = pngFile.absolutePath,
+                    artifact = RenderArtifact(pngFile.absolutePath),
                     metrics = mapOf("tookMs" to 1L),
                   )
                 results.computeIfAbsent(req.id) { LinkedBlockingQueue() }.put(result)

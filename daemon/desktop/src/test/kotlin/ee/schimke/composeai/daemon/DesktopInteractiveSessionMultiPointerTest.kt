@@ -66,7 +66,7 @@ class DesktopInteractiveSessionMultiPointerTest {
       try {
         // 0. Bootstrap render — establish the un-zoomed baseline blue coverage.
         val first = session.render(requestId = RenderHost.nextRequestId())
-        val firstImage = TouchOverlayTestSupport.readPng(File(first.pngPath!!))
+        val firstImage = TouchOverlayTestSupport.readPng(File(first.artifact.pathOrNull()!!))
         val initialBlue =
           TouchOverlayTestSupport.pixelMatchPctApprox(
             firstImage,
@@ -110,7 +110,7 @@ class DesktopInteractiveSessionMultiPointerTest {
         // Render again — the held scene's `mutableStateOf` should have absorbed the zoom callback
         // updates so the blue square's now scaled up.
         val second = session.render(requestId = RenderHost.nextRequestId())
-        val secondImage = TouchOverlayTestSupport.readPng(File(second.pngPath!!))
+        val secondImage = TouchOverlayTestSupport.readPng(File(second.artifact.pathOrNull()!!))
         val finalBlue =
           TouchOverlayTestSupport.pixelMatchPctApprox(
             secondImage,

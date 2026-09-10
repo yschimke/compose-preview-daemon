@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon.harness
 
+import ee.schimke.composeai.daemon.RenderArtifact
 import ee.schimke.composeai.daemon.RenderHost
 import ee.schimke.composeai.daemon.RenderRequest
 import ee.schimke.composeai.daemon.RenderResult
@@ -135,7 +136,7 @@ class FakeHost(
       id = request.id,
       classLoaderHashCode = System.identityHashCode(cl),
       classLoaderName = cl?.javaClass?.name ?: "<null>",
-      pngPath = pngFile.absolutePath,
+      artifact = RenderArtifact(pngFile.absolutePath),
       metrics = mergedMetrics,
     )
   }

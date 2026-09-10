@@ -205,7 +205,8 @@ class AndroidRecordingSession(
                 requestId = RenderHost.nextRequestId(),
                 advanceTimeMs = advanceForThisBucket(),
               )
-              .pngPath
+              .artifact
+              .pathOrNull()
               ?: error(
                 "AndroidRecordingSession: interactive.render returned no pngPath for assert.pixels " +
                   "at frame $frameIndex"
@@ -231,7 +232,7 @@ class AndroidRecordingSession(
         )
       lastFrameTimeMs = tMs
       val srcPath =
-        rendered.pngPath
+        rendered.artifact.pathOrNull()
           ?: error(
             "AndroidRecordingSession: interactive.render returned no pngPath at frame $frameIndex"
           )
@@ -1019,7 +1020,7 @@ class AndroidRecordingSession(
         val rendered =
           interactive.render(requestId = RenderHost.nextRequestId(), advanceTimeMs = advanceTimeMs)
         val srcPath =
-          rendered.pngPath
+          rendered.artifact.pathOrNull()
             ?: error(
               "AndroidRecordingSession: interactive.render returned no pngPath at live frame " +
                 frameIndex

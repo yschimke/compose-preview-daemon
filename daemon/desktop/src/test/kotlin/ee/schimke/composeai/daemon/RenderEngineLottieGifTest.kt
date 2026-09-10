@@ -42,7 +42,7 @@ class RenderEngineLottieGifTest {
 
     val result = engine.render(spec, requestId = 7L, classLoader = javaClass.classLoader)
 
-    val apngFile = File(result.pngPath!!)
+    val apngFile = File(result.artifact.pathOrNull()!!)
     assertTrue(
       "rendered APNG must exist and be non-empty",
       apngFile.exists() && apngFile.length() > 0,

@@ -58,8 +58,8 @@ class AndroidInteractiveTouchOverlayTest {
           )
         )
         val pressed = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull("pressed render must produce a PNG path", pressed.pngPath)
-        val pressedImg = decode(File(pressed.pngPath!!))
+        assertNotNull("pressed render must produce a PNG path", pressed.artifact.pathOrNull())
+        val pressedImg = decode(File(pressed.artifact.pathOrNull()!!))
         val cyanMatch = pixelMatchPct(pressedImg, expectedRgb = 0x00BCD4, perChannelTolerance = 60)
         assertTrue(
           "pressed frame must contain cyan overlay-ring pixels (interactive overlay enabled); " +

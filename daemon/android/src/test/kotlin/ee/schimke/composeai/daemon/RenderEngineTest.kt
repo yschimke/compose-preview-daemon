@@ -114,8 +114,12 @@ class RenderEngineTest {
       File("build/wrap-evidence")
         .apply { mkdirs() }
         .let { dir ->
-          off.pngPath?.let { File(it).copyTo(File(dir, "tall-fixed-320.png"), overwrite = true) }
-          on.pngPath?.let { File(it).copyTo(File(dir, "tall-wrapped.png"), overwrite = true) }
+          off.artifact.pathOrNull()?.let {
+            File(it).copyTo(File(dir, "tall-fixed-320.png"), overwrite = true)
+          }
+          on.artifact.pathOrNull()?.let {
+            File(it).copyTo(File(dir, "tall-wrapped.png"), overwrite = true)
+          }
         }
 
       fun layout(base: String) =
@@ -190,8 +194,11 @@ class RenderEngineTest {
       // Robolectric sandbox bootstrap dominates the first render; allow generous timeout.
       val result = host.submit(request, timeoutMs = 120_000)
 
-      assertNotNull("pngPath must be populated by the real render body", result.pngPath)
-      val pngFile = File(result.pngPath!!)
+      assertNotNull(
+        "pngPath must be populated by the real render body",
+        result.artifact.pathOrNull(),
+      )
+      val pngFile = File(result.artifact.pathOrNull()!!)
       assertTrue("rendered PNG must exist on disk: ${pngFile.absolutePath}", pngFile.exists())
       assertTrue("rendered PNG must be non-empty", pngFile.length() > 0)
 
@@ -718,7 +725,7 @@ class RenderEngineTest {
           .toList()
       assertTrue("each icon must emit a vector group, got ${groups.size}:\n$svg", groups.size >= 2)
 
-      val png = ImageIO.read(File(result.pngPath!!))
+      val png = ImageIO.read(File(result.artifact.pathOrNull()!!))
       for (g in groups) {
         val (x, y, sx, sy) = listOf(g[0], g[1], g[2], g[3])
         assertEquals("a square glyph must stay square", sx, sy, 0.01)
@@ -944,8 +951,11 @@ class RenderEngineTest {
         )
       val result = host.submit(request, timeoutMs = 120_000)
 
-      assertNotNull("private @Composable must render a PNG, not blank", result.pngPath)
-      val pngFile = File(result.pngPath!!)
+      assertNotNull(
+        "private @Composable must render a PNG, not blank",
+        result.artifact.pathOrNull(),
+      )
+      val pngFile = File(result.artifact.pathOrNull()!!)
       assertTrue("rendered PNG must exist on disk: ${pngFile.absolutePath}", pngFile.exists())
       assertTrue("rendered PNG must be non-empty", pngFile.length() > 0)
 
@@ -998,8 +1008,11 @@ class RenderEngineTest {
           timeoutMs = 120_000,
         )
 
-      assertNotNull("@PreviewParameter preview must render a PNG, not error out", result.pngPath)
-      val pngFile = File(result.pngPath!!)
+      assertNotNull(
+        "@PreviewParameter preview must render a PNG, not error out",
+        result.artifact.pathOrNull(),
+      )
+      val pngFile = File(result.artifact.pathOrNull()!!)
       assertTrue("rendered PNG must exist on disk: ${pngFile.absolutePath}", pngFile.exists())
       val img = ByteArrayInputStream(pngFile.readBytes()).use { ImageIO.read(it) }
       assertNotNull("PNG must decode via javax.imageio", img)
@@ -1050,8 +1063,14 @@ class RenderEngineTest {
           timeoutMs = 120_000,
         )
 
-      assertNotNull("a row-addressed @PreviewParameter render must produce a PNG", result.pngPath)
-      val img = ByteArrayInputStream(File(result.pngPath!!).readBytes()).use { ImageIO.read(it) }
+      assertNotNull(
+        "a row-addressed @PreviewParameter render must produce a PNG",
+        result.artifact.pathOrNull(),
+      )
+      val img =
+        ByteArrayInputStream(File(result.artifact.pathOrNull()!!).readBytes()).use {
+          ImageIO.read(it)
+        }
       assertNotNull("PNG must decode via javax.imageio", img)
       // SquareTintProvider yields green (#43A047) then blue (#1E88E5). Row 1 is the blue one; a
       // regression that silently falls back to value 0 fails here instead of passing on
@@ -1100,8 +1119,14 @@ class RenderEngineTest {
           timeoutMs = 120_000,
         )
 
-      assertNotNull("a label-addressed @PreviewParameter render must produce a PNG", result.pngPath)
-      val img = ByteArrayInputStream(File(result.pngPath!!).readBytes()).use { ImageIO.read(it) }
+      assertNotNull(
+        "a label-addressed @PreviewParameter render must produce a PNG",
+        result.artifact.pathOrNull(),
+      )
+      val img =
+        ByteArrayInputStream(File(result.artifact.pathOrNull()!!).readBytes()).use {
+          ImageIO.read(it)
+        }
       assertNotNull("PNG must decode via javax.imageio", img)
       val matchPct = pixelMatchPct(img!!, 0x1E88E5, perChannelTolerance = 8)
       assertTrue(
@@ -1191,7 +1216,7 @@ class RenderEngineTest {
           ),
           timeoutMs = 120_000,
         )
-      assertNotNull(result.pngPath)
+      assertNotNull(result.artifact.pathOrNull())
 
       val fontsFile =
         outputDir.parentFile!!
@@ -1327,8 +1352,8 @@ class RenderEngineTest {
         val result = host.submit(request, timeoutMs = 120_000)
         val tookMs = (System.nanoTime() - startNs) / 1_000_000L
         perRenderMs.add(tookMs)
-        assertNotNull("render $i pngPath must be populated", result.pngPath)
-        assertTrue("render $i PNG must exist", File(result.pngPath!!).exists())
+        assertNotNull("render $i pngPath must be populated", result.artifact.pathOrNull())
+        assertTrue("render $i PNG must exist", File(result.artifact.pathOrNull()!!).exists())
       }
       val totalMs = (System.nanoTime() - totalStartNs) / 1_000_000L
       val firstMs = perRenderMs.first()

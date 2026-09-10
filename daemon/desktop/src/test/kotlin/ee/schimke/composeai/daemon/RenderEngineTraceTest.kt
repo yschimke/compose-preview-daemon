@@ -98,6 +98,6 @@ class RenderEngineTraceTest {
 
     val result = engine.render(redSquareSpec("trace-listener-throws"), requestId = 1L)
 
-    assertNotNull("the render must still produce a PNG", result.pngPath)
+    assertNotNull("the render must still produce a PNG", result.artifact.pathOrNull())
   }
 }

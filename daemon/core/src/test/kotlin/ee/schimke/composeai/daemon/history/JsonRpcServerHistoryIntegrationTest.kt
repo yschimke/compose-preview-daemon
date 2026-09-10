@@ -2,6 +2,7 @@ package ee.schimke.composeai.daemon.history
 
 import ee.schimke.composeai.daemon.ContentLengthFramer
 import ee.schimke.composeai.daemon.JsonRpcServer
+import ee.schimke.composeai.daemon.RenderArtifact
 import ee.schimke.composeai.daemon.RenderHost
 import ee.schimke.composeai.daemon.RenderRequest
 import ee.schimke.composeai.daemon.RenderResult
@@ -465,7 +466,7 @@ class JsonRpcServerHistoryIntegrationTest {
                         id = req.id,
                         classLoaderHashCode = System.identityHashCode(cl),
                         classLoaderName = cl?.javaClass?.name ?: "<null>",
-                        pngPath = pngFile.toAbsolutePath().toString(),
+                        artifact = RenderArtifact(pngFile.toAbsolutePath().toString()),
                         metrics = mapOf("tookMs" to 1L),
                       )
                     )

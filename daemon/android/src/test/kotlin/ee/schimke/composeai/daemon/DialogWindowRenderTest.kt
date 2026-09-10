@@ -79,7 +79,7 @@ class DialogWindowRenderTest {
           RenderRequest.Render(target = RenderTarget.Preview(previewId = "$previewId")),
           timeoutMs = 120_000,
         )
-      assertNotNull("PNG path must be populated", result.pngPath)
+      assertNotNull("PNG path must be populated", result.artifact.pathOrNull())
 
       val semantics =
         outputDir.parentFile!!.resolve("data/$previewId").resolve("compose-semantics.json")
@@ -128,8 +128,8 @@ class DialogWindowRenderTest {
           RenderRequest.Render(target = RenderTarget.Preview(previewId = "$previewId")),
           timeoutMs = 120_000,
         )
-      assertNotNull("PNG path must be populated", result.pngPath)
-      val png = File(result.pngPath!!)
+      assertNotNull("PNG path must be populated", result.artifact.pathOrNull())
+      val png = File(result.artifact.pathOrNull()!!)
       assertTrue("rendered PNG must exist", png.isFile)
 
       // The activity window paints an opaque backdrop, so "not fully transparent" is not enough —

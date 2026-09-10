@@ -262,16 +262,19 @@ class RobolectricHostPoolTest {
           RenderRequest.Render(target = renderTarget(slot0PreviewId, outputBaseName = "slot-0")),
           timeoutMs = 120_000,
         )
-      assertNotNull("slot 0 real render should produce a PNG", slot0.pngPath)
-      assertTrue("slot 0 PNG should exist", File(slot0.pngPath!!).exists())
+      assertNotNull("slot 0 real render should produce a PNG", slot0.artifact.pathOrNull())
+      assertTrue("slot 0 PNG should exist", File(slot0.artifact.pathOrNull()!!).exists())
 
       val slot1 =
         host.submit(
           RenderRequest.Render(target = renderTarget(slot1PreviewId, outputBaseName = "slot-1")),
           timeoutMs = 120_000,
         )
-      assertNotNull("slot 1 (worker process) real render should produce a PNG", slot1.pngPath)
-      assertTrue("slot 1 PNG should exist", File(slot1.pngPath!!).exists())
+      assertNotNull(
+        "slot 1 (worker process) real render should produce a PNG",
+        slot1.artifact.pathOrNull(),
+      )
+      assertTrue("slot 1 PNG should exist", File(slot1.artifact.pathOrNull()!!).exists())
     } finally {
       host.shutdown()
       System.clearProperty(UserClassLoaderHolder.USER_CLASS_DIRS_PROP)
@@ -324,8 +327,8 @@ class RobolectricHostPoolTest {
         )
       try {
         val result = session.render(RenderHost.nextRequestId())
-        assertNotNull("interactive render should produce a PNG", result.pngPath)
-        assertTrue("interactive PNG should exist", File(result.pngPath!!).exists())
+        assertNotNull("interactive render should produce a PNG", result.artifact.pathOrNull())
+        assertTrue("interactive PNG should exist", File(result.artifact.pathOrNull()!!).exists())
 
         // While the session holds slot 0, a normal render still succeeds — on the worker.
         val normal =
@@ -333,7 +336,10 @@ class RobolectricHostPoolTest {
             RenderRequest.Render(target = renderTarget("during-session", "during-session")),
             timeoutMs = 120_000,
           )
-        assertNotNull("normal renders must keep flowing during a held session", normal.pngPath)
+        assertNotNull(
+          "normal renders must keep flowing during a held session",
+          normal.artifact.pathOrNull(),
+        )
       } finally {
         session.close()
       }

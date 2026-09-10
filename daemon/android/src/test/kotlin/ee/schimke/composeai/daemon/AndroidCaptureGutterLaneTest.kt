@@ -300,8 +300,8 @@ class AndroidCaptureGutterLaneTest {
           RenderRequest.Render(target = RenderTarget.Preview(previewId = "$id")),
           timeoutMs = 120_000,
         )
-      assertNotNull("$id: pngPath must be populated", result.pngPath)
-      val png = File(result.pngPath!!)
+      assertNotNull("$id: pngPath must be populated", result.artifact.pathOrNull())
+      val png = File(result.artifact.pathOrNull()!!)
       assertTrue("$id: rendered PNG must exist", png.exists())
       return ByteArrayInputStream(png.readBytes()).use { ImageIO.read(it) }
         ?: error("$id: PNG failed to decode")

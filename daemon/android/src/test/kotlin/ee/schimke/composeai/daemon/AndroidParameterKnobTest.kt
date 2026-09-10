@@ -60,8 +60,8 @@ class AndroidParameterKnobTest {
           ),
           timeoutMs = 120_000,
         )
-      assertNotNull("pngPath must be populated", result.pngPath)
-      val png = decode(File(result.pngPath!!))
+      assertNotNull("pngPath must be populated", result.artifact.pathOrNull())
+      val png = decode(File(result.artifact.pathOrNull()!!))
       val bluePct = pixelMatchPct(png, expectedRgb = 0x42A5F5, perChannelTolerance = 8)
       val greenPct = pixelMatchPct(png, expectedRgb = 0x66BB6A, perChannelTolerance = 8)
       assertTrue(
@@ -97,8 +97,8 @@ class AndroidParameterKnobTest {
           RenderRequest.Render(target = RenderTarget.Preview(previewId = "$KNOBBED_PREVIEW_ID")),
           timeoutMs = 120_000,
         )
-      assertNotNull("pngPath must be populated", result.pngPath)
-      val png = decode(File(result.pngPath!!))
+      assertNotNull("pngPath must be populated", result.artifact.pathOrNull())
+      val png = decode(File(result.artifact.pathOrNull()!!))
       assertTrue(
         "an unseeded parameter-knob preview must render its author defaults (red top band)",
         pixelMatchPct(png, expectedRgb = 0xEF5350, perChannelTolerance = 8) >= 0.4,
@@ -138,7 +138,7 @@ class AndroidParameterKnobTest {
           ),
           timeoutMs = 120_000,
         )
-      assertNotNull("pngPath must be populated", result.pngPath)
+      assertNotNull("pngPath must be populated", result.artifact.pathOrNull())
 
       // Hand the result to the registry the way `JsonRpcServer.handleRenderFinished` does.
       registry.onRender(

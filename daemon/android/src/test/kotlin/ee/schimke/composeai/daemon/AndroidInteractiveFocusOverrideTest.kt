@@ -33,8 +33,8 @@ class AndroidInteractiveFocusOverrideTest {
         )
       try {
         val frame = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull("held render must produce a PNG path", frame.pngPath)
-        val img = decode(File(frame.pngPath!!))
+        assertNotNull("held render must produce a PNG path", frame.artifact.pathOrNull())
+        val img = decode(File(frame.artifact.pathOrNull()!!))
 
         val focused = pixelMatchPct(img, expectedRgb = FOCUSED_FILL_RGB)
         val resting = pixelMatchPct(img, expectedRgb = RESTING_FILL_RGB)

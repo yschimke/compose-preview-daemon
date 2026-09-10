@@ -49,7 +49,8 @@ class LiveInfiniteAnimationTest {
         val fills =
           (1..FRAMES).map {
             val result = session.render(RenderHost.nextRequestId(), advanceTimeMs = STEP_MS)
-            val png = File(requireNotNull(result.pngPath) { "held render produced no PNG" })
+            val png =
+              File(requireNotNull(result.artifact.pathOrNull()) { "held render produced no PNG" })
             val image = ImageIO.read(png)
             image.getRGB(image.width / 2, image.height / 2) and 0xFFFFFF
           }
@@ -151,7 +152,7 @@ class LiveInfiniteAnimationTest {
    */
   private fun renderPhaseMs(session: InteractiveSession): Double {
     val result = session.render(RenderHost.nextRequestId())
-    val png = File(requireNotNull(result.pngPath) { "held render produced no PNG" })
+    val png = File(requireNotNull(result.artifact.pathOrNull()) { "held render produced no PNG" })
     val image = ImageIO.read(png)
     val red = image.getRGB(image.width / 2, image.height / 2) shr 16 and 0xFF
     return red / 255.0 * SWEEP_PERIOD_MS

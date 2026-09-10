@@ -51,8 +51,8 @@ class AndroidInteractiveNamedOverrideTest {
         )
       try {
         val frame = session.render(requestId = RenderHost.nextRequestId())
-        assertNotNull("held render must produce a PNG path", frame.pngPath)
-        val img = decode(File(frame.pngPath!!))
+        assertNotNull("held render must produce a PNG path", frame.artifact.pathOrNull())
+        val img = decode(File(frame.artifact.pathOrNull()!!))
 
         val seeded = pixelMatchPct(img, expectedRgb = SEEDED_FILL_RGB)
         val authorDefault = pixelMatchPct(img, expectedRgb = DEFAULT_FILL_RGB)
