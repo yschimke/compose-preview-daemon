@@ -121,7 +121,25 @@ class ActivityFreeCaptureSpikeTest {
 
 object ActivityFreeCaptureSpikeMain {
   val fixtures =
-    listOf("RedSquare", "MaterialButtonInteractionState", "SerifTextPreview", "DialogWindowSurface")
+    listOf(
+      "RedSquare",
+      "MaterialButtonInteractionState",
+      "SerifTextPreview",
+      "DialogWindowSurface",
+    ) +
+      if (System.getenv("COMPOSEAI_ACTIVITY_FREE_BROAD") == "true") {
+        listOf(
+          "OpaqueImageSquare",
+          "GradientBackgroundCard",
+          "RadialGradientBackgroundCard",
+          "EmojiAndAnnotatedText",
+          "GraphicsLayerAndWideVector",
+          "IconButtonRowInputBar",
+          "LazyColumnListPreview",
+          "EditableTextFieldSquare",
+          "GenericOutlineShapeSquare",
+        )
+      } else emptyList()
 
   @JvmStatic
   fun main(args: Array<String>) {
@@ -302,6 +320,26 @@ object ActivityFreeCaptureSpikeMain {
             // Attachment/composition is queued on Robolectric's paused main looper. Without this,
             // waitForIdle waits two seconds in waitForComposeRoots before draining that same queue.
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            if (!useActivity) {
+              // WindowManager attachment does not deliver the focus event that ActivityScenario
+              // supplies. Compose's cursor/input behavior reads window focus independently of
+              // the lifecycle and node focus; dispatch through ViewRootImpl to update both.
+              rule.runOnUiThread {
+                val root =
+                  org.robolectric.util.ReflectionHelpers.callInstanceMethod<Any>(
+                    window.decorView,
+                    "getViewRootImpl",
+                  )
+                org.robolectric.shadow.api.Shadow.extract<
+                    org.robolectric.shadows.ShadowViewRootImpl
+                  >(
+                    root
+                  )
+                  .callWindowFocusChanged(true)
+              }
+              org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            }
+            rule.runOnUiThread { check(window.decorView.hasWindowFocus()) }
             phase("drain-attach")
             rule.mainClock.advanceTimeBy(32)
             rule.waitForIdle()
@@ -369,6 +407,15 @@ object ActivityFreeCaptureSpikeMain {
       "MaterialButtonInteractionState" -> MaterialButtonInteractionState()
       "SerifTextPreview" -> SerifTextPreview()
       "DialogWindowSurface" -> DialogWindowSurface()
+      "OpaqueImageSquare" -> OpaqueImageSquare()
+      "GradientBackgroundCard" -> GradientBackgroundCard()
+      "RadialGradientBackgroundCard" -> RadialGradientBackgroundCard()
+      "EmojiAndAnnotatedText" -> EmojiAndAnnotatedText()
+      "GraphicsLayerAndWideVector" -> GraphicsLayerAndWideVector()
+      "IconButtonRowInputBar" -> IconButtonRowInputBar()
+      "LazyColumnListPreview" -> LazyColumnListPreview()
+      "EditableTextFieldSquare" -> EditableTextFieldSquare()
+      "GenericOutlineShapeSquare" -> GenericOutlineShapeSquare()
       else -> error(name)
     }
   }

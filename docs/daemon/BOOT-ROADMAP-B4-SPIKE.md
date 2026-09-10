@@ -122,3 +122,56 @@ Pixel parity for four static fixtures is evidence that the basic path works, not
 claim for those cases. Test a broader catalog and then integrate an opt-in host with an Activity
 fallback before considering a default switch. Do not combine this experiment with compiler tuning;
 that would obscure the host comparison.
+
+## Broader catalog and window focus
+
+A second experiment adds nine fixtures with
+`COMPOSEAI_ACTIVITY_FREE_BROAD=true`: opaque images, linear/radial gradients,
+emoji/annotated text, transformed/vector graphics, an icon-button row, a lazy list,
+a self-focusing editable text field and custom clipping. The original four-fixture
+mode remains the default opt-in workload.
+
+The first broad run found a real host defect. The standalone window omitted the
+editable field's 2×16-pixel cursor; the engine and matched Activity showed it.
+Serialized hierarchies agreed, demonstrating why hierarchy parity alone is
+insufficient. `WindowManager.addView` attached the view but did not deliver the
+window-focus event supplied by ActivityScenario. Lifecycle RESUMED and the field's
+own focus request did not substitute for window focus.
+
+The experimental host now sends focus through `ShadowViewRootImpl.callWindowFocusChanged`
+after attachment, drains the paused looper, and verifies `decorView.hasWindowFocus()`
+before settling/capture. It does not mask the cursor or relax image comparison.
+The SDK-specific root lookup remains confined to the test prototype.
+
+Three fresh, rotated trials then passed: **351 byte-identical PNGs**, **351 matching
+default hierarchy artifacts**, and **234 matching full hierarchy artifacts** across
+13 fixtures and three cycles. The test ran through Gradle/AGP with no skipped tests.
+No production capture behavior changed.
+
+| Measurement | Engine reference | Matched Activity | Standalone window |
+| --- | ---: | ---: | ---: |
+| Median first RedSquare render | 1706 ms | 1486 ms | 1347 ms |
+| Median first-frame JVM uptime | 3862 ms | 3651 ms | 3541 ms |
+| Median CPU through first frame | 14990 ms | 14570 ms | 14130 ms |
+| Median classes through first frame | 16040 | 15533 | 15142 |
+| Median warm render, cycles 1–2 | 118.5 ms | 36 ms | 29 ms |
+
+The matched host saves 139 ms (9.4%) on first rendering and 7 ms (19.4%) on warm
+frames in this broader workload. First-frame uptime improves by 110 ms. These
+measurements use the original test launch settings (JDK 17, 512 MiB heap, no C1/CDS
+experiment flags) and must not be subtracted from separately measured worker
+readiness to claim a combined result. The smaller first-frame gain than the earlier
+215 ms is a reason to keep using matched repeats, not a reason to drop the focus fix.
+[Raw per-render measurements](profiles/activity-free-broad-spike.json).
+
+```sh
+COMPOSEAI_ACTIVITY_FREE_SPIKE=true COMPOSEAI_ACTIVITY_FREE_BROAD=true \
+  COMPOSEAI_ACTIVITY_FREE_TRIALS=3 \
+  ./gradlew :daemon:android:testDebugUnitTest --rerun \
+  --tests '*ActivityFreeCaptureSpikeTest' --max-workers=4
+```
+
+This expands static capture coverage and fixes one focus defect. It does not yet
+establish input dispatch, IME behavior, focus transfer between multiple windows,
+consumer Activity dependencies or general dialog/gutter geometry. Those remain
+requirements for a production host abstraction and its compatibility fallback.

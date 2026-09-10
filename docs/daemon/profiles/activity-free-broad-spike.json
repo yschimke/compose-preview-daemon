@@ -1,0 +1,2920 @@
+{
+  "java": "OpenJDK 17",
+  "sdk": 35,
+  "trials": 3,
+  "cycles": 3,
+  "fixtures": 13,
+  "pngCount": 351,
+  "defaultHierarchyCount": 351,
+  "fullHierarchyCount": 234,
+  "parity": "PNG bytes and default hierarchies match engine; full hierarchies match between activity/window",
+  "runs": [
+    {
+      "trial": 0,
+      "mode": "engine",
+      "measurements": [
+        {
+          "readyMs": 2153,
+          "cpuMs": 8390,
+          "loadedClasses": 8946
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1699,
+          "uptimeMs": 3856,
+          "cpuMs": 14970,
+          "loadedClasses": 16039
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 197,
+          "uptimeMs": 4055,
+          "cpuMs": 15570,
+          "loadedClasses": 16428
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 203,
+          "uptimeMs": 4259,
+          "cpuMs": 16190,
+          "loadedClasses": 16938
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 204,
+          "uptimeMs": 4464,
+          "cpuMs": 16700,
+          "loadedClasses": 17230
+        },
+        {
+          "cycle": 0,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 127,
+          "uptimeMs": 4591,
+          "cpuMs": 16960,
+          "loadedClasses": 17277
+        },
+        {
+          "cycle": 0,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 134,
+          "uptimeMs": 4725,
+          "cpuMs": 17270,
+          "loadedClasses": 17387
+        },
+        {
+          "cycle": 0,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 143,
+          "uptimeMs": 4869,
+          "cpuMs": 17560,
+          "loadedClasses": 17456
+        },
+        {
+          "cycle": 0,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 189,
+          "uptimeMs": 5058,
+          "cpuMs": 18020,
+          "loadedClasses": 18067
+        },
+        {
+          "cycle": 0,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 134,
+          "uptimeMs": 5193,
+          "cpuMs": 18290,
+          "loadedClasses": 18180
+        },
+        {
+          "cycle": 0,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 130,
+          "uptimeMs": 5324,
+          "cpuMs": 18560,
+          "loadedClasses": 18219
+        },
+        {
+          "cycle": 0,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 249,
+          "uptimeMs": 5573,
+          "cpuMs": 19140,
+          "loadedClasses": 18787
+        },
+        {
+          "cycle": 0,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 235,
+          "uptimeMs": 5809,
+          "cpuMs": 19600,
+          "loadedClasses": 19509
+        },
+        {
+          "cycle": 0,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 120,
+          "uptimeMs": 5929,
+          "cpuMs": 19950,
+          "loadedClasses": 19531
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 112,
+          "uptimeMs": 6042,
+          "cpuMs": 20210,
+          "loadedClasses": 19535
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 117,
+          "uptimeMs": 6160,
+          "cpuMs": 20480,
+          "loadedClasses": 19545
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 117,
+          "uptimeMs": 6278,
+          "cpuMs": 20730,
+          "loadedClasses": 19562
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 136,
+          "uptimeMs": 6415,
+          "cpuMs": 21070,
+          "loadedClasses": 19562
+        },
+        {
+          "cycle": 1,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 116,
+          "uptimeMs": 6531,
+          "cpuMs": 21360,
+          "loadedClasses": 19562
+        },
+        {
+          "cycle": 1,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 117,
+          "uptimeMs": 6649,
+          "cpuMs": 21680,
+          "loadedClasses": 19563
+        },
+        {
+          "cycle": 1,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 137,
+          "uptimeMs": 6786,
+          "cpuMs": 22090,
+          "loadedClasses": 19563
+        },
+        {
+          "cycle": 1,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 119,
+          "uptimeMs": 6906,
+          "cpuMs": 22360,
+          "loadedClasses": 19564
+        },
+        {
+          "cycle": 1,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 119,
+          "uptimeMs": 7026,
+          "cpuMs": 22770,
+          "loadedClasses": 19564
+        },
+        {
+          "cycle": 1,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 121,
+          "uptimeMs": 7147,
+          "cpuMs": 23220,
+          "loadedClasses": 19564
+        },
+        {
+          "cycle": 1,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 152,
+          "uptimeMs": 7300,
+          "cpuMs": 23590,
+          "loadedClasses": 19578
+        },
+        {
+          "cycle": 1,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 124,
+          "uptimeMs": 7425,
+          "cpuMs": 23850,
+          "loadedClasses": 19578
+        },
+        {
+          "cycle": 1,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 113,
+          "uptimeMs": 7538,
+          "cpuMs": 24110,
+          "loadedClasses": 19580
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 111,
+          "uptimeMs": 7650,
+          "cpuMs": 24360,
+          "loadedClasses": 19582
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 113,
+          "uptimeMs": 7764,
+          "cpuMs": 24570,
+          "loadedClasses": 19595
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 114,
+          "uptimeMs": 7878,
+          "cpuMs": 24810,
+          "loadedClasses": 19598
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 139,
+          "uptimeMs": 8017,
+          "cpuMs": 25180,
+          "loadedClasses": 19608
+        },
+        {
+          "cycle": 2,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 109,
+          "uptimeMs": 8127,
+          "cpuMs": 25410,
+          "loadedClasses": 19608
+        },
+        {
+          "cycle": 2,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 112,
+          "uptimeMs": 8240,
+          "cpuMs": 25660,
+          "loadedClasses": 19608
+        },
+        {
+          "cycle": 2,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 133,
+          "uptimeMs": 8374,
+          "cpuMs": 25940,
+          "loadedClasses": 19608
+        },
+        {
+          "cycle": 2,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 120,
+          "uptimeMs": 8494,
+          "cpuMs": 26240,
+          "loadedClasses": 19609
+        },
+        {
+          "cycle": 2,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 110,
+          "uptimeMs": 8605,
+          "cpuMs": 26470,
+          "loadedClasses": 19609
+        },
+        {
+          "cycle": 2,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 112,
+          "uptimeMs": 8717,
+          "cpuMs": 26720,
+          "loadedClasses": 19609
+        },
+        {
+          "cycle": 2,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 143,
+          "uptimeMs": 8860,
+          "cpuMs": 27060,
+          "loadedClasses": 19619
+        },
+        {
+          "cycle": 2,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 126,
+          "uptimeMs": 8987,
+          "cpuMs": 27360,
+          "loadedClasses": 19625
+        },
+        {
+          "cycle": 2,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 119,
+          "uptimeMs": 9107,
+          "cpuMs": 27690,
+          "loadedClasses": 19625
+        }
+      ]
+    },
+    {
+      "trial": 0,
+      "mode": "activity",
+      "measurements": [
+        {
+          "readyMs": 2153,
+          "cpuMs": 8380,
+          "loadedClasses": 8943
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1476,
+          "uptimeMs": 3633,
+          "cpuMs": 14450,
+          "loadedClasses": 15533
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 126,
+          "uptimeMs": 3764,
+          "cpuMs": 14790,
+          "loadedClasses": 15979
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 107,
+          "uptimeMs": 3872,
+          "cpuMs": 15140,
+          "loadedClasses": 16443
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 143,
+          "uptimeMs": 4015,
+          "cpuMs": 15660,
+          "loadedClasses": 16700
+        },
+        {
+          "cycle": 0,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 51,
+          "uptimeMs": 4067,
+          "cpuMs": 15820,
+          "loadedClasses": 16730
+        },
+        {
+          "cycle": 0,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 54,
+          "uptimeMs": 4122,
+          "cpuMs": 15970,
+          "loadedClasses": 16832
+        },
+        {
+          "cycle": 0,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 50,
+          "uptimeMs": 4173,
+          "cpuMs": 16100,
+          "loadedClasses": 16900
+        },
+        {
+          "cycle": 0,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 123,
+          "uptimeMs": 4296,
+          "cpuMs": 16370,
+          "loadedClasses": 17544
+        },
+        {
+          "cycle": 0,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 61,
+          "uptimeMs": 4357,
+          "cpuMs": 16520,
+          "loadedClasses": 17662
+        },
+        {
+          "cycle": 0,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 53,
+          "uptimeMs": 4411,
+          "cpuMs": 16660,
+          "loadedClasses": 17687
+        },
+        {
+          "cycle": 0,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 200,
+          "uptimeMs": 4612,
+          "cpuMs": 17190,
+          "loadedClasses": 18225
+        },
+        {
+          "cycle": 0,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 176,
+          "uptimeMs": 4788,
+          "cpuMs": 17640,
+          "loadedClasses": 18938
+        },
+        {
+          "cycle": 0,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 40,
+          "uptimeMs": 4829,
+          "cpuMs": 17790,
+          "loadedClasses": 18966
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 33,
+          "uptimeMs": 4862,
+          "cpuMs": 17880,
+          "loadedClasses": 18972
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 36,
+          "uptimeMs": 4899,
+          "cpuMs": 18020,
+          "loadedClasses": 18976
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 37,
+          "uptimeMs": 4936,
+          "cpuMs": 18170,
+          "loadedClasses": 18995
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 62,
+          "uptimeMs": 4999,
+          "cpuMs": 18360,
+          "loadedClasses": 18996
+        },
+        {
+          "cycle": 1,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 34,
+          "uptimeMs": 5033,
+          "cpuMs": 18470,
+          "loadedClasses": 18996
+        },
+        {
+          "cycle": 1,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 37,
+          "uptimeMs": 5071,
+          "cpuMs": 18630,
+          "loadedClasses": 18997
+        },
+        {
+          "cycle": 1,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 37,
+          "uptimeMs": 5109,
+          "cpuMs": 18760,
+          "loadedClasses": 18997
+        },
+        {
+          "cycle": 1,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 37,
+          "uptimeMs": 5147,
+          "cpuMs": 18900,
+          "loadedClasses": 18997
+        },
+        {
+          "cycle": 1,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 48,
+          "uptimeMs": 5195,
+          "cpuMs": 19220,
+          "loadedClasses": 18998
+        },
+        {
+          "cycle": 1,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 37,
+          "uptimeMs": 5232,
+          "cpuMs": 19360,
+          "loadedClasses": 18998
+        },
+        {
+          "cycle": 1,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 83,
+          "uptimeMs": 5315,
+          "cpuMs": 19710,
+          "loadedClasses": 19017
+        },
+        {
+          "cycle": 1,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 51,
+          "uptimeMs": 5367,
+          "cpuMs": 19900,
+          "loadedClasses": 19020
+        },
+        {
+          "cycle": 1,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 33,
+          "uptimeMs": 5400,
+          "cpuMs": 19990,
+          "loadedClasses": 19029
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 29,
+          "uptimeMs": 5429,
+          "cpuMs": 20060,
+          "loadedClasses": 19029
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 36,
+          "uptimeMs": 5466,
+          "cpuMs": 20160,
+          "loadedClasses": 19036
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 36,
+          "uptimeMs": 5502,
+          "cpuMs": 20280,
+          "loadedClasses": 19042
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 57,
+          "uptimeMs": 5560,
+          "cpuMs": 20400,
+          "loadedClasses": 19055
+        },
+        {
+          "cycle": 2,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 28,
+          "uptimeMs": 5588,
+          "cpuMs": 20490,
+          "loadedClasses": 19055
+        },
+        {
+          "cycle": 2,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 30,
+          "uptimeMs": 5618,
+          "cpuMs": 20570,
+          "loadedClasses": 19055
+        },
+        {
+          "cycle": 2,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 32,
+          "uptimeMs": 5651,
+          "cpuMs": 20640,
+          "loadedClasses": 19056
+        },
+        {
+          "cycle": 2,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 31,
+          "uptimeMs": 5682,
+          "cpuMs": 20710,
+          "loadedClasses": 19056
+        },
+        {
+          "cycle": 2,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 28,
+          "uptimeMs": 5711,
+          "cpuMs": 20770,
+          "loadedClasses": 19056
+        },
+        {
+          "cycle": 2,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 31,
+          "uptimeMs": 5742,
+          "cpuMs": 20840,
+          "loadedClasses": 19056
+        },
+        {
+          "cycle": 2,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 71,
+          "uptimeMs": 5814,
+          "cpuMs": 21140,
+          "loadedClasses": 19064
+        },
+        {
+          "cycle": 2,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 57,
+          "uptimeMs": 5872,
+          "cpuMs": 21420,
+          "loadedClasses": 19067
+        },
+        {
+          "cycle": 2,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 28,
+          "uptimeMs": 5900,
+          "cpuMs": 21520,
+          "loadedClasses": 19067
+        }
+      ]
+    },
+    {
+      "trial": 0,
+      "mode": "window",
+      "measurements": [
+        {
+          "readyMs": 2173,
+          "cpuMs": 8660,
+          "loadedClasses": 8943
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1371,
+          "uptimeMs": 3548,
+          "cpuMs": 14640,
+          "loadedClasses": 15143
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 115,
+          "uptimeMs": 3665,
+          "cpuMs": 14860,
+          "loadedClasses": 15577
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 106,
+          "uptimeMs": 3771,
+          "cpuMs": 15190,
+          "loadedClasses": 16050
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 110,
+          "uptimeMs": 3881,
+          "cpuMs": 15490,
+          "loadedClasses": 16303
+        },
+        {
+          "cycle": 0,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 52,
+          "uptimeMs": 3934,
+          "cpuMs": 15660,
+          "loadedClasses": 16330
+        },
+        {
+          "cycle": 0,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 50,
+          "uptimeMs": 3985,
+          "cpuMs": 15800,
+          "loadedClasses": 16428
+        },
+        {
+          "cycle": 0,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 56,
+          "uptimeMs": 4042,
+          "cpuMs": 16050,
+          "loadedClasses": 16496
+        },
+        {
+          "cycle": 0,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 124,
+          "uptimeMs": 4166,
+          "cpuMs": 16450,
+          "loadedClasses": 17141
+        },
+        {
+          "cycle": 0,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 62,
+          "uptimeMs": 4229,
+          "cpuMs": 16630,
+          "loadedClasses": 17255
+        },
+        {
+          "cycle": 0,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 46,
+          "uptimeMs": 4276,
+          "cpuMs": 16760,
+          "loadedClasses": 17280
+        },
+        {
+          "cycle": 0,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 157,
+          "uptimeMs": 4433,
+          "cpuMs": 17110,
+          "loadedClasses": 17805
+        },
+        {
+          "cycle": 0,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 149,
+          "uptimeMs": 4583,
+          "cpuMs": 17380,
+          "loadedClasses": 18472
+        },
+        {
+          "cycle": 0,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 33,
+          "uptimeMs": 4616,
+          "cpuMs": 17460,
+          "loadedClasses": 18501
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 29,
+          "uptimeMs": 4645,
+          "cpuMs": 17530,
+          "loadedClasses": 18508
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 34,
+          "uptimeMs": 4680,
+          "cpuMs": 17630,
+          "loadedClasses": 18522
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 31,
+          "uptimeMs": 4711,
+          "cpuMs": 17740,
+          "loadedClasses": 18534
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 46,
+          "uptimeMs": 4758,
+          "cpuMs": 17930,
+          "loadedClasses": 18534
+        },
+        {
+          "cycle": 1,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 27,
+          "uptimeMs": 4786,
+          "cpuMs": 18010,
+          "loadedClasses": 18534
+        },
+        {
+          "cycle": 1,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 29,
+          "uptimeMs": 4816,
+          "cpuMs": 18100,
+          "loadedClasses": 18535
+        },
+        {
+          "cycle": 1,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 34,
+          "uptimeMs": 4850,
+          "cpuMs": 18240,
+          "loadedClasses": 18538
+        },
+        {
+          "cycle": 1,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 32,
+          "uptimeMs": 4882,
+          "cpuMs": 18370,
+          "loadedClasses": 18539
+        },
+        {
+          "cycle": 1,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 27,
+          "uptimeMs": 4910,
+          "cpuMs": 18460,
+          "loadedClasses": 18539
+        },
+        {
+          "cycle": 1,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 34,
+          "uptimeMs": 4944,
+          "cpuMs": 18600,
+          "loadedClasses": 18539
+        },
+        {
+          "cycle": 1,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 56,
+          "uptimeMs": 5001,
+          "cpuMs": 18810,
+          "loadedClasses": 18542
+        },
+        {
+          "cycle": 1,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 39,
+          "uptimeMs": 5040,
+          "cpuMs": 18940,
+          "loadedClasses": 18542
+        },
+        {
+          "cycle": 1,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 26,
+          "uptimeMs": 5067,
+          "cpuMs": 19030,
+          "loadedClasses": 18545
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 26,
+          "uptimeMs": 5093,
+          "cpuMs": 19100,
+          "loadedClasses": 18546
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 29,
+          "uptimeMs": 5123,
+          "cpuMs": 19240,
+          "loadedClasses": 18556
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 26,
+          "uptimeMs": 5149,
+          "cpuMs": 19320,
+          "loadedClasses": 18559
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 41,
+          "uptimeMs": 5191,
+          "cpuMs": 19440,
+          "loadedClasses": 18567
+        },
+        {
+          "cycle": 2,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 24,
+          "uptimeMs": 5216,
+          "cpuMs": 19510,
+          "loadedClasses": 18567
+        },
+        {
+          "cycle": 2,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 39,
+          "uptimeMs": 5255,
+          "cpuMs": 19740,
+          "loadedClasses": 18568
+        },
+        {
+          "cycle": 2,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 26,
+          "uptimeMs": 5282,
+          "cpuMs": 19810,
+          "loadedClasses": 18568
+        },
+        {
+          "cycle": 2,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 27,
+          "uptimeMs": 5309,
+          "cpuMs": 19870,
+          "loadedClasses": 18568
+        },
+        {
+          "cycle": 2,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 24,
+          "uptimeMs": 5334,
+          "cpuMs": 19920,
+          "loadedClasses": 18568
+        },
+        {
+          "cycle": 2,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 26,
+          "uptimeMs": 5360,
+          "cpuMs": 19980,
+          "loadedClasses": 18568
+        },
+        {
+          "cycle": 2,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 53,
+          "uptimeMs": 5413,
+          "cpuMs": 20170,
+          "loadedClasses": 18592
+        },
+        {
+          "cycle": 2,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 34,
+          "uptimeMs": 5447,
+          "cpuMs": 20250,
+          "loadedClasses": 18592
+        },
+        {
+          "cycle": 2,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 26,
+          "uptimeMs": 5474,
+          "cpuMs": 20320,
+          "loadedClasses": 18592
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "mode": "engine",
+      "measurements": [
+        {
+          "readyMs": 2152,
+          "cpuMs": 8300,
+          "loadedClasses": 8946
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1706,
+          "uptimeMs": 3862,
+          "cpuMs": 14990,
+          "loadedClasses": 16040
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 201,
+          "uptimeMs": 4066,
+          "cpuMs": 15550,
+          "loadedClasses": 16429
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 202,
+          "uptimeMs": 4268,
+          "cpuMs": 16050,
+          "loadedClasses": 16939
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 205,
+          "uptimeMs": 4474,
+          "cpuMs": 16520,
+          "loadedClasses": 17231
+        },
+        {
+          "cycle": 0,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 127,
+          "uptimeMs": 4602,
+          "cpuMs": 16800,
+          "loadedClasses": 17278
+        },
+        {
+          "cycle": 0,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 135,
+          "uptimeMs": 4737,
+          "cpuMs": 17100,
+          "loadedClasses": 17388
+        },
+        {
+          "cycle": 0,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 145,
+          "uptimeMs": 4883,
+          "cpuMs": 17390,
+          "loadedClasses": 17457
+        },
+        {
+          "cycle": 0,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 191,
+          "uptimeMs": 5075,
+          "cpuMs": 17850,
+          "loadedClasses": 18068
+        },
+        {
+          "cycle": 0,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 134,
+          "uptimeMs": 5209,
+          "cpuMs": 18150,
+          "loadedClasses": 18181
+        },
+        {
+          "cycle": 0,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 125,
+          "uptimeMs": 5334,
+          "cpuMs": 18420,
+          "loadedClasses": 18220
+        },
+        {
+          "cycle": 0,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 251,
+          "uptimeMs": 5586,
+          "cpuMs": 18980,
+          "loadedClasses": 18788
+        },
+        {
+          "cycle": 0,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 238,
+          "uptimeMs": 5824,
+          "cpuMs": 19500,
+          "loadedClasses": 19510
+        },
+        {
+          "cycle": 0,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 116,
+          "uptimeMs": 5941,
+          "cpuMs": 19780,
+          "loadedClasses": 19532
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 113,
+          "uptimeMs": 6055,
+          "cpuMs": 20040,
+          "loadedClasses": 19536
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 119,
+          "uptimeMs": 6174,
+          "cpuMs": 20310,
+          "loadedClasses": 19546
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 118,
+          "uptimeMs": 6293,
+          "cpuMs": 20570,
+          "loadedClasses": 19563
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 137,
+          "uptimeMs": 6430,
+          "cpuMs": 20910,
+          "loadedClasses": 19563
+        },
+        {
+          "cycle": 1,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 115,
+          "uptimeMs": 6546,
+          "cpuMs": 21200,
+          "loadedClasses": 19563
+        },
+        {
+          "cycle": 1,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 117,
+          "uptimeMs": 6664,
+          "cpuMs": 21510,
+          "loadedClasses": 19564
+        },
+        {
+          "cycle": 1,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 138,
+          "uptimeMs": 6803,
+          "cpuMs": 21940,
+          "loadedClasses": 19564
+        },
+        {
+          "cycle": 1,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 120,
+          "uptimeMs": 6923,
+          "cpuMs": 22220,
+          "loadedClasses": 19565
+        },
+        {
+          "cycle": 1,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 119,
+          "uptimeMs": 7042,
+          "cpuMs": 22620,
+          "loadedClasses": 19565
+        },
+        {
+          "cycle": 1,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 118,
+          "uptimeMs": 7161,
+          "cpuMs": 23080,
+          "loadedClasses": 19565
+        },
+        {
+          "cycle": 1,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 152,
+          "uptimeMs": 7314,
+          "cpuMs": 23470,
+          "loadedClasses": 19579
+        },
+        {
+          "cycle": 1,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 123,
+          "uptimeMs": 7437,
+          "cpuMs": 23720,
+          "loadedClasses": 19579
+        },
+        {
+          "cycle": 1,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 117,
+          "uptimeMs": 7554,
+          "cpuMs": 24020,
+          "loadedClasses": 19581
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 111,
+          "uptimeMs": 7665,
+          "cpuMs": 24250,
+          "loadedClasses": 19583
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 113,
+          "uptimeMs": 7779,
+          "cpuMs": 24500,
+          "loadedClasses": 19596
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 114,
+          "uptimeMs": 7893,
+          "cpuMs": 24760,
+          "loadedClasses": 19599
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 136,
+          "uptimeMs": 8030,
+          "cpuMs": 25120,
+          "loadedClasses": 19609
+        },
+        {
+          "cycle": 2,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 108,
+          "uptimeMs": 8139,
+          "cpuMs": 25340,
+          "loadedClasses": 19609
+        },
+        {
+          "cycle": 2,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 114,
+          "uptimeMs": 8253,
+          "cpuMs": 25580,
+          "loadedClasses": 19609
+        },
+        {
+          "cycle": 2,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 128,
+          "uptimeMs": 8382,
+          "cpuMs": 25860,
+          "loadedClasses": 19609
+        },
+        {
+          "cycle": 2,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 123,
+          "uptimeMs": 8505,
+          "cpuMs": 26200,
+          "loadedClasses": 19610
+        },
+        {
+          "cycle": 2,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 109,
+          "uptimeMs": 8615,
+          "cpuMs": 26430,
+          "loadedClasses": 19610
+        },
+        {
+          "cycle": 2,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 113,
+          "uptimeMs": 8729,
+          "cpuMs": 26670,
+          "loadedClasses": 19610
+        },
+        {
+          "cycle": 2,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 144,
+          "uptimeMs": 8873,
+          "cpuMs": 27020,
+          "loadedClasses": 19620
+        },
+        {
+          "cycle": 2,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 123,
+          "uptimeMs": 8996,
+          "cpuMs": 27300,
+          "loadedClasses": 19626
+        },
+        {
+          "cycle": 2,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 112,
+          "uptimeMs": 9109,
+          "cpuMs": 27570,
+          "loadedClasses": 19626
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "mode": "activity",
+      "measurements": [
+        {
+          "readyMs": 2152,
+          "cpuMs": 8380,
+          "loadedClasses": 8946
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1495,
+          "uptimeMs": 3651,
+          "cpuMs": 14570,
+          "loadedClasses": 15533
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 131,
+          "uptimeMs": 3784,
+          "cpuMs": 14980,
+          "loadedClasses": 15977
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 105,
+          "uptimeMs": 3890,
+          "cpuMs": 15340,
+          "loadedClasses": 16439
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 142,
+          "uptimeMs": 4032,
+          "cpuMs": 15920,
+          "loadedClasses": 16698
+        },
+        {
+          "cycle": 0,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 49,
+          "uptimeMs": 4082,
+          "cpuMs": 16070,
+          "loadedClasses": 16728
+        },
+        {
+          "cycle": 0,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 55,
+          "uptimeMs": 4137,
+          "cpuMs": 16220,
+          "loadedClasses": 16830
+        },
+        {
+          "cycle": 0,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 51,
+          "uptimeMs": 4189,
+          "cpuMs": 16360,
+          "loadedClasses": 16896
+        },
+        {
+          "cycle": 0,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 127,
+          "uptimeMs": 4317,
+          "cpuMs": 16640,
+          "loadedClasses": 17535
+        },
+        {
+          "cycle": 0,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 67,
+          "uptimeMs": 4384,
+          "cpuMs": 16810,
+          "loadedClasses": 17653
+        },
+        {
+          "cycle": 0,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 56,
+          "uptimeMs": 4441,
+          "cpuMs": 16970,
+          "loadedClasses": 17678
+        },
+        {
+          "cycle": 0,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 203,
+          "uptimeMs": 4644,
+          "cpuMs": 17510,
+          "loadedClasses": 18217
+        },
+        {
+          "cycle": 0,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 175,
+          "uptimeMs": 4820,
+          "cpuMs": 17870,
+          "loadedClasses": 18932
+        },
+        {
+          "cycle": 0,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 39,
+          "uptimeMs": 4859,
+          "cpuMs": 17990,
+          "loadedClasses": 18960
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 32,
+          "uptimeMs": 4891,
+          "cpuMs": 18060,
+          "loadedClasses": 18966
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 37,
+          "uptimeMs": 4929,
+          "cpuMs": 18220,
+          "loadedClasses": 18970
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 38,
+          "uptimeMs": 4967,
+          "cpuMs": 18380,
+          "loadedClasses": 18989
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 63,
+          "uptimeMs": 5031,
+          "cpuMs": 18560,
+          "loadedClasses": 18990
+        },
+        {
+          "cycle": 1,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 34,
+          "uptimeMs": 5066,
+          "cpuMs": 18710,
+          "loadedClasses": 18990
+        },
+        {
+          "cycle": 1,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 37,
+          "uptimeMs": 5103,
+          "cpuMs": 18880,
+          "loadedClasses": 18991
+        },
+        {
+          "cycle": 1,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 36,
+          "uptimeMs": 5140,
+          "cpuMs": 18990,
+          "loadedClasses": 18991
+        },
+        {
+          "cycle": 1,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 36,
+          "uptimeMs": 5176,
+          "cpuMs": 19130,
+          "loadedClasses": 18991
+        },
+        {
+          "cycle": 1,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 34,
+          "uptimeMs": 5211,
+          "cpuMs": 19280,
+          "loadedClasses": 18991
+        },
+        {
+          "cycle": 1,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 43,
+          "uptimeMs": 5255,
+          "cpuMs": 19530,
+          "loadedClasses": 18991
+        },
+        {
+          "cycle": 1,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 83,
+          "uptimeMs": 5338,
+          "cpuMs": 19930,
+          "loadedClasses": 19010
+        },
+        {
+          "cycle": 1,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 48,
+          "uptimeMs": 5387,
+          "cpuMs": 20100,
+          "loadedClasses": 19013
+        },
+        {
+          "cycle": 1,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 32,
+          "uptimeMs": 5419,
+          "cpuMs": 20190,
+          "loadedClasses": 19022
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 29,
+          "uptimeMs": 5448,
+          "cpuMs": 20280,
+          "loadedClasses": 19022
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 33,
+          "uptimeMs": 5482,
+          "cpuMs": 20380,
+          "loadedClasses": 19029
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 32,
+          "uptimeMs": 5515,
+          "cpuMs": 20490,
+          "loadedClasses": 19035
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 59,
+          "uptimeMs": 5575,
+          "cpuMs": 20630,
+          "loadedClasses": 19048
+        },
+        {
+          "cycle": 2,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 32,
+          "uptimeMs": 5607,
+          "cpuMs": 20720,
+          "loadedClasses": 19048
+        },
+        {
+          "cycle": 2,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 30,
+          "uptimeMs": 5637,
+          "cpuMs": 20800,
+          "loadedClasses": 19048
+        },
+        {
+          "cycle": 2,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 31,
+          "uptimeMs": 5669,
+          "cpuMs": 20890,
+          "loadedClasses": 19049
+        },
+        {
+          "cycle": 2,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 30,
+          "uptimeMs": 5699,
+          "cpuMs": 20950,
+          "loadedClasses": 19049
+        },
+        {
+          "cycle": 2,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 29,
+          "uptimeMs": 5729,
+          "cpuMs": 21010,
+          "loadedClasses": 19049
+        },
+        {
+          "cycle": 2,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 31,
+          "uptimeMs": 5761,
+          "cpuMs": 21090,
+          "loadedClasses": 19049
+        },
+        {
+          "cycle": 2,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 70,
+          "uptimeMs": 5831,
+          "cpuMs": 21390,
+          "loadedClasses": 19057
+        },
+        {
+          "cycle": 2,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 45,
+          "uptimeMs": 5876,
+          "cpuMs": 21510,
+          "loadedClasses": 19060
+        },
+        {
+          "cycle": 2,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 29,
+          "uptimeMs": 5905,
+          "cpuMs": 21580,
+          "loadedClasses": 19060
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "mode": "window",
+      "measurements": [
+        {
+          "readyMs": 2192,
+          "cpuMs": 8620,
+          "loadedClasses": 8943
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1346,
+          "uptimeMs": 3541,
+          "cpuMs": 14130,
+          "loadedClasses": 15142
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 123,
+          "uptimeMs": 3666,
+          "cpuMs": 14440,
+          "loadedClasses": 15576
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 100,
+          "uptimeMs": 3766,
+          "cpuMs": 14720,
+          "loadedClasses": 16045
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 110,
+          "uptimeMs": 3877,
+          "cpuMs": 15060,
+          "loadedClasses": 16303
+        },
+        {
+          "cycle": 0,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 42,
+          "uptimeMs": 3920,
+          "cpuMs": 15200,
+          "loadedClasses": 16329
+        },
+        {
+          "cycle": 0,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 48,
+          "uptimeMs": 3968,
+          "cpuMs": 15320,
+          "loadedClasses": 16427
+        },
+        {
+          "cycle": 0,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 44,
+          "uptimeMs": 4013,
+          "cpuMs": 15450,
+          "loadedClasses": 16495
+        },
+        {
+          "cycle": 0,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 132,
+          "uptimeMs": 4146,
+          "cpuMs": 16020,
+          "loadedClasses": 17140
+        },
+        {
+          "cycle": 0,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 58,
+          "uptimeMs": 4204,
+          "cpuMs": 16230,
+          "loadedClasses": 17254
+        },
+        {
+          "cycle": 0,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 44,
+          "uptimeMs": 4248,
+          "cpuMs": 16360,
+          "loadedClasses": 17279
+        },
+        {
+          "cycle": 0,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 162,
+          "uptimeMs": 4411,
+          "cpuMs": 16700,
+          "loadedClasses": 17804
+        },
+        {
+          "cycle": 0,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 148,
+          "uptimeMs": 4560,
+          "cpuMs": 16960,
+          "loadedClasses": 18471
+        },
+        {
+          "cycle": 0,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 31,
+          "uptimeMs": 4591,
+          "cpuMs": 17030,
+          "loadedClasses": 18500
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 28,
+          "uptimeMs": 4620,
+          "cpuMs": 17110,
+          "loadedClasses": 18507
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 33,
+          "uptimeMs": 4654,
+          "cpuMs": 17210,
+          "loadedClasses": 18521
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 32,
+          "uptimeMs": 4686,
+          "cpuMs": 17330,
+          "loadedClasses": 18533
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 48,
+          "uptimeMs": 4735,
+          "cpuMs": 17530,
+          "loadedClasses": 18533
+        },
+        {
+          "cycle": 1,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 32,
+          "uptimeMs": 4768,
+          "cpuMs": 17630,
+          "loadedClasses": 18533
+        },
+        {
+          "cycle": 1,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 36,
+          "uptimeMs": 4804,
+          "cpuMs": 17870,
+          "loadedClasses": 18535
+        },
+        {
+          "cycle": 1,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 34,
+          "uptimeMs": 4838,
+          "cpuMs": 17990,
+          "loadedClasses": 18538
+        },
+        {
+          "cycle": 1,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 30,
+          "uptimeMs": 4868,
+          "cpuMs": 18110,
+          "loadedClasses": 18539
+        },
+        {
+          "cycle": 1,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 25,
+          "uptimeMs": 4894,
+          "cpuMs": 18200,
+          "loadedClasses": 18539
+        },
+        {
+          "cycle": 1,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 29,
+          "uptimeMs": 4924,
+          "cpuMs": 18310,
+          "loadedClasses": 18539
+        },
+        {
+          "cycle": 1,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 56,
+          "uptimeMs": 4981,
+          "cpuMs": 18510,
+          "loadedClasses": 18542
+        },
+        {
+          "cycle": 1,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 40,
+          "uptimeMs": 5021,
+          "cpuMs": 18650,
+          "loadedClasses": 18542
+        },
+        {
+          "cycle": 1,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 27,
+          "uptimeMs": 5049,
+          "cpuMs": 18740,
+          "loadedClasses": 18545
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 26,
+          "uptimeMs": 5076,
+          "cpuMs": 18820,
+          "loadedClasses": 18546
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 30,
+          "uptimeMs": 5106,
+          "cpuMs": 18960,
+          "loadedClasses": 18556
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 26,
+          "uptimeMs": 5133,
+          "cpuMs": 19030,
+          "loadedClasses": 18559
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 44,
+          "uptimeMs": 5178,
+          "cpuMs": 19170,
+          "loadedClasses": 18567
+        },
+        {
+          "cycle": 2,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 24,
+          "uptimeMs": 5202,
+          "cpuMs": 19240,
+          "loadedClasses": 18567
+        },
+        {
+          "cycle": 2,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 27,
+          "uptimeMs": 5230,
+          "cpuMs": 19310,
+          "loadedClasses": 18567
+        },
+        {
+          "cycle": 2,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 27,
+          "uptimeMs": 5258,
+          "cpuMs": 19410,
+          "loadedClasses": 18567
+        },
+        {
+          "cycle": 2,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 27,
+          "uptimeMs": 5286,
+          "cpuMs": 19480,
+          "loadedClasses": 18567
+        },
+        {
+          "cycle": 2,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 24,
+          "uptimeMs": 5310,
+          "cpuMs": 19530,
+          "loadedClasses": 18567
+        },
+        {
+          "cycle": 2,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 25,
+          "uptimeMs": 5336,
+          "cpuMs": 19590,
+          "loadedClasses": 18567
+        },
+        {
+          "cycle": 2,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 55,
+          "uptimeMs": 5392,
+          "cpuMs": 19800,
+          "loadedClasses": 18591
+        },
+        {
+          "cycle": 2,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 33,
+          "uptimeMs": 5425,
+          "cpuMs": 19860,
+          "loadedClasses": 18591
+        },
+        {
+          "cycle": 2,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 22,
+          "uptimeMs": 5448,
+          "cpuMs": 19930,
+          "loadedClasses": 18591
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "mode": "engine",
+      "measurements": [
+        {
+          "readyMs": 2199,
+          "cpuMs": 8600,
+          "loadedClasses": 8943
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1726,
+          "uptimeMs": 3929,
+          "cpuMs": 15740,
+          "loadedClasses": 16040
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 204,
+          "uptimeMs": 4135,
+          "cpuMs": 16300,
+          "loadedClasses": 16431
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 207,
+          "uptimeMs": 4342,
+          "cpuMs": 16910,
+          "loadedClasses": 16943
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 203,
+          "uptimeMs": 4545,
+          "cpuMs": 17400,
+          "loadedClasses": 17233
+        },
+        {
+          "cycle": 0,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 127,
+          "uptimeMs": 4673,
+          "cpuMs": 17670,
+          "loadedClasses": 17280
+        },
+        {
+          "cycle": 0,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 134,
+          "uptimeMs": 4807,
+          "cpuMs": 17980,
+          "loadedClasses": 17390
+        },
+        {
+          "cycle": 0,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 144,
+          "uptimeMs": 4952,
+          "cpuMs": 18280,
+          "loadedClasses": 17461
+        },
+        {
+          "cycle": 0,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 196,
+          "uptimeMs": 5149,
+          "cpuMs": 18760,
+          "loadedClasses": 18077
+        },
+        {
+          "cycle": 0,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 137,
+          "uptimeMs": 5286,
+          "cpuMs": 19030,
+          "loadedClasses": 18190
+        },
+        {
+          "cycle": 0,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 126,
+          "uptimeMs": 5413,
+          "cpuMs": 19300,
+          "loadedClasses": 18229
+        },
+        {
+          "cycle": 0,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 249,
+          "uptimeMs": 5662,
+          "cpuMs": 19840,
+          "loadedClasses": 18797
+        },
+        {
+          "cycle": 0,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 236,
+          "uptimeMs": 5899,
+          "cpuMs": 20300,
+          "loadedClasses": 19517
+        },
+        {
+          "cycle": 0,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 120,
+          "uptimeMs": 6019,
+          "cpuMs": 20640,
+          "loadedClasses": 19539
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 111,
+          "uptimeMs": 6131,
+          "cpuMs": 20910,
+          "loadedClasses": 19543
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 119,
+          "uptimeMs": 6251,
+          "cpuMs": 21190,
+          "loadedClasses": 19553
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 117,
+          "uptimeMs": 6368,
+          "cpuMs": 21430,
+          "loadedClasses": 19570
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 139,
+          "uptimeMs": 6508,
+          "cpuMs": 21770,
+          "loadedClasses": 19570
+        },
+        {
+          "cycle": 1,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 114,
+          "uptimeMs": 6623,
+          "cpuMs": 22040,
+          "loadedClasses": 19570
+        },
+        {
+          "cycle": 1,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 119,
+          "uptimeMs": 6742,
+          "cpuMs": 22370,
+          "loadedClasses": 19571
+        },
+        {
+          "cycle": 1,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 137,
+          "uptimeMs": 6880,
+          "cpuMs": 22790,
+          "loadedClasses": 19571
+        },
+        {
+          "cycle": 1,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 122,
+          "uptimeMs": 7002,
+          "cpuMs": 23080,
+          "loadedClasses": 19572
+        },
+        {
+          "cycle": 1,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 121,
+          "uptimeMs": 7123,
+          "cpuMs": 23470,
+          "loadedClasses": 19572
+        },
+        {
+          "cycle": 1,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 119,
+          "uptimeMs": 7243,
+          "cpuMs": 23870,
+          "loadedClasses": 19572
+        },
+        {
+          "cycle": 1,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 155,
+          "uptimeMs": 7399,
+          "cpuMs": 24270,
+          "loadedClasses": 19586
+        },
+        {
+          "cycle": 1,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 123,
+          "uptimeMs": 7523,
+          "cpuMs": 24530,
+          "loadedClasses": 19586
+        },
+        {
+          "cycle": 1,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 118,
+          "uptimeMs": 7641,
+          "cpuMs": 24890,
+          "loadedClasses": 19588
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 113,
+          "uptimeMs": 7755,
+          "cpuMs": 25250,
+          "loadedClasses": 19590
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 118,
+          "uptimeMs": 7873,
+          "cpuMs": 25480,
+          "loadedClasses": 19603
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 121,
+          "uptimeMs": 7995,
+          "cpuMs": 25740,
+          "loadedClasses": 19606
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 134,
+          "uptimeMs": 8129,
+          "cpuMs": 26080,
+          "loadedClasses": 19616
+        },
+        {
+          "cycle": 2,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 107,
+          "uptimeMs": 8237,
+          "cpuMs": 26310,
+          "loadedClasses": 19616
+        },
+        {
+          "cycle": 2,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 117,
+          "uptimeMs": 8355,
+          "cpuMs": 26560,
+          "loadedClasses": 19616
+        },
+        {
+          "cycle": 2,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 131,
+          "uptimeMs": 8486,
+          "cpuMs": 26840,
+          "loadedClasses": 19616
+        },
+        {
+          "cycle": 2,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 117,
+          "uptimeMs": 8604,
+          "cpuMs": 27150,
+          "loadedClasses": 19617
+        },
+        {
+          "cycle": 2,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 112,
+          "uptimeMs": 8716,
+          "cpuMs": 27390,
+          "loadedClasses": 19617
+        },
+        {
+          "cycle": 2,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 112,
+          "uptimeMs": 8829,
+          "cpuMs": 27630,
+          "loadedClasses": 19617
+        },
+        {
+          "cycle": 2,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 144,
+          "uptimeMs": 8974,
+          "cpuMs": 28010,
+          "loadedClasses": 19627
+        },
+        {
+          "cycle": 2,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 121,
+          "uptimeMs": 9095,
+          "cpuMs": 28300,
+          "loadedClasses": 19633
+        },
+        {
+          "cycle": 2,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 111,
+          "uptimeMs": 9207,
+          "cpuMs": 28610,
+          "loadedClasses": 19633
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "mode": "activity",
+      "measurements": [
+        {
+          "readyMs": 2170,
+          "cpuMs": 8360,
+          "loadedClasses": 8946
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1486,
+          "uptimeMs": 3659,
+          "cpuMs": 14590,
+          "loadedClasses": 15534
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 128,
+          "uptimeMs": 3789,
+          "cpuMs": 14990,
+          "loadedClasses": 15978
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 111,
+          "uptimeMs": 3901,
+          "cpuMs": 15370,
+          "loadedClasses": 16440
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 144,
+          "uptimeMs": 4045,
+          "cpuMs": 15910,
+          "loadedClasses": 16699
+        },
+        {
+          "cycle": 0,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 49,
+          "uptimeMs": 4095,
+          "cpuMs": 16060,
+          "loadedClasses": 16729
+        },
+        {
+          "cycle": 0,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 54,
+          "uptimeMs": 4150,
+          "cpuMs": 16210,
+          "loadedClasses": 16831
+        },
+        {
+          "cycle": 0,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 50,
+          "uptimeMs": 4200,
+          "cpuMs": 16340,
+          "loadedClasses": 16897
+        },
+        {
+          "cycle": 0,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 125,
+          "uptimeMs": 4326,
+          "cpuMs": 16610,
+          "loadedClasses": 17536
+        },
+        {
+          "cycle": 0,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 63,
+          "uptimeMs": 4390,
+          "cpuMs": 16760,
+          "loadedClasses": 17654
+        },
+        {
+          "cycle": 0,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 57,
+          "uptimeMs": 4448,
+          "cpuMs": 16930,
+          "loadedClasses": 17679
+        },
+        {
+          "cycle": 0,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 187,
+          "uptimeMs": 4635,
+          "cpuMs": 17290,
+          "loadedClasses": 18217
+        },
+        {
+          "cycle": 0,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 170,
+          "uptimeMs": 4806,
+          "cpuMs": 17720,
+          "loadedClasses": 18932
+        },
+        {
+          "cycle": 0,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 38,
+          "uptimeMs": 4845,
+          "cpuMs": 17870,
+          "loadedClasses": 18960
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 33,
+          "uptimeMs": 4878,
+          "cpuMs": 17970,
+          "loadedClasses": 18966
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 38,
+          "uptimeMs": 4917,
+          "cpuMs": 18120,
+          "loadedClasses": 18970
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 41,
+          "uptimeMs": 4958,
+          "cpuMs": 18280,
+          "loadedClasses": 18989
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 64,
+          "uptimeMs": 5023,
+          "cpuMs": 18450,
+          "loadedClasses": 18990
+        },
+        {
+          "cycle": 1,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 33,
+          "uptimeMs": 5056,
+          "cpuMs": 18570,
+          "loadedClasses": 18990
+        },
+        {
+          "cycle": 1,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 36,
+          "uptimeMs": 5093,
+          "cpuMs": 18730,
+          "loadedClasses": 18991
+        },
+        {
+          "cycle": 1,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 38,
+          "uptimeMs": 5132,
+          "cpuMs": 18860,
+          "loadedClasses": 18991
+        },
+        {
+          "cycle": 1,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 37,
+          "uptimeMs": 5169,
+          "cpuMs": 18990,
+          "loadedClasses": 18991
+        },
+        {
+          "cycle": 1,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 37,
+          "uptimeMs": 5207,
+          "cpuMs": 19160,
+          "loadedClasses": 18991
+        },
+        {
+          "cycle": 1,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 37,
+          "uptimeMs": 5244,
+          "cpuMs": 19310,
+          "loadedClasses": 18991
+        },
+        {
+          "cycle": 1,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 79,
+          "uptimeMs": 5324,
+          "cpuMs": 19620,
+          "loadedClasses": 19010
+        },
+        {
+          "cycle": 1,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 62,
+          "uptimeMs": 5386,
+          "cpuMs": 19970,
+          "loadedClasses": 19014
+        },
+        {
+          "cycle": 1,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 34,
+          "uptimeMs": 5421,
+          "cpuMs": 20060,
+          "loadedClasses": 19023
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 28,
+          "uptimeMs": 5449,
+          "cpuMs": 20120,
+          "loadedClasses": 19023
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 36,
+          "uptimeMs": 5486,
+          "cpuMs": 20230,
+          "loadedClasses": 19030
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 33,
+          "uptimeMs": 5519,
+          "cpuMs": 20340,
+          "loadedClasses": 19036
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 58,
+          "uptimeMs": 5578,
+          "cpuMs": 20470,
+          "loadedClasses": 19049
+        },
+        {
+          "cycle": 2,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 28,
+          "uptimeMs": 5607,
+          "cpuMs": 20550,
+          "loadedClasses": 19049
+        },
+        {
+          "cycle": 2,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 28,
+          "uptimeMs": 5636,
+          "cpuMs": 20630,
+          "loadedClasses": 19049
+        },
+        {
+          "cycle": 2,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 31,
+          "uptimeMs": 5668,
+          "cpuMs": 20720,
+          "loadedClasses": 19050
+        },
+        {
+          "cycle": 2,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 31,
+          "uptimeMs": 5699,
+          "cpuMs": 20780,
+          "loadedClasses": 19050
+        },
+        {
+          "cycle": 2,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 28,
+          "uptimeMs": 5728,
+          "cpuMs": 20840,
+          "loadedClasses": 19050
+        },
+        {
+          "cycle": 2,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 30,
+          "uptimeMs": 5758,
+          "cpuMs": 20900,
+          "loadedClasses": 19050
+        },
+        {
+          "cycle": 2,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 71,
+          "uptimeMs": 5829,
+          "cpuMs": 21220,
+          "loadedClasses": 19056
+        },
+        {
+          "cycle": 2,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 45,
+          "uptimeMs": 5875,
+          "cpuMs": 21370,
+          "loadedClasses": 19059
+        },
+        {
+          "cycle": 2,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 30,
+          "uptimeMs": 5905,
+          "cpuMs": 21440,
+          "loadedClasses": 19059
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "mode": "window",
+      "measurements": [
+        {
+          "readyMs": 2175,
+          "cpuMs": 8600,
+          "loadedClasses": 8943
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1347,
+          "uptimeMs": 3526,
+          "cpuMs": 14040,
+          "loadedClasses": 15142
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 118,
+          "uptimeMs": 3646,
+          "cpuMs": 14280,
+          "loadedClasses": 15576
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 102,
+          "uptimeMs": 3748,
+          "cpuMs": 14590,
+          "loadedClasses": 16045
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 105,
+          "uptimeMs": 3854,
+          "cpuMs": 14890,
+          "loadedClasses": 16299
+        },
+        {
+          "cycle": 0,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 41,
+          "uptimeMs": 3896,
+          "cpuMs": 15040,
+          "loadedClasses": 16325
+        },
+        {
+          "cycle": 0,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 46,
+          "uptimeMs": 3942,
+          "cpuMs": 15160,
+          "loadedClasses": 16423
+        },
+        {
+          "cycle": 0,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 44,
+          "uptimeMs": 3987,
+          "cpuMs": 15280,
+          "loadedClasses": 16491
+        },
+        {
+          "cycle": 0,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 128,
+          "uptimeMs": 4115,
+          "cpuMs": 15760,
+          "loadedClasses": 17140
+        },
+        {
+          "cycle": 0,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 57,
+          "uptimeMs": 4172,
+          "cpuMs": 15930,
+          "loadedClasses": 17254
+        },
+        {
+          "cycle": 0,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 42,
+          "uptimeMs": 4215,
+          "cpuMs": 16050,
+          "loadedClasses": 17279
+        },
+        {
+          "cycle": 0,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 159,
+          "uptimeMs": 4374,
+          "cpuMs": 16390,
+          "loadedClasses": 17804
+        },
+        {
+          "cycle": 0,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 149,
+          "uptimeMs": 4524,
+          "cpuMs": 16640,
+          "loadedClasses": 18471
+        },
+        {
+          "cycle": 0,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 31,
+          "uptimeMs": 4555,
+          "cpuMs": 16720,
+          "loadedClasses": 18500
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 28,
+          "uptimeMs": 4583,
+          "cpuMs": 16780,
+          "loadedClasses": 18507
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 32,
+          "uptimeMs": 4615,
+          "cpuMs": 16860,
+          "loadedClasses": 18521
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 31,
+          "uptimeMs": 4647,
+          "cpuMs": 16980,
+          "loadedClasses": 18533
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 48,
+          "uptimeMs": 4696,
+          "cpuMs": 17170,
+          "loadedClasses": 18533
+        },
+        {
+          "cycle": 1,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 30,
+          "uptimeMs": 4726,
+          "cpuMs": 17270,
+          "loadedClasses": 18533
+        },
+        {
+          "cycle": 1,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 28,
+          "uptimeMs": 4755,
+          "cpuMs": 17370,
+          "loadedClasses": 18534
+        },
+        {
+          "cycle": 1,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 34,
+          "uptimeMs": 4789,
+          "cpuMs": 17540,
+          "loadedClasses": 18537
+        },
+        {
+          "cycle": 1,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 32,
+          "uptimeMs": 4822,
+          "cpuMs": 17670,
+          "loadedClasses": 18538
+        },
+        {
+          "cycle": 1,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 26,
+          "uptimeMs": 4848,
+          "cpuMs": 17750,
+          "loadedClasses": 18538
+        },
+        {
+          "cycle": 1,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 28,
+          "uptimeMs": 4877,
+          "cpuMs": 17870,
+          "loadedClasses": 18538
+        },
+        {
+          "cycle": 1,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 56,
+          "uptimeMs": 4934,
+          "cpuMs": 18070,
+          "loadedClasses": 18541
+        },
+        {
+          "cycle": 1,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 38,
+          "uptimeMs": 4973,
+          "cpuMs": 18230,
+          "loadedClasses": 18541
+        },
+        {
+          "cycle": 1,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 32,
+          "uptimeMs": 5005,
+          "cpuMs": 18340,
+          "loadedClasses": 18544
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 24,
+          "uptimeMs": 5029,
+          "cpuMs": 18420,
+          "loadedClasses": 18545
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 28,
+          "uptimeMs": 5058,
+          "cpuMs": 18550,
+          "loadedClasses": 18555
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 26,
+          "uptimeMs": 5084,
+          "cpuMs": 18620,
+          "loadedClasses": 18558
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 40,
+          "uptimeMs": 5125,
+          "cpuMs": 18740,
+          "loadedClasses": 18566
+        },
+        {
+          "cycle": 2,
+          "fixture": "OpaqueImageSquare",
+          "renderMs": 23,
+          "uptimeMs": 5148,
+          "cpuMs": 18810,
+          "loadedClasses": 18566
+        },
+        {
+          "cycle": 2,
+          "fixture": "GradientBackgroundCard",
+          "renderMs": 25,
+          "uptimeMs": 5173,
+          "cpuMs": 18870,
+          "loadedClasses": 18566
+        },
+        {
+          "cycle": 2,
+          "fixture": "RadialGradientBackgroundCard",
+          "renderMs": 27,
+          "uptimeMs": 5201,
+          "cpuMs": 18940,
+          "loadedClasses": 18566
+        },
+        {
+          "cycle": 2,
+          "fixture": "EmojiAndAnnotatedText",
+          "renderMs": 32,
+          "uptimeMs": 5233,
+          "cpuMs": 19070,
+          "loadedClasses": 18566
+        },
+        {
+          "cycle": 2,
+          "fixture": "GraphicsLayerAndWideVector",
+          "renderMs": 29,
+          "uptimeMs": 5263,
+          "cpuMs": 19200,
+          "loadedClasses": 18567
+        },
+        {
+          "cycle": 2,
+          "fixture": "IconButtonRowInputBar",
+          "renderMs": 26,
+          "uptimeMs": 5289,
+          "cpuMs": 19250,
+          "loadedClasses": 18567
+        },
+        {
+          "cycle": 2,
+          "fixture": "LazyColumnListPreview",
+          "renderMs": 56,
+          "uptimeMs": 5345,
+          "cpuMs": 19470,
+          "loadedClasses": 18591
+        },
+        {
+          "cycle": 2,
+          "fixture": "EditableTextFieldSquare",
+          "renderMs": 33,
+          "uptimeMs": 5379,
+          "cpuMs": 19560,
+          "loadedClasses": 18591
+        },
+        {
+          "cycle": 2,
+          "fixture": "GenericOutlineShapeSquare",
+          "renderMs": 23,
+          "uptimeMs": 5402,
+          "cpuMs": 19620,
+          "loadedClasses": 18591
+        }
+      ]
+    }
+  ]
+}
