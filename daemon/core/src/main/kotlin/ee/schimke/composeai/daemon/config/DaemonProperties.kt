@@ -44,6 +44,25 @@ public sealed class DaemonProperty<T>(
   /** Parses a raw property value; `null` (unset) and unparseable input both yield the default. */
   public abstract fun parse(raw: String?): T
 
+  /**
+   * The inverse of [parse]: a value as the string a launcher puts after `-D<name>=`.
+   *
+   * This exists so the *producer* side of the namespace gets the guarantee the consumer side
+   * already had. Without it a caller building a launch descriptor hand-writes both the name and the
+   * encoding — which is how `userClassDirs` came to be joined with `File.pathSeparator` by three
+   * separate hands in three repositories, each correct only by inspection.
+   *
+   * `parse(render(v)) == v` holds for every value the daemon would itself produce, and
+   * `DaemonPropertyRoundTripTest` pins it across [DaemonProperties.ALL]. It does **not** hold for a
+   * value the parser deliberately corrects — an [IntProperty] floored at its minimum parses `0`
+   * back as that minimum — because the clamp is the parser doing its job, not the two directions
+   * disagreeing.
+   *
+   * Rendering a null [StringProperty] / [PathProperty] yields the empty string, which is not the
+   * same as leaving the property out. A caller that means "unset" omits the entry.
+   */
+  public abstract fun render(value: T): String
+
   /** Reads and parses this property. [lookup] is a seam for tests. */
   public fun read(lookup: (String) -> String? = System::getProperty): T = parse(lookup(name))
 
@@ -64,6 +83,8 @@ public class StringProperty(
   override val typeLabel: String = "String"
 
   override fun parse(raw: String?): String? = raw?.takeIf { it.isNotBlank() } ?: defaultValue
+
+  override fun render(value: String?): String = value ?: ""
 }
 
 /** An absolute filesystem path carried as a string. Same parsing as [StringProperty]. */
@@ -72,6 +93,8 @@ public class PathProperty(name: String, doc: String, group: String) :
   override val typeLabel: String = "path"
 
   override fun parse(raw: String?): String? = raw?.takeIf { it.isNotBlank() }
+
+  override fun render(value: String?): String = value ?: ""
 }
 
 /**
@@ -86,6 +109,8 @@ public class PathListProperty(name: String, doc: String, group: String) :
 
   override fun parse(raw: String?): List<String> =
     raw?.split(File.pathSeparator)?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+
+  override fun render(value: List<String>): String = value.joinToString(File.pathSeparator)
 }
 
 /** A comma/semicolon-separated list. Empty when unset. */
@@ -97,6 +122,8 @@ public class CsvListProperty(name: String, doc: String, group: String) :
 
   override fun parse(raw: String?): List<String> =
     raw?.split(',', ';')?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+
+  override fun render(value: List<String>): String = value.joinToString(",")
 }
 
 /**
@@ -114,6 +141,8 @@ public class BooleanProperty(name: String, default: Boolean, doc: String, group:
       raw.trim().equals("false", ignoreCase = true) -> false
       else -> defaultValue
     }
+
+  override fun render(value: Boolean): String = value.toString()
 }
 
 /** An integer knob, optionally floored at [min] the way the reading site already coerced it. */
@@ -130,6 +159,8 @@ public class IntProperty(
     val parsed = raw?.trim()?.toIntOrNull() ?: defaultValue
     return min?.let { parsed.coerceAtLeast(it) } ?: parsed
   }
+
+  override fun render(value: Int): String = value.toString()
 }
 
 /** A millisecond / byte-count knob, optionally floored at [min]. */
@@ -146,6 +177,8 @@ public class LongProperty(
     val parsed = raw?.trim()?.toLongOrNull() ?: defaultValue
     return min?.let { parsed.coerceAtLeast(it) } ?: parsed
   }
+
+  override fun render(value: Long): String = value.toString()
 }
 
 /**

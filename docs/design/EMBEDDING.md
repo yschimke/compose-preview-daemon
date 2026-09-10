@@ -3,7 +3,7 @@
 **Status: decided; being built.** It exists to settle one question — *what does this repository own
 when somebody wants to run a daemon, and what does the caller own?* The three questions it opened
 with are answered under "The decisions" below, and the status table there says which pieces exist.
-Piece 3 (`DaemonSession`) has landed; the rest have not.
+Pieces 3 (`DaemonSession`) and 2 (`DaemonLaunchOptions`) have landed; pieces 1 and 4 have not.
 
 The framing assumption, given: **this daemon should be generally reusable outside
 compose-ai-tools and compose-preview-server.** That raises the bar. An API that only has to satisfy
@@ -310,6 +310,6 @@ settle.
 | piece | state |
 | --- | --- |
 | 3. `DaemonSession` interface | **landed** |
-| 2. `DaemonLaunchOptions` | not started |
+| 2. `DaemonLaunchOptions` | **landed** — with `DaemonProperty.render`, the inverse of `parse` |
 | 1. `DaemonLaunchPlan` | not started |
 | 4. `ManagedDaemon` | not started |

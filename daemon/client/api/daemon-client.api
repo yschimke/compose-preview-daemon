@@ -31,6 +31,31 @@ public abstract interface class ee/schimke/composeai/daemon/client/DaemonClientF
 	public abstract fun spawn (Lee/schimke/composeai/daemon/client/WorkspaceId;Lee/schimke/composeai/daemon/protocol/DaemonLaunchDescriptor;)Lee/schimke/composeai/daemon/client/DaemonSpawn;
 }
 
+public final class ee/schimke/composeai/daemon/client/DaemonLaunchOptions {
+	public fun <init> ()V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Lkotlin/time/Duration;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Lkotlin/time/Duration;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getBackgroundSandboxBoot ()Ljava/lang/Boolean;
+	public final fun getBundleManifestPath ()Ljava/lang/String;
+	public final fun getCheapSignalFiles ()Ljava/util/List;
+	public final fun getExtra ()Ljava/util/Map;
+	public final fun getHistoryDir ()Ljava/lang/String;
+	public final fun getIdleTimeout-FghU774 ()Lkotlin/time/Duration;
+	public final fun getIrDir ()Ljava/lang/String;
+	public final fun getMaxHeapMb ()Ljava/lang/Integer;
+	public final fun getMaxRendersPerSandbox ()Ljava/lang/Integer;
+	public final fun getModulePath ()Ljava/lang/String;
+	public final fun getModuleProjectDir ()Ljava/lang/String;
+	public final fun getPerfettoTrace ()Ljava/lang/Boolean;
+	public final fun getPreviewsJsonPath ()Ljava/lang/String;
+	public final fun getSandboxCount ()Ljava/lang/Integer;
+	public final fun getUserClassDirs ()Ljava/util/List;
+	public final fun getWarmRenderOnBoot ()Ljava/lang/Boolean;
+	public final fun getWarmSpare ()Ljava/lang/Boolean;
+	public final fun getWorkspaceRoot ()Ljava/lang/String;
+	public final fun toSystemProperties ()Ljava/util/Map;
+}
+
 public abstract interface class ee/schimke/composeai/daemon/client/DaemonSession : java/io/Closeable {
 	public abstract fun dataFetch-9VgGkz4 (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;ZJ)Lee/schimke/composeai/daemon/protocol/DataFetchResult;
 	public static synthetic fun dataFetch-9VgGkz4$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;ZJILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/DataFetchResult;
