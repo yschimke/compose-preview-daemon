@@ -27,6 +27,13 @@ both for this reason.
 
 ## Where the time goes
 
+**New CPU attribution:** [BOOT-CPU-PROFILE.md](BOOT-CPU-PROFILE.md) profiles a current production
+worker with native/Java CPU sampling and tests compiler settings. The historical class-load windows
+below are a chronology, not exclusive CPU costs: elapsed spans cannot establish that class
+linkage consumed the whole window. On the newer measured host, compiler threads dominate process
+CPU, while invokedynamic linkage is about 15–18% of boot/render-thread samples.
+
+
 Measured, not estimated (compose-preview-server#626). The deployed preview
 server's shape — the released 2.4.0 `lib-daemon-android` sidecar, Temurin 21,
 `sandboxCount=3`, `backgroundSandboxBoot=true`, a warm `android-all` cache —
