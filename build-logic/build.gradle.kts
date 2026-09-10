@@ -16,7 +16,11 @@ dependencies {
   implementation(
     "com.ncorti.ktfmt.gradle:com.ncorti.ktfmt.gradle.gradle.plugin:${libs.versions.ktfmt.get()}"
   )
+  testImplementation(gradleTestKit())
+  testImplementation(kotlin("test-junit5"))
 }
+
+tasks.test { useJUnitPlatform() }
 
 gradlePlugin {
   plugins {

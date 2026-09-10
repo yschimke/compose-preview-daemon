@@ -73,6 +73,15 @@ Dependency version bumps must include regenerated published-classpath locks:
 `./gradlew resolveAndLockAll --write-locks --no-configuration-cache`. Commit the affected
 `gradle.lockfile` files with the version change; stale strict locks break compilation and packaging.
 
+### Dependency ownership is enforced on production runtimes
+
+`checkDependencyOwnership` resolves JVM, KMP/JVM, and every Android production-variant runtime
+classpath, including transitives. Project components in this build and the exact lower-layer
+`compose-preview-contracts` coordinates are allowed; every other external
+`ee.schimke.composeai:*` module is tools/server-owned and forbidden. `checkHttpServerFloor` also
+rejects embedded HTTP engines. PR CI invokes both tasks explicitly; update the policy and its
+build-logic regression tests together.
+
 ### Re-check PR state immediately before every push
 
 `git fetch origin main` and confirm the branch head is not already in `origin/main`. If the PR has

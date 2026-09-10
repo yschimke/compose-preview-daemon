@@ -28,6 +28,21 @@ depends on a strictly lower layer and on nothing else. Two consequences decide w
   me pixels and data products" is a Kotlin call, not bytes on a wire, so it is a library this
   repository publishes and tools and server consume downward (`daemon-api`, in progress).
 
+### Enforced dependency ownership
+
+The shared `ee.schimke.composeai` Maven group is not an ownership boundary. The build therefore
+uses a positive ownership rule: resolved project components are daemon-owned, and the exact
+external coordinates in `DependencyOwnership.contractModules` are owned by the lower-layer
+`compose-preview-contracts` repository. Any other resolved external module in that group is an
+upward tools/server dependency and fails `checkDependencyOwnership`, including when it arrives
+transitively. `checkHttpServerFloor` separately rejects Ktor server, Jetty, and Undertow engines.
+
+Both checks cover what ships: `runtimeClasspath` for JVM, `jvmRuntimeClasspath` for KMP/JVM, and
+every non-test Android `*RuntimeClasspath` configuration, including custom build types. Test, lint,
+screenshot-test, and compiler/tool configurations are intentionally outside the production claim.
+PR CI invokes both tasks explicitly and runs build-logic fixtures proving that an internal project
+plus a contracts artifact passes while a transitive tools artifact fails.
+
 ## What moved, and why exactly this
 
 The seam was computed, not chosen: the transitive project-dependency closure of the two hosts, the
