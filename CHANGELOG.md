@@ -1,5 +1,35 @@
 # Changelog
 
+## [3.0.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.0.1...v3.0.2) (2026-09-10)
+
+
+### Bug Fixes
+
+* **deps:** update androidx ([#16](https://github.com/yschimke/compose-preview-daemon/issues/16)) ([1b6111f](https://github.com/yschimke/compose-preview-daemon/commit/1b6111f421850d93984592b849ba4c19c249b330))
+* **deps:** update androidx-compose ([#17](https://github.com/yschimke/compose-preview-daemon/issues/17)) ([a40b9a7](https://github.com/yschimke/compose-preview-daemon/commit/a40b9a714a029f19399eaddb8bcd604c06a583a8))
+* **deps:** update androidx-wear to v1.7.0-rc01 ([#18](https://github.com/yschimke/compose-preview-daemon/issues/18)) ([157b1e2](https://github.com/yschimke/compose-preview-daemon/commit/157b1e2548686b4b11cd322c704230b7a49830ca))
+* **deps:** update compose-ai-tools to v2.14.0 ([#21](https://github.com/yschimke/compose-preview-daemon/issues/21)) ([a05c130](https://github.com/yschimke/compose-preview-daemon/commit/a05c130e72c7429d588a3d32f2835fe302582eb9))
+* **deps:** update compose-preview-contracts to v2.14.0 ([#22](https://github.com/yschimke/compose-preview-daemon/issues/22)) ([149dc57](https://github.com/yschimke/compose-preview-daemon/commit/149dc573eb4c546a5722e2d5ea0882432aac21eb))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-serve to v3.22.0 ([#23](https://github.com/yschimke/compose-preview-daemon/issues/23)) ([0058038](https://github.com/yschimke/compose-preview-daemon/commit/0058038c33bca8ad7cdc47bf6c5a1a20104215cf))
+* **deps:** update kotlin to v2.4.20 ([#19](https://github.com/yschimke/compose-preview-daemon/issues/19)) ([0b7645d](https://github.com/yschimke/compose-preview-daemon/commit/0b7645d66f026fd8192a503f072853612ffa13e7))
+* **deps:** update metro to v1.4.3 ([#20](https://github.com/yschimke/compose-preview-daemon/issues/20)) ([f386066](https://github.com/yschimke/compose-preview-daemon/commit/f3860668e5e900d710d489d648bb6aa2a0bfca36))
+* **deps:** update rc-players to v1.60.1 ([#24](https://github.com/yschimke/compose-preview-daemon/issues/24)) ([d814536](https://github.com/yschimke/compose-preview-daemon/commit/d814536e460a54c89bfde51b878248a74658c4e9))
+
+
+### Performance
+
+* **daemon:** hand the encoded frame back from the desktop render ([#25](https://github.com/yschimke/compose-preview-daemon/issues/25)) ([4bbb34e](https://github.com/yschimke/compose-preview-daemon/commit/4bbb34e668bbf3ba4478c5ba4ac469861aa27999))
+
+
+### Refactoring
+
+* RenderResult carries a RenderArtifact instead of a pngPath string ([#13](https://github.com/yschimke/compose-preview-daemon/issues/13)) ([aae75ed](https://github.com/yschimke/compose-preview-daemon/commit/aae75ed034fdd077038f00ca433020af707b691e))
+
+
+### CI
+
+* retarget the Renovate config at this repository ([#15](https://github.com/yschimke/compose-preview-daemon/issues/15)) ([6fa111e](https://github.com/yschimke/compose-preview-daemon/commit/6fa111ebe907a49c032d71abb668fc171d74acd8))
+
 ## [3.0.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.0.0...v3.0.1) (2026-09-10)
 
 
