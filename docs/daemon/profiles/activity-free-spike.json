@@ -1,0 +1,1854 @@
+{
+  "date": "2026-09-10",
+  "java": "OpenJDK 17.0.19+10",
+  "sdk": 35,
+  "robolectric": "4.17-beta-4",
+  "roborazzi": "1.74.0",
+  "trials": 3,
+  "cycles": 3,
+  "pngCount": 108,
+  "defaultHierarchyCount": 108,
+  "fullHierarchyCount": 72,
+  "parity": "PNG bytes and default hierarchies match engine; full hierarchies match between activity/window",
+  "runs": [
+    {
+      "trial": 0,
+      "mode": "engine",
+      "measurements": [
+        {
+          "readyMs": 2183,
+          "cpuMs": 8410,
+          "loadedClasses": 8967
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1756,
+          "uptimeMs": 3942,
+          "cpuMs": 14820,
+          "loadedClasses": 16068
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 212,
+          "uptimeMs": 4156,
+          "cpuMs": 15360,
+          "loadedClasses": 16459
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 222,
+          "uptimeMs": 4379,
+          "cpuMs": 15870,
+          "loadedClasses": 16971
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 212,
+          "uptimeMs": 4591,
+          "cpuMs": 16350,
+          "loadedClasses": 17262
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 124,
+          "uptimeMs": 4716,
+          "cpuMs": 16620,
+          "loadedClasses": 17277
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 130,
+          "uptimeMs": 4847,
+          "cpuMs": 16920,
+          "loadedClasses": 17285
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 124,
+          "uptimeMs": 4971,
+          "cpuMs": 17200,
+          "loadedClasses": 17291
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 146,
+          "uptimeMs": 5118,
+          "cpuMs": 17550,
+          "loadedClasses": 17303
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 116,
+          "uptimeMs": 5235,
+          "cpuMs": 17860,
+          "loadedClasses": 17311
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 115,
+          "uptimeMs": 5350,
+          "cpuMs": 18140,
+          "loadedClasses": 17311
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 117,
+          "uptimeMs": 5468,
+          "cpuMs": 18400,
+          "loadedClasses": 17314
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 135,
+          "uptimeMs": 5603,
+          "cpuMs": 18730,
+          "loadedClasses": 17322
+        }
+      ]
+    },
+    {
+      "trial": 0,
+      "mode": "activity",
+      "measurements": [
+        {
+          "readyMs": 2151,
+          "cpuMs": 8650,
+          "loadedClasses": 8962
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1551,
+          "uptimeMs": 3705,
+          "cpuMs": 16540,
+          "loadedClasses": 15557
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 135,
+          "uptimeMs": 3842,
+          "cpuMs": 16980,
+          "loadedClasses": 16001
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 114,
+          "uptimeMs": 3956,
+          "cpuMs": 17360,
+          "loadedClasses": 16464
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 134,
+          "uptimeMs": 4091,
+          "cpuMs": 17800,
+          "loadedClasses": 16719
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 56,
+          "uptimeMs": 4147,
+          "cpuMs": 18160,
+          "loadedClasses": 16729
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 49,
+          "uptimeMs": 4197,
+          "cpuMs": 18350,
+          "loadedClasses": 16736
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 40,
+          "uptimeMs": 4238,
+          "cpuMs": 18450,
+          "loadedClasses": 16740
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 79,
+          "uptimeMs": 4317,
+          "cpuMs": 18670,
+          "loadedClasses": 16764
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 38,
+          "uptimeMs": 4356,
+          "cpuMs": 18760,
+          "loadedClasses": 16768
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 40,
+          "uptimeMs": 4396,
+          "cpuMs": 18870,
+          "loadedClasses": 16771
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 37,
+          "uptimeMs": 4434,
+          "cpuMs": 19000,
+          "loadedClasses": 16771
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 78,
+          "uptimeMs": 4512,
+          "cpuMs": 19280,
+          "loadedClasses": 16781
+        }
+      ],
+      "phaseMilliseconds": {
+        "0-RedSquare": {
+          "rule-created": 81,
+          "rule-enter": 852,
+          "attach": 265,
+          "drain-attach": 27,
+          "settle": 3,
+          "roots": 6,
+          "capture": 244,
+          "extract": 24,
+          "cleanup": 3,
+          "rule-exit": 41
+        },
+        "0-MaterialButtonInteractionState": {
+          "rule-created": 3,
+          "rule-enter": 20,
+          "attach": 70,
+          "drain-attach": 8,
+          "settle": 1,
+          "roots": 1,
+          "capture": 12,
+          "extract": 2,
+          "cleanup": 2,
+          "rule-exit": 12
+        },
+        "0-SerifTextPreview": {
+          "rule-created": 2,
+          "rule-enter": 18,
+          "attach": 9,
+          "drain-attach": 53,
+          "settle": 1,
+          "roots": 0,
+          "capture": 14,
+          "extract": 2,
+          "cleanup": 0,
+          "rule-exit": 10
+        },
+        "0-DialogWindowSurface": {
+          "rule-created": 2,
+          "rule-enter": 18,
+          "attach": 43,
+          "drain-attach": 17,
+          "settle": 6,
+          "roots": 1,
+          "capture": 10,
+          "extract": 2,
+          "cleanup": 3,
+          "rule-exit": 28
+        },
+        "1-RedSquare": {
+          "rule-created": 1,
+          "rule-enter": 17,
+          "attach": 9,
+          "drain-attach": 3,
+          "settle": 0,
+          "roots": 1,
+          "capture": 6,
+          "extract": 5,
+          "cleanup": 0,
+          "rule-exit": 9
+        },
+        "1-MaterialButtonInteractionState": {
+          "rule-created": 2,
+          "rule-enter": 18,
+          "attach": 4,
+          "drain-attach": 3,
+          "settle": 1,
+          "roots": 0,
+          "capture": 7,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 9
+        },
+        "1-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 15,
+          "attach": 3,
+          "drain-attach": 3,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 7
+        },
+        "1-DialogWindowSurface": {
+          "rule-created": 1,
+          "rule-enter": 14,
+          "attach": 14,
+          "drain-attach": 8,
+          "settle": 2,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 26
+        },
+        "2-RedSquare": {
+          "rule-created": 1,
+          "rule-enter": 13,
+          "attach": 3,
+          "drain-attach": 2,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 8
+        },
+        "2-MaterialButtonInteractionState": {
+          "rule-created": 1,
+          "rule-enter": 13,
+          "attach": 4,
+          "drain-attach": 3,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 7
+        },
+        "2-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 13,
+          "attach": 3,
+          "drain-attach": 2,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 7
+        },
+        "2-DialogWindowSurface": {
+          "rule-created": 1,
+          "rule-enter": 13,
+          "attach": 11,
+          "drain-attach": 8,
+          "settle": 2,
+          "roots": 0,
+          "capture": 7,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 29
+        }
+      }
+    },
+    {
+      "trial": 0,
+      "mode": "window",
+      "measurements": [
+        {
+          "readyMs": 2207,
+          "cpuMs": 8690,
+          "loadedClasses": 8967
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1459,
+          "uptimeMs": 3670,
+          "cpuMs": 14570,
+          "loadedClasses": 15149
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 127,
+          "uptimeMs": 3799,
+          "cpuMs": 14820,
+          "loadedClasses": 15583
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 107,
+          "uptimeMs": 3906,
+          "cpuMs": 15160,
+          "loadedClasses": 16051
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 105,
+          "uptimeMs": 4011,
+          "cpuMs": 15450,
+          "loadedClasses": 16306
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 35,
+          "uptimeMs": 4047,
+          "cpuMs": 15570,
+          "loadedClasses": 16310
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 38,
+          "uptimeMs": 4085,
+          "cpuMs": 15700,
+          "loadedClasses": 16312
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 34,
+          "uptimeMs": 4119,
+          "cpuMs": 15800,
+          "loadedClasses": 16316
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 53,
+          "uptimeMs": 4173,
+          "cpuMs": 15940,
+          "loadedClasses": 16325
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 32,
+          "uptimeMs": 4206,
+          "cpuMs": 16050,
+          "loadedClasses": 16330
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 33,
+          "uptimeMs": 4239,
+          "cpuMs": 16140,
+          "loadedClasses": 16333
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 29,
+          "uptimeMs": 4268,
+          "cpuMs": 16200,
+          "loadedClasses": 16336
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 50,
+          "uptimeMs": 4319,
+          "cpuMs": 16340,
+          "loadedClasses": 16351
+        }
+      ],
+      "phaseMilliseconds": {
+        "0-RedSquare": {
+          "rule-created": 75,
+          "rule-enter": 116,
+          "attach": 611,
+          "drain-attach": 333,
+          "settle": 3,
+          "roots": 5,
+          "capture": 256,
+          "extract": 24,
+          "cleanup": 22,
+          "rule-exit": 10
+        },
+        "0-MaterialButtonInteractionState": {
+          "rule-created": 2,
+          "rule-enter": 1,
+          "attach": 12,
+          "drain-attach": 77,
+          "settle": 1,
+          "roots": 1,
+          "capture": 19,
+          "extract": 2,
+          "cleanup": 4,
+          "rule-exit": 3
+        },
+        "0-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 17,
+          "drain-attach": 63,
+          "settle": 1,
+          "roots": 1,
+          "capture": 13,
+          "extract": 2,
+          "cleanup": 3,
+          "rule-exit": 2
+        },
+        "0-DialogWindowSurface": {
+          "rule-created": 2,
+          "rule-enter": 0,
+          "attach": 9,
+          "drain-attach": 64,
+          "settle": 6,
+          "roots": 2,
+          "capture": 10,
+          "extract": 1,
+          "cleanup": 5,
+          "rule-exit": 2
+        },
+        "1-RedSquare": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 9,
+          "drain-attach": 8,
+          "settle": 1,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 1
+        },
+        "1-MaterialButtonInteractionState": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 8,
+          "drain-attach": 11,
+          "settle": 1,
+          "roots": 0,
+          "capture": 6,
+          "extract": 2,
+          "cleanup": 2,
+          "rule-exit": 2
+        },
+        "1-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 8,
+          "drain-attach": 9,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 1
+        },
+        "1-DialogWindowSurface": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 9,
+          "drain-attach": 24,
+          "settle": 3,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 4,
+          "rule-exit": 1
+        },
+        "2-RedSquare": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 7,
+          "drain-attach": 7,
+          "settle": 0,
+          "roots": 0,
+          "capture": 7,
+          "extract": 2,
+          "cleanup": 2,
+          "rule-exit": 1
+        },
+        "2-MaterialButtonInteractionState": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 7,
+          "drain-attach": 8,
+          "settle": 0,
+          "roots": 0,
+          "capture": 7,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 2
+        },
+        "2-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 6,
+          "drain-attach": 8,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 1
+        },
+        "2-DialogWindowSurface": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 8,
+          "drain-attach": 23,
+          "settle": 2,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 4,
+          "rule-exit": 1
+        }
+      }
+    },
+    {
+      "trial": 1,
+      "mode": "engine",
+      "measurements": [
+        {
+          "readyMs": 2176,
+          "cpuMs": 8640,
+          "loadedClasses": 8967
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1706,
+          "uptimeMs": 3886,
+          "cpuMs": 15230,
+          "loadedClasses": 16068
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 200,
+          "uptimeMs": 4088,
+          "cpuMs": 15750,
+          "loadedClasses": 16459
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 201,
+          "uptimeMs": 4289,
+          "cpuMs": 16230,
+          "loadedClasses": 16971
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 205,
+          "uptimeMs": 4494,
+          "cpuMs": 16710,
+          "loadedClasses": 17262
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 119,
+          "uptimeMs": 4614,
+          "cpuMs": 16970,
+          "loadedClasses": 17277
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 121,
+          "uptimeMs": 4736,
+          "cpuMs": 17240,
+          "loadedClasses": 17285
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 118,
+          "uptimeMs": 4854,
+          "cpuMs": 17510,
+          "loadedClasses": 17291
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 141,
+          "uptimeMs": 4996,
+          "cpuMs": 17850,
+          "loadedClasses": 17303
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 119,
+          "uptimeMs": 5116,
+          "cpuMs": 18180,
+          "loadedClasses": 17311
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 117,
+          "uptimeMs": 5234,
+          "cpuMs": 18480,
+          "loadedClasses": 17311
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 115,
+          "uptimeMs": 5349,
+          "cpuMs": 18740,
+          "loadedClasses": 17314
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 136,
+          "uptimeMs": 5486,
+          "cpuMs": 19050,
+          "loadedClasses": 17322
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "mode": "activity",
+      "measurements": [
+        {
+          "readyMs": 2193,
+          "cpuMs": 8770,
+          "loadedClasses": 8967
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1494,
+          "uptimeMs": 3691,
+          "cpuMs": 15130,
+          "loadedClasses": 15561
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 138,
+          "uptimeMs": 3831,
+          "cpuMs": 15580,
+          "loadedClasses": 16007
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 109,
+          "uptimeMs": 3941,
+          "cpuMs": 15930,
+          "loadedClasses": 16471
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 145,
+          "uptimeMs": 4086,
+          "cpuMs": 16490,
+          "loadedClasses": 16729
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 43,
+          "uptimeMs": 4130,
+          "cpuMs": 16650,
+          "loadedClasses": 16736
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 46,
+          "uptimeMs": 4177,
+          "cpuMs": 16780,
+          "loadedClasses": 16742
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 41,
+          "uptimeMs": 4219,
+          "cpuMs": 16900,
+          "loadedClasses": 16746
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 80,
+          "uptimeMs": 4300,
+          "cpuMs": 17120,
+          "loadedClasses": 16770
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 44,
+          "uptimeMs": 4344,
+          "cpuMs": 17250,
+          "loadedClasses": 16774
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 42,
+          "uptimeMs": 4387,
+          "cpuMs": 17390,
+          "loadedClasses": 16777
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 36,
+          "uptimeMs": 4424,
+          "cpuMs": 17540,
+          "loadedClasses": 16777
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 71,
+          "uptimeMs": 4495,
+          "cpuMs": 17770,
+          "loadedClasses": 16787
+        }
+      ],
+      "phaseMilliseconds": {
+        "0-RedSquare": {
+          "rule-created": 83,
+          "rule-enter": 820,
+          "attach": 236,
+          "drain-attach": 27,
+          "settle": 3,
+          "roots": 5,
+          "capture": 249,
+          "extract": 23,
+          "cleanup": 2,
+          "rule-exit": 42
+        },
+        "0-MaterialButtonInteractionState": {
+          "rule-created": 3,
+          "rule-enter": 24,
+          "attach": 67,
+          "drain-attach": 9,
+          "settle": 1,
+          "roots": 1,
+          "capture": 12,
+          "extract": 2,
+          "cleanup": 2,
+          "rule-exit": 13
+        },
+        "0-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 18,
+          "attach": 9,
+          "drain-attach": 51,
+          "settle": 1,
+          "roots": 0,
+          "capture": 13,
+          "extract": 2,
+          "cleanup": 0,
+          "rule-exit": 10
+        },
+        "0-DialogWindowSurface": {
+          "rule-created": 2,
+          "rule-enter": 16,
+          "attach": 53,
+          "drain-attach": 19,
+          "settle": 6,
+          "roots": 1,
+          "capture": 11,
+          "extract": 2,
+          "cleanup": 3,
+          "rule-exit": 28
+        },
+        "1-RedSquare": {
+          "rule-created": 2,
+          "rule-enter": 15,
+          "attach": 4,
+          "drain-attach": 2,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 8
+        },
+        "1-MaterialButtonInteractionState": {
+          "rule-created": 1,
+          "rule-enter": 15,
+          "attach": 5,
+          "drain-attach": 2,
+          "settle": 1,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 9
+        },
+        "1-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 15,
+          "attach": 4,
+          "drain-attach": 3,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 7
+        },
+        "1-DialogWindowSurface": {
+          "rule-created": 1,
+          "rule-enter": 15,
+          "attach": 15,
+          "drain-attach": 8,
+          "settle": 2,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 25
+        },
+        "2-RedSquare": {
+          "rule-created": 1,
+          "rule-enter": 14,
+          "attach": 3,
+          "drain-attach": 2,
+          "settle": 0,
+          "roots": 0,
+          "capture": 11,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 8
+        },
+        "2-MaterialButtonInteractionState": {
+          "rule-created": 1,
+          "rule-enter": 15,
+          "attach": 4,
+          "drain-attach": 3,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 8
+        },
+        "2-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 12,
+          "attach": 3,
+          "drain-attach": 3,
+          "settle": 0,
+          "roots": 0,
+          "capture": 5,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 7
+        },
+        "2-DialogWindowSurface": {
+          "rule-created": 1,
+          "rule-enter": 13,
+          "attach": 11,
+          "drain-attach": 7,
+          "settle": 3,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 22
+        }
+      }
+    },
+    {
+      "trial": 1,
+      "mode": "window",
+      "measurements": [
+        {
+          "readyMs": 2153,
+          "cpuMs": 8610,
+          "loadedClasses": 8962
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1336,
+          "uptimeMs": 3493,
+          "cpuMs": 14290,
+          "loadedClasses": 15143
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 116,
+          "uptimeMs": 3612,
+          "cpuMs": 14510,
+          "loadedClasses": 15575
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 99,
+          "uptimeMs": 3711,
+          "cpuMs": 14790,
+          "loadedClasses": 16042
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 106,
+          "uptimeMs": 3817,
+          "cpuMs": 15110,
+          "loadedClasses": 16298
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 34,
+          "uptimeMs": 3852,
+          "cpuMs": 15210,
+          "loadedClasses": 16302
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 46,
+          "uptimeMs": 3898,
+          "cpuMs": 15490,
+          "loadedClasses": 16308
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 34,
+          "uptimeMs": 3932,
+          "cpuMs": 15590,
+          "loadedClasses": 16312
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 53,
+          "uptimeMs": 3986,
+          "cpuMs": 15740,
+          "loadedClasses": 16321
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 32,
+          "uptimeMs": 4018,
+          "cpuMs": 15850,
+          "loadedClasses": 16326
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 34,
+          "uptimeMs": 4052,
+          "cpuMs": 15950,
+          "loadedClasses": 16329
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 29,
+          "uptimeMs": 4082,
+          "cpuMs": 16020,
+          "loadedClasses": 16332
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 49,
+          "uptimeMs": 4131,
+          "cpuMs": 16150,
+          "loadedClasses": 16347
+        }
+      ],
+      "phaseMilliseconds": {
+        "0-RedSquare": {
+          "rule-created": 73,
+          "rule-enter": 115,
+          "attach": 527,
+          "drain-attach": 309,
+          "settle": 2,
+          "roots": 5,
+          "capture": 249,
+          "extract": 22,
+          "cleanup": 21,
+          "rule-exit": 9
+        },
+        "0-MaterialButtonInteractionState": {
+          "rule-created": 2,
+          "rule-enter": 1,
+          "attach": 11,
+          "drain-attach": 77,
+          "settle": 1,
+          "roots": 1,
+          "capture": 12,
+          "extract": 2,
+          "cleanup": 4,
+          "rule-exit": 3
+        },
+        "0-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 1,
+          "attach": 12,
+          "drain-attach": 60,
+          "settle": 1,
+          "roots": 0,
+          "capture": 13,
+          "extract": 2,
+          "cleanup": 2,
+          "rule-exit": 2
+        },
+        "0-DialogWindowSurface": {
+          "rule-created": 2,
+          "rule-enter": 0,
+          "attach": 11,
+          "drain-attach": 64,
+          "settle": 5,
+          "roots": 1,
+          "capture": 10,
+          "extract": 1,
+          "cleanup": 5,
+          "rule-exit": 2
+        },
+        "1-RedSquare": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 9,
+          "drain-attach": 7,
+          "settle": 1,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 2
+        },
+        "1-MaterialButtonInteractionState": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 12,
+          "drain-attach": 15,
+          "settle": 1,
+          "roots": 0,
+          "capture": 7,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 1
+        },
+        "1-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 7,
+          "drain-attach": 9,
+          "settle": 0,
+          "roots": 1,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 1
+        },
+        "1-DialogWindowSurface": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 8,
+          "drain-attach": 23,
+          "settle": 2,
+          "roots": 1,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 4,
+          "rule-exit": 2
+        },
+        "2-RedSquare": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 8,
+          "drain-attach": 7,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 2,
+          "cleanup": 2,
+          "rule-exit": 1
+        },
+        "2-MaterialButtonInteractionState": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 7,
+          "drain-attach": 9,
+          "settle": 1,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 2
+        },
+        "2-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 7,
+          "drain-attach": 8,
+          "settle": 0,
+          "roots": 0,
+          "capture": 5,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 1
+        },
+        "2-DialogWindowSurface": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 8,
+          "drain-attach": 22,
+          "settle": 2,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 3,
+          "rule-exit": 1
+        }
+      }
+    },
+    {
+      "trial": 2,
+      "mode": "engine",
+      "measurements": [
+        {
+          "readyMs": 2177,
+          "cpuMs": 8590,
+          "loadedClasses": 8962
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1913,
+          "uptimeMs": 4094,
+          "cpuMs": 15930,
+          "loadedClasses": 16064
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 227,
+          "uptimeMs": 4324,
+          "cpuMs": 16570,
+          "loadedClasses": 16453
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 238,
+          "uptimeMs": 4563,
+          "cpuMs": 17150,
+          "loadedClasses": 16964
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 222,
+          "uptimeMs": 4785,
+          "cpuMs": 17700,
+          "loadedClasses": 17256
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 210,
+          "uptimeMs": 4996,
+          "cpuMs": 18100,
+          "loadedClasses": 17271
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 252,
+          "uptimeMs": 5249,
+          "cpuMs": 18620,
+          "loadedClasses": 17279
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 231,
+          "uptimeMs": 5480,
+          "cpuMs": 19110,
+          "loadedClasses": 17285
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 273,
+          "uptimeMs": 5753,
+          "cpuMs": 19710,
+          "loadedClasses": 17297
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 172,
+          "uptimeMs": 5926,
+          "cpuMs": 20150,
+          "loadedClasses": 17305
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 191,
+          "uptimeMs": 6118,
+          "cpuMs": 20630,
+          "loadedClasses": 17305
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 164,
+          "uptimeMs": 6283,
+          "cpuMs": 20990,
+          "loadedClasses": 17308
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 206,
+          "uptimeMs": 6489,
+          "cpuMs": 21440,
+          "loadedClasses": 17316
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "mode": "activity",
+      "measurements": [
+        {
+          "readyMs": 2562,
+          "cpuMs": 10160,
+          "loadedClasses": 8967
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1798,
+          "uptimeMs": 4364,
+          "cpuMs": 17090,
+          "loadedClasses": 15560
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 142,
+          "uptimeMs": 4508,
+          "cpuMs": 17540,
+          "loadedClasses": 16006
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 118,
+          "uptimeMs": 4627,
+          "cpuMs": 17890,
+          "loadedClasses": 16470
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 153,
+          "uptimeMs": 4780,
+          "cpuMs": 18340,
+          "loadedClasses": 16724
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 46,
+          "uptimeMs": 4827,
+          "cpuMs": 18480,
+          "loadedClasses": 16730
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 49,
+          "uptimeMs": 4876,
+          "cpuMs": 18630,
+          "loadedClasses": 16736
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 43,
+          "uptimeMs": 4920,
+          "cpuMs": 18740,
+          "loadedClasses": 16740
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 85,
+          "uptimeMs": 5006,
+          "cpuMs": 18960,
+          "loadedClasses": 16764
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 40,
+          "uptimeMs": 5046,
+          "cpuMs": 19070,
+          "loadedClasses": 16768
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 43,
+          "uptimeMs": 5089,
+          "cpuMs": 19190,
+          "loadedClasses": 16771
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 39,
+          "uptimeMs": 5129,
+          "cpuMs": 19330,
+          "loadedClasses": 16771
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 97,
+          "uptimeMs": 5226,
+          "cpuMs": 19780,
+          "loadedClasses": 16786
+        }
+      ],
+      "phaseMilliseconds": {
+        "0-RedSquare": {
+          "rule-created": 88,
+          "rule-enter": 994,
+          "attach": 306,
+          "drain-attach": 32,
+          "settle": 3,
+          "roots": 6,
+          "capture": 290,
+          "extract": 25,
+          "cleanup": 3,
+          "rule-exit": 46
+        },
+        "0-MaterialButtonInteractionState": {
+          "rule-created": 3,
+          "rule-enter": 22,
+          "attach": 70,
+          "drain-attach": 9,
+          "settle": 1,
+          "roots": 0,
+          "capture": 14,
+          "extract": 2,
+          "cleanup": 2,
+          "rule-exit": 13
+        },
+        "0-SerifTextPreview": {
+          "rule-created": 2,
+          "rule-enter": 21,
+          "attach": 9,
+          "drain-attach": 54,
+          "settle": 1,
+          "roots": 0,
+          "capture": 13,
+          "extract": 2,
+          "cleanup": 1,
+          "rule-exit": 10
+        },
+        "0-DialogWindowSurface": {
+          "rule-created": 2,
+          "rule-enter": 19,
+          "attach": 48,
+          "drain-attach": 22,
+          "settle": 7,
+          "roots": 1,
+          "capture": 12,
+          "extract": 2,
+          "cleanup": 4,
+          "rule-exit": 31
+        },
+        "1-RedSquare": {
+          "rule-created": 1,
+          "rule-enter": 17,
+          "attach": 4,
+          "drain-attach": 3,
+          "settle": 1,
+          "roots": 1,
+          "capture": 7,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 8
+        },
+        "1-MaterialButtonInteractionState": {
+          "rule-created": 1,
+          "rule-enter": 17,
+          "attach": 5,
+          "drain-attach": 3,
+          "settle": 1,
+          "roots": 0,
+          "capture": 7,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 9
+        },
+        "1-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 16,
+          "attach": 4,
+          "drain-attach": 3,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 7
+        },
+        "1-DialogWindowSurface": {
+          "rule-created": 1,
+          "rule-enter": 16,
+          "attach": 15,
+          "drain-attach": 8,
+          "settle": 3,
+          "roots": 0,
+          "capture": 7,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 27
+        },
+        "2-RedSquare": {
+          "rule-created": 1,
+          "rule-enter": 14,
+          "attach": 3,
+          "drain-attach": 2,
+          "settle": 0,
+          "roots": 0,
+          "capture": 7,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 8
+        },
+        "2-MaterialButtonInteractionState": {
+          "rule-created": 1,
+          "rule-enter": 14,
+          "attach": 4,
+          "drain-attach": 4,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 8
+        },
+        "2-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 14,
+          "attach": 3,
+          "drain-attach": 3,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 0,
+          "rule-exit": 7
+        },
+        "2-DialogWindowSurface": {
+          "rule-created": 13,
+          "rule-enter": 20,
+          "attach": 12,
+          "drain-attach": 8,
+          "settle": 2,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 27
+        }
+      }
+    },
+    {
+      "trial": 2,
+      "mode": "window",
+      "measurements": [
+        {
+          "readyMs": 2189,
+          "cpuMs": 8540,
+          "loadedClasses": 8967
+        },
+        {
+          "cycle": 0,
+          "fixture": "RedSquare",
+          "renderMs": 1326,
+          "uptimeMs": 3518,
+          "cpuMs": 13870,
+          "loadedClasses": 15149
+        },
+        {
+          "cycle": 0,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 117,
+          "uptimeMs": 3637,
+          "cpuMs": 14080,
+          "loadedClasses": 15583
+        },
+        {
+          "cycle": 0,
+          "fixture": "SerifTextPreview",
+          "renderMs": 102,
+          "uptimeMs": 3740,
+          "cpuMs": 14370,
+          "loadedClasses": 16051
+        },
+        {
+          "cycle": 0,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 123,
+          "uptimeMs": 3864,
+          "cpuMs": 14820,
+          "loadedClasses": 16310
+        },
+        {
+          "cycle": 1,
+          "fixture": "RedSquare",
+          "renderMs": 35,
+          "uptimeMs": 3899,
+          "cpuMs": 14930,
+          "loadedClasses": 16314
+        },
+        {
+          "cycle": 1,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 39,
+          "uptimeMs": 3939,
+          "cpuMs": 15060,
+          "loadedClasses": 16316
+        },
+        {
+          "cycle": 1,
+          "fixture": "SerifTextPreview",
+          "renderMs": 35,
+          "uptimeMs": 3974,
+          "cpuMs": 15170,
+          "loadedClasses": 16320
+        },
+        {
+          "cycle": 1,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 57,
+          "uptimeMs": 4031,
+          "cpuMs": 15330,
+          "loadedClasses": 16329
+        },
+        {
+          "cycle": 2,
+          "fixture": "RedSquare",
+          "renderMs": 33,
+          "uptimeMs": 4064,
+          "cpuMs": 15440,
+          "loadedClasses": 16334
+        },
+        {
+          "cycle": 2,
+          "fixture": "MaterialButtonInteractionState",
+          "renderMs": 34,
+          "uptimeMs": 4099,
+          "cpuMs": 15540,
+          "loadedClasses": 16337
+        },
+        {
+          "cycle": 2,
+          "fixture": "SerifTextPreview",
+          "renderMs": 31,
+          "uptimeMs": 4130,
+          "cpuMs": 15610,
+          "loadedClasses": 16340
+        },
+        {
+          "cycle": 2,
+          "fixture": "DialogWindowSurface",
+          "renderMs": 52,
+          "uptimeMs": 4183,
+          "cpuMs": 15760,
+          "loadedClasses": 16355
+        }
+      ],
+      "phaseMilliseconds": {
+        "0-RedSquare": {
+          "rule-created": 69,
+          "rule-enter": 115,
+          "attach": 519,
+          "drain-attach": 310,
+          "settle": 2,
+          "roots": 5,
+          "capture": 239,
+          "extract": 21,
+          "cleanup": 31,
+          "rule-exit": 9
+        },
+        "0-MaterialButtonInteractionState": {
+          "rule-created": 2,
+          "rule-enter": 1,
+          "attach": 12,
+          "drain-attach": 75,
+          "settle": 1,
+          "roots": 1,
+          "capture": 12,
+          "extract": 2,
+          "cleanup": 4,
+          "rule-exit": 3
+        },
+        "0-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 13,
+          "drain-attach": 62,
+          "settle": 1,
+          "roots": 1,
+          "capture": 13,
+          "extract": 2,
+          "cleanup": 3,
+          "rule-exit": 2
+        },
+        "0-DialogWindowSurface": {
+          "rule-created": 2,
+          "rule-enter": 0,
+          "attach": 10,
+          "drain-attach": 80,
+          "settle": 6,
+          "roots": 1,
+          "capture": 11,
+          "extract": 2,
+          "cleanup": 5,
+          "rule-exit": 2
+        },
+        "1-RedSquare": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 9,
+          "drain-attach": 7,
+          "settle": 1,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 3,
+          "rule-exit": 2
+        },
+        "1-MaterialButtonInteractionState": {
+          "rule-created": 2,
+          "rule-enter": 1,
+          "attach": 9,
+          "drain-attach": 11,
+          "settle": 1,
+          "roots": 0,
+          "capture": 7,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 1
+        },
+        "1-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 8,
+          "drain-attach": 9,
+          "settle": 0,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 3,
+          "rule-exit": 1
+        },
+        "1-DialogWindowSurface": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 9,
+          "drain-attach": 24,
+          "settle": 2,
+          "roots": 1,
+          "capture": 7,
+          "extract": 1,
+          "cleanup": 5,
+          "rule-exit": 2
+        },
+        "2-RedSquare": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 8,
+          "drain-attach": 7,
+          "settle": 1,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 1
+        },
+        "2-MaterialButtonInteractionState": {
+          "rule-created": 1,
+          "rule-enter": 1,
+          "attach": 7,
+          "drain-attach": 9,
+          "settle": 0,
+          "roots": 0,
+          "capture": 7,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 2
+        },
+        "2-SerifTextPreview": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 7,
+          "drain-attach": 10,
+          "settle": 0,
+          "roots": 0,
+          "capture": 5,
+          "extract": 1,
+          "cleanup": 2,
+          "rule-exit": 1
+        },
+        "2-DialogWindowSurface": {
+          "rule-created": 1,
+          "rule-enter": 0,
+          "attach": 9,
+          "drain-attach": 24,
+          "settle": 2,
+          "roots": 0,
+          "capture": 6,
+          "extract": 1,
+          "cleanup": 4,
+          "rule-exit": 1
+        }
+      }
+    }
+  ]
+}

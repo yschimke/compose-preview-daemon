@@ -135,15 +135,20 @@ coordinate per SDK level — it just points at our artifact.
 
 ### B4. A capture path without an Activity
 
-The warm render (and every catalog's cold first render) loads
-`ActivityScenario`, Espresso and the `Activity`/`Window`/`ActionBar` stack
-because Roborazzi's `captureRoboImage` goes through them. Compose needs a
-`View` tree with lifecycle/saved-state owners and a `HardwareRenderer` to
-draw a `RenderNode`; none of that needs an Activity. A daemon-owned capture —
-`ComposeView` under a `FrameLayout` attached through `WindowManager`, tree
-owners set by hand, drawn with `HardwareRenderer` — drops ~700 classes and
-their call-site linking from the first render, and removes the ActionBar
-workaround Roborazzi logs five times per render.
+The [B4 spike](BOOT-ROADMAP-B4-SPIKE.md) now implements a test-only standalone
+`PhoneWindow` host with a `ComposeView`, explicit tree owners, and native
+PixelCopy capture. Three fresh-JVM trials per mode preserved PNG and hierarchy
+parity for four static fixtures. Against a matched minimal Activity host, median
+first-render time fell from **1551 to 1336 ms**, with **411 fewer loaded classes**;
+warm captures fell from **43.5 to 34.5 ms**. These are experimental host timings,
+not production worker readiness or full-engine throughput.
+
+The original ~700-class estimate was a hypothesis. Much of Activity launch's
+work moves into window attachment and composition rather than disappearing.
+The spike also found and removed a two-second Compose-root wait caused by
+pending attachment on Robolectric's paused looper. Broad consumer compatibility,
+Activity-dependent extensions, interactive sessions and general capture geometry
+remain prerequisites for an opt-in production host with fallback.
 
 ### B5. Make the sandbox archivable
 
