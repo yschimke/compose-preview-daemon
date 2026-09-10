@@ -32,6 +32,8 @@ def main():
     parser.add_argument("--profiler", type=Path, help="Path to libasyncProfiler.so (4.5)")
     parser.add_argument("--renders", type=int, default=10, help="Fixture renders after one red render")
     parser.add_argument("--fixture", action="append", help="Repeat to cycle fixture functions from RedFixturePreviewsKt (default: MaterialButtonInteractionState)")
+    parser.add_argument("--exercise-recovery", action="store_true",
+        help="After timings, check configure/swap and recovery from a throwing composable")
     args = parser.parse_args()
     fixtures = args.fixture or ["MaterialButtonInteractionState"]
     if any(not name.isidentifier() for name in fixtures):
@@ -143,6 +145,36 @@ def main():
                     "uiaSha256": hashlib.sha256((output / "data" / tag / "uia-hierarchy.json").read_bytes()).hexdigest()})
             summary["totalCpuMs"] = cpu_ms(process.pid)
             summary["totalWallMs"] = round((time.monotonic() - started) * 1000)
+            if args.exercise_recovery:
+                configured = request({"type": "configure", "systemProperties": {}})
+                if configured.get("type") != "configured" or configured.get("pid") != process.pid:
+                    raise RuntimeError(f"configure failed: {configured}")
+                swapped = request({"type": "swap"})
+                if swapped.get("type") != "ok":
+                    raise RuntimeError(f"swap failed: {swapped}")
+                recovery = []
+                for offset, function in enumerate(["RedSquare", "BoomComposable", "RedSquare"]):
+                    tag = f"recovery-{offset}"
+                    reply = request({"type": "render", "id": args.renders + 1 + offset,
+                        "timeoutMs": 120000, "target": {"type": "spec", "spec": {
+                            "className": "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                            "functionName": function, "widthPx": 320, "heightPx": 320,
+                            "outputBaseName": tag,
+                        }}})
+                    if function == "BoomComposable":
+                        if reply.get("type") != "failed" or "boom" not in reply.get("diagnostic", ""):
+                            raise RuntimeError(f"expected composable failure: {reply}")
+                        recovery.append({"fixture": function, "expectedFailure": True,
+                            "diagnostic": reply["diagnostic"]})
+                    else:
+                        if reply.get("type") != "result":
+                            raise RuntimeError(f"recovery render failed: {reply}")
+                        png_hash = hashlib.sha256((output / "renders" / f"{tag}.png").read_bytes()).hexdigest()
+                        uia_hash = hashlib.sha256((output / "data" / tag / "uia-hierarchy.json").read_bytes()).hexdigest()
+                        if (png_hash, uia_hash) != (summary["renders"][0]["pngSha256"], summary["renders"][0]["uiaSha256"]):
+                            raise RuntimeError(f"recovery parity failed: {tag}")
+                        recovery.append({"fixture": function, "parity": True})
+                summary["recovery"] = recovery
             reply = request({"type": "shutdown"})
             if reply.get("type") != "ok":
                 raise RuntimeError(f"shutdown failed: {reply}")

@@ -86,3 +86,83 @@ only 33 ms, too small to treat as independently established with three trials.
 [Raw per-worker measurements](profiles/frozen-bindings-matrix.json) retain all
 trials. This confirms a useful optimization direction, not a proven minimum boot
 time or sufficient evidence to change production defaults.
+
+## Lifecycle and failure checks
+
+Baseline and constant-binding jars both pass the existing real-runtime methods:
+
+- `LivePressRippleTest#aLiveClickPaintsPressFeedback`: a click paints ripple feedback.
+- `AndroidInteractiveSessionTest#heldClickToggleSurvivesAcrossInputs`: click changes
+  pixels and normal rendering remains usable after closing the held session.
+- `RobolectricHostSpareAdoptionTest#aReleasedSpareListensAgainAndTheNextHostAdoptsIt`:
+  a released worker can serve a second host.
+
+The reproducible launcher supplies AGP's generated test configuration and module
+working directory, including the test manifest's no-action-bar Activity theme.
+An initial standalone run omitted those resources: both variants failed the same
+8 of 64 checks. Those failures are not binding regressions or evidence of working
+interactions. Restoring the test configuration made the three targeted checks pass
+for both variants; the full 64-test suite has not been rerun with that correction.
+
+```sh
+./gradlew :daemon:android:compileDebugUnitTestKotlin \
+  :daemon:android:generateDebugUnitTestConfig
+python3 scripts/experiments/check-frozen-lifecycle.py \
+  --classpath daemon/android/build/frozen-experiment/constant-classpath.txt \
+  --jdk /usr/lib/jvm/java-17-openjdk \
+  --output daemon/android/build/frozen-lifecycle-check
+```
+
+Repeat with the baseline runtime-classpath file and a new output directory.
+The layout of test inputs is currently tied to this repository's AGP version.
+
+`benchmark-worker-startup.py --exercise-recovery` performs additional checks after
+the timed workload: configure, user-classloader swap, successful render, deliberate
+`BoomComposable` failure with its diagnostic, then another successful render.
+Both RedSquare PNGs and UIA hashes must match the initial frame. Baseline and
+constant variants passed, including normal shutdown. This exercises an empty
+user-classpath reset; loading newly compiled external user classes is not covered.
+[Recorded checks and diagnostics](profiles/frozen-bindings-lifecycle.json).
+
+## Remaining cost after constant bindings
+
+A separate async-profiler run with the same JDK/C1/threshold flags records these
+inclusive CPU samples. Profiling overhead means its wall times are not comparable
+to the uninstrumented matrix. Samples can overlap and must not be summed.
+
+| Phase | Wall ms | Total CPU samples | Application | Compiler | GC |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Sandbox boot | 1790 | 2383 | 1651 | 539 | 185 |
+| Warm render | 2234 | 2832 | 2089 | 183 | 537 |
+
+Boot includes 370 native-runtime-init samples, 391 application-creation samples,
+360 class-definition samples and 156 BouncyCastle-setup samples. Warm render
+includes 786 Activity-launch samples, 540 class-definition samples, 240 dynamic
+linkage samples and 198 capture samples. Frozen bindings reduce dynamic dispatch
+machinery but leave substantial framework startup and class work.
+GC accounts for 19% of warm-render CPU samples, motivating a collector/thread-count
+comparison. [Full phase report](profiles/frozen-bindings-profile.json).
+
+## Collector comparison
+
+Three rotated trials per variant, the same twelve-fixture / 73-frame workload,
+constant bindings, JDK 17, C1 and threshold 30 throughout. All 657 PNG/UIA pairs
+match. No production settings changed. Values are per-variant medians.
+
+| Collector | Ready wall ms | Ready CPU ms | Render ms | Total wall ms | Total CPU ms |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| g1 | 3773 | 5190.0 | 140.0 | 15531 | 27530.0 |
+| g1-two-threads | 3850 | 4990.0 | 159.5 | 17293 | 23360.0 |
+| serial | 3909 | 4700.0 | 194.5 | 19516 | 22210.0 |
+
+The default G1 wins on latency. Restricting G1 to two parallel threads and one
+concurrent thread saves CPU but increases total wall time by 11.3%. Serial GC
+increases total wall time by 25.7%. Lower collector CPU is not evidence of a faster
+worker; these variants are rejected for the minimum-latency objective on this host.
+This does not establish their behavior in a CPU-constrained container.
+
+Reproduce with the same matrix command above and a matrix whose three variants all
+use `constant-classpath.txt` plus the common C1/threshold flags. Add no flags for
+`g1`, `-XX:ParallelGCThreads=2` and `-XX:ConcGCThreads=1` for `g1-two-threads`, and
+`-XX:+UseSerialGC` for `serial`.
+[Raw collector trials](profiles/frozen-bindings-gc-matrix.json).

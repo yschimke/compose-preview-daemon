@@ -1,0 +1,110 @@
+[
+  {
+    "trial": 0,
+    "variant": "g1",
+    "readyWallMs": 3773,
+    "readyCpuMs": 5170.0,
+    "totalWallMs": 15510,
+    "totalCpuMs": 27330.0,
+    "parity": true,
+    "comparison": "pngBytes",
+    "pngByteParity": true,
+    "last30MedianMs": 139.5
+  },
+  {
+    "trial": 0,
+    "variant": "g1-two-threads",
+    "readyWallMs": 3848,
+    "readyCpuMs": 4970.0,
+    "totalWallMs": 17293,
+    "totalCpuMs": 23200.0,
+    "parity": true,
+    "comparison": "pngBytes",
+    "pngByteParity": true,
+    "last30MedianMs": 159.5
+  },
+  {
+    "trial": 0,
+    "variant": "serial",
+    "readyWallMs": 3948,
+    "readyCpuMs": 4700.0,
+    "totalWallMs": 19906,
+    "totalCpuMs": 22210.0,
+    "parity": true,
+    "comparison": "pngBytes",
+    "pngByteParity": true,
+    "last30MedianMs": 194.5
+  },
+  {
+    "trial": 1,
+    "variant": "g1-two-threads",
+    "readyWallMs": 3850,
+    "readyCpuMs": 4990.0,
+    "totalWallMs": 17314,
+    "totalCpuMs": 23690.0,
+    "parity": true,
+    "comparison": "pngBytes",
+    "pngByteParity": true,
+    "last30MedianMs": 162.5
+  },
+  {
+    "trial": 1,
+    "variant": "serial",
+    "readyWallMs": 3909,
+    "readyCpuMs": 4760.0,
+    "totalWallMs": 19516,
+    "totalCpuMs": 22340.0,
+    "parity": true,
+    "comparison": "pngBytes",
+    "pngByteParity": true,
+    "last30MedianMs": 194.5
+  },
+  {
+    "trial": 1,
+    "variant": "g1",
+    "readyWallMs": 3754,
+    "readyCpuMs": 5190.0,
+    "totalWallMs": 15531,
+    "totalCpuMs": 27530.0,
+    "parity": true,
+    "comparison": "pngBytes",
+    "pngByteParity": true,
+    "last30MedianMs": 140.5
+  },
+  {
+    "trial": 2,
+    "variant": "serial",
+    "readyWallMs": 3889,
+    "readyCpuMs": 4660.0,
+    "totalWallMs": 19476,
+    "totalCpuMs": 22210.0,
+    "parity": true,
+    "comparison": "pngBytes",
+    "pngByteParity": true,
+    "last30MedianMs": 195.5
+  },
+  {
+    "trial": 2,
+    "variant": "g1",
+    "readyWallMs": 3801,
+    "readyCpuMs": 5420.0,
+    "totalWallMs": 15661,
+    "totalCpuMs": 28090.0,
+    "parity": true,
+    "comparison": "pngBytes",
+    "pngByteParity": true,
+    "last30MedianMs": 140.0
+  },
+  {
+    "trial": 2,
+    "variant": "g1-two-threads",
+    "readyWallMs": 3861,
+    "readyCpuMs": 5030.0,
+    "totalWallMs": 16880,
+    "totalCpuMs": 23360.0,
+    "parity": true,
+    "comparison": "pngBytes",
+    "pngByteParity": true,
+    "last30MedianMs": 157.5
+  }
+]
