@@ -6,6 +6,7 @@ import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO
 import kotlin.system.exitProcess
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -36,6 +37,16 @@ class SandboxBootstrapSpikeTest {
           command.add(
             1,
             "-Xlog:class+load=info:file=${output.resolve("classes.log").absolutePath}:uptimemillis",
+          )
+        }
+        System.getenv("COMPOSEAI_BOOT_SPIKE_JVM_ARGS")?.let { json ->
+          command.addAll(1, Json.decodeFromString<List<String>>(json))
+        }
+        System.getenv("COMPOSEAI_BOOT_SPIKE_PROFILER")?.let { library ->
+          require(File(library).isFile) { "Missing async-profiler library: $library" }
+          command.add(
+            1,
+            "-agentpath:$library=start,event=ctimer,interval=1ms,wall=1ms,cstack=dwarf,file=${output.resolve("profile.jfr").absolutePath}",
           )
         }
         command += SandboxBootstrapSpikeMain::class.java.name
@@ -163,10 +174,16 @@ object SandboxBootstrapSpikeMain {
   @Config(sdk = [35])
   @GraphicsMode(GraphicsMode.Mode.NATIVE)
   class SandboxBootstrapFixture {
+    private fun processCpuMs(): Long =
+      (ManagementFactory.getOperatingSystemMXBean() as com.sun.management.OperatingSystemMXBean)
+        .processCpuTime / 1_000_000
+
     @Test
     fun renderFixtures() {
       val runtime = ManagementFactory.getRuntimeMXBean()
-      println("[measure] sandboxReadyMs=${runtime.uptime}")
+      println(
+        "[measure] sandboxReadyMs=${runtime.uptime} epochMs=${System.currentTimeMillis()} processCpuMs=${processCpuMs()}"
+      )
       val engine = RenderEngine()
       for ((index, name) in listOf("RedSquare", "MaterialButtonInteractionState").withIndex()) {
         val start = System.nanoTime()
@@ -181,7 +198,7 @@ object SandboxBootstrapSpikeMain {
           requestId = index.toLong(),
         )
         println(
-          "[measure] fixture=$name renderMs=${(System.nanoTime() - start) / 1_000_000} processUptimeMs=${runtime.uptime}"
+          "[measure] fixture=$name renderMs=${(System.nanoTime() - start) / 1_000_000} processUptimeMs=${runtime.uptime} epochMs=${System.currentTimeMillis()} processCpuMs=${processCpuMs()}"
         )
       }
     }

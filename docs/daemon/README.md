@@ -53,6 +53,8 @@ the CI-canonical render path.
   Robolectric internals (sandbox lifecycle, classloader delegation,
   bytecode instrumentation, shadows).
 - **[SANDBOX-POOL.md](SANDBOX-POOL.md)** — in-JVM sandbox pool.
+- **[BOOT-CPU-PROFILE.md](BOOT-CPU-PROFILE.md)** — production-worker CPU attribution, reproducible
+  flamegraphs, and measured JVM compiler-setting tradeoffs.
 - **[STARTUP.md](STARTUP.md)** — daemon startup latency analysis.
 - **[BOOT-ROADMAP.md](BOOT-ROADMAP.md)** — the ranked plan for a 2-3 s sandbox boot: adoptable
   warmed workers, and what a Robolectric fork would change.
