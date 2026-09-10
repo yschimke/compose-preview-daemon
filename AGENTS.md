@@ -69,6 +69,9 @@ declare `abiValidation()` pin their public API in a committed dump; `checkKotlin
 a public-surface change is committed with `./gradlew updateKotlinAbi`.
 `docs/daemon/TUNABLES.md` is generated from `DaemonProperties`; `DaemonPropertiesDocTest` fails
 when it is stale.
+Dependency version bumps must include regenerated published-classpath locks:
+`./gradlew resolveAndLockAll --write-locks --no-configuration-cache`. Commit the affected
+`gradle.lockfile` files with the version change; stale strict locks break compilation and packaging.
 
 ### Re-check PR state immediately before every push
 
