@@ -3,7 +3,7 @@
   "extends": [
     "github>yschimke/renovate-config"
   ],
-  "description": "Extends the shared preset at yschimke/renovate-config, which owns the release-train grouping for the ee.schimke.composeai group. platformAutomerge lets native GitHub auto-merge land minor/patch/digest/pin bumps once every required check is green.",
+  "description": "Extends the shared preset at yschimke/renovate-config, which owns the release-train grouping for the ee.schimke.composeai group. platformAutomerge lets native GitHub auto-merge land minor/patch/digest/pin bumps once every required check is green. The packageRules below are this repository's own floors and ceilings: what renderer-android and the published `data-*` connectors are compiled against is part of their supported-minimum surface, so a green build is not on its own a reason to take an upgrade (docs/RENDERER_COMPATIBILITY.md).",
   "schedule": [
     "before 9am on Monday"
   ],
@@ -12,7 +12,9 @@
   "prConcurrentLimit": 10,
   "minimumReleaseAge": "7 days",
   "github-actions": {
-    "enabled": false
+    "description": "Every `uses:` in this repository is SHA-pinned with a `# vX.Y.Z` comment, so with the manager off the pins could never move and a fixed action would never reach CI. Renovate rewrites the digest and the version comment together, and `pinDigests` keeps a newly added tag-only `uses:` from staying unpinned.",
+    "enabled": true,
+    "pinDigests": true
   },
   "packageRules": [
     {
@@ -62,7 +64,7 @@
       "allowedVersions": "/^1\\.13\\./"
     },
     {
-      "description": "compose-multiplatform: pin to the 1.11.x line. `:data-render-compose` exposes `org.jetbrains.compose.{runtime,ui}` as `api` on a published artifact, so the Compose Multiplatform version is part of the supported-minimum floor for consumers, and the ref is also a CEILING on every catalog the serve host renders live (docs/RENDERER_COMPATIBILITY.md). 1.12.0 needs a coordinated move, not a minor/patch bump: its `androidx.compose.*` AARs declare `minCompileSdk = 37` (the repo default is 36), skiko 0.150.1 deletes the mutating `org.jetbrains.skia.Path` API our `conicTo` seams call, and `compose-multiplatform-material3` + `compottie` have to move with it. See gradle/libs.versions.toml \u2014 raising the floor is a manual decision. `matchCurrentValue` scopes this to the refs that are actually on 1.11.x; the explicit `ui-tooling-preview:1.10.3` coords in the cmp samples are held on their own line by the rule below.",
+      "description": "compose-multiplatform: pin to the 1.11.x line. `:data-render-compose` exposes `org.jetbrains.compose.{runtime,ui}` as `api` on a published artifact, so the Compose Multiplatform version is part of the supported-minimum floor for consumers, and the ref is also a CEILING on every catalog the serve host renders live (docs/RENDERER_COMPATIBILITY.md). 1.12.0 needs a coordinated move, not a minor/patch bump: its `androidx.compose.*` AARs declare `minCompileSdk = 37` (the repo default is 36), skiko 0.150.1 deletes the mutating `org.jetbrains.skia.Path` API our `conicTo` seams call, and `compose-multiplatform-material3` + `compottie` have to move with it. See gradle/libs.versions.toml \u2014 raising the floor is a manual decision. `matchCurrentValue` scopes this to the refs that are actually on 1.11.x, leaving `compose-multiplatform-forward` free to track the line ahead.",
       "matchManagers": [
         "gradle"
       ],
@@ -118,12 +120,11 @@
       "enabled": false
     },
     {
-      "description": "Gradle wrapper: hold at 9.7.0. Under 9.7.1 a second build invocation in one session can leave `:samples:cmp` without the renamed preview render: the `interactive-e-g` shard times out after discovery publishes the new id while duplicate save/refresh work repeatedly cancels `composePreviewCompile` (main run 32704936546). The test now serializes that edit through the production save queue, but the wrapper stays pinned until 9.7.1 is independently proven across the full E2E suite; do not turn a test-driver repair into an unverified build-tool upgrade.",
+      "description": "One PR a week for the workflow pins rather than one per action: these land as a workflow-only change that the same required checks gate, and reviewing them together is how a bad action bump is spotted. Grouping is expressed as a packageRule because that is the stage at which Renovate builds branches.",
       "matchManagers": [
-        "gradle-wrapper"
+        "github-actions"
       ],
-      "matchCurrentValue": "/^9\\.7\\.0$/",
-      "allowedVersions": "/^9\\.7\\.0$/"
+      "groupName": "github-actions"
     }
   ],
   "customManagers": [
@@ -137,30 +138,6 @@
         "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\nxr-composite\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "extractVersionTemplate": "^v(?<version>.+)$",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "The design-artifacts export-driver pin. External callers of `design-artifacts-reusable.yml` execute the revision of `scripts/design-artifacts/` named here, so until it moves they run the driver from the previous release \u2014 including fixes this repo has already merged (#4107). `sha` and `tag` are ONE dependency to Renovate: `currentDigest` and `currentValue` on a single match, resolved against this repository's own GitHub tags, so the pair cannot drift apart the way two independent entries could. This replaces `refresh-driver-pin.yml`, which opened the bump PR with `GITHUB_TOKEN` \u2014 whose pushes do not start workflow runs, so those PRs arrived with no checks reporting. Renovate is a GitHub App and its pushes do trigger them.",
-      "managerFilePatterns": [
-        "/^\\.github/design-artifacts-driver-pin\\.txt$/"
-      ],
-      "matchStrings": [
-        "sha=(?<currentDigest>[0-9a-f]{40})\\s*\\ntag=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "yschimke/compose-ai-tools",
-      "datasourceTemplate": "github-tags",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "description": "The rc-players tag `design-artifacts-reusable.yml` checks out for the two embedded player lanes. It is a literal rather than a value the workflow computes, because a computed `ref:` on `actions/checkout` is a checkout of untrusted code in a privileged context \u2014 critical, and the code lands somewhere `./gradlew` runs moments later (#5006 review). That leaves a second place holding the player version, so this keeps it in step with `rcplayers` in `gradle/libs.versions.toml`: both resolve against the same tags, so a bump moves them in one Renovate run rather than leaving the lanes skipping themselves on drift. Not a substitute for the workflow's own drift check, which is what catches the window between the two PRs.",
-      "managerFilePatterns": [
-        "/^\\.github/workflows/design-artifacts-reusable\\.yml$/"
-      ],
-      "matchStrings": [
-        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*RC_PLAYERS_PIN:\\s*(?<currentValue>v\\d+\\.\\d+\\.\\d+)"
-      ],
       "versioningTemplate": "semver"
     }
   ]
