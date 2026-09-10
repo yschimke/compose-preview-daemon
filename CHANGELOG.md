@@ -1,5 +1,38 @@
 # Changelog
 
+## [3.1.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.0.3...v3.1.0) (2026-09-10)
+
+
+### Features
+
+* **client:** DaemonLaunchOptions, the writing half of the property registry ([#35](https://github.com/yschimke/compose-preview-daemon/issues/35)) ([5044447](https://github.com/yschimke/compose-preview-daemon/commit/50444478c52923dff3c2e1486a205d18d0e464b7))
+* **client:** DaemonLaunchPlan, so the daemon says how to run itself ([#40](https://github.com/yschimke/compose-preview-daemon/issues/40)) ([cc26b1a](https://github.com/yschimke/compose-preview-daemon/commit/cc26b1ad1c41deb299eef05a2be14e5d6575e696))
+* **client:** ManagedDaemon, one daemon's life and nothing more ([#45](https://github.com/yschimke/compose-preview-daemon/issues/45)) ([a8cd6b9](https://github.com/yschimke/compose-preview-daemon/commit/a8cd6b9ade84f5db1b4c1b1822d27be6d4f48f4c))
+* **client:** publish DaemonSession, the protocol as an interface ([#33](https://github.com/yschimke/compose-preview-daemon/issues/33)) ([0de1086](https://github.com/yschimke/compose-preview-daemon/commit/0de10860157adbd6d46333836a34afc12ad5f7dd))
+
+
+### Bug Fixes
+
+* **build:** enforce daemon dependency ownership in CI ([#42](https://github.com/yschimke/compose-preview-daemon/issues/42)) ([37fb992](https://github.com/yschimke/compose-preview-daemon/commit/37fb99236430cc0732fc1caeb376bbdf7d70f261))
+* **build:** refresh dependency locks after version bumps ([#43](https://github.com/yschimke/compose-preview-daemon/issues/43)) ([3fb26b9](https://github.com/yschimke/compose-preview-daemon/commit/3fb26b931763fd3ec875ed18c42a3d9252e32d59))
+* **build:** remove inherited dependency locking ([#44](https://github.com/yschimke/compose-preview-daemon/issues/44)) ([765cf69](https://github.com/yschimke/compose-preview-daemon/commit/765cf69656cea87953bb4ed9ae13238d25a107e1))
+* **deps:** update compose-ai-tools to v2.15.0 ([#37](https://github.com/yschimke/compose-preview-daemon/issues/37)) ([7c4cb11](https://github.com/yschimke/compose-preview-daemon/commit/7c4cb118b424879306518d8c558c86d6036c1a68))
+* **deps:** update compose-preview-contracts to v2.15.0 ([#38](https://github.com/yschimke/compose-preview-daemon/issues/38)) ([2e27b3b](https://github.com/yschimke/compose-preview-daemon/commit/2e27b3b1d2b4cb4483e69b22f595a104c6e39fe8))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-serve to v3.23.0 ([#39](https://github.com/yschimke/compose-preview-daemon/issues/39)) ([8bebf11](https://github.com/yschimke/compose-preview-daemon/commit/8bebf11d43d930b844b52c6d7310805c0e65b099))
+* **deps:** update rc-players to v1.60.2 ([#36](https://github.com/yschimke/compose-preview-daemon/issues/36)) ([fc59972](https://github.com/yschimke/compose-preview-daemon/commit/fc59972baf3db4df5ea2967cafad073024c78843))
+
+
+### Performance
+
+* **daemon:** profile startup and benchmark compiler tuning ([#34](https://github.com/yschimke/compose-preview-daemon/issues/34)) ([08d095e](https://github.com/yschimke/compose-preview-daemon/commit/08d095e4c842b708b159ce32cbc8e87652417305))
+* **daemon:** prototype and measure activity-free capture ([#41](https://github.com/yschimke/compose-preview-daemon/issues/41)) ([5f9199f](https://github.com/yschimke/compose-preview-daemon/commit/5f9199fcfb917e421c20a171496744eb8b8c8306))
+
+
+### Documentation
+
+* **daemon:** handoff for the boot roadmap's Tier B (Robolectric fork) ([#27](https://github.com/yschimke/compose-preview-daemon/issues/27)) ([444fd87](https://github.com/yschimke/compose-preview-daemon/commit/444fd874576301eb02c9b1d1732644a078d4d41f))
+* propose an embedding API for the daemon ([#31](https://github.com/yschimke/compose-preview-daemon/issues/31)) ([c7ff645](https://github.com/yschimke/compose-preview-daemon/commit/c7ff645b721d4e553a88802621ccf05f9565a56c))
+
 ## [3.0.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.0.2...v3.0.3) (2026-09-10)
 
 
