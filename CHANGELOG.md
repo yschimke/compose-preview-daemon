@@ -1,5 +1,30 @@
 # Changelog
 
+## [3.4.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.3.0...v3.4.0) (2026-09-11)
+
+
+### Features
+
+* **preview-annotations:** add `related` to @CatalogComponent ([#62](https://github.com/yschimke/compose-preview-daemon/issues/62)) ([88bc484](https://github.com/yschimke/compose-preview-daemon/commit/88bc4849d525bbac53188328011118cd2094afc5))
+
+
+### Bug Fixes
+
+* keep discovery drains within their save boundary ([#65](https://github.com/yschimke/compose-preview-daemon/issues/65)) ([e9fb7bf](https://github.com/yschimke/compose-preview-daemon/commit/e9fb7bf0c2c0c554138675803a29051044a78fdd))
+
+
+### Performance
+
+* reduce capture CPU and release reloaded classes ([#60](https://github.com/yschimke/compose-preview-daemon/issues/60)) ([0d00f1d](https://github.com/yschimke/compose-preview-daemon/commit/0d00f1d56116a8aafbac71bb311dcd62b37e9f8d))
+* reduce inspector CPU during repeated captures ([#66](https://github.com/yschimke/compose-preview-daemon/issues/66)) ([44617e3](https://github.com/yschimke/compose-preview-daemon/commit/44617e34d12d421be2c82769dcacd84ca95ded8f))
+* reuse decoded still images for size correction ([#69](https://github.com/yschimke/compose-preview-daemon/issues/69)) ([027d678](https://github.com/yschimke/compose-preview-daemon/commit/027d6788e558c64e0af7b4d46356c558dba0a9de))
+
+
+### Documentation
+
+* prioritize Robolectric upstream feedback ([#64](https://github.com/yschimke/compose-preview-daemon/issues/64)) ([28e0f43](https://github.com/yschimke/compose-preview-daemon/commit/28e0f43d69581a34f0af140ff5ff66560269d9bf))
+* record reload soak and explicit GC tradeoffs ([#61](https://github.com/yschimke/compose-preview-daemon/issues/61)) ([255730b](https://github.com/yschimke/compose-preview-daemon/commit/255730b403f545ab8e7ec147246eddc088d469b8))
+
 ## [3.3.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.2.0...v3.3.0) (2026-09-11)
 
 
