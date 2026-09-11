@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.4.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.2...v3.4.3) (2026-09-11)
+
+
+### Bug Fixes
+
+* correct activity chrome and root-relative bounds ([#93](https://github.com/yschimke/compose-preview-daemon/issues/93)) ([59a1ec2](https://github.com/yschimke/compose-preview-daemon/commit/59a1ec2e3fb3031e1e8518b7965c420e706e3e87))
+* **deps:** update compose-ai-tools to v2.17.0 ([#91](https://github.com/yschimke/compose-preview-daemon/issues/91)) ([1cb3ee9](https://github.com/yschimke/compose-preview-daemon/commit/1cb3ee9a288e3c80599ce31df0eeda919f678d59))
+* **deps:** update compose-preview-contracts to v2.17.0 ([#92](https://github.com/yschimke/compose-preview-daemon/issues/92)) ([0527044](https://github.com/yschimke/compose-preview-daemon/commit/05270445630032b678bd199eba7969acad4851f2))
+
+
+### Documentation
+
+* qualify worker memory policies under reloads ([#86](https://github.com/yschimke/compose-preview-daemon/issues/86)) ([ffb02d4](https://github.com/yschimke/compose-preview-daemon/commit/ffb02d431d7b3b1b0e1b06599af206cce3e67f22))
+
 ## [3.4.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.1...v3.4.2) (2026-09-11)
 
 
