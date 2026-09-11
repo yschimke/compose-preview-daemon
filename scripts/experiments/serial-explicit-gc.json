@@ -1,0 +1,33 @@
+[
+  {
+    "name": "explicit",
+    "classpath": "daemon/android/build/bulk-argb-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-Xms32m",
+      "-XX:+UseSerialGC",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-Xlog:gc*=info",
+      "-XX:CICompilerCount=2",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true"
+    ]
+  },
+  {
+    "name": "automatic",
+    "classpath": "daemon/android/build/bulk-argb-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-Xms32m",
+      "-XX:+UseSerialGC",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-Xlog:gc*=info",
+      "-XX:CICompilerCount=2",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true",
+      "-XX:+DisableExplicitGC"
+    ]
+  }
+]
