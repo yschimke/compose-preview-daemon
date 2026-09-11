@@ -316,7 +316,9 @@ metrics. This is a local JVM-policy opportunity, not a missing Robolectric API o
 a confirmed leak. A 300-reload trio and three two-worker pairs now support the
 local opportunity: the longer 300-reload concurrent comparison lowers observed
 peak PSS 9.8% with essentially unchanged CPU, but 145.6% more minor page faults.
-Some late RSS windows still rise. Lifetime stability and ordinary-test benefit remain unproven;
+A direct 5 s versus 15 s comparison reduces minor faults 34.2% at 15 s, with
+2.1% higher aggregate peak PSS and essentially unchanged CPU. Some late RSS
+windows still rise. Lifetime stability and ordinary-test benefit remain unproven;
 R09 stays P3.
 
 **Next:** minimize the AWT initialization/TCCL case and determine whether our embedder

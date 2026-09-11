@@ -18,9 +18,19 @@ parser.add_argument('--java', required=True)
 parser.add_argument('--cpus', required=True, help='Comma-separated logical CPUs shared by both workers')
 parser.add_argument('--renders', type=int, default=60)
 parser.add_argument('--policy', choices=['allocator', 'compiler', 'metrics', 'trim'], default='allocator')
+parser.add_argument('--baseline-trim-ms', type=int, default=0,
+    help='Baseline native-trim interval for trim policy (0 disables trimming)')
+parser.add_argument('--candidate-trim-ms', type=int, default=5000,
+    help='Candidate native-trim interval for trim policy')
 parser.add_argument('--font-cache', type=Path,
     help='Existing warmed font cache; enables offline mode, required for metrics/trim policies')
 args = parser.parse_args()
+if min(args.baseline_trim_ms, args.candidate_trim_ms) < 0:
+    parser.error('Trim intervals must be nonnegative')
+if args.policy == 'trim' and args.baseline_trim_ms == args.candidate_trim_ms:
+    parser.error('Trim policy requires different baseline and candidate intervals')
+if args.policy != 'trim' and (args.baseline_trim_ms, args.candidate_trim_ms) != (0, 5000):
+    parser.error('Trim interval overrides require --policy trim')
 if args.policy in ('metrics', 'trim') and args.font_cache is None:
     parser.error('metrics/trim policy requires a warmed --font-cache')
 if args.font_cache is not None and not args.font_cache.is_dir():
@@ -71,7 +81,7 @@ for trial in range(3):
                     cadence = 5 if variant == 'metrics5' or args.policy == 'trim' else 1
                     command.append(f'--jvm-arg=-Dcomposeai.daemon.metrics.everyRenders={cadence}')
                 if args.policy == 'trim':
-                    interval = 5000 if variant == 'metrics5trim' else 0
+                    interval = args.candidate_trim_ms if variant == 'metrics5trim' else args.baseline_trim_ms
                     command += [f'--jvm-arg=-XX:TrimNativeHeapInterval={interval}',
                         '--jvm-arg=-Xlog:trimnative=debug', '--jvm-arg=-Xlog:gc*=info']
                 if args.font_cache is not None:
@@ -119,6 +129,9 @@ for trial in range(3):
             'majorFaults':sum(w['workloadEndFaults']['major'] for w in workers),
             'parityFramesPerWorker':len(reference),'distinctApplicationLoadersPerWorker':args.renders,
             'workers':workers,'concurrentPssSamples':samples}
+        if args.policy == 'trim':
+            row['trimIntervalsMs'] = {'baseline': args.baseline_trim_ms,
+                'candidate': args.candidate_trim_ms}
         rows.append(row)
         (args.output/'matrix-summary.json').write_text(json.dumps(rows,indent=2)+'\n')
         print(json.dumps({k:v for k,v in row.items() if k not in ['workers','concurrentPssSamples']}),flush=True)
