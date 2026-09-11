@@ -66,3 +66,34 @@ This proves unloading for this reload fixture, not arbitrary application caches,
 image-heavy screens or indefinite operation. Heap defaults and process recycling
 policy are unchanged. The existing locale behavior tests and the disposable-loader
 regression pass; no renderer drawing behavior is intentionally changed.
+
+## Longer reload soak at 256 MiB
+
+A separate run completes **300 reloads** at 256 MiB using Serial GC, default JVM
+compilation tiers, and the normal spare launcher's `MinHeapFreeRatio=10` /
+`MaxHeapFreeRatio=30`. It uses unpatched Robolectric and no application CDS.
+All 300 application loader identities differ; every checkpoint still has only two
+live child loaders. PNG/UIA hashes match the earlier fixed default-JVM run.
+
+| Completed dashboard renders | Live child loaders | Post-GC heap | PSS |
+| ---: | ---: | ---: | ---: |
+| 0 | 2 | 87.8 MiB | 568.3 MiB |
+| 50 | 2 | 90.7 MiB | 723.1 MiB |
+| 100 | 2 | 82.2 MiB | 735.4 MiB |
+| 150 | 2 | 78.8 MiB | 800.4 MiB |
+| 200 | 2 | 79.2 MiB | 807.7 MiB |
+| 250 | 2 | 79.5 MiB | 810.4 MiB |
+| 300 | 2 | 80.1 MiB | 815.1 MiB |
+
+[Full checkpoints](profiles/locale-cache-unloading-256-long.json) show that live heap
+fluctuates rather than growing with reload count. PSS is much larger than the heap
+cap and rises during warm-up; the last two checkpoints are close, but this finite
+run does not prove an indefinite resident-memory plateau. A mid-run diagnostic
+reported about 113 MiB of used code cache and 114 MiB of used metaspace, illustrating
+why heap alone is not a physical-memory budget. It does not attribute all native
+or resident growth to the JIT.
+
+The run takes 413.4 s wall and 349.1 s worker CPU, including diagnostic GCs and two
+mid-run code-cache/metaspace queries. These are not clean throughput comparisons.
+The earlier C1/constant-binding soak used a different launch profile and must not
+be treated as an isolated heap-free-ratio or compiler-tier comparison.

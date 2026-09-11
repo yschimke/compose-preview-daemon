@@ -1,0 +1,335 @@
+{
+  "baselineCommit": "e7802398",
+  "profile": "Same frozen worker jars; default JVM JDK17, 1GiB cap, G1, unpatched Robolectric, no CDS or spare heap-free-ratio overrides. Both variants log GC; only DisableExplicitGC differs.",
+  "trials": 3,
+  "dimensions": [
+    480,
+    1200
+  ],
+  "fixture": "DenseDashboardPreview",
+  "medians": {
+    "explicit-gc": {
+      "readyWallMs": 4529,
+      "totalWallMs": 55945,
+      "totalCpuMs": 78760.0,
+      "last30MedianMs": 997.5,
+      "last30MeanCpuMs": 1466.0,
+      "endPssMiB": 1014.5263671875
+    },
+    "automatic-gc": {
+      "readyWallMs": 4331,
+      "totalWallMs": 49105,
+      "totalCpuMs": 78040.0,
+      "last30MedianMs": 957.0,
+      "last30MeanCpuMs": 1423.0,
+      "endPssMiB": 1061.7744140625
+    }
+  },
+  "rows": [
+    {
+      "trial": 0,
+      "variant": "explicit-gc",
+      "readyWallMs": 4413,
+      "readyCpuMs": 16030.0,
+      "totalWallMs": 55945,
+      "totalCpuMs": 77560.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 997.5,
+      "last30MeanCpuMs": 1456.3333333333333,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1155568,
+        "VmRSS": 1071812,
+        "RssAnon": 1013656,
+        "RssFile": 55312,
+        "RssShmem": 2844,
+        "Pss": 1050227,
+        "Private": 1043008
+      }
+    },
+    {
+      "trial": 0,
+      "variant": "automatic-gc",
+      "readyWallMs": 4334,
+      "readyCpuMs": 15700.0,
+      "totalWallMs": 49105,
+      "totalCpuMs": 78040.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 941.0,
+      "last30MeanCpuMs": 1423.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1161792,
+        "VmRSS": 1108820,
+        "RssAnon": 1050688,
+        "RssFile": 55288,
+        "RssShmem": 2844,
+        "Pss": 1087257,
+        "Private": 1080040
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "automatic-gc",
+      "readyWallMs": 4331,
+      "readyCpuMs": 15780.0,
+      "totalWallMs": 59487,
+      "totalCpuMs": 79410.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 983.0,
+      "last30MeanCpuMs": 1520.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1157416,
+        "VmRSS": 1141236,
+        "RssAnon": 1083152,
+        "RssFile": 55240,
+        "RssShmem": 2844,
+        "Pss": 1119752,
+        "Private": 1112556
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "explicit-gc",
+      "readyWallMs": 4529,
+      "readyCpuMs": 16020.0,
+      "totalWallMs": 48063,
+      "totalCpuMs": 80170.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 1032.0,
+      "last30MeanCpuMs": 1521.6666666666667,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1072480,
+        "VmRSS": 1011044,
+        "RssAnon": 953048,
+        "RssFile": 55152,
+        "RssShmem": 2844,
+        "Pss": 989474,
+        "Private": 982272
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "explicit-gc",
+      "readyWallMs": 9063,
+      "readyCpuMs": 15840.0,
+      "totalWallMs": 60356,
+      "totalCpuMs": 78760.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 990.0,
+      "last30MeanCpuMs": 1466.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1104184,
+        "VmRSS": 1060408,
+        "RssAnon": 1002228,
+        "RssFile": 55336,
+        "RssShmem": 2844,
+        "Pss": 1038875,
+        "Private": 1031668
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "automatic-gc",
+      "readyWallMs": 4327,
+      "readyCpuMs": 15320.0,
+      "totalWallMs": 40870,
+      "totalCpuMs": 71290.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 957.0,
+      "last30MeanCpuMs": 1302.6666666666667,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1129532,
+        "VmRSS": 1077532,
+        "RssAnon": 1019536,
+        "RssFile": 55152,
+        "RssShmem": 2844,
+        "Pss": 1055987,
+        "Private": 1048784
+      }
+    }
+  ],
+  "gcLogs": [
+    {
+      "source": "daemon/android/build/worker-gc-matrix/0-explicit-gc",
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "completedFrames": 37,
+      "totalWorkerCpuMs": 77560.0,
+      "loggedPauseCount": 216,
+      "loggedPauseTotalMs": 2536.426,
+      "explicitFullGcCount": 39,
+      "explicitFullGcPauseTotalMs": 2239.928,
+      "last30ExplicitFullGcMedianMs": 63.6125,
+      "explicitFullGcReportedCpuMs": 8820.0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    },
+    {
+      "source": "daemon/android/build/worker-gc-matrix/0-automatic-gc",
+      "jvmArgs": [
+        "-Xlog:gc*=info",
+        "-XX:+DisableExplicitGC"
+      ],
+      "completedFrames": 37,
+      "totalWorkerCpuMs": 78040.0,
+      "loggedPauseCount": 335,
+      "loggedPauseTotalMs": 672.333,
+      "explicitFullGcCount": 0,
+      "explicitFullGcPauseTotalMs": 0,
+      "last30ExplicitFullGcMedianMs": null,
+      "explicitFullGcReportedCpuMs": 0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    },
+    {
+      "source": "daemon/android/build/worker-gc-matrix/1-automatic-gc",
+      "jvmArgs": [
+        "-Xlog:gc*=info",
+        "-XX:+DisableExplicitGC"
+      ],
+      "completedFrames": 37,
+      "totalWorkerCpuMs": 79410.0,
+      "loggedPauseCount": 360,
+      "loggedPauseTotalMs": 707.388,
+      "explicitFullGcCount": 0,
+      "explicitFullGcPauseTotalMs": 0,
+      "last30ExplicitFullGcMedianMs": null,
+      "explicitFullGcReportedCpuMs": 0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    },
+    {
+      "source": "daemon/android/build/worker-gc-matrix/1-explicit-gc",
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "completedFrames": 37,
+      "totalWorkerCpuMs": 80170.0,
+      "loggedPauseCount": 236,
+      "loggedPauseTotalMs": 2537.442,
+      "explicitFullGcCount": 39,
+      "explicitFullGcPauseTotalMs": 2209.044,
+      "last30ExplicitFullGcMedianMs": 62.542500000000004,
+      "explicitFullGcReportedCpuMs": 8670.0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    },
+    {
+      "source": "daemon/android/build/worker-gc-matrix/2-explicit-gc",
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "completedFrames": 37,
+      "totalWorkerCpuMs": 78760.0,
+      "loggedPauseCount": 270,
+      "loggedPauseTotalMs": 2660.534,
+      "explicitFullGcCount": 39,
+      "explicitFullGcPauseTotalMs": 2279.306,
+      "last30ExplicitFullGcMedianMs": 63.6015,
+      "explicitFullGcReportedCpuMs": 8770.0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    },
+    {
+      "source": "daemon/android/build/worker-gc-matrix/2-automatic-gc",
+      "jvmArgs": [
+        "-Xlog:gc*=info",
+        "-XX:+DisableExplicitGC"
+      ],
+      "completedFrames": 37,
+      "totalWorkerCpuMs": 71290.0,
+      "loggedPauseCount": 151,
+      "loggedPauseTotalMs": 297.744,
+      "explicitFullGcCount": 0,
+      "explicitFullGcPauseTotalMs": 0,
+      "last30ExplicitFullGcMedianMs": null,
+      "explicitFullGcReportedCpuMs": 0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    }
+  ],
+  "artifactParity": [
+    {
+      "baseline": "daemon/android/build/worker-gc-matrix/0-explicit-gc",
+      "candidate": "daemon/android/build/worker-gc-matrix/0-automatic-gc",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 111,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-figma.svg",
+        "compose-semantics.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedArtifactComparisons": 36,
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/worker-gc-matrix/1-explicit-gc",
+      "candidate": "daemon/android/build/worker-gc-matrix/1-automatic-gc",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 111,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-figma.svg",
+        "compose-semantics.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedArtifactComparisons": 0,
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/worker-gc-matrix/2-explicit-gc",
+      "candidate": "daemon/android/build/worker-gc-matrix/2-automatic-gc",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 111,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-figma.svg",
+        "compose-semantics.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedArtifactComparisons": 0,
+      "parity": true
+    }
+  ],
+  "note": "No production default changes. GC-disabled heapAfterGcMb values are not post-GC measurements. Total wall includes noisy startup (one9s ready outlier); use process CPU and per-request distributions. GC logging adds diagnostic overhead."
+}

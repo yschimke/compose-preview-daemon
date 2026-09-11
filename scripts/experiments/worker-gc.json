@@ -1,0 +1,17 @@
+[
+  {
+    "name": "explicit-gc",
+    "classpath": "daemon/android/build/locale-weak-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xlog:gc*=info"
+    ]
+  },
+  {
+    "name": "automatic-gc",
+    "classpath": "daemon/android/build/locale-weak-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xlog:gc*=info",
+      "-XX:+DisableExplicitGC"
+    ]
+  }
+]

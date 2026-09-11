@@ -276,3 +276,7 @@ are recorded in [the layout snapshot experiment](BOOT-LAYOUT-SNAPSHOT-EXPERIMENT
 The growing locale-cache owner has now been traced and fixed; see
 [locale cache retention](BOOT-LOCALE-CACHE-RETENTION.md) for heap-root evidence and
 the repeat showing two live child loaders throughout 60 application reloads.
+
+A three-trial [explicit-GC comparison](BOOT-EXPLICIT-GC-EXPERIMENT.md) found a
+4.1% request latency reduction but only 0.9% lower total CPU and 47.2 MiB higher
+final PSS when disabling explicit GC. This does not change the launch recommendation.
