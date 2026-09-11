@@ -1,0 +1,16 @@
+[
+  {
+    "name": "baseline",
+    "classpath": "daemon/android/build/layout-method-baseline-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xlog:gc*=info"
+    ]
+  },
+  {
+    "name": "candidate",
+    "classpath": "daemon/android/build/layout-method-candidate-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xlog:gc*=info"
+    ]
+  }
+]

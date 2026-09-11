@@ -1,0 +1,32 @@
+[
+  {
+    "name": "region-1m",
+    "classpath": "daemon/android/build/layout-method-candidate-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xlog:gc*=info",
+      "-XX:ParallelGCThreads=2",
+      "-XX:ConcGCThreads=1",
+      "-XX:G1HeapRegionSize=1m"
+    ]
+  },
+  {
+    "name": "region-4m",
+    "classpath": "daemon/android/build/layout-method-candidate-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xlog:gc*=info",
+      "-XX:ParallelGCThreads=2",
+      "-XX:ConcGCThreads=1",
+      "-XX:G1HeapRegionSize=4m"
+    ]
+  },
+  {
+    "name": "region-8m",
+    "classpath": "daemon/android/build/layout-method-candidate-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xlog:gc*=info",
+      "-XX:ParallelGCThreads=2",
+      "-XX:ConcGCThreads=1",
+      "-XX:G1HeapRegionSize=8m"
+    ]
+  }
+]
