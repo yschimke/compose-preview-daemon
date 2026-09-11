@@ -92,7 +92,12 @@ public class DaemonLaunchPlan(
       mainClass = DAEMON_MAIN_CLASS,
       javaLauncher = javaLauncher?.absolutePath,
       classpath = classpath.map { it.absolutePath }.distinct(),
-      jvmArgs = backend.jvmArgs(),
+      // Bound compiler work in Android daemon processes. Pooled workers inherit this flag and
+      // spares forward it from the descriptor. Keep shared Robolectric/test launch args neutral;
+      // callers can replace or remove this default through the descriptor's jvmArgs.
+      jvmArgs =
+        backend.jvmArgs() +
+          if (backend is DaemonBackend.Android) listOf("-XX:CICompilerCount=2") else emptyList(),
       // Backend properties first, so a caller's explicit option wins a collision. The two sets are
       // disjoint today — `robolectric.*` / `composeai.fonts.*` against `composeai.daemon.*` — and
       // this ordering is what keeps that from becoming load-bearing.
