@@ -1,0 +1,36 @@
+[
+  {
+    "name": "g1-1g",
+    "jvmArgs": [
+      "-XX:TieredStopAtLevel=1",
+      "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30"
+    ]
+  },
+  {
+    "name": "g1-512m",
+    "jvmArgs": [
+      "-XX:TieredStopAtLevel=1",
+      "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+      "-Xmx512m"
+    ]
+  },
+  {
+    "name": "g1-512m-2gc",
+    "jvmArgs": [
+      "-XX:TieredStopAtLevel=1",
+      "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+      "-Xmx512m",
+      "-XX:ParallelGCThreads=2",
+      "-XX:ConcGCThreads=1"
+    ]
+  },
+  {
+    "name": "serial-512m",
+    "jvmArgs": [
+      "-XX:TieredStopAtLevel=1",
+      "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+      "-Xmx512m",
+      "-XX:+UseSerialGC"
+    ]
+  }
+]

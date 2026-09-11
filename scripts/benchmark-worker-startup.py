@@ -23,12 +23,28 @@ def cpu_ms(pid):
     return (int(fields[11]) + int(fields[12])) * 1000 / os.sysconf("SC_CLK_TCK")
 
 
+def memory_kib(pid, proportional=False):
+    """Linux resident memory; PSS/private pages are optional, more expensive snapshots."""
+    status = Path(f"/proc/{pid}/status").read_text()
+    fields = {key: int(value) for key, value in re.findall(
+        r"^(VmRSS|VmHWM|RssAnon|RssFile|RssShmem):\s+(\d+) kB$", status, re.MULTILINE)}
+    if proportional:
+        rollup = Path(f"/proc/{pid}/smaps_rollup").read_text()
+        values = {key: int(value) for key, value in re.findall(
+            r"^(Pss|Private_Clean|Private_Dirty|Private_Hugetlb):\s+(\d+) kB$", rollup, re.MULTILINE)}
+        fields["Pss"] = values["Pss"]
+        fields["Private"] = sum(values.get(key, 0) for key in
+            ("Private_Clean", "Private_Dirty", "Private_Hugetlb"))
+    return fields
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--classpath", type=Path, required=True)
     parser.add_argument("--java", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--jvm-arg", action="append", default=[])
+    parser.add_argument("--memory", action="store_true", help="Sample RSS at 100 ms and snapshot PSS/private memory at readiness and workload end (Linux)")
     parser.add_argument("--profiler", type=Path, help="Path to libasyncProfiler.so (4.5)")
     parser.add_argument("--renders", type=int, default=10, help="Fixture renders after one red render")
     parser.add_argument("--fixture", action="append", help="Repeat to cycle fixture functions from RedFixturePreviewsKt (default: MaterialButtonInteractionState)")
@@ -59,7 +75,8 @@ def main():
     lines = queue.Queue()
     started = time.monotonic()
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    summary = {"java": args.java, "jvmArgs": args.jvm_arg, "profiled": bool(args.profiler),
+    (output / "worker.pid").write_text(str(process.pid) + "\n")
+    summary = {"memoryMeasured": args.memory, "java": args.java, "jvmArgs": args.jvm_arg, "profiled": bool(args.profiler),
         "fixtures": fixtures, "startedUnixSeconds": time.time(),
         "hostLoadAverage": os.getloadavg(), "logicalCpus": os.cpu_count(), "renders": []}
 
@@ -73,19 +90,30 @@ def main():
 
     thread_names = {}
     stop_sampling = threading.Event()
+    memory_samples = []
 
-    def sample_thread_names():
-        # HotSpot can retire dynamic compiler threads before the readiness snapshot.
+    def sample_process():
+        # HotSpot can retire compiler threads before readiness. RSS sampling does not read smaps.
+        next_memory = 0.0
         while not stop_sampling.is_set():
-            for task in Path(f"/proc/{process.pid}/task").glob("*"):
+            if args.profiler:
+                for task in Path(f"/proc/{process.pid}/task").glob("*"):
+                    try:
+                        thread_names[task.name] = (task / "comm").read_text().strip()
+                    except FileNotFoundError:
+                        pass
+            now = time.monotonic()
+            if args.memory and now >= next_memory:
                 try:
-                    thread_names[task.name] = (task / "comm").read_text().strip()
-                except FileNotFoundError:
+                    memory_samples.append({"elapsedMs": round((now - started) * 1000),
+                        **memory_kib(process.pid)})
+                except (FileNotFoundError, ProcessLookupError):
                     pass
-            stop_sampling.wait(0.05)
+                next_memory = now + 0.1
+            stop_sampling.wait(0.05 if args.profiler else 0.1)
 
-    sampler = threading.Thread(target=sample_thread_names, daemon=True)
-    if args.profiler:
+    sampler = threading.Thread(target=sample_process, daemon=True)
+    if args.profiler or args.memory:
         sampler.start()
     reader = threading.Thread(target=pump, daemon=True)
     reader.start()
@@ -103,6 +131,8 @@ def main():
         assert int(match[1]) == process.pid
         summary["readyWallMs"] = round((time.monotonic() - started) * 1000)
         summary["readyCpuMs"] = cpu_ms(process.pid)
+        if args.memory:
+            summary["readyMemoryKiB"] = memory_kib(process.pid, proportional=True)
         summary["threadNames"] = thread_names
         for task in Path(f"/proc/{process.pid}/task").iterdir():
             try:
@@ -145,6 +175,8 @@ def main():
                     "uiaSha256": hashlib.sha256((output / "data" / tag / "uia-hierarchy.json").read_bytes()).hexdigest()})
             summary["totalCpuMs"] = cpu_ms(process.pid)
             summary["totalWallMs"] = round((time.monotonic() - started) * 1000)
+            if args.memory:
+                summary["workloadEndMemoryKiB"] = memory_kib(process.pid, proportional=True)
             if args.exercise_recovery:
                 configured = request({"type": "configure", "systemProperties": {}})
                 if configured.get("type") != "configured" or configured.get("pid") != process.pid:
@@ -183,13 +215,15 @@ def main():
             raise RuntimeError(f"worker exited {process.returncode}")
         reader.join(timeout=5)
         stop_sampling.set()
-        if args.profiler:
+        if args.profiler or args.memory:
             sampler.join(timeout=5)
+        if args.memory:
+            summary["memorySamplesKiB"] = memory_samples
         (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
         print(json.dumps(summary), flush=True)
     finally:
         stop_sampling.set()
-        if args.profiler:
+        if args.profiler or args.memory:
             sampler.join(timeout=5)
         if process.poll() is None:
             process.kill()

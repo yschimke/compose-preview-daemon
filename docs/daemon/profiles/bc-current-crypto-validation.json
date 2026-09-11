@@ -1,0 +1,97 @@
+{
+  "results": [
+    {
+      "variant": "baseline",
+      "exitCode": 0
+    },
+    {
+      "variant": "async-bc",
+      "exitCode": 0
+    },
+    {
+      "variant": "omit-bc",
+      "exitCode": 1
+    }
+  ],
+  "runs": {
+    "baseline": {
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "-Xverify:all"
+      ],
+      "renders": [
+        {
+          "tag": "red",
+          "fixture": "RedSquare",
+          "wallMs": 205,
+          "cpuMs": 380.0,
+          "pngSha256": "110b9bcedae548beb2eaa17dca0541a84d91cdaef65b3c25b296b4099adc9c5b",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        {
+          "tag": "BouncyCastleProviderSquare-0",
+          "fixture": "BouncyCastleProviderSquare",
+          "wallMs": 162,
+          "cpuMs": 310.0,
+          "pngSha256": "cc36fb4ab5620c7c507062fa61e2fa0dbcc37919a6b474aee66b5c50ccea3e21",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        }
+      ],
+      "recovery": [
+        {
+          "fixture": "RedSquare",
+          "parity": true
+        },
+        {
+          "fixture": "BoomComposable",
+          "expectedFailure": true
+        },
+        {
+          "fixture": "RedSquare",
+          "parity": true
+        }
+      ]
+    },
+    "async-bc": {
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "-Xverify:all"
+      ],
+      "renders": [
+        {
+          "tag": "red",
+          "fixture": "RedSquare",
+          "wallMs": 222,
+          "cpuMs": 410.0,
+          "pngSha256": "110b9bcedae548beb2eaa17dca0541a84d91cdaef65b3c25b296b4099adc9c5b",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        {
+          "tag": "BouncyCastleProviderSquare-0",
+          "fixture": "BouncyCastleProviderSquare",
+          "wallMs": 177,
+          "cpuMs": 310.0,
+          "pngSha256": "cc36fb4ab5620c7c507062fa61e2fa0dbcc37919a6b474aee66b5c50ccea3e21",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        }
+      ],
+      "recovery": [
+        {
+          "fixture": "RedSquare",
+          "parity": true
+        },
+        {
+          "fixture": "BoomComposable",
+          "expectedFailure": true
+        },
+        {
+          "fixture": "RedSquare",
+          "parity": true
+        }
+      ]
+    }
+  },
+  "negativeControl": "Missing BC provider fails in BouncyCastleProviderSquare"
+}

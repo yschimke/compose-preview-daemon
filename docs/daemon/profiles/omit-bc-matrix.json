@@ -1,0 +1,95 @@
+{
+  "warning": "Cost bound only; omission changes crypto behavior.",
+  "configuration": "JDK 17, C1, method-handle threshold 30, guarded constant bindings, no application CDS",
+  "frames": 438,
+  "summary": {
+    "baseline": {
+      "readyWallMs": 3794,
+      "readyCpuMs": 5260.0,
+      "totalWallMs": 15547,
+      "totalCpuMs": 27490.0,
+      "last30MedianMs": 141.5
+    },
+    "omit-bc": {
+      "readyWallMs": 3534,
+      "readyCpuMs": 4910.0,
+      "totalWallMs": 15310,
+      "totalCpuMs": 26420.0,
+      "last30MedianMs": 140.0
+    }
+  },
+  "runs": [
+    {
+      "trial": 0,
+      "variant": "baseline",
+      "readyWallMs": 3750,
+      "readyCpuMs": 5130.0,
+      "totalWallMs": 15547,
+      "totalCpuMs": 27390.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 142.5
+    },
+    {
+      "trial": 0,
+      "variant": "omit-bc",
+      "readyWallMs": 3506,
+      "readyCpuMs": 4840.0,
+      "totalWallMs": 15310,
+      "totalCpuMs": 26420.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 140.0
+    },
+    {
+      "trial": 1,
+      "variant": "omit-bc",
+      "readyWallMs": 3534,
+      "readyCpuMs": 4910.0,
+      "totalWallMs": 15249,
+      "totalCpuMs": 26070.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 140.0
+    },
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "readyWallMs": 3794,
+      "readyCpuMs": 5260.0,
+      "totalWallMs": 15527,
+      "totalCpuMs": 27490.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 140.5
+    },
+    {
+      "trial": 2,
+      "variant": "baseline",
+      "readyWallMs": 3795,
+      "readyCpuMs": 5470.0,
+      "totalWallMs": 15744,
+      "totalCpuMs": 28420.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 141.5
+    },
+    {
+      "trial": 2,
+      "variant": "omit-bc",
+      "readyWallMs": 3535,
+      "readyCpuMs": 5000.0,
+      "totalWallMs": 15419,
+      "totalCpuMs": 26490.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 139.0
+    }
+  ]
+}

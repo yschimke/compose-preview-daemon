@@ -1298,3 +1298,24 @@ fun GenericOutlineShapeSquare() {
   }
   Box(modifier = Modifier.fillMaxSize().clip(diamond).background(Color(0xFF7E57C2)))
 }
+
+/** Verifies that startup experiments retain the real BC provider before user code runs. */
+@Composable
+fun BouncyCastleProviderSquare() {
+  val provider = checkNotNull(java.security.Security.getProvider("BC"))
+  check(provider.javaClass.name == "org.bouncycastle.jce.provider.BouncyCastleProvider")
+  val message = "abc".toByteArray(Charsets.UTF_8)
+  val digest = java.security.MessageDigest.getInstance("SHA-256", "BC").digest(message)
+  check(
+    digest.joinToString("") { "%02x".format(it.toInt() and 255) } ==
+      "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  )
+  val cipher = javax.crypto.Cipher.getInstance("AES/ECB/PKCS7Padding", "BC")
+  check(cipher.provider === provider)
+  val key = javax.crypto.spec.SecretKeySpec(ByteArray(16) { it.toByte() }, "AES")
+  cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, key)
+  val encrypted = cipher.doFinal(message)
+  cipher.init(javax.crypto.Cipher.DECRYPT_MODE, key)
+  check(cipher.doFinal(encrypted).contentEquals(message))
+  Box(modifier = Modifier.fillMaxSize().background(Color(0xFF66BB6A)))
+}
