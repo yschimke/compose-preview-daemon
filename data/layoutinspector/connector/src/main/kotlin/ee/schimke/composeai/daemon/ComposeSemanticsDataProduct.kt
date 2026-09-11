@@ -3221,18 +3221,9 @@ internal object ComposeLayoutInspector {
     }
       .getOrNull()
 
-    private fun Class<*>.findZeroArgMethod(name: String): Method? {
-      var current: Class<*>? = this
-      while (current != null) {
-        current.declaredMethods
-          .firstOrNull { it.name == name && it.parameterCount == 0 }
-          ?.let {
-            return it
-          }
-        current = current.superclass
-      }
-      return methods.firstOrNull { it.name == name && it.parameterCount == 0 }
-    }
+    private val zeroArgMethods = ZeroArgMethodCache()
+
+    private fun Class<*>.findZeroArgMethod(name: String): Method? = zeroArgMethods.find(this, name)
   }
 }
 
