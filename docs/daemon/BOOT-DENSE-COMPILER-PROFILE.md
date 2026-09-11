@@ -100,6 +100,64 @@ ReloadDashboardPreview --class-name benchmark.screens.ReloadDashboardPreviewsKt
 fresh `--output` directories. Validate the saved `swapEvery`, 301 frame hashes and
 300 distinct application loader identities before accepting the result.
 
+## Concurrent workers sharing four CPUs
+
+A `PrintFlagsFinal` preflight with the same JDK/Serial heap shows that two allowed
+CPUs already choose `CICompilerCount=2`. Four CPUs choose 3, and eight choose 4;
+the explicit flag selects 2 in each case. `CICompilerCountPerCPU` also changes
+from true to false. These are startup observations, not a claim that two-CPU
+configurations are identical in every respect. The four-CPU case was selected
+because it exercises a real difference in compiler limits.
+
+Three alternating group pairs launch two workers sharing CPUs 0–3 (four distinct
+physical cores); live-worker affinity was checked. Each worker performs 60 actual
+application reloads. Both variants use the same frozen renderer and Serial heap
+settings as above, without profiler, diagnostic GC checkpoints or NMT. The cores
+are not exclusively reserved; host background load is uncontrolled.
+
+| Trial | Variant | Aggregate CPU s | Group elapsed s | Observed combined peak PSS MiB |
+| --- | --- | ---: | ---: | ---: |
+| 0 | default | 129.30 | 44.586 | 1269.50 |
+| 0 | compiler2 | 120.88 | 42.531 | 1165.76 |
+| 1 | compiler2 | 122.54 | 41.510 | 1193.95 |
+| 1 | default | 129.33 | 45.598 | 1260.66 |
+| 2 | default | 132.29 | 46.575 | 1242.50 |
+| 2 | compiler2 | 120.68 | 43.541 | 1183.72 |
+
+Mean aggregate CPU is **130.307 → 121.367 s** (**6.9% lower**), median group
+elapsed time **45.598 → 42.531 s** (**6.7% lower**), and median observed combined
+peak PSS **1260.66 → 1183.72 MiB** (**76.94 MiB / 6.1% lower**). Every pair favors
+the limit on these metrics. All **366 paired PNG/UIA frames match**, with 60
+distinct application loader identities verified per worker. No live-loader
+retention claim is made from identity counts.
+
+Combined PSS is the sum of sequential reads while both workers are alive, sampled
+roughly once per second; it is neither atomic nor an exact peak. Group elapsed
+includes startup/shutdown and up to one polling interval. Aggregate process CPU
+is measured through workload end and excludes shutdown. Page faults vary and do
+not show a consistent benefit. [Full rows, samples and preflight](profiles/compiler-concurrent-four-cpu.json).
+
+The existing concurrent runner now accepts `--policy compiler`, retaining the
+allocator mode as its default. Reproduce with `--cpus 0,1,2,3 --renders 60`, the
+same frozen classpath/user fixture jar as the long reload pair, and a fresh output
+directory:
+
+```sh
+python3 scripts/experiments/benchmark-allocator-concurrent.py --policy compiler \
+  --classpath daemon/android/build/reuse-final-snapshot-frozen/classpath.txt \
+  --user-jar daemon/android/build/locale-weak-frozen/1-testFixtures-classes.jar \
+  --java /usr/lib/jvm/java-17-openjdk/bin/java --cpus 0,1,2,3 --renders 60 \
+  --output daemon/android/build/compiler-concurrent-reproduction
+```
+
+These results strengthen the case for a two-thread setting for the measured
+JDK-17 single-sandbox worker profile. They do not establish a universal optimum
+for different JDKs, large applications, native-image-heavy content or long
+multi-sandbox daemons. Production pooled workers inherit daemon JVM arguments;
+spares receive descriptor arguments, so a later default must cover both launch
+paths and preserve explicit user choices. No production launch policy changes
+in this experiment.
+
 ## Reproduction and decision
 
 ```sh
@@ -123,8 +181,8 @@ unchanged until testing sustained sessions and CPU-constrained concurrent worker
 Long-lived workers may amortize extra compilation, and CPU affinity/container
 limits may already reduce compiler concurrency. Static dense previews do not
 cover arbitrary compute-heavy composables, large consumer apps or native images.
-The 300-reload pair supports extending validation to longer sessions and
-CPU-constrained concurrent workers before changing the production default.
+The 300-reload and four-CPU concurrent results support a measured worker
+profile; validate the production JDK and launch paths before changing defaults.
 
 This reinforces R10's need to separate application, compiler and VM costs. It is
 JVM launch tuning, not a Robolectric bug; applicability and impact in ordinary
