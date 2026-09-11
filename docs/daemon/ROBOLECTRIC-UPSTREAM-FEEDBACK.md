@@ -222,6 +222,14 @@ it is not inherently daemon-only. Tests with a no-action-bar host may avoid this
 path. No ordinary-suite impact measurement exists, so R07 remains **P3**. Our
 repeated PNG decoding was our own pipeline overhead, and is addressed locally.
 
+**Existing capture API to try first:** Roborazzi 1.74.0 already exposes an
+experimental `AwtImageWriter`/`JvmImageIoFormat` that receives the cropped/scaled
+image before encoding. The [image-comparison investigation](BOOT-SETTLE-IMAGE-COMPARISON-EXPERIMENT.md)
+records the pinned source and remaining ownership/reporting/failure questions.
+Do not request an image-writer hook as missing or attribute our intermediate PNG
+round trips to Robolectric. This remains **P3** hosting/API investigation; no
+file-free capture integration or ordinary screenshot-suite benefit is proven.
+
 **Request:** a documented supported offscreen window host with attach/focus/teardown
 semantics, usable with deterministic frame stepping. Roborazzi's Activity/Espresso
 capture assumptions belong in a separate conversation with that project. **Acceptance:**
