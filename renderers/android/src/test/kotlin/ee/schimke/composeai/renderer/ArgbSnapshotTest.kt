@@ -35,6 +35,9 @@ class ArgbSnapshotTest {
       val image = BufferedImage(4, 2, type)
       image.setRGB(0, 0, 4, 2, colors + colors.reversedArray(), 0, 4)
       assertArrayEquals("image type $type", expected(image), snapshotArgb(image))
+      val reused = IntArray(8) { 0x55667788 }
+      assertSame(reused, snapshotArgb(image, reused))
+      assertArrayEquals("reused image type $type", expected(image), reused)
     }
   }
 
@@ -65,6 +68,18 @@ class ArgbSnapshotTest {
         }
       }
     assertArrayEquals(colors, snapshotArgb(image))
+    val reusable = IntArray(4) { 123 }
+    assertArrayEquals(colors, snapshotArgb(image, reusable))
+    assertArrayEquals(IntArray(4) { 123 }, reusable)
+  }
+
+  @Test
+  fun `wrong sized reuse buffer stays untouched`() {
+    val image = BufferedImage(4, 1, BufferedImage.TYPE_INT_ARGB)
+    image.setRGB(0, 0, 4, 1, colors, 0, 4)
+    val wrongSize = intArrayOf(123, 456)
+    assertArrayEquals(colors, snapshotArgb(image, wrongSize))
+    assertArrayEquals(intArrayOf(123, 456), wrongSize)
   }
 
   private fun expected(image: BufferedImage) =
