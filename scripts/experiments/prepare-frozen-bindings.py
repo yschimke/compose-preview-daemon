@@ -12,7 +12,7 @@ parser.add_argument('--jdk', type=Path, required=True)
 parser.add_argument('--output', type=Path, required=True)
 args = parser.parse_args()
 classpath = args.classpath.read_text().splitlines()
-sandbox, = [p for p in classpath if '/org.robolectric/sandbox/4.17-beta-4/' in p]
+sandbox, = [p for p in classpath if '/org.robolectric/sandbox/' in p]
 asm, = [p for p in classpath if '/org.ow2.asm/asm/' in p]
 output = args.output.resolve()
 output.mkdir(parents=True, exist_ok=False)

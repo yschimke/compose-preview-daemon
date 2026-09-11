@@ -1,0 +1,94 @@
+{
+  "configuration": "JDK 17, C1, method-handle threshold 30, constant bindings, no application CDS",
+  "frames": 438,
+  "summary": {
+    "baseline": {
+      "readyWallMs": 3861,
+      "readyCpuMs": 5390.0,
+      "totalWallMs": 16023,
+      "totalCpuMs": 28380.0,
+      "last30MedianMs": 143.5
+    },
+    "async-bc": {
+      "readyWallMs": 3738,
+      "readyCpuMs": 5460.0,
+      "totalWallMs": 16247,
+      "totalCpuMs": 28430.0,
+      "last30MedianMs": 144.5
+    }
+  },
+  "runs": [
+    {
+      "trial": 0,
+      "variant": "baseline",
+      "readyWallMs": 3989,
+      "readyCpuMs": 5600.0,
+      "totalWallMs": 16669,
+      "totalCpuMs": 28880.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 144.0
+    },
+    {
+      "trial": 0,
+      "variant": "async-bc",
+      "readyWallMs": 3757,
+      "readyCpuMs": 5600.0,
+      "totalWallMs": 16247,
+      "totalCpuMs": 29300.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 145.0
+    },
+    {
+      "trial": 1,
+      "variant": "async-bc",
+      "readyWallMs": 3689,
+      "readyCpuMs": 5280.0,
+      "totalWallMs": 16251,
+      "totalCpuMs": 28110.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 144.5
+    },
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "readyWallMs": 3811,
+      "readyCpuMs": 5250.0,
+      "totalWallMs": 15991,
+      "totalCpuMs": 28380.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 143.0
+    },
+    {
+      "trial": 2,
+      "variant": "baseline",
+      "readyWallMs": 3861,
+      "readyCpuMs": 5390.0,
+      "totalWallMs": 16023,
+      "totalCpuMs": 27910.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 143.5
+    },
+    {
+      "trial": 2,
+      "variant": "async-bc",
+      "readyWallMs": 3738,
+      "readyCpuMs": 5460.0,
+      "totalWallMs": 15926,
+      "totalCpuMs": 28430.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 144.5
+    }
+  ]
+}

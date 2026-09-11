@@ -14,7 +14,7 @@ public final class FreezeShadowBindings {
     if (Files.exists(output)) throw new IllegalArgumentException("Output already exists");
     String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(input)));
     if (!digest.equals("afd922c4b79db9b38d6eba6bd3e3e8ff2c4b01d5baf43c1178455cbfacaecc1e")) {
-      throw new IllegalArgumentException("Expected the measured Robolectric 4.17-beta-4 sandbox jar, got " + digest);
+      throw new IllegalArgumentException("Expected the measured Robolectric sandbox jar (4.17-beta-4/4.17), got " + digest);
     }
     boolean constant = args[2].equals("constant");
     int[] rewritten = {0, 0, 0};

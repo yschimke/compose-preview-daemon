@@ -180,8 +180,10 @@ the definition cost; skip if B1/B5 land first.
   A sandbox still copies/loads its native library and initializes fonts and
   hyphenation; profile those operations separately before attempting another cache.
 - BouncyCastle: `AndroidTestEnvironment` constructs and installs the
-  provider unconditionally (~0.75 s, 709 classes from a signed jar). A fork
-  makes it lazy; nothing outside a fork can.
+  provider unconditionally (the original untuned profile attributed ~0.75 s and
+  709 signed-jar classes). Deferral needs a behavior-preserving provider design;
+  simply omitting registration changes explicit BC lookups and available algorithms.
+  See [the tuned omission cost bound](BOOT-BC-EXPERIMENT.md) before estimating gains.
 - Pure-JVM libraries (`kotlinx.serialization`, guava, okio) are acquired by
   the sandbox by default and re-defined per JVM; `doNotAcquirePackage` moves
   them to the parent (and into the archive). Coroutines is the trap:

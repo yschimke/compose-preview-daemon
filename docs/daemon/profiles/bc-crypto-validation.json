@@ -1,0 +1,135 @@
+{
+  "cryptoAssertions": [
+    "real provider class",
+    "SHA-256 known answer",
+    "explicit BC AES cipher round trip",
+    "cipher provider identity"
+  ],
+  "results": [
+    {
+      "variant": "baseline",
+      "exitCode": 0
+    },
+    {
+      "variant": "async-bc",
+      "exitCode": 0
+    },
+    {
+      "variant": "omit-bc",
+      "exitCode": 1
+    }
+  ],
+  "omissionFailure": "BC provider lookup returned null in BouncyCastleProviderSquare",
+  "runs": {
+    "baseline": {
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "-Xverify:all"
+      ],
+      "renders": [
+        {
+          "tag": "red",
+          "fixture": "RedSquare",
+          "wallMs": 207,
+          "cpuMs": 390.0,
+          "pngSha256": "110b9bcedae548beb2eaa17dca0541a84d91cdaef65b3c25b296b4099adc9c5b",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        {
+          "tag": "BouncyCastleProviderSquare-0",
+          "fixture": "BouncyCastleProviderSquare",
+          "wallMs": 163,
+          "cpuMs": 310.0,
+          "pngSha256": "cc36fb4ab5620c7c507062fa61e2fa0dbcc37919a6b474aee66b5c50ccea3e21",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        {
+          "tag": "BouncyCastleProviderSquare-1",
+          "fixture": "BouncyCastleProviderSquare",
+          "wallMs": 142,
+          "cpuMs": 290.0,
+          "pngSha256": "cc36fb4ab5620c7c507062fa61e2fa0dbcc37919a6b474aee66b5c50ccea3e21",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        {
+          "tag": "BouncyCastleProviderSquare-2",
+          "fixture": "BouncyCastleProviderSquare",
+          "wallMs": 132,
+          "cpuMs": 260.0,
+          "pngSha256": "cc36fb4ab5620c7c507062fa61e2fa0dbcc37919a6b474aee66b5c50ccea3e21",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        }
+      ],
+      "recovery": [
+        {
+          "fixture": "RedSquare",
+          "parity": true
+        },
+        {
+          "fixture": "BoomComposable",
+          "expectedFailure": true
+        },
+        {
+          "fixture": "RedSquare",
+          "parity": true
+        }
+      ]
+    },
+    "async-bc": {
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "-Xverify:all"
+      ],
+      "renders": [
+        {
+          "tag": "red",
+          "fixture": "RedSquare",
+          "wallMs": 208,
+          "cpuMs": 380.0,
+          "pngSha256": "110b9bcedae548beb2eaa17dca0541a84d91cdaef65b3c25b296b4099adc9c5b",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        {
+          "tag": "BouncyCastleProviderSquare-0",
+          "fixture": "BouncyCastleProviderSquare",
+          "wallMs": 161,
+          "cpuMs": 300.0,
+          "pngSha256": "cc36fb4ab5620c7c507062fa61e2fa0dbcc37919a6b474aee66b5c50ccea3e21",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        {
+          "tag": "BouncyCastleProviderSquare-1",
+          "fixture": "BouncyCastleProviderSquare",
+          "wallMs": 142,
+          "cpuMs": 280.0,
+          "pngSha256": "cc36fb4ab5620c7c507062fa61e2fa0dbcc37919a6b474aee66b5c50ccea3e21",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        {
+          "tag": "BouncyCastleProviderSquare-2",
+          "fixture": "BouncyCastleProviderSquare",
+          "wallMs": 138,
+          "cpuMs": 260.0,
+          "pngSha256": "cc36fb4ab5620c7c507062fa61e2fa0dbcc37919a6b474aee66b5c50ccea3e21",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        }
+      ],
+      "recovery": [
+        {
+          "fixture": "RedSquare",
+          "parity": true
+        },
+        {
+          "fixture": "BoomComposable",
+          "expectedFailure": true
+        },
+        {
+          "fixture": "RedSquare",
+          "parity": true
+        }
+      ]
+    }
+  }
+}
