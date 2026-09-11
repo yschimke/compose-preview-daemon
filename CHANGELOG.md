@@ -1,5 +1,33 @@
 # Changelog
 
+## [3.3.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.2.0...v3.3.0) (2026-09-11)
+
+
+### Features
+
+* **overrides:** publish the named-override runtime as Kotlin Multiplatform ([#58](https://github.com/yschimke/compose-preview-daemon/issues/58)) ([1eddb3f](https://github.com/yschimke/compose-preview-daemon/commit/1eddb3f024c459bb8ed3d08af515fd94c4daf05c))
+
+
+### Bug Fixes
+
+* **deps:** update compose-ai-tools to v2.16.0 ([#53](https://github.com/yschimke/compose-preview-daemon/issues/53)) ([a7272e3](https://github.com/yschimke/compose-preview-daemon/commit/a7272e399d89df3cea0922fb97b1035fd78fd11d))
+* **deps:** update compose-preview-contracts to v2.16.0 ([#54](https://github.com/yschimke/compose-preview-daemon/issues/54)) ([a639d13](https://github.com/yschimke/compose-preview-daemon/commit/a639d139db09b0455a952eb4bcf4c015a2cd77d2))
+* **deps:** update dependency org.robolectric:robolectric to v4.17 ([#51](https://github.com/yschimke/compose-preview-daemon/issues/51)) ([d7da242](https://github.com/yschimke/compose-preview-daemon/commit/d7da24219eda9ee81c9d363ee294dda309b7f4db))
+
+
+### Performance
+
+* **daemon:** benchmark startup tuning, bindings and CDS ([#49](https://github.com/yschimke/compose-preview-daemon/issues/49)) ([9a7d7b7](https://github.com/yschimke/compose-preview-daemon/commit/9a7d7b7cc5421c0963b2a8a9a64a009ddcc53d0f))
+* **daemon:** measure startup overlap and loaded worker efficiency ([#56](https://github.com/yschimke/compose-preview-daemon/issues/56)) ([18b8237](https://github.com/yschimke/compose-preview-daemon/commit/18b82373ac1024eb603c95646c4927e2d6a27b95))
+
+
+### Chores
+
+* **deps:** update actions/setup-java action to v6 ([#55](https://github.com/yschimke/compose-preview-daemon/issues/55)) ([e0b94e5](https://github.com/yschimke/compose-preview-daemon/commit/e0b94e53e78ccb1a144733ca1e986cc8acad7902))
+* **deps:** update actions/setup-java action to v6.0.1 ([#57](https://github.com/yschimke/compose-preview-daemon/issues/57)) ([a1c7963](https://github.com/yschimke/compose-preview-daemon/commit/a1c79630dec525ddf78a5d63dd8f71177ab83ae8))
+* **deps:** update github-actions ([#52](https://github.com/yschimke/compose-preview-daemon/issues/52)) ([e513293](https://github.com/yschimke/compose-preview-daemon/commit/e513293075f6aea5fcf991f31b4aaf13f379cdd5))
+* **deps:** update gradle to v9.7.1 ([#50](https://github.com/yschimke/compose-preview-daemon/issues/50)) ([29fc3cf](https://github.com/yschimke/compose-preview-daemon/commit/29fc3cfe8233cd9a1f1b8bde1c6cf2f67beec28e))
+
 ## [3.2.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.1.0...v3.2.0) (2026-09-10)
 
 
