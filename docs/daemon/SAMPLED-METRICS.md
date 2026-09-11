@@ -105,6 +105,60 @@ To reproduce, use the cadence-5 variant's JVM flags and frozen classpath with
 --gc-checkpoint-every 50 --heap-histograms`, JDK17 and a fresh output directory.
 
 This option trades measurement frequency and potentially higher resident memory
-for CPU/latency. It has not been qualified for a new default or a particular
-concurrent-worker/server capacity recommendation. The existing eager default and
-worker lifecycle policy remain intact.
+for CPU/latency. It has not been qualified for a new default or a general server capacity
+recommendation. The bounded concurrent experiment below provides narrower evidence.
+The existing eager default and worker lifecycle policy remain intact.
+
+
+## Two workers sharing four CPUs
+
+A subsequent three-pair experiment runs two workers concurrently on the same four
+logical CPUs (0, 1, 2, 3), verified to map to four distinct physical cores. Each
+worker performs 60 actual application reloads. JVM settings remain JDK17, Serial
+256 MiB/Xms32 MiB, free ratios 10/30 and two compiler threads; both variants use
+the same warmed font cache in offline mode. Only the metrics cadence changes.
+The [complete report](profiles/sampled-metrics-concurrent.json) retains live
+worker-affinity observations, all PSS samples, flags, topology, font hashes and
+actual measured/skipped metric counts.
+
+| Metric across worker pairs | Every render | Every fifth render |
+| --- | ---: | ---: |
+| Mean combined process CPU | 117.187 s | 105.897 s (−9.6%) |
+| Median group elapsed | 38.460 s | 32.411 s (−15.7%) |
+| Median observed peak combined PSS | 1165.86 MiB | 1215.52 MiB (+49.66 MiB / 4.3%) |
+
+Every paired trial uses less CPU and finishes sooner at cadence 5. Memory is higher
+in all three pairs: 1165.86→1260.20, 1189.28→1215.52 and 1124.30→1215.38 MiB.
+The difference of aggregate medians above is not the median of paired differences.
+All **366 paired PNG/UIA frames match** and each worker reports 60 distinct
+application loader identities. Across all 12 workers, measured blocks are complete
+and on schedule; skipped measurements contain timing only. The shared font-cache
+hashes are unchanged.
+
+These are renderer-worker costs, not a complete server benchmark. The four CPUs
+are shared by the workers but not reserved exclusively from other host tasks.
+Process CPU ends at workload completion and excludes shutdown; group elapsed
+includes startup, shutdown and up to one polling interval. PSS is read sequentially
+from both live workers once per second, so the maximum observed sum is not an
+atomic measurement or the exact peak. No profiler, NMT or extra diagnostic GC is
+used in this comparison. It supplies no new live-loader census or lifetime bound.
+
+This strengthens the evidence for a CPU/latency tradeoff under contention. It
+continues to cost resident memory, so it does not justify a universal default
+change or a fixed workers-per-server recommendation.
+
+Reproduce after preparing the warmed cache:
+
+```sh
+python3 scripts/experiments/benchmark-allocator-concurrent.py \
+  --policy metrics --cpus 0,1,2,3 --renders 60 \
+  --classpath daemon/android/build/sampled-metrics-frozen/classpath.txt \
+  --user-jar daemon/android/build/locale-weak-frozen/1-testFixtures-classes.jar \
+  --java /usr/lib/jvm/java-17-openjdk/bin/java \
+  --font-cache daemon/android/build/bulk-font-cache \
+  --output daemon/android/build/sampled-metrics-concurrent
+```
+
+The runner's historical allocator and compiler modes remain available. Metrics mode
+requires a warmed cache and checks the fixture's Roboto WOFF2 signatures before
+launch, preventing silent offline fallback from being treated as the same workload.
