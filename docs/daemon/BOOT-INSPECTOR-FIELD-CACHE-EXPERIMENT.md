@@ -120,3 +120,83 @@ application-reload soak was not run for this deferred change, so only the focuse
 disposable-loader test supports its lifetime design. Revisit if a representative
 loaded-server workload demonstrates material benefit; do not claim the field
 cache has completed production validation.
+
+
+## Revisit with the current renderer and warmed fonts
+
+The archived array patch was reapplied after in-memory settling, bulk ARGB
+snapshots, two-compiler-thread launch defaults and sampled metrics were available.
+The 29 focused cache/modifier tests pass, including mutable-value reads and
+collection of a disposable loader with cached accessible fields. The frozen
+candidate differs from the sampled-metrics baseline only at connector classpath
+entry 21; changed jar entries are the field cache and modifier resolver classes
+(including two helper classes whose source positions moved).
+
+Three separate comparisons use the same warmed offline font cache and preserve
+all output. They answer different questions and must not be combined as one
+universal effect:
+
+| Profile | Baseline mean CPU | Candidate mean CPU | Other result |
+| --- | ---: | ---: | --- |
+| Two workers / four CPUs, Serial256/Xms32, metrics every 5, trim every 15 s; 60 actual reloads each | 106.030 s | 104.507 s | CPU -1.4%; median group elapsed -0.06%; median observed peak combined PSS 1235.55→1252.08 MiB (+1.3%). |
+| Single worker, G1/Xmx1g, compiler count 2, every-render metrics, no trim; 60 dense frames | 62.523 s | 61.767 s | CPU -1.2%; median total wall 28.426→28.214 s; median end PSS 781.07→770.38 MiB. |
+| Same G1 workload with the JVM's default compiler count | 72.937 s | 81.827 s | CPU +12.2%; median total wall 28.641→28.809 s; median end PSS 971.43→988.02 MiB. |
+
+The [concurrent report](profiles/field-cache-revisit-concurrent.json) verifies
+366 paired PNG/UIA frames, 60 distinct application loaders per worker, final SVG
+parity, matching JVM policies, CPU affinity and unchanged fonts. Combined PSS is
+sampled sequentially once per second and is not an exact peak. The reused output
+paths do not preserve historical other artifacts or provide a live-loader census.
+
+The [two-compiler G1 report](profiles/field-cache-revisit-g1.json) and
+[default-compiler G1 report](profiles/field-cache-revisit-g1-default-compiler.json)
+each verify 183 paired frames and 2,013 data artifacts, with only the existing
+semantics diagnostic-order and Typeface-identity normalizations. One two-compiler
+CPU pair regresses slightly despite the favorable aggregate. Under the default
+compiler setting, **all three candidate CPU totals are higher**: 73.94→97.54,
+72.58→74.53 and 72.29→73.41 seconds. The large first-pair regression is not hidden
+by the almost-flat median wall time or favorable steady-frame medians.
+
+In that slow candidate, G1 humongous-allocation concurrent starts increase from
+42 to 178, and remark/cleanup counts from seven each to 177 each. Summed rounded
+GC CPU log fields increase from 16.77 to 22.79 seconds. This is evidence of
+substantially different GC activity, not a complete attribution of the 23.60-second
+CPU increase: these log fields do not account for all concurrent CPU work. No
+claim that the cache reduces allocation in this revised workload is made without
+a fresh allocation profile; the earlier allocation result retains its own scope.
+
+**Decision: keep the field cache deferred and remove the reapplied runtime/test
+prototype again.** The small current tuned-profile gains do not justify an
+unconditional change with a reproduced default-compiler CPU regression. The
+original archived patch and new frozen/report artifacts preserve the experiment.
+No new real-runtime lifetime soak is claimed; only focused loader collection and
+the concurrent runs' distinct loader identities have been verified for this cache.
+
+Next investigate allocations of the full-frame settling snapshots, which directly
+create large arrays, while preserving every sample, comparison and final PNG
+validation. Do not reintroduce the field cache merely because it copies fewer
+reflection objects.
+
+### Reproducing the revisit
+
+Reapply the archived patch, format it, run the focused tests and freeze a candidate
+classpath with only the connector jar replaced. The comparison helper accepts a
+candidate classpath while keeping JVM policies equal:
+
+```sh
+python3 scripts/experiments/benchmark-allocator-concurrent.py \
+  --output daemon/android/build/field-cache-revisit-concurrent-repeat \
+  --classpath daemon/android/build/sampled-metrics-frozen/classpath.txt \
+  --candidate-classpath daemon/android/build/field-cache-revisit-frozen/classpath.txt \
+  --user-jar daemon/android/build/locale-weak-frozen/1-testFixtures-classes.jar \
+  --java /usr/lib/jvm/java-17-openjdk/bin/java \
+  --cpus 0,1,2,3 --renders 60 --policy classpath \
+  --font-cache daemon/android/build/bulk-font-cache
+```
+
+Run `scripts/benchmark-worker-matrix.py` with
+`scripts/experiments/field-cache-revisit-g1.json` or
+`scripts/experiments/field-cache-revisit-g1-default-compiler.json`, a fresh output
+directory, `--trials 3 --renders 60 --fixture DenseDashboardPreview --width 480
+--height 1200 --memory`, and the same baseline classpath/JDK. Keep builds, profilers
+and other benchmarks stopped during timings.

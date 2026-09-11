@@ -4,8 +4,15 @@ import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
 
 /** Copies a frame without converting pixels that already use the default ARGB model. */
-internal fun snapshotArgb(image: BufferedImage): IntArray {
-  val pixels = IntArray(image.width * image.height)
+internal fun snapshotArgb(image: BufferedImage): IntArray = snapshotArgb(image, null)
+
+/** Reuses a matching caller-owned buffer for standard BufferedImage implementations. */
+internal fun snapshotArgb(image: BufferedImage, reusablePixels: IntArray?): IntArray {
+  val size = image.width * image.height
+  // Preserve fresh output arrays for arbitrary getRGB overrides, as in the original path.
+  val pixels =
+    reusablePixels?.takeIf { it.size == size && image.javaClass == BufferedImage::class.java }
+      ?: IntArray(size)
   if (
     image.javaClass == BufferedImage::class.java &&
       image.type == BufferedImage.TYPE_INT_ARGB &&

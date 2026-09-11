@@ -1,0 +1,348 @@
+{
+  "source": "daemon/android/build/settle-buffer-reuse-g1-compiler2",
+  "scope": "Three alternating single-worker pairs, G1/Xmx1g, two compiler threads, every-render metrics, warmed offline font cache, no native trimming, red plus 60 dense frames. Checks buffer reuse in the current renderer under the two-compiler-thread G1 configuration; timings remain profile-specific. No extra diagnostic GC, histograms or profiler.",
+  "rows": [
+    {
+      "trial": 0,
+      "variant": "baseline",
+      "readyWallMs": 4109,
+      "readyCpuMs": 9490.0,
+      "totalWallMs": 28307,
+      "totalCpuMs": 62430.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 366.0,
+      "last30MeanCpuMs": 738.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 924636,
+        "VmRSS": 813084,
+        "RssAnon": 755420,
+        "RssFile": 55584,
+        "RssShmem": 2080,
+        "Pss": 807356,
+        "Private": 807124
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ]
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "readyWallMs": 4164,
+      "readyCpuMs": 9740.0,
+      "totalWallMs": 28241,
+      "totalCpuMs": 60300.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 364.5,
+      "last30MeanCpuMs": 691.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 792076,
+        "VmRSS": 772888,
+        "RssAnon": 715252,
+        "RssFile": 55556,
+        "RssShmem": 2080,
+        "Pss": 767207,
+        "Private": 766980
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "readyWallMs": 4102,
+      "readyCpuMs": 9640.0,
+      "totalWallMs": 28212,
+      "totalCpuMs": 60690.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 364.0,
+      "last30MeanCpuMs": 698.6666666666666,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 791668,
+        "VmRSS": 772512,
+        "RssAnon": 715076,
+        "RssFile": 55356,
+        "RssShmem": 2080,
+        "Pss": 766774,
+        "Private": 766540
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "readyWallMs": 4128,
+      "readyCpuMs": 9550.0,
+      "totalWallMs": 28615,
+      "totalCpuMs": 62040.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 372.0,
+      "last30MeanCpuMs": 731.6666666666666,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 902640,
+        "VmRSS": 780516,
+        "RssAnon": 723072,
+        "RssFile": 55364,
+        "RssShmem": 2080,
+        "Pss": 774806,
+        "Private": 774572
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "baseline",
+      "readyWallMs": 4105,
+      "readyCpuMs": 9520.0,
+      "totalWallMs": 28785,
+      "totalCpuMs": 63780.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 376.5,
+      "last30MeanCpuMs": 762.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 915900,
+        "VmRSS": 780436,
+        "RssAnon": 722740,
+        "RssFile": 55616,
+        "RssShmem": 2080,
+        "Pss": 774694,
+        "Private": 774472
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "readyWallMs": 4169,
+      "readyCpuMs": 9590.0,
+      "totalWallMs": 28180,
+      "totalCpuMs": 61090.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 363.0,
+      "last30MeanCpuMs": 701.6666666666666,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 795740,
+        "VmRSS": 780824,
+        "RssAnon": 723272,
+        "RssFile": 55472,
+        "RssShmem": 2080,
+        "Pss": 775091,
+        "Private": 774880
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ]
+    }
+  ],
+  "parity": [
+    {
+      "baseline": "daemon/android/build/settle-buffer-reuse-g1-compiler2/0-baseline",
+      "candidate": "daemon/android/build/settle-buffer-reuse-g1-compiler2/0-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/settle-buffer-reuse-g1-compiler2/1-baseline",
+      "candidate": "daemon/android/build/settle-buffer-reuse-g1-compiler2/1-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/settle-buffer-reuse-g1-compiler2/2-baseline",
+      "candidate": "daemon/android/build/settle-buffer-reuse-g1-compiler2/2-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 120,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 60,
+        "fonts-used.json": 60
+      },
+      "parity": true
+    }
+  ],
+  "aggregates": {
+    "baseline": {
+      "meanCpuMs": 62750.0,
+      "medianTotalWallMs": 28615,
+      "medianSteadyCpuMs": 738.0,
+      "medianSteadyWallMs": 372.0,
+      "medianEndPssMiB": 756.646484375
+    },
+    "candidate": {
+      "meanCpuMs": 60693.333333333336,
+      "medianTotalWallMs": 28212,
+      "medianSteadyCpuMs": 698.6666666666666,
+      "medianSteadyWallMs": 364.0,
+      "medianEndPssMiB": 749.2255859375
+    }
+  },
+  "fontCacheSha256": {
+    "carrois-gothic-sc-400.ttf": "cde765545a44feea3bd1d1665de6aad01bbbbced1b619c3a462bc407febe8560",
+    "coming-soon-400.ttf": "c86be0372fad98e347efe9d38bb976a89b9f2eeda158d59a169a6981bdb56990",
+    "cutive-mono-400.ttf": "20c0220ef9ccb50de02353bd22e239da29a7837b3a1953abc354a10d94b290cc",
+    "dancing-script-400.ttf": "14e256280323ac39486a22d4a7cd6f5a737772ea4a7ec3052ee4ac463b71c4aa",
+    "google-sans-flex-400.ttf": "c16fda9ab98b0027caee4881acc07d57eddf9c1b2a68f91baa773c1c9ca7ba41",
+    "noto-sans-400.ttf": "61ea1e781b9d7b10db9b4a6aa2d855cf2215c316c7cb700aeb067a0440d031e0",
+    "noto-sans-mono-400.ttf": "f3e000b8a56b489f9cd3d1d531d2421fad3c67835acabd39cff8cd8299fa0dfc",
+    "noto-serif-400.ttf": "a6e0283968e506c67c3d4ff94093e3ff9f4d7ec3c704ff1cb51382f1e45b66b9",
+    "roboto-400.ttf": "66b9c6a9e7ab0d889f31775fc0fd71bf802d61068ab70f69d37e0cd536604617",
+    "roboto-400.woff2": "425c0713a8176f92273d378599c7eac57de7fafabd4bd0ed457b70eb8f80d371",
+    "roboto-500.woff2": "5bcc3aa180e7f26f643cd5b2621cd7c2de193d0661d913a94afd3d4881a7a34b",
+    "roboto-flex-400.ttf": "7a0aae29a147c35f86b7950556933ecd8daacf8c7080c6686246f46e1e27c3f8"
+  }
+}

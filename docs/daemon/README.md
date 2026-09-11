@@ -55,6 +55,8 @@ the CI-canonical render path.
 - **[SANDBOX-POOL.md](SANDBOX-POOL.md)** — in-JVM sandbox pool.
 - **[BOOT-CPU-PROFILE.md](BOOT-CPU-PROFILE.md)** — production-worker CPU attribution, reproducible
   flamegraphs, and measured JVM compiler-setting tradeoffs.
+- **[BOOT-SETTLING-BUFFER-REUSE.md](BOOT-SETTLING-BUFFER-REUSE.md)** — owned settling buffers,
+  correctness checks, and CPU/memory comparisons through 300 concurrent reloads.
 - **[STARTUP.md](STARTUP.md)** — daemon startup latency analysis.
 - **[BOOT-ROADMAP.md](BOOT-ROADMAP.md)** — the ranked plan for a 2-3 s sandbox boot: adoptable
   warmed workers, and what a Robolectric fork would change.
