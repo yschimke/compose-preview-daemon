@@ -32,6 +32,8 @@ def main():
     parser.add_argument("--density", type=float, default=2.0,
         help="Pixel density (default: 2, matching historical RenderSpec requests)")
     parser.add_argument("--memory", action="store_true")
+    parser.add_argument("--uncached-fonts", action="store_true",
+        help="Forward the historical uncached-font mode to every worker")
     args = parser.parse_args()
     if args.compare_pixels:
         try:
@@ -71,6 +73,8 @@ def main():
                 "--width", str(args.width), "--height", str(args.height), "--density", str(args.density)]
             if args.memory:
                 command.append("--memory")
+            if args.uncached_fonts:
+                command.append("--uncached-fonts")
             for fixture in args.fixture:
                 command += ["--fixture", fixture]
             command += ["--jvm-arg=" + flag for flag in variant.get("jvmArgs", [])]

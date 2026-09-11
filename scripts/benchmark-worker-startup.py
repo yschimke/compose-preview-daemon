@@ -45,6 +45,8 @@ def main():
     parser.add_argument("--java", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--jvm-arg", action="append", default=[])
+    parser.add_argument("--uncached-fonts", action="store_true",
+        help="Reproduce historical uncached font downloads; normally each run uses output/font-cache unless composeai.fonts.cacheDir is supplied")
     parser.add_argument("--memory", action="store_true", help="Sample RSS at 100 ms and snapshot PSS/private memory at readiness and workload end (Linux)")
     parser.add_argument("--profiler", type=Path, help="Path to libasyncProfiler.so (4.5)")
     parser.add_argument("--renders", type=int, default=10, help="Fixture renders after one red render")
@@ -71,6 +73,9 @@ def main():
     parser.add_argument("--swap-every", type=int, default=0,
         help="Swap application classloaders every N fixture renders (diagnostic workload)")
     args = parser.parse_args()
+    has_font_cache = any(flag.startswith("-Dcomposeai.fonts.cacheDir=") for flag in args.jvm_arg)
+    if args.uncached_fonts and has_font_cache:
+        parser.error("--uncached-fonts conflicts with composeai.fonts.cacheDir")
     if args.swap_every < 0 or (args.swap_every and not args.user_class_dir):
         parser.error("--swap-every must be nonnegative and requires --user-class-dir")
     if any(not path.exists() for path in args.user_class_dir):
@@ -90,6 +95,10 @@ def main():
         parser.error("--renders must be positive")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
+    if not args.uncached_fonts and not has_font_cache:
+        # Generated daemon launch plans supply a font cache too. Without one, SVG export
+        # fetches CSS/WOFF2 again on every render and network stalls contaminate frame timings.
+        args.jvm_arg.append(f"-Dcomposeai.fonts.cacheDir={output / 'font-cache'}")
     cp = os.pathsep.join(args.classpath.read_text().splitlines())
     command = [args.java, "-Xmx1g", *args.jvm_arg]
     if args.profiler:
@@ -106,10 +115,11 @@ def main():
     ]
     lines = queue.Queue()
     started = time.monotonic()
+    started_unix = time.time()
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     (output / "worker.pid").write_text(str(process.pid) + "\n")
     summary = {"memoryMeasured": args.memory, "java": args.java, "jvmArgs": args.jvm_arg, "profiled": bool(args.profiler),
-        "dimensions": [args.width, args.height], "density": args.density, "gcCheckpointEvery": args.gc_checkpoint_every, "heapHistograms": args.heap_histograms, "nativeMemoryCheckpoints": args.native_memory_checkpoints, "heapCheckpoints": [], "reuseOutput": args.reuse_output, "fixtureClass": args.class_name, "swapEvery": args.swap_every, "userClassDirs": [str(p.resolve()) for p in args.user_class_dir], "fixtures": fixtures, "startedUnixSeconds": time.time(),
+        "dimensions": [args.width, args.height], "density": args.density, "gcCheckpointEvery": args.gc_checkpoint_every, "heapHistograms": args.heap_histograms, "nativeMemoryCheckpoints": args.native_memory_checkpoints, "heapCheckpoints": [], "reuseOutput": args.reuse_output, "fixtureClass": args.class_name, "swapEvery": args.swap_every, "userClassDirs": [str(p.resolve()) for p in args.user_class_dir], "fixtures": fixtures, "startedUnixSeconds": started_unix,
         "hostLoadAverage": os.getloadavg(), "logicalCpus": os.cpu_count(), "renders": []}
 
     def pump():
@@ -201,7 +211,8 @@ def main():
                         "functionName": function, "widthPx": args.width, "heightPx": args.height, "density": args.density,
                         "outputBaseName": tag,
                     }}})
-                wall_ms = round((time.monotonic() - before) * 1000)
+                after = time.monotonic()
+                wall_ms = round((after - before) * 1000)
                 used_cpu = cpu_ms(process.pid) - before_cpu
                 if reply.get("type") != "result":
                     raise RuntimeError(f"render failed: {reply}")
@@ -215,6 +226,8 @@ def main():
                 if not data.startswith(b"\x89PNG\r\n\x1a\n"):
                     raise RuntimeError(f"invalid PNG: {png}")
                 summary["renders"].append({"tag": tag, "fixture": function, "wallMs": wall_ms,
+                    "startedElapsedMs": round((before - started) * 1000),
+                    "finishedElapsedMs": round((after - started) * 1000),
                     "cpuMs": used_cpu, "classLoaderHashCode": loader, "workerMetrics": reply["result"].get("metrics"), "pngSha256": hashlib.sha256(data).hexdigest(),
                     "uiaSha256": hashlib.sha256((output / "data" / tag / "uia-hierarchy.json").read_bytes()).hexdigest()})
                 if args.swap_every and index > 0 and index % args.swap_every == 0 and index < args.renders:

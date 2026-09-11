@@ -3795,8 +3795,7 @@ internal fun sampleVisuallySettledFrames(
   repeat(VISUAL_SETTLE_MAX_SAMPLES) { sample ->
     if (sample > 0) advanceFrame()
     val image = capture()
-    val pixels = IntArray(image.width * image.height)
-    image.getRGB(0, 0, image.width, image.height, pixels, 0, image.width)
+    val pixels = snapshotArgb(image)
 
     val sameAsPrevious =
       image.width == previousWidth &&

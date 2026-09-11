@@ -1,0 +1,378 @@
+{
+  "rows": [
+    {
+      "variant": "baseline",
+      "source": "daemon/android/build/bulk-argb-long-reloads-baseline",
+      "java": "/usr/lib/jvm/java-17-openjdk/bin/java",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2"
+      ],
+      "totalCpuMs": 182820.0,
+      "totalWallMs": 192138,
+      "readyCpuMs": 9380.0,
+      "readyMemoryKiB": {
+        "VmHWM": 425700,
+        "VmRSS": 425700,
+        "RssAnon": 370852,
+        "RssFile": 52004,
+        "RssShmem": 2844,
+        "Pss": 405468,
+        "Private": 398500
+      },
+      "workloadEndMemoryKiB": {
+        "VmHWM": 684496,
+        "VmRSS": 664848,
+        "RssAnon": 609872,
+        "RssFile": 52132,
+        "RssShmem": 2844,
+        "Pss": 644950,
+        "Private": 638244
+      },
+      "distinctApplicationLoaders": 300,
+      "windows": [
+        {
+          "fromReload": 1,
+          "throughReload": 50,
+          "meanCpuMs": 846.6,
+          "medianWallMs": 564.5,
+          "medianWorkerHeapAfterGcMb": 97.0,
+          "endWorkerHeapAfterGcMb": 98
+        },
+        {
+          "fromReload": 51,
+          "throughReload": 100,
+          "meanCpuMs": 565.8,
+          "medianWallMs": 534.0,
+          "medianWorkerHeapAfterGcMb": 97.0,
+          "endWorkerHeapAfterGcMb": 93
+        },
+        {
+          "fromReload": 101,
+          "throughReload": 150,
+          "meanCpuMs": 517.4,
+          "medianWallMs": 525.5,
+          "medianWorkerHeapAfterGcMb": 98.0,
+          "endWorkerHeapAfterGcMb": 99
+        },
+        {
+          "fromReload": 151,
+          "throughReload": 200,
+          "meanCpuMs": 506.6,
+          "medianWallMs": 527.0,
+          "medianWorkerHeapAfterGcMb": 98.0,
+          "endWorkerHeapAfterGcMb": 94
+        },
+        {
+          "fromReload": 201,
+          "throughReload": 250,
+          "meanCpuMs": 520.8,
+          "medianWallMs": 529.0,
+          "medianWorkerHeapAfterGcMb": 99.0,
+          "endWorkerHeapAfterGcMb": 99
+        },
+        {
+          "fromReload": 251,
+          "throughReload": 300,
+          "meanCpuMs": 492.0,
+          "medianWallMs": 529.0,
+          "medianWorkerHeapAfterGcMb": 87.0,
+          "endWorkerHeapAfterGcMb": 81
+        }
+      ],
+      "rssThirtySecondBins": [
+        {
+          "startElapsedMs": 0,
+          "endElapsedMs": 30000,
+          "medianRssMiB": 525.33203125,
+          "maxRssMiB": 591.76953125
+        },
+        {
+          "startElapsedMs": 30000,
+          "endElapsedMs": 60000,
+          "medianRssMiB": 587.90625,
+          "maxRssMiB": 598.15625
+        },
+        {
+          "startElapsedMs": 60000,
+          "endElapsedMs": 90000,
+          "medianRssMiB": 637.072265625,
+          "maxRssMiB": 651.30859375
+        },
+        {
+          "startElapsedMs": 90000,
+          "endElapsedMs": 120000,
+          "medianRssMiB": 654.61328125,
+          "maxRssMiB": 659.5078125
+        },
+        {
+          "startElapsedMs": 120000,
+          "endElapsedMs": 150000,
+          "medianRssMiB": 661.21875,
+          "maxRssMiB": 664.4296875
+        },
+        {
+          "startElapsedMs": 150000,
+          "endElapsedMs": 180000,
+          "medianRssMiB": 666.01953125,
+          "maxRssMiB": 668.55078125
+        },
+        {
+          "startElapsedMs": 180000,
+          "endElapsedMs": 192138,
+          "medianRssMiB": 669.0546875,
+          "maxRssMiB": 669.75
+        }
+      ],
+      "renderWallSumMs": 187259,
+      "framesOverTwoSeconds": 5,
+      "slowestFrames": [
+        {
+          "index": 296,
+          "wallMs": 4354,
+          "cpuMs": 470.0,
+          "workerTookMs": 4219
+        },
+        {
+          "index": 300,
+          "wallMs": 3716,
+          "cpuMs": 550.0,
+          "workerTookMs": 3575
+        },
+        {
+          "index": 264,
+          "wallMs": 3650,
+          "cpuMs": 500.0,
+          "workerTookMs": 3508
+        },
+        {
+          "index": 241,
+          "wallMs": 2557,
+          "cpuMs": 460.0,
+          "workerTookMs": 2414
+        },
+        {
+          "index": 145,
+          "wallMs": 2348,
+          "cpuMs": 520.0,
+          "workerTookMs": 2214
+        },
+        {
+          "index": 280,
+          "wallMs": 1826,
+          "cpuMs": 510.0,
+          "workerTookMs": 1681
+        },
+        {
+          "index": 100,
+          "wallMs": 1454,
+          "cpuMs": 560.0,
+          "workerTookMs": 1320
+        },
+        {
+          "index": 275,
+          "wallMs": 1433,
+          "cpuMs": 460.0,
+          "workerTookMs": 1297
+        }
+      ],
+      "largestLoggedGcPauseMs": 158.042
+    },
+    {
+      "variant": "bulk",
+      "source": "daemon/android/build/bulk-argb-long-reloads-bulk",
+      "java": "/usr/lib/jvm/java-17-openjdk/bin/java",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2"
+      ],
+      "totalCpuMs": 177700.0,
+      "totalWallMs": 225973,
+      "readyCpuMs": 9610.0,
+      "readyMemoryKiB": {
+        "VmHWM": 423904,
+        "VmRSS": 423904,
+        "RssAnon": 369452,
+        "RssFile": 51608,
+        "RssShmem": 2844,
+        "Pss": 403746,
+        "Private": 396796
+      },
+      "workloadEndMemoryKiB": {
+        "VmHWM": 697260,
+        "VmRSS": 676372,
+        "RssAnon": 621792,
+        "RssFile": 51736,
+        "RssShmem": 2844,
+        "Pss": 656525,
+        "Private": 649824
+      },
+      "distinctApplicationLoaders": 300,
+      "windows": [
+        {
+          "fromReload": 1,
+          "throughReload": 50,
+          "meanCpuMs": 827.8,
+          "medianWallMs": 546.5,
+          "medianWorkerHeapAfterGcMb": 97.0,
+          "endWorkerHeapAfterGcMb": 98
+        },
+        {
+          "fromReload": 51,
+          "throughReload": 100,
+          "meanCpuMs": 551.4,
+          "medianWallMs": 505.0,
+          "medianWorkerHeapAfterGcMb": 97.0,
+          "endWorkerHeapAfterGcMb": 93
+        },
+        {
+          "fromReload": 101,
+          "throughReload": 150,
+          "meanCpuMs": 505.0,
+          "medianWallMs": 503.0,
+          "medianWorkerHeapAfterGcMb": 97.5,
+          "endWorkerHeapAfterGcMb": 99
+        },
+        {
+          "fromReload": 151,
+          "throughReload": 200,
+          "meanCpuMs": 483.2,
+          "medianWallMs": 504.0,
+          "medianWorkerHeapAfterGcMb": 98.0,
+          "endWorkerHeapAfterGcMb": 94
+        },
+        {
+          "fromReload": 201,
+          "throughReload": 250,
+          "meanCpuMs": 499.2,
+          "medianWallMs": 494.5,
+          "medianWorkerHeapAfterGcMb": 87.0,
+          "endWorkerHeapAfterGcMb": 87
+        },
+        {
+          "fromReload": 251,
+          "throughReload": 300,
+          "meanCpuMs": 471.4,
+          "medianWallMs": 490.5,
+          "medianWorkerHeapAfterGcMb": 86.0,
+          "endWorkerHeapAfterGcMb": 81
+        }
+      ],
+      "rssThirtySecondBins": [
+        {
+          "startElapsedMs": 0,
+          "endElapsedMs": 30000,
+          "medianRssMiB": 567.501953125,
+          "maxRssMiB": 628.09765625
+        },
+        {
+          "startElapsedMs": 30000,
+          "endElapsedMs": 60000,
+          "medianRssMiB": 631.96484375,
+          "maxRssMiB": 641.37109375
+        },
+        {
+          "startElapsedMs": 60000,
+          "endElapsedMs": 90000,
+          "medianRssMiB": 646.546875,
+          "maxRssMiB": 658.44140625
+        },
+        {
+          "startElapsedMs": 90000,
+          "endElapsedMs": 120000,
+          "medianRssMiB": 661.9765625,
+          "maxRssMiB": 666.20703125
+        },
+        {
+          "startElapsedMs": 120000,
+          "endElapsedMs": 150000,
+          "medianRssMiB": 667.96484375,
+          "maxRssMiB": 671.7265625
+        },
+        {
+          "startElapsedMs": 150000,
+          "endElapsedMs": 180000,
+          "medianRssMiB": 674.20703125,
+          "maxRssMiB": 678.62890625
+        },
+        {
+          "startElapsedMs": 180000,
+          "endElapsedMs": 210000,
+          "medianRssMiB": 679.193359375,
+          "maxRssMiB": 682.56640625
+        },
+        {
+          "startElapsedMs": 210000,
+          "endElapsedMs": 225973,
+          "medianRssMiB": 682.74609375,
+          "maxRssMiB": 683.33203125
+        }
+      ],
+      "renderWallSumMs": 221041,
+      "framesOverTwoSeconds": 20,
+      "slowestFrames": [
+        {
+          "index": 55,
+          "wallMs": 5987,
+          "cpuMs": 750.0,
+          "workerTookMs": 5862
+        },
+        {
+          "index": 75,
+          "wallMs": 5202,
+          "cpuMs": 650.0,
+          "workerTookMs": 5069
+        },
+        {
+          "index": 159,
+          "wallMs": 5095,
+          "cpuMs": 470.0,
+          "workerTookMs": 4957
+        },
+        {
+          "index": 232,
+          "wallMs": 4511,
+          "cpuMs": 480.0,
+          "workerTookMs": 4367
+        },
+        {
+          "index": 183,
+          "wallMs": 4286,
+          "cpuMs": 450.0,
+          "workerTookMs": 4145
+        },
+        {
+          "index": 19,
+          "wallMs": 3749,
+          "cpuMs": 830.0,
+          "workerTookMs": 3635
+        },
+        {
+          "index": 43,
+          "wallMs": 3453,
+          "cpuMs": 660.0,
+          "workerTookMs": 3331
+        },
+        {
+          "index": 281,
+          "wallMs": 3306,
+          "cpuMs": 460.0,
+          "workerTookMs": 3173
+        }
+      ],
+      "largestLoggedGcPauseMs": 151.248
+    }
+  ],
+  "matchingPngUiaPairs": 301,
+  "scope": "One ordered baseline-then-bulk pair. Worker-reported heap is not a live-loader census; RSS bins are time-based samples, PSS is readiness/end snapshots. Output reuse preserves PNG/UIA hashes but not all historical data artifacts."
+}
