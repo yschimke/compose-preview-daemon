@@ -1221,6 +1221,9 @@ public class JsonRpcServer(
     if (isUnchanged) interactiveIdleRun.merge(previewId, 1, Int::plus)
     else interactiveIdleRun.remove(previewId)
     val outboundFinished = if (isUnchanged) finished.copy(unchanged = true) else finished
+    // A client can enqueue another save as soon as it receives this frame. That save must not
+    // be drained by this render's later history/cleanup work.
+    val discoveryBoundary = deferredDiscovery.currentSequence()
     sendNotification("renderFinished", encode(RenderFinishedParams.serializer(), outboundFinished))
     // Live-frame streaming (`composestream/1`). The streaming layer is a *consumer* of the
     // renderFinished above, not a replacement for it: legacy clients keep painting via
@@ -1284,7 +1287,7 @@ public class JsonRpcServer(
     // been waiting for this render to ship. The writer queue is FIFO and `renderFinished` is
     // already in it — kicking the discovery scan now guarantees its `discoveryUpdated`
     // notification (if any) lands strictly after the render the user just saw.
-    drainPendingDiscovery()
+    drainPendingDiscovery(discoveryBoundary)
   }
 
   /**
@@ -3288,10 +3291,10 @@ public class JsonRpcServer(
 
   /**
    * Queues [path] for a deferred discovery cascade. The user-visible invariant this enforces
-   * (matching the editor save-loop design): a save NEVER surfaces a metadata event before the
-   * corresponding render. Renders are what the user actually looks at; the metadata reconcile is a
-   * quiet background pass that only paints the panel when the preview set actually drifted
-   * (`discoveryUpdated` is silent on an empty diff — see [runIncrementalDiscoveryNow]).
+   * (matching the editor save-loop design): prefer a render notification before metadata, with the
+   * save's own watchdog as the no-render fallback. The metadata reconcile is a quiet background
+   * pass that only paints the panel when the preview set actually drifted (`discoveryUpdated` is
+   * silent on an empty diff — see [runIncrementalDiscoveryNow]).
    *
    * No-op when [incrementalDiscovery] is null — preserves the pre-phase-2 contract for in-process
    * integration tests and the fake-mode harness scenarios that don't wire one.
@@ -3302,11 +3305,11 @@ public class JsonRpcServer(
   }
 
   /**
-   * Drains every pending deferred-discovery scan. Called from [emitRenderFinished] after the render
-   * notification flushes; the queue's own watchdog races this and the loser sees an empty queue.
+   * Drains saves captured before this frame was published. Later saves wait for another render or
+   * their own watchdog; a watchdog and this drain may race to claim each eligible entry.
    */
-  private fun drainPendingDiscovery() {
-    deferredDiscovery.drain()
+  private fun drainPendingDiscovery(boundary: Long) {
+    deferredDiscovery.drainThrough(boundary)
   }
 
   /**

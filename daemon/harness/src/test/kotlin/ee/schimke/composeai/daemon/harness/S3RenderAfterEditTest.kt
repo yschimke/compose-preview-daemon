@@ -65,7 +65,14 @@ class S3RenderAfterEditTest {
     )
     writePreviewsManifest(paths.fixtureDir, listOf(previewId to sourceKtFile.absolutePath))
 
-    val client = HarnessClient.start(fixtureDir = paths.fixtureDir, classpath = paths.classpath)
+    // This scenario tests the render-triggered discovery path. Keep the no-render watchdog
+    // beyond the render/assertion budget so a loaded CI runner cannot select the fallback path.
+    val client =
+      HarnessClient.start(
+        fixtureDir = paths.fixtureDir,
+        classpath = paths.classpath,
+        extraJvmArgs = listOf("-Dcomposeai.daemon.discoveryWatchdogMs=30000"),
+      )
     try {
       val initResult = client.initialize()
       assertEquals(2, initResult.protocolVersion)
