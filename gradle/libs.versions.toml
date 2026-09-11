@@ -506,6 +506,7 @@ fontbox = { module = "org.apache.pdfbox:fontbox", version.ref = "fontbox" }
 ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 roborazzi = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
+roborazzi-painter = { module = "io.github.takahirom.roborazzi:roborazzi-painter", version.ref = "roborazzi" }
 roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose", version.ref = "roborazzi" }
 roborazzi-accessibility-check = { module = "io.github.takahirom.roborazzi:roborazzi-accessibility-check", version.ref = "roborazzi" }
 checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker-qual" }

@@ -1,0 +1,44 @@
+{
+  "baseline": {
+    "total": 6048613315,
+    "settlingInclusive": 2089134324,
+    "pngReaderInclusive": 862545844,
+    "imageIOWriteInclusive": 18874332,
+    "bitmapConversionInclusive": 385420158
+  },
+  "candidate": {
+    "total": 5453869081,
+    "settlingInclusive": 1552320361,
+    "pngReaderInclusive": 159605171,
+    "imageIOWriteInclusive": 7340018,
+    "bitmapConversionInclusive": 378628943
+  },
+  "parity": {
+    "baseline": "daemon/android/build/in-memory-settling-baseline-allocation",
+    "candidate": "daemon/android/build/in-memory-settling-candidate-allocation",
+    "checkedFrames": 37,
+    "checkedDataArtifacts": 407,
+    "artifacts": [
+      "layout-inspector.json",
+      "compose-semantics.json",
+      "compose-figma.svg",
+      "compose-semantics-wireframe.png",
+      "compose-semantics-wireframe.svg",
+      "compose-spatial-semantics.json",
+      "fonts-used.json",
+      "i18n-translations.json",
+      "navigation.json",
+      "resources-used.json",
+      "uia-hierarchy.json"
+    ],
+    "normalizedJvmLambdas": false,
+    "normalizedSemanticsDebugOrder": true,
+    "normalizedTypefaceIdentities": true,
+    "normalizedArtifactComparisons": 36,
+    "normalizedArtifactNames": {
+      "fonts-used.json": 36
+    },
+    "parity": true
+  },
+  "note": "Post-readiness sampled byte weights, not exact allocation counts or live heap. Inclusive categories overlap and must not be summed. Both runs instrumented with async-profiler allocations at 512 KiB and equal G1 thread bounds (2/1); timings excluded."
+}

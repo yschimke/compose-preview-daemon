@@ -226,9 +226,16 @@ repeated PNG decoding was our own pipeline overhead, and is addressed locally.
 experimental `AwtImageWriter`/`JvmImageIoFormat` that receives the cropped/scaled
 image before encoding. The [image-comparison investigation](BOOT-SETTLE-IMAGE-COMPARISON-EXPERIMENT.md)
 records the pinned source and remaining ownership/reporting/failure questions.
-Do not request an image-writer hook as missing or attribute our intermediate PNG
-round trips to Robolectric. This remains **P3** hosting/API investigation; no
-file-free capture integration or ordinary screenshot-suite benefit is proven.
+The [in-memory settling implementation](BOOT-IN-MEMORY-SETTLING-EXPERIMENT.md) now
+validates cropped-image lifetime after canvas release and PNG metadata with the
+real painter, plus daemon dialog/override paths. Plain-JVM tests must set
+an explicit screenshot capture type because the options default reads
+Robolectric's `ConfigurationRegistry`; this is embedding/test-setup friction,
+not a demonstrated bug in ordinary runner-based tests. Its performance opportunity
+is avoiding intermediate encodes in multi-sample capture, not speeding up a normal
+one-shot screenshot. Do not request an image-writer hook as missing or attribute
+our intermediate PNG round trips to Robolectric. This remains **P3** hosting/API investigation;
+broader ordinary screenshot-suite benefit remains unproven.
 
 **Request:** a documented supported offscreen window host with attach/focus/teardown
 semantics, usable with deterministic frame stepping. Roborazzi's Activity/Espresso

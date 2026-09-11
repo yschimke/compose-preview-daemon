@@ -313,6 +313,7 @@ dependencies {
   testImplementation("androidx.compose.ui:ui-text-google-fonts")
 
   implementation(libs.roborazzi)
+  testImplementation(libs.roborazzi.painter)
   implementation(libs.roborazzi.compose)
   // ATF (roborazzi-accessibility-check + the transitive
   // `accessibility-test-framework`) is no longer wired here — the standalone Robolectric

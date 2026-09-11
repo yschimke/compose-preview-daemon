@@ -898,12 +898,12 @@ class RenderEngine(
               "compose-ai-daemon: [render] phase=captureRoboImage.start outputBaseName=${spec.outputBaseName}"
             )
             trace.section("render:captureRoboImage") {
-              fun capture(candidate: File) {
+              fun capture(candidate: File, captureOptions: RoborazziOptions = roborazziOptions) {
                 resolveRenderedCaptureRoot(rule)
                   .interaction
                   .captureRoboImage(
                     file = candidate,
-                    roborazziOptions = roborazziOptions,
+                    roborazziOptions = captureOptions,
                   )
               }
 
@@ -921,8 +921,9 @@ class RenderEngine(
               // this lane did not.
               if (spec.captureAdvanceMs == null && !hasExactSettle) {
                 val visuallySettled =
-                  ee.schimke.composeai.renderer.captureVisuallySettledFrame(
+                  ee.schimke.composeai.renderer.captureRoborazziVisuallySettledFrame(
                     file = outputFile,
+                    options = roborazziOptions,
                     role = "daemon preview still",
                     onFinalDecodedFrame = {
                       if (!spec.wrapWidth && !spec.wrapHeight) decodedStillFrame = it

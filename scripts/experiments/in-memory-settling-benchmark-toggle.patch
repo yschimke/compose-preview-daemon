@@ -1,0 +1,14 @@
+--- a/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/InMemoryStillCapture.kt
++++ b/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/InMemoryStillCapture.kt
+@@ -25,7 +25,10 @@
+   onFinalDecodedFrame: (BufferedImage) -> Unit,
+   capture: (File, RoborazziOptions) -> Unit,
+ ): VisualSettleOutcome {
+-  if (!canDeferStillEncoding(file, options)) {
++  if (
++    !java.lang.Boolean.getBoolean("composeai.render.inMemorySettling") ||
++      !canDeferStillEncoding(file, options)
++  ) {
+     return captureVisuallySettledFrame(file, role, advanceFrame, onFinalDecodedFrame) {
+       capture(it, options)
+     }
