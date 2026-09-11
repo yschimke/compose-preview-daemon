@@ -1,0 +1,169 @@
+{
+  "samplesByGroup": {
+    "application": 22165,
+    "compiler": 19723,
+    "vmThread": 8054,
+    "other": 444
+  },
+  "threads": [
+    [
+      "SDK 35 Main Thr",
+      22106
+    ],
+    [
+      "C2 CompilerThre",
+      13896
+    ],
+    [
+      "VM Thread",
+      8054
+    ],
+    [
+      "C1 CompilerThre",
+      5827
+    ],
+    [
+      "Sweeper thread",
+      345
+    ],
+    [
+      "compose-ai-sand",
+      59
+    ],
+    [
+      "Cleaner-0",
+      45
+    ],
+    [
+      "Finalizer",
+      28
+    ],
+    [
+      "Reference Handl",
+      12
+    ],
+    [
+      "VM Periodic Tas",
+      5
+    ],
+    [
+      "Service Thread",
+      4
+    ],
+    [
+      "Java2D Disposer",
+      2
+    ],
+    [
+      "process reaper",
+      1
+    ],
+    [
+      "Common-Cleaner",
+      1
+    ],
+    [
+      "Async-profiler",
+      1
+    ]
+  ],
+  "leaves": [
+    [
+      "/usr/lib/jvm/java-17-openjdk/lib/server/libjvm.so",
+      30247
+    ],
+    [
+      "/home/yuri/.cache/composeai/robolectric-native/sandbox-libraries/runtime-bf41586cbbc7152d-sdk35-linux-x86_64/jvm-499c77717fc34de99cb82dd1c9905a48/sandbox-6559722369538399963-libandroid_runtime.so",
+      6695
+    ],
+    [
+      "/usr/lib/libc.so.6",
+      1502
+    ],
+    [
+      "/usr/lib/jvm/java-17-openjdk/lib/libzip.so",
+      778
+    ],
+    [
+      "sun.awt.image.IntegerInterleavedRaster.getDataElements_[i]",
+      471
+    ],
+    [
+      "java.awt.image.BufferedImage.getRGB_[j]",
+      427
+    ],
+    [
+      "__tls_get_addr",
+      374
+    ],
+    [
+      "java.awt.image.DirectColorModel.getRGB_[i]",
+      333
+    ],
+    [
+      "java.lang.invoke.MethodHandle.invokeBasic_[j]",
+      327
+    ],
+    [
+      "java.lang.invoke.DirectMethodHandle$Holder.invokeVirtual_[i]",
+      319
+    ],
+    [
+      "com.sun.imageio.plugins.png.PNGImageWriter.encodePass_[j]",
+      252
+    ],
+    [
+      "IntArgbToIntArgbSrcOverMaskBlit",
+      238
+    ],
+    [
+      "java.awt.image.ComponentColorModel.getRGBComponent_[i]",
+      215
+    ],
+    [
+      "java.awt.image.SinglePixelPackedSampleModel.getPixels_[j]",
+      172
+    ],
+    [
+      "java.awt.image.ComponentColorModel.extractComponent_[j]",
+      165
+    ],
+    [
+      "java.awt.image.DirectColorModel.getsRGBComponentFromsRGB_[i]",
+      155
+    ],
+    [
+      "syscall",
+      136
+    ],
+    [
+      "java.awt.image.DirectColorModel.getAlpha_[i]",
+      113
+    ],
+    [
+      "itable stub",
+      106
+    ],
+    [
+      "sun.awt.image.ByteInterleavedRaster.getDataElements_[i]",
+      106
+    ]
+  ],
+  "totalCpuMs": 68280.0,
+  "workloadWindowUnixMs": [
+    1789132047226,
+    1789132082037
+  ],
+  "inclusiveScopes": {
+    "renderPipeline": 21551,
+    "layoutInspector": 3456,
+    "settling": 5637,
+    "imageRead": 315,
+    "imageWrite": 1181,
+    "pixelReads": 2077,
+    "composeDraw": 429,
+    "bitmapConversion": 407
+  },
+  "totalSamples": 50386,
+  "note": "Post-readiness CPU samples, not wall milliseconds. Inclusive scopes overlap. VM Thread is not labelled GC: native JVM symbols are unresolved. Groups are based on recorded thread names; no lossless parser/verifier/compiler-native breakdown is available."
+}

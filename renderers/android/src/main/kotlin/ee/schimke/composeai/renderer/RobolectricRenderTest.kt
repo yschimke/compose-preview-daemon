@@ -3776,14 +3776,14 @@ public fun captureVisuallySettledFrame(
   onFinalDecodedFrame: (BufferedImage) -> Unit,
   capture: (File) -> Unit,
 ): VisualSettleOutcome {
-  return sampleVisuallySettledFrames(advanceFrame, onFinalDecodedFrame) {
+  return sampleVisuallySettledFrames(advanceFrame, { image, _ -> onFinalDecodedFrame(image) }) {
     captureDecodableFrame(file, role = role, capture = capture)
   }
 }
 
 internal fun sampleVisuallySettledFrames(
   advanceFrame: () -> Unit,
-  onFinalDecodedFrame: (BufferedImage) -> Unit,
+  onFinalDecodedFrame: (BufferedImage, IntArray) -> Unit,
   capture: () -> BufferedImage,
 ): VisualSettleOutcome {
   var previousWidth = -1
@@ -3805,14 +3805,14 @@ internal fun sampleVisuallySettledFrames(
     if (sample > 0 && !sameAsPrevious) sawMismatch = true
     identicalSamples = if (sameAsPrevious) identicalSamples + 1 else 1
     if (sawMismatch && identicalSamples >= VISUAL_SETTLE_SLOW_PATH_IDENTICAL_SAMPLES) {
-      onFinalDecodedFrame(image)
+      onFinalDecodedFrame(image, pixels)
       return VisualSettleOutcome.SETTLED
     }
 
     previousWidth = image.width
     previousHeight = image.height
     previousPixels = pixels
-    if (sample == VISUAL_SETTLE_MAX_SAMPLES - 1) onFinalDecodedFrame(image)
+    if (sample == VISUAL_SETTLE_MAX_SAMPLES - 1) onFinalDecodedFrame(image, pixels)
   }
   return if (sawMismatch) VisualSettleOutcome.STILL_CHANGING else VisualSettleOutcome.NEVER_CHANGED
 }

@@ -1,0 +1,26 @@
+[
+  {
+    "name": "baseline",
+    "classpath": "daemon/android/build/host-fixed-baseline-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-Xms32m",
+      "-XX:+UseSerialGC",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-Xlog:gc*=info"
+    ]
+  },
+  {
+    "name": "candidate",
+    "classpath": "daemon/android/build/reuse-final-snapshot-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-Xms32m",
+      "-XX:+UseSerialGC",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-Xlog:gc*=info"
+    ]
+  }
+]
