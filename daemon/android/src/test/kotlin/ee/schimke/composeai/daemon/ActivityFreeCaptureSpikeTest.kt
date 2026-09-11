@@ -14,9 +14,15 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.ViewRootForTest
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
@@ -30,6 +36,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
 import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.github.takahirom.roborazzi.captureScreenRoboImage
 import com.github.takahirom.roborazzi.fetchImage
 import ee.schimke.composeai.daemon.pool.SandboxProcessPool
 import ee.schimke.composeai.renderer.uiautomator.UiAutomatorHierarchyExtractor
@@ -61,20 +68,29 @@ class ActivityFreeCaptureSpikeTest {
   @Test
   fun compareWindowCaptureWithProductionEngine() {
     assumeTrue(System.getenv("COMPOSEAI_ACTIVITY_FREE_SPIKE") == "true")
-    val root = File("build/activity-free-spike").absoluteFile.apply { mkdirs() }
+    val inputMode = System.getenv("COMPOSEAI_ACTIVITY_FREE_INPUT") == "true"
+    val root =
+      File(if (inputMode) "build/activity-free-input-spike" else "build/activity-free-spike")
+        .absoluteFile
+        .apply { mkdirs() }
     val trials = (System.getenv("COMPOSEAI_ACTIVITY_FREE_TRIALS") ?: "1").toInt()
     require(trials in 1..10)
     for (trial in 0 until trials) {
       val trialDir = root.resolve("trial-$trial").apply { mkdirs() }
-      val modes = listOf("engine", "activity", "window")
+      val modes =
+        if (inputMode) listOf("activity", "window") else listOf("engine", "activity", "window")
       // Rotate process order so the candidate isn't always last on an already-warm host.
-      for (mode in modes.drop(trial % 3) + modes.take(trial % 3)) {
+      for (mode in modes.drop(trial % modes.size) + modes.take(trial % modes.size)) {
         val output =
           trialDir.resolve(mode).apply {
             deleteRecursively()
             mkdirs()
           }
         val command = SandboxProcessPool.spareWorkerCommandForTest().dropLast(1).toMutableList()
+        if (System.getenv("COMPOSEAI_ACTIVITY_FREE_C1") == "true") {
+          command += "-XX:TieredStopAtLevel=1"
+          command += "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30"
+        }
         command += ActivityFreeCaptureSpikeMain::class.java.name
         command += listOf(mode, output.absolutePath)
         val log = trialDir.resolve("$mode.log")
@@ -95,7 +111,8 @@ class ActivityFreeCaptureSpikeTest {
       }
       for (cycle in 0..2) for (name in ActivityFreeCaptureSpikeMain.fixtures) {
         val outputName = "$cycle-$name"
-        val expected = trialDir.resolve("engine/renders/$outputName.png")
+        val referenceMode = if (inputMode) "activity" else "engine"
+        val expected = trialDir.resolve("$referenceMode/renders/$outputName.png")
         for (mode in listOf("activity", "window")) {
           val actual = trialDir.resolve("$mode/renders/$outputName.png")
           assertArrayEquals(
@@ -105,7 +122,7 @@ class ActivityFreeCaptureSpikeTest {
           )
           assertEquals(
             "hierarchy parity: $mode $outputName",
-            trialDir.resolve("engine/data/$outputName/uia-hierarchy.json").readText(),
+            trialDir.resolve("$referenceMode/data/$outputName/uia-hierarchy.json").readText(),
             trialDir.resolve("$mode/data/$outputName/uia-hierarchy.json").readText(),
           )
         }
@@ -120,8 +137,38 @@ class ActivityFreeCaptureSpikeTest {
 }
 
 object ActivityFreeCaptureSpikeMain {
+  val inputMode = System.getenv("COMPOSEAI_ACTIVITY_FREE_INPUT") == "true"
   val fixtures =
-    listOf("RedSquare", "MaterialButtonInteractionState", "SerifTextPreview", "DialogWindowSurface")
+    if (inputMode)
+      listOf(
+        "ClickToggleSquare",
+        "ClickableToggleSquare",
+        "EditableTextFieldSquare",
+        "EditableTextFieldNativeKey",
+        "EditableTextFieldImeCommit",
+      )
+    else
+      listOf(
+        "RedSquare",
+        "MaterialButtonInteractionState",
+        "SerifTextPreview",
+        "DialogWindowSurface",
+      ) +
+        if (System.getenv("COMPOSEAI_ACTIVITY_FREE_BROAD") == "true") {
+          listOf(
+            "OpaqueImageSquare",
+            "GradientBackgroundCard",
+            "RadialGradientBackgroundCard",
+            "EmojiAndAnnotatedText",
+            "GraphicsLayerAndWideVector",
+            "IconButtonRowInputBar",
+            "LazyColumnListPreview",
+            "EditableTextFieldSquare",
+            "GenericOutlineShapeSquare",
+            "MultipleSemanticsRoots",
+            "VisualOnlySurfaceWithPopup",
+          )
+        } else emptyList()
 
   @JvmStatic
   fun main(args: Array<String>) {
@@ -200,7 +247,7 @@ object ActivityFreeCaptureSpikeMain {
     }
   }
 
-  @OptIn(ExperimentalRoborazziApi::class)
+  @OptIn(ExperimentalRoborazziApi::class, ExperimentalTestApi::class)
   @Suppress("DEPRECATION")
   private fun captureWindow(name: String, outputName: String, useActivity: Boolean) {
     var phaseStart = System.nanoTime()
@@ -222,6 +269,16 @@ object ActivityFreeCaptureSpikeMain {
     }
     val activityRule = if (useActivity) createAndroidComposeRule<ComponentActivity>() else null
     val rule = activityRule ?: createEmptyComposeRule()
+    fun advanceInputClocks(totalMs: Long) {
+      val looper = org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+      var remaining = totalMs
+      while (remaining > 0) {
+        val step = minOf(remaining, 16L)
+        rule.mainClock.advanceTimeBy(step)
+        looper.idleFor(java.time.Duration.ofMillis(step))
+        remaining -= step
+      }
+    }
     phase("rule-created")
     val statement =
       object : Statement() {
@@ -243,7 +300,9 @@ object ActivityFreeCaptureSpikeMain {
                 cleanup = { view.disposeComposition() }
                 activityRule.activity.setContentView(view)
                 view.setContent {
-                  CompositionLocalProvider(LocalInspectionMode provides true) { content(name) }
+                  CompositionLocalProvider(LocalInspectionMode provides !inputMode) {
+                    content(name)
+                  }
                 }
               }
             } else
@@ -283,7 +342,9 @@ object ActivityFreeCaptureSpikeMain {
                 }
                 owners.lifecycle.currentState = Lifecycle.State.RESUMED
                 view.setContent {
-                  CompositionLocalProvider(LocalInspectionMode provides true) { content(name) }
+                  CompositionLocalProvider(LocalInspectionMode provides !inputMode) {
+                    content(name)
+                  }
                 }
                 window.setContentView(frame)
                 manager.addView(
@@ -291,7 +352,7 @@ object ActivityFreeCaptureSpikeMain {
                   WindowManager.LayoutParams(
                       320,
                       320,
-                      WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                      WindowManager.LayoutParams.TYPE_APPLICATION,
                       WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                       PixelFormat.TRANSLUCENT,
                     )
@@ -302,9 +363,61 @@ object ActivityFreeCaptureSpikeMain {
             // Attachment/composition is queued on Robolectric's paused main looper. Without this,
             // waitForIdle waits two seconds in waitForComposeRoots before draining that same queue.
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            if (!useActivity) {
+              // WindowManager attachment does not deliver the focus event that ActivityScenario
+              // supplies. Compose's cursor/input behavior reads window focus independently of
+              // the lifecycle and node focus; dispatch through ViewRootImpl to update both.
+              rule.runOnUiThread {
+                val root =
+                  org.robolectric.util.ReflectionHelpers.callInstanceMethod<Any>(
+                    window.decorView,
+                    "getViewRootImpl",
+                  )
+                org.robolectric.shadow.api.Shadow.extract<
+                    org.robolectric.shadows.ShadowViewRootImpl
+                  >(
+                    root
+                  )
+                  .callWindowFocusChanged(true)
+              }
+              org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+            }
+            rule.runOnUiThread { check(window.decorView.hasWindowFocus()) }
             phase("drain-attach")
             rule.mainClock.advanceTimeBy(32)
             rule.waitForIdle()
+            if (inputMode) {
+              if (name == "EditableTextFieldSquare") {
+                rule.onNode(hasSetTextAction()).performTextInput("x")
+              } else if (name == "EditableTextFieldNativeKey") {
+                rule.onRoot().performKeyInput { keyDown(androidx.compose.ui.input.key.Key.A) }
+                advanceInputClocks(32)
+                rule.waitForIdle()
+                rule.onRoot().performKeyInput { keyUp(androidx.compose.ui.input.key.Key.A) }
+              } else if (name == "EditableTextFieldImeCommit") {
+                val root = rule.onRoot().fetchSemanticsNode().root as ViewRootForTest
+                rule.runOnUiThread {
+                  val connection =
+                    checkNotNull(
+                      root.view.onCreateInputConnection(android.view.inputmethod.EditorInfo())
+                    ) {
+                      "Focused text field did not expose an Android InputConnection"
+                    }
+                  check(connection.commitText("x", 1)) { "InputConnection rejected commitText" }
+                }
+              } else {
+                rule.onRoot().performTouchInput { down(center) }
+                advanceInputClocks(16)
+                rule.waitForIdle()
+                rule.onRoot().performTouchInput { move() }
+                advanceInputClocks(84)
+                rule.waitForIdle()
+                rule.onRoot().performTouchInput { up() }
+                rule.waitForIdle()
+              }
+              advanceInputClocks(500)
+              rule.waitForIdle()
+            }
             phase("settle")
             val interactions = rule.onAllNodes(isRoot(), useUnmergedTree = true)
             val roots = interactions.fetchSemanticsNodes()
@@ -327,6 +440,10 @@ object ActivityFreeCaptureSpikeMain {
                 )
               android.graphics.Bitmap.createScaledBitmap(bitmap, 320, 320, true)
                 .captureRoboImage(file = renders.resolve("$outputName.png"))
+            } else if (roots.size > 1) {
+              // Production's semantics capture composites popup windows into the screen. Fetching
+              // only the main view silently omits them even when its semantics root is correct.
+              captureScreenRoboImage(file = renders.resolve("$outputName.png"))
             } else {
               requireNotNull(
                   (roots[index].root as ViewRootForTest)
@@ -334,6 +451,22 @@ object ActivityFreeCaptureSpikeMain {
                     .fetchImage(RoborazziOptions.RecordOptions(applyDeviceCrop = false))
                 )
                 .captureRoboImage(file = renders.resolve("$outputName.png"))
+            }
+            if (inputMode) {
+              val image = javax.imageio.ImageIO.read(renders.resolve("$outputName.png"))
+              var green = 0
+              for (y in 0 until image.height) for (x in 0 until image.width) {
+                val pixel = image.getRGB(x, y)
+                if (
+                  kotlin.math.abs(((pixel shr 16) and 255) - 0x66) <= 8 &&
+                    kotlin.math.abs(((pixel shr 8) and 255) - 0xbb) <= 8 &&
+                    kotlin.math.abs((pixel and 255) - 0x6a) <= 8
+                )
+                  green++
+              }
+              check(green.toDouble() / (image.width * image.height) >= 0.95) {
+                "Input did not change $name to its expected green state: $green pixels"
+              }
             }
             phase("capture")
             val root = interactions[index].fetchSemanticsNode()
@@ -366,9 +499,24 @@ object ActivityFreeCaptureSpikeMain {
   private fun content(name: String) {
     when (name) {
       "RedSquare" -> RedSquare()
+      "ClickToggleSquare" -> ClickToggleSquare()
+      "ClickableToggleSquare" -> ClickableToggleSquare()
       "MaterialButtonInteractionState" -> MaterialButtonInteractionState()
       "SerifTextPreview" -> SerifTextPreview()
       "DialogWindowSurface" -> DialogWindowSurface()
+      "MultipleSemanticsRoots" -> MultipleSemanticsRoots()
+      "VisualOnlySurfaceWithPopup" -> VisualOnlySurfaceWithPopup()
+      "OpaqueImageSquare" -> OpaqueImageSquare()
+      "GradientBackgroundCard" -> GradientBackgroundCard()
+      "RadialGradientBackgroundCard" -> RadialGradientBackgroundCard()
+      "EmojiAndAnnotatedText" -> EmojiAndAnnotatedText()
+      "GraphicsLayerAndWideVector" -> GraphicsLayerAndWideVector()
+      "IconButtonRowInputBar" -> IconButtonRowInputBar()
+      "LazyColumnListPreview" -> LazyColumnListPreview()
+      "EditableTextFieldSquare",
+      "EditableTextFieldNativeKey",
+      "EditableTextFieldImeCommit" -> EditableTextFieldSquare()
+      "GenericOutlineShapeSquare" -> GenericOutlineShapeSquare()
       else -> error(name)
     }
   }

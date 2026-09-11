@@ -1,0 +1,66 @@
+{
+  "checks": [
+    {
+      "variant": "baseline",
+      "test": "LivePressRippleTest#aLiveClickPaintsPressFeedback",
+      "exitCode": 0
+    },
+    {
+      "variant": "baseline",
+      "test": "AndroidInteractiveSessionTest#heldClickToggleSurvivesAcrossInputs",
+      "exitCode": 0
+    },
+    {
+      "variant": "baseline",
+      "test": "RobolectricHostSpareAdoptionTest#aReleasedSpareListensAgainAndTheNextHostAdoptsIt",
+      "exitCode": 0
+    },
+    {
+      "variant": "constant",
+      "test": "LivePressRippleTest#aLiveClickPaintsPressFeedback",
+      "exitCode": 0
+    },
+    {
+      "variant": "constant",
+      "test": "AndroidInteractiveSessionTest#heldClickToggleSurvivesAcrossInputs",
+      "exitCode": 0
+    },
+    {
+      "variant": "constant",
+      "test": "RobolectricHostSpareAdoptionTest#aReleasedSpareListensAgainAndTheNextHostAdoptsIt",
+      "exitCode": 0
+    }
+  ],
+  "recovery": {
+    "baseline": [
+      {
+        "fixture": "RedSquare",
+        "parity": true
+      },
+      {
+        "fixture": "BoomComposable",
+        "expectedFailure": true,
+        "diagnostic": "java.lang.IllegalStateException: boom\njava.lang.IllegalStateException: boom\n\tat ee.schimke.composeai.daemon.RedFixturePreviewsKt.BoomComposable(RedFixturePreviews.kt:681)\n\tat java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)\n\tat java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:569)\n\tat androidx.compose.runtime.reflect.ComposableMethod.invoke(ComposableMethod.jvmAndAndroid.kt:149)\n\tat ee.schimke.composeai.daemon.RenderEngineKt.InvokeComposable(RenderEngine.kt:2891)\n\tat ee.schimke.composeai.daemon.RenderEngineKt.InvokeWithOptionalWrapper$lambda$2(RenderEngine.kt:2974)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat ee.schimke.composeai.daemon.RenderEngineKt.InvokeWithOptionalWrapper(RenderEngine.kt:2984)\n\tat ee.schimke.composeai.daemon.RenderEngine$render$statement$1.evaluate$lambda$1$0$2$2$0(RenderEngine.kt:716)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:453)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around$lambda$1(ComposeDataExtensionHooks.kt:469)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:428)\n\tat ee.schimke.composeai.daemon.ResourcesRecorderExtension.Around(ResourcesRecorderExtension.kt:65)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:457)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around$lambda$1(ComposeDataExtensionHooks.kt:469)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:428)\n\tat ee.schimke.composeai.daemon.FontsRecorderExtension.Around(FontsRecorderExtension.kt:54)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:457)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around$lambda$1(ComposeDataExtensionHooks.kt:469)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat ee.schimke.composeai.daemon.PreviewOverridesOverrideExtension.Around$lambda$1(PreviewOverridesDataProduct.kt:109)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:428)\n\tat ee.schimke.composeai.daemon.PreviewOverridesOverrideExtension.Around(PreviewOverridesDataProduct.kt:108)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:457)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Apply(ComposeDataExtensionHooks.kt:366)\n\tat ee.schimke.composeai.daemon.RenderEngine$render$statement$1.evaluate$lambda$1$0$2$2(RenderEngine.kt:510)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)"
+      },
+      {
+        "fixture": "RedSquare",
+        "parity": true
+      }
+    ],
+    "constant": [
+      {
+        "fixture": "RedSquare",
+        "parity": true
+      },
+      {
+        "fixture": "BoomComposable",
+        "expectedFailure": true,
+        "diagnostic": "java.lang.IllegalStateException: boom\njava.lang.IllegalStateException: boom\n\tat ee.schimke.composeai.daemon.RedFixturePreviewsKt.BoomComposable(RedFixturePreviews.kt:681)\n\tat java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)\n\tat java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:569)\n\tat androidx.compose.runtime.reflect.ComposableMethod.invoke(ComposableMethod.jvmAndAndroid.kt:149)\n\tat ee.schimke.composeai.daemon.RenderEngineKt.InvokeComposable(RenderEngine.kt:2891)\n\tat ee.schimke.composeai.daemon.RenderEngineKt.InvokeWithOptionalWrapper$lambda$2(RenderEngine.kt:2974)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat ee.schimke.composeai.daemon.RenderEngineKt.InvokeWithOptionalWrapper(RenderEngine.kt:2984)\n\tat ee.schimke.composeai.daemon.RenderEngine$render$statement$1.evaluate$lambda$1$0$2$2$0(RenderEngine.kt:716)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:453)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around$lambda$1(ComposeDataExtensionHooks.kt:469)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:428)\n\tat ee.schimke.composeai.daemon.ResourcesRecorderExtension.Around(ResourcesRecorderExtension.kt:65)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:457)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around$lambda$1(ComposeDataExtensionHooks.kt:469)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:428)\n\tat ee.schimke.composeai.daemon.FontsRecorderExtension.Around(FontsRecorderExtension.kt:54)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:457)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around$lambda$1(ComposeDataExtensionHooks.kt:469)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat ee.schimke.composeai.daemon.PreviewOverridesOverrideExtension.Around$lambda$1(PreviewOverridesDataProduct.kt:109)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:428)\n\tat ee.schimke.composeai.daemon.PreviewOverridesOverrideExtension.Around(PreviewOverridesDataProduct.kt:108)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:457)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Apply(ComposeDataExtensionHooks.kt:366)\n\tat ee.schimke.composeai.daemon.RenderEngine$render$statement$1.evaluate$lambda$1$0$2$2(RenderEngine.kt:510)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)"
+      },
+      {
+        "fixture": "RedSquare",
+        "parity": true
+      }
+    ]
+  }
+}

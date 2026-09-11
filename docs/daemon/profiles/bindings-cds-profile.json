@@ -1,0 +1,66 @@
+{
+  "jvmVersion": "17.0.19+10",
+  "phases": {
+    "boot": {
+      "wallMs": 1365,
+      "cpuSamples": 1789,
+      "threadGroups": {
+        "application": 1222,
+        "gc": 52,
+        "compiler": 514,
+        "other": 1
+      },
+      "unresolvedJvmLeafSamples": 763,
+      "applicationInclusiveHotspots": {
+        "class definition": 162,
+        "invokedynamic linkage": 127,
+        "BouncyCastle setup": 146,
+        "application creation": 254,
+        "native runtime initialization": 273
+      },
+      "additionalInclusiveHotspots": {
+        "BouncyCastleProvider.setup": 146,
+        "System.load": 109,
+        "ensureSharedExtraction": 22,
+        "invokeDeferredStaticInitializers": 89,
+        "Hyphenator.init": 1,
+        "loadPreinstalledSystemFontMap": 50,
+        "createSandboxLibraryCopy": 3
+      }
+    },
+    "warm-render": {
+      "wallMs": 1487,
+      "cpuSamples": 1849,
+      "threadGroups": {
+        "gc": 243,
+        "compiler": 209,
+        "application": 1371,
+        "other": 26
+      },
+      "unresolvedJvmLeafSamples": 813,
+      "applicationInclusiveHotspots": {
+        "invokedynamic linkage": 186,
+        "class definition": 135,
+        "Activity launch": 535,
+        "captureRoboImage": 155,
+        "application creation": 57
+      },
+      "additionalInclusiveHotspots": {
+        "System.load": 8
+      }
+    },
+    "post-warm": {
+      "wallMs": 18,
+      "cpuSamples": 19,
+      "threadGroups": {
+        "application": 18,
+        "compiler": 1
+      },
+      "unresolvedJvmLeafSamples": 7,
+      "applicationInclusiveHotspots": {
+        "invokedynamic linkage": 2
+      }
+    }
+  },
+  "note": "CPU sample counts; inclusive hotspots overlap and must not be summed."
+}

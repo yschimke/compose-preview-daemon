@@ -1,0 +1,172 @@
+{
+  "crossJdkPixelParityFrames": 73,
+  "crossJdkUiaParityFrames": 73,
+  "cacheBytes": {
+    "cds": 108376064,
+    "aot": 132579328
+  },
+  "recovery": [
+    {
+      "fixture": "RedSquare",
+      "parity": true
+    },
+    {
+      "fixture": "BoomComposable",
+      "expectedFailure": true,
+      "diagnostic": "java.lang.IllegalStateException: boom\njava.lang.IllegalStateException: boom\n\tat ee.schimke.composeai.daemon.RedFixturePreviewsKt.BoomComposable(RedFixturePreviews.kt:681)\n\tat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:565)\n\tat androidx.compose.runtime.reflect.ComposableMethod.invoke(ComposableMethod.jvmAndAndroid.kt:149)\n\tat ee.schimke.composeai.daemon.RenderEngineKt.InvokeComposable(RenderEngine.kt:2891)\n\tat ee.schimke.composeai.daemon.RenderEngineKt.InvokeWithOptionalWrapper$lambda$2(RenderEngine.kt:2974)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat ee.schimke.composeai.daemon.RenderEngineKt.InvokeWithOptionalWrapper(RenderEngine.kt:2984)\n\tat ee.schimke.composeai.daemon.RenderEngine$render$statement$1.evaluate$lambda$1$0$2$2$0(RenderEngine.kt:716)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:453)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around$lambda$1(ComposeDataExtensionHooks.kt:469)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:428)\n\tat ee.schimke.composeai.daemon.ResourcesRecorderExtension.Around(ResourcesRecorderExtension.kt:65)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:457)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around$lambda$1(ComposeDataExtensionHooks.kt:469)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:428)\n\tat ee.schimke.composeai.daemon.FontsRecorderExtension.Around(FontsRecorderExtension.kt:54)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:457)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around$lambda$1(ComposeDataExtensionHooks.kt:469)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat ee.schimke.composeai.daemon.PreviewOverridesOverrideExtension.Around$lambda$1(PreviewOverridesDataProduct.kt:109)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:428)\n\tat ee.schimke.composeai.daemon.PreviewOverridesOverrideExtension.Around(PreviewOverridesDataProduct.kt:108)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Around(ComposeDataExtensionHooks.kt:457)\n\tat ee.schimke.composeai.data.render.extensions.compose.ComposeDataExtensionPipeline.Apply(ComposeDataExtensionHooks.kt:366)\n\tat ee.schimke.composeai.daemon.RenderEngine$render$statement$1.evaluate$lambda$1$0$2$2(RenderEngine.kt:510)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:122)\n\tat androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.kt:52)\n\tat ee.schimke.composeai.daemon.RenderEngineKt.InspectablePreviewContent(RenderEngine.kt:3258)"
+    },
+    {
+      "fixture": "RedSquare",
+      "parity": true
+    }
+  ],
+  "runs": [
+    {
+      "run": "0-aot",
+      "startedUnixSeconds": 1789080504.97805,
+      "hostLoadAverage": [
+        2.53564453125,
+        6.61865234375,
+        6.27685546875
+      ],
+      "java": "/usr/lib/jvm/java-25-openjdk/bin/java",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "--enable-native-access=ALL-UNNAMED",
+        "-XX:AOTMode=on",
+        "-XX:AOTCache=/tmp/constant-jdk25.aot"
+      ]
+    },
+    {
+      "run": "0-cds",
+      "startedUnixSeconds": 1789080490.7476192,
+      "hostLoadAverage": [
+        2.7587890625,
+        6.87353515625,
+        6.3525390625
+      ],
+      "java": "/usr/lib/jvm/java-25-openjdk/bin/java",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "--enable-native-access=ALL-UNNAMED",
+        "-Xshare:on",
+        "-XX:SharedArchiveFile=/tmp/constant-jdk25.jsa"
+      ]
+    },
+    {
+      "run": "0-no-cache",
+      "startedUnixSeconds": 1789080475.115536,
+      "hostLoadAverage": [
+        3.259765625,
+        7.17724609375,
+        6.4404296875
+      ],
+      "java": "/usr/lib/jvm/java-25-openjdk/bin/java",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "--enable-native-access=ALL-UNNAMED"
+      ]
+    },
+    {
+      "run": "1-aot",
+      "startedUnixSeconds": 1789080533.8388774,
+      "hostLoadAverage": [
+        2.37841796875,
+        6.1787109375,
+        6.1396484375
+      ],
+      "java": "/usr/lib/jvm/java-25-openjdk/bin/java",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "--enable-native-access=ALL-UNNAMED",
+        "-XX:AOTMode=on",
+        "-XX:AOTCache=/tmp/constant-jdk25.aot"
+      ]
+    },
+    {
+      "run": "1-cds",
+      "startedUnixSeconds": 1789080519.596257,
+      "hostLoadAverage": [
+        2.19482421875,
+        6.3427734375,
+        6.19140625
+      ],
+      "java": "/usr/lib/jvm/java-25-openjdk/bin/java",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "--enable-native-access=ALL-UNNAMED",
+        "-Xshare:on",
+        "-XX:SharedArchiveFile=/tmp/constant-jdk25.jsa"
+      ]
+    },
+    {
+      "run": "1-no-cache",
+      "startedUnixSeconds": 1789080548.5969706,
+      "hostLoadAverage": [
+        2.349609375,
+        5.98876953125,
+        6.07763671875
+      ],
+      "java": "/usr/lib/jvm/java-25-openjdk/bin/java",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "--enable-native-access=ALL-UNNAMED"
+      ]
+    },
+    {
+      "run": "2-aot",
+      "startedUnixSeconds": 1789080564.3211243,
+      "hostLoadAverage": [
+        2.783203125,
+        5.92041015625,
+        6.0546875
+      ],
+      "java": "/usr/lib/jvm/java-25-openjdk/bin/java",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "--enable-native-access=ALL-UNNAMED",
+        "-XX:AOTMode=on",
+        "-XX:AOTCache=/tmp/constant-jdk25.aot"
+      ]
+    },
+    {
+      "run": "2-cds",
+      "startedUnixSeconds": 1789080594.763742,
+      "hostLoadAverage": [
+        2.63427734375,
+        5.56494140625,
+        5.9306640625
+      ],
+      "java": "/usr/lib/jvm/java-25-openjdk/bin/java",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "--enable-native-access=ALL-UNNAMED",
+        "-Xshare:on",
+        "-XX:SharedArchiveFile=/tmp/constant-jdk25.jsa"
+      ]
+    },
+    {
+      "run": "2-no-cache",
+      "startedUnixSeconds": 1789080578.9252968,
+      "hostLoadAverage": [
+        2.3876953125,
+        5.6787109375,
+        5.97314453125
+      ],
+      "java": "/usr/lib/jvm/java-25-openjdk/bin/java",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "--enable-native-access=ALL-UNNAMED"
+      ]
+    }
+  ]
+}

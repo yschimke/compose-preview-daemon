@@ -30,8 +30,14 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--jvm-arg", action="append", default=[])
     parser.add_argument("--profiler", type=Path, help="Path to libasyncProfiler.so (4.5)")
-    parser.add_argument("--renders", type=int, default=10, help="Material renders after one red render")
+    parser.add_argument("--renders", type=int, default=10, help="Fixture renders after one red render")
+    parser.add_argument("--fixture", action="append", help="Repeat to cycle fixture functions from RedFixturePreviewsKt (default: MaterialButtonInteractionState)")
+    parser.add_argument("--exercise-recovery", action="store_true",
+        help="After timings, check configure/swap and recovery from a throwing composable")
     args = parser.parse_args()
+    fixtures = args.fixture or ["MaterialButtonInteractionState"]
+    if any(not name.isidentifier() for name in fixtures):
+        parser.error("--fixture must be a function identifier")
     if args.renders < 1:
         parser.error("--renders must be positive")
     output = args.output.resolve()
@@ -53,7 +59,9 @@ def main():
     lines = queue.Queue()
     started = time.monotonic()
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    summary = {"java": args.java, "jvmArgs": args.jvm_arg, "profiled": bool(args.profiler), "renders": []}
+    summary = {"java": args.java, "jvmArgs": args.jvm_arg, "profiled": bool(args.profiler),
+        "fixtures": fixtures, "startedUnixSeconds": time.time(),
+        "hostLoadAverage": os.getloadavg(), "logicalCpus": os.cpu_count(), "renders": []}
 
     def pump():
         with (output / "worker.log").open("w") as log:
@@ -113,8 +121,9 @@ def main():
                 return json.loads(reply)
 
             for index in range(args.renders + 1):
-                function = "RedSquare" if index == 0 else "MaterialButtonInteractionState"
-                tag = "red" if index == 0 else f"material-{index - 1}"
+                function = "RedSquare" if index == 0 else fixtures[(index - 1) % len(fixtures)]
+                prefix = "material" if function == "MaterialButtonInteractionState" else function
+                tag = "red" if index == 0 else f"{prefix}-{index - 1}"
                 before = time.monotonic()
                 before_cpu = cpu_ms(process.pid)
                 reply = request({"type": "render", "id": index, "timeoutMs": 120000,
@@ -131,9 +140,41 @@ def main():
                 data = png.read_bytes()
                 if not data.startswith(b"\x89PNG\r\n\x1a\n"):
                     raise RuntimeError(f"invalid PNG: {png}")
-                summary["renders"].append({"tag": tag, "wallMs": wall_ms,
-                    "cpuMs": used_cpu, "pngSha256": hashlib.sha256(data).hexdigest()})
+                summary["renders"].append({"tag": tag, "fixture": function, "wallMs": wall_ms,
+                    "cpuMs": used_cpu, "pngSha256": hashlib.sha256(data).hexdigest(),
+                    "uiaSha256": hashlib.sha256((output / "data" / tag / "uia-hierarchy.json").read_bytes()).hexdigest()})
             summary["totalCpuMs"] = cpu_ms(process.pid)
+            summary["totalWallMs"] = round((time.monotonic() - started) * 1000)
+            if args.exercise_recovery:
+                configured = request({"type": "configure", "systemProperties": {}})
+                if configured.get("type") != "configured" or configured.get("pid") != process.pid:
+                    raise RuntimeError(f"configure failed: {configured}")
+                swapped = request({"type": "swap"})
+                if swapped.get("type") != "ok":
+                    raise RuntimeError(f"swap failed: {swapped}")
+                recovery = []
+                for offset, function in enumerate(["RedSquare", "BoomComposable", "RedSquare"]):
+                    tag = f"recovery-{offset}"
+                    reply = request({"type": "render", "id": args.renders + 1 + offset,
+                        "timeoutMs": 120000, "target": {"type": "spec", "spec": {
+                            "className": "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                            "functionName": function, "widthPx": 320, "heightPx": 320,
+                            "outputBaseName": tag,
+                        }}})
+                    if function == "BoomComposable":
+                        if reply.get("type") != "failed" or "boom" not in reply.get("diagnostic", ""):
+                            raise RuntimeError(f"expected composable failure: {reply}")
+                        recovery.append({"fixture": function, "expectedFailure": True,
+                            "diagnostic": reply["diagnostic"]})
+                    else:
+                        if reply.get("type") != "result":
+                            raise RuntimeError(f"recovery render failed: {reply}")
+                        png_hash = hashlib.sha256((output / "renders" / f"{tag}.png").read_bytes()).hexdigest()
+                        uia_hash = hashlib.sha256((output / "data" / tag / "uia-hierarchy.json").read_bytes()).hexdigest()
+                        if (png_hash, uia_hash) != (summary["renders"][0]["pngSha256"], summary["renders"][0]["uiaSha256"]):
+                            raise RuntimeError(f"recovery parity failed: {tag}")
+                        recovery.append({"fixture": function, "parity": True})
+                summary["recovery"] = recovery
             reply = request({"type": "shutdown"})
             if reply.get("type") != "ok":
                 raise RuntimeError(f"shutdown failed: {reply}")

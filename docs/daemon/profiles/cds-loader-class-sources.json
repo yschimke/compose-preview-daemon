@@ -1,0 +1,30 @@
+{
+  "constant": {
+    "androidx.": {
+      "loaded": 2222,
+      "shared": 1780
+    },
+    "kotlin.": {
+      "loaded": 352,
+      "shared": 340
+    },
+    "kotlinx.": {
+      "loaded": 574,
+      "shared": 520
+    }
+  },
+  "jar-backed": {
+    "androidx.": {
+      "loaded": 2222,
+      "shared": 1780
+    },
+    "kotlin.": {
+      "loaded": 352,
+      "shared": 340
+    },
+    "kotlinx.": {
+      "loaded": 574,
+      "shared": 520
+    }
+  }
+}

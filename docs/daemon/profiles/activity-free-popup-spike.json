@@ -1,0 +1,324 @@
+{
+  "trials": 1,
+  "cycles": 3,
+  "fixtures": 15,
+  "frames": 135,
+  "fullHierarchyFrames": 90,
+  "checks": [
+    {
+      "output": "0-DialogWindowSurface",
+      "pngSha256": "203364e694946ae2fd736e8bee651432c93e9d23f1e2f9b319c50b48a05415f3",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-EditableTextFieldSquare",
+      "pngSha256": "3e8d40613b2da086726fd04fb937758382ec5fd32c73904269c3023accd9525d",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-EmojiAndAnnotatedText",
+      "pngSha256": "fe7bb882b272cbaf6c65cb7871f7d8ab4b3adb96dd30125d0f419b1cde0f784b",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-GenericOutlineShapeSquare",
+      "pngSha256": "c47b08c6cb4415694f1e6dee83ac87f27bc70a00a5fc0e50fe8c2a505f8eebe5",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-GradientBackgroundCard",
+      "pngSha256": "c6850db100e021e91aa264f7b4f71056a4943f93ef9783e9260c5b8aa6d77e65",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-GraphicsLayerAndWideVector",
+      "pngSha256": "cd7cd31a68ba781577c5c7b8da396934fe2b271404b47cf53f39fe2848c4ad8f",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-IconButtonRowInputBar",
+      "pngSha256": "74ffe6a012a650ff681b77d8c65233e571bae7cfd91e7b5793180eb23558e291",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-LazyColumnListPreview",
+      "pngSha256": "34521a25d2e4d4a7ba9f479cd684b254f884b3669cbf842b8ab3f234052006de",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-MaterialButtonInteractionState",
+      "pngSha256": "b8a15917378df0bd382408625f827120f50b8f6761000eee66aec4079c309f2f",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-MultipleSemanticsRoots",
+      "pngSha256": "615d5d7c4a74f84497e1974d371d65253a073c0e7373c07bb4403fc1cd35dab6",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-OpaqueImageSquare",
+      "pngSha256": "c5d6d5571e9b7dc7e9da5cc6c95384d3ac1340864723fcc2fec66af731c7ea01",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-RadialGradientBackgroundCard",
+      "pngSha256": "2aeca012e53d8b5db377b18443258061008a9e2128717d96ed01af7ef70a5d90",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-RedSquare",
+      "pngSha256": "110b9bcedae548beb2eaa17dca0541a84d91cdaef65b3c25b296b4099adc9c5b",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-SerifTextPreview",
+      "pngSha256": "a6c07dd3474f293d1fcf8167b22a0ca5f932df42aa5f6737cedd0c472ea45bc8",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "0-VisualOnlySurfaceWithPopup",
+      "pngSha256": "615d5d7c4a74f84497e1974d371d65253a073c0e7373c07bb4403fc1cd35dab6",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-DialogWindowSurface",
+      "pngSha256": "203364e694946ae2fd736e8bee651432c93e9d23f1e2f9b319c50b48a05415f3",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-EditableTextFieldSquare",
+      "pngSha256": "3e8d40613b2da086726fd04fb937758382ec5fd32c73904269c3023accd9525d",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-EmojiAndAnnotatedText",
+      "pngSha256": "fe7bb882b272cbaf6c65cb7871f7d8ab4b3adb96dd30125d0f419b1cde0f784b",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-GenericOutlineShapeSquare",
+      "pngSha256": "c47b08c6cb4415694f1e6dee83ac87f27bc70a00a5fc0e50fe8c2a505f8eebe5",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-GradientBackgroundCard",
+      "pngSha256": "c6850db100e021e91aa264f7b4f71056a4943f93ef9783e9260c5b8aa6d77e65",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-GraphicsLayerAndWideVector",
+      "pngSha256": "cd7cd31a68ba781577c5c7b8da396934fe2b271404b47cf53f39fe2848c4ad8f",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-IconButtonRowInputBar",
+      "pngSha256": "74ffe6a012a650ff681b77d8c65233e571bae7cfd91e7b5793180eb23558e291",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-LazyColumnListPreview",
+      "pngSha256": "34521a25d2e4d4a7ba9f479cd684b254f884b3669cbf842b8ab3f234052006de",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-MaterialButtonInteractionState",
+      "pngSha256": "b8a15917378df0bd382408625f827120f50b8f6761000eee66aec4079c309f2f",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-MultipleSemanticsRoots",
+      "pngSha256": "615d5d7c4a74f84497e1974d371d65253a073c0e7373c07bb4403fc1cd35dab6",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-OpaqueImageSquare",
+      "pngSha256": "c5d6d5571e9b7dc7e9da5cc6c95384d3ac1340864723fcc2fec66af731c7ea01",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-RadialGradientBackgroundCard",
+      "pngSha256": "2aeca012e53d8b5db377b18443258061008a9e2128717d96ed01af7ef70a5d90",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-RedSquare",
+      "pngSha256": "110b9bcedae548beb2eaa17dca0541a84d91cdaef65b3c25b296b4099adc9c5b",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-SerifTextPreview",
+      "pngSha256": "a6c07dd3474f293d1fcf8167b22a0ca5f932df42aa5f6737cedd0c472ea45bc8",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "1-VisualOnlySurfaceWithPopup",
+      "pngSha256": "615d5d7c4a74f84497e1974d371d65253a073c0e7373c07bb4403fc1cd35dab6",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-DialogWindowSurface",
+      "pngSha256": "203364e694946ae2fd736e8bee651432c93e9d23f1e2f9b319c50b48a05415f3",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-EditableTextFieldSquare",
+      "pngSha256": "3e8d40613b2da086726fd04fb937758382ec5fd32c73904269c3023accd9525d",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-EmojiAndAnnotatedText",
+      "pngSha256": "fe7bb882b272cbaf6c65cb7871f7d8ab4b3adb96dd30125d0f419b1cde0f784b",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-GenericOutlineShapeSquare",
+      "pngSha256": "c47b08c6cb4415694f1e6dee83ac87f27bc70a00a5fc0e50fe8c2a505f8eebe5",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-GradientBackgroundCard",
+      "pngSha256": "c6850db100e021e91aa264f7b4f71056a4943f93ef9783e9260c5b8aa6d77e65",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-GraphicsLayerAndWideVector",
+      "pngSha256": "cd7cd31a68ba781577c5c7b8da396934fe2b271404b47cf53f39fe2848c4ad8f",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-IconButtonRowInputBar",
+      "pngSha256": "74ffe6a012a650ff681b77d8c65233e571bae7cfd91e7b5793180eb23558e291",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-LazyColumnListPreview",
+      "pngSha256": "34521a25d2e4d4a7ba9f479cd684b254f884b3669cbf842b8ab3f234052006de",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-MaterialButtonInteractionState",
+      "pngSha256": "b8a15917378df0bd382408625f827120f50b8f6761000eee66aec4079c309f2f",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-MultipleSemanticsRoots",
+      "pngSha256": "615d5d7c4a74f84497e1974d371d65253a073c0e7373c07bb4403fc1cd35dab6",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-OpaqueImageSquare",
+      "pngSha256": "c5d6d5571e9b7dc7e9da5cc6c95384d3ac1340864723fcc2fec66af731c7ea01",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-RadialGradientBackgroundCard",
+      "pngSha256": "2aeca012e53d8b5db377b18443258061008a9e2128717d96ed01af7ef70a5d90",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-RedSquare",
+      "pngSha256": "110b9bcedae548beb2eaa17dca0541a84d91cdaef65b3c25b296b4099adc9c5b",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-SerifTextPreview",
+      "pngSha256": "a6c07dd3474f293d1fcf8167b22a0ca5f932df42aa5f6737cedd0c472ea45bc8",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    },
+    {
+      "output": "2-VisualOnlySurfaceWithPopup",
+      "pngSha256": "615d5d7c4a74f84497e1974d371d65253a073c0e7373c07bb4403fc1cd35dab6",
+      "pngParity": true,
+      "defaultHierarchyParity": true,
+      "fullHierarchyParity": true
+    }
+  ]
+}

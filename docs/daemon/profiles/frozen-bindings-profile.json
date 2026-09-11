@@ -1,0 +1,56 @@
+{
+  "jvmVersion": "17.0.19+10",
+  "phases": {
+    "boot": {
+      "wallMs": 1790,
+      "cpuSamples": 2383,
+      "threadGroups": {
+        "gc": 185,
+        "application": 1651,
+        "other": 8,
+        "compiler": 539
+      },
+      "unresolvedJvmLeafSamples": 1205,
+      "applicationInclusiveHotspots": {
+        "class definition": 360,
+        "BouncyCastle setup": 156,
+        "invokedynamic linkage": 151,
+        "application creation": 391,
+        "native runtime initialization": 370
+      }
+    },
+    "warm-render": {
+      "wallMs": 2234,
+      "cpuSamples": 2832,
+      "threadGroups": {
+        "compiler": 183,
+        "application": 2089,
+        "gc": 537,
+        "other": 23
+      },
+      "unresolvedJvmLeafSamples": 1678,
+      "applicationInclusiveHotspots": {
+        "class definition": 540,
+        "invokedynamic linkage": 240,
+        "Activity launch": 786,
+        "captureRoboImage": 198,
+        "application creation": 17
+      }
+    },
+    "post-warm": {
+      "wallMs": 29,
+      "cpuSamples": 64,
+      "threadGroups": {
+        "gc": 47,
+        "other": 5,
+        "application": 10,
+        "compiler": 2
+      },
+      "unresolvedJvmLeafSamples": 55,
+      "applicationInclusiveHotspots": {
+        "class definition": 1
+      }
+    }
+  },
+  "note": "CPU sample counts; inclusive hotspots overlap and must not be summed."
+}
