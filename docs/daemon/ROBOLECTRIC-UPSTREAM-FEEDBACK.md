@@ -64,9 +64,10 @@ same benefit there. “Conditional” means the test must exercise the named pat
 | R09 | Our application-child-loader cache leak is not established in ordinary tests. Runner-owned sandboxes have different lifetimes. AWT/TCCL retention needs a separate reproducer. | AWT/image initialization could encounter related lifetime issues, but no conventional screenshot-test leak has been demonstrated. | Replacing application loaders within one long-lived sandbox is our distinguishing workload. Our growing leak is fixed; the remaining initial AWT root is bounded. Do not file an upstream leak without ownership evidence. |
 | R10 | Useful for diagnosing suite/fork setup, instrumentation and teardown; existing PerfStats facilities should be reused. | Useful to separate render cost from setup, JIT and GC, especially parallel CI. | Embedders need stable lifecycle access outside the runner. Demonstrate missing phase coverage in both a standard test report and simulator session before proposing new events. |
 
-For upstream prioritization, start with shared costs **R01/R06/R10**, evaluate
-**R02/R08** in representative test suites, and frame **R03/R04/R05** explicitly as
-embedding/simulator API feedback. **R07** needs cross-project API design; **R09**
+Follow the ranked table above: **R01 → R02** first; then **R10 → R08 → R06 →
+R04 → R05**; finally **R03 → R07 → R09**. Broad applicability raises priority,
+but does not substitute for demonstrated impact. Frame **R03/R04/R05** explicitly
+as embedding/simulator API feedback. **R07** needs cross-project API design; **R09**
 remains an ownership investigation. None of these assessments establishes a new
 correctness bug in ordinary Robolectric tests.
 
