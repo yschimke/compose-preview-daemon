@@ -17,15 +17,15 @@ parser.add_argument('--user-jar', type=Path, required=True)
 parser.add_argument('--java', required=True)
 parser.add_argument('--cpus', required=True, help='Comma-separated logical CPUs shared by both workers')
 parser.add_argument('--renders', type=int, default=60)
-parser.add_argument('--policy', choices=['allocator', 'compiler', 'metrics'], default='allocator')
+parser.add_argument('--policy', choices=['allocator', 'compiler', 'metrics', 'trim'], default='allocator')
 parser.add_argument('--font-cache', type=Path,
-    help='Existing warmed font cache; enables offline mode, required for metrics policy')
+    help='Existing warmed font cache; enables offline mode, required for metrics/trim policies')
 args = parser.parse_args()
-if args.policy == 'metrics' and args.font_cache is None:
-    parser.error('metrics policy requires a warmed --font-cache')
+if args.policy in ('metrics', 'trim') and args.font_cache is None:
+    parser.error('metrics/trim policy requires a warmed --font-cache')
 if args.font_cache is not None and not args.font_cache.is_dir():
     parser.error('--font-cache must be an existing directory')
-if args.policy == 'metrics':
+if args.policy in ('metrics', 'trim'):
     for face in ['roboto-400.woff2', 'roboto-500.woff2']:
         path = args.font_cache / face
         if not path.is_file() or path.read_bytes()[:4] != b'wOF2':
@@ -39,7 +39,7 @@ if any(os.environ.get(k) for k in ['GLIBC_TUNABLES','LD_PRELOAD','MALLOC_ARENA_M
 args.output.mkdir(parents=True, exist_ok=False)
 reference = None
 rows = []
-candidate = {'allocator':'arena2','compiler':'compiler2','metrics':'metrics5'}[args.policy]
+candidate = {'allocator':'arena2','compiler':'compiler2','metrics':'metrics5','trim':'metrics5trim'}[args.policy]
 for trial in range(3):
     for variant in (['default',candidate] if trial % 2 == 0 else [candidate,'default']):
         directory = args.output / f'{trial}-{variant}'
@@ -65,11 +65,15 @@ for trial in range(3):
                     '--memory','--output',str(output.resolve())]
                 command += ['--jvm-arg='+f for f in ['-Xmx256m','-Xms32m','-XX:+UseSerialGC',
                     '-XX:MinHeapFreeRatio=10','-XX:MaxHeapFreeRatio=30']]
-                if variant == 'compiler2' or args.policy == 'metrics':
+                if variant == 'compiler2' or args.policy in ('metrics', 'trim'):
                     command.append('--jvm-arg=-XX:CICompilerCount=2')
-                if args.policy == 'metrics':
-                    cadence = 5 if variant == 'metrics5' else 1
+                if args.policy in ('metrics', 'trim'):
+                    cadence = 5 if variant == 'metrics5' or args.policy == 'trim' else 1
                     command.append(f'--jvm-arg=-Dcomposeai.daemon.metrics.everyRenders={cadence}')
+                if args.policy == 'trim':
+                    interval = 5000 if variant == 'metrics5trim' else 0
+                    command += [f'--jvm-arg=-XX:TrimNativeHeapInterval={interval}',
+                        '--jvm-arg=-Xlog:trimnative=debug', '--jvm-arg=-Xlog:gc*=info']
                 if args.font_cache is not None:
                     command += ['--jvm-arg=-Dcomposeai.fonts.cacheDir='+str(args.font_cache.resolve()),
                         '--jvm-arg=-Dcomposeai.fonts.offline=true']

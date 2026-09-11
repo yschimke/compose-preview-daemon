@@ -310,6 +310,15 @@ PSS changes by 0.8% and mean CPU by 0.15%, with one memory reversal. All 366
 paired PNG/UIA frames match. This limits any generalization of the single-worker
 saving; allocator tuning remains workload-specific and R09 remains P3 upstream.
 
+A [periodic native-trimming study](BOOT-PERIODIC-NATIVE-TRIM.md) uses an existing
+HotSpot/glibc option to recover most of the single-worker memory cost of sampled
+metrics. This is a local JVM-policy opportunity, not a missing Robolectric API or
+a confirmed leak. A 300-reload trio and three two-worker pairs now support the
+local opportunity: the longer 300-reload concurrent comparison lowers observed
+peak PSS 9.8% with essentially unchanged CPU, but 145.6% more minor page faults.
+Some late RSS windows still rise. Lifetime stability and ordinary-test benefit remain unproven;
+R09 stays P3.
+
 **Next:** minimize the AWT initialization/TCCL case and determine whether our embedder
 should initialize it under a stable loader or Robolectric should provide a lifecycle
 hook. Ask for a supported application-loader replacement/unloading recipe and
