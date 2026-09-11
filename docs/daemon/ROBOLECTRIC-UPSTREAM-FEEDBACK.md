@@ -334,6 +334,14 @@ with low-overhead examples reporting process CPU and memory alongside latency.
 Distinguish heap, RSS/PSS, code cache, metaspace and virtual address space. Validate
 under repeated renders, multiple workers and CPU-constrained environments rather
 than recommending one GC/compiler policy from an isolated startup benchmark.
+A [fresh dense-screen profile](BOOT-DENSE-COMPILER-PROFILE.md) attributes 39.1%
+of post-readiness CPU samples to compiler threads. A two-thread compiler limit
+reduces process CPU 13.2% and median PSS 154 MiB in three short-session pairs,
+while steady-frame cost is essentially unchanged. VM Thread native stacks remain
+unresolved and are not labelled entirely GC. This supports separating JVM and
+application costs; it does not establish a Robolectric defect or ordinary-suite
+benefit, and R10 remains P2.
+
 The daemon's own forced per-render GC and its `nativeHeapMb` approximation are our
 telemetry decisions, not automatically Robolectric defects.
 
