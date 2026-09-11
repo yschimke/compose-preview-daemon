@@ -20,6 +20,9 @@ package ee.schimke.composeai.preview
  *   one-off import; the render stays authoritative.
  * * [parallel] defaults to empty. Override with the component id of the counterpart in the sibling
  *   system named by the catalog's `compareWith` setting.
+ * * [related] defaults to empty. Override with this component's counterparts in OTHER catalogs — a
+ *   samples catalog demonstrating how it is called, a sibling platform's rendition. A list, and not
+ *   a second [parallel]; see below.
  * * [perBreakpoint] defaults to false — every render of the function folds onto ONE component. Set
  *   it when the component should be a card *per* breakpoint instead; see below.
  * * [referenceSet] defaults to empty. Override with the handle of the component *family*
@@ -66,6 +69,41 @@ package ee.schimke.composeai.preview
  * Two fields rather than one because the two readers want incompatible things — a parity diff needs
  * the narrowest renderable node, screen matching needs the widest. Both travel into `previews.json`
  * and out to the design-map, where design-parity indexes them side by side.
+ *
+ * ### Other catalogs: [related]
+ *
+ * [parallel] names the ONE counterpart this sticker is *diffed against*, in the single sibling
+ * system a catalog's `compareWith` setting names. [related] answers a different question — which
+ * OTHER catalogs are worth looking at from this component — and carries no parity semantics at all:
+ * nothing scores, diffs or gates on it.
+ *
+ * A list rather than a second scalar, because the case that needs it has three catalogs and not
+ * two. The AndroidX samples import publishes a samples catalog beside each kit catalog, and
+ * `remote-m3` has already spent its `compareWith` on the Wear kit catalog — so no pairwise handle
+ * could also reach the samples.
+ *
+ * Each entry is `"<system>"`, `"<system>=<componentId>"` or `"<system>=<componentId>=<label>"`, the
+ * same positional `key=value` shape [breakpointKit] and [CatalogVariant.props] use and for the same
+ * reason: annotations cannot hold a `Map`.
+ *
+ * ```kotlin
+ * @CatalogComponent(
+ *   id = "Button/Filled",
+ *   related = ["m3-samples==Samples"],  // same id in the other catalog, labelled "Samples"
+ * )
+ * ```
+ *
+ * An empty `<componentId>` means "the same id as mine" — the id-parity case, which is most of them
+ * — so the doubled `=` above is the common spelling rather than a typo. An omitted `<label>` lets
+ * the consumer fall back to the other catalog's own title.
+ *
+ * Carried verbatim by discovery and never parsed there, exactly like [breakpointKit]: the
+ * design-artifacts export's catalog inventory is the one reader, because two parsers is how two
+ * spellings come to disagree. An entry naming no system is unpublishable and is reported by the
+ * export rather than dropped in silence.
+ *
+ * Nothing resolves the named system here. Only a consumer can — a preview server knows which
+ * catalogs it serves, and one that does not serve the named system simply renders no link.
  *
  * ### Breakpoints: [perBreakpoint]
  *
@@ -194,6 +232,15 @@ annotation class CatalogComponent(
    * legitimately unused when the 240dp capture reads it. Nothing is reported for it.
    */
   val breakpointKit: Array<String> = [],
+  /**
+   * This component's counterparts in OTHER catalogs, as `"<system>"`, `"<system>=<componentId>"` or
+   * `"<system>=<componentId>=<label>"` entries — e.g. `["m3-samples==Samples"]`. See "Other
+   * catalogs" above for the shape and for why this is a list rather than a second [parallel].
+   *
+   * An empty `<componentId>` means "the same id as mine", so it is split at most three ways: a
+   * label containing `=` survives intact.
+   */
+  val related: Array<String> = [],
 )
 
 /**
