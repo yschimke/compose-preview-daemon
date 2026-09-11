@@ -1,0 +1,66 @@
+diff --git a/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt b/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt
+index f1103602..7a2120b7 100644
+--- a/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt
++++ b/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt
+@@ -3778,13 +3778,16 @@ public fun captureVisuallySettledFrame(
+   var previousWidth = -1
+   var previousHeight = -1
+   var previousPixels: IntArray? = null
++  var sparePixels: IntArray? = null
+   var identicalSamples = 0
+   var sawMismatch = false
+
+   repeat(VISUAL_SETTLE_MAX_SAMPLES) { sample ->
+     if (sample > 0) advanceFrame()
+     val image = captureDecodableFrame(file, role = role, capture = capture)
+-    val pixels = IntArray(image.width * image.height)
++    // Two capture-local buffers preserve the previous sample without allocating for every frame.
++    val pixelCount = image.width * image.height
++    val pixels = sparePixels?.takeIf { it.size == pixelCount } ?: IntArray(pixelCount)
+     image.getRGB(0, 0, image.width, image.height, pixels, 0, image.width)
+
+     val sameAsPrevious =
+@@ -3800,6 +3803,7 @@ public fun captureVisuallySettledFrame(
+
+     previousWidth = image.width
+     previousHeight = image.height
++    sparePixels = previousPixels
+     previousPixels = pixels
+     if (sample == VISUAL_SETTLE_MAX_SAMPLES - 1) onFinalDecodedFrame(image)
+   }
+diff --git a/renderers/android/src/test/kotlin/ee/schimke/composeai/renderer/FinalDecodedCaptureTest.kt b/renderers/android/src/test/kotlin/ee/schimke/composeai/renderer/FinalDecodedCaptureTest.kt
+index e0dd6f59..c24c1241 100644
+--- a/renderers/android/src/test/kotlin/ee/schimke/composeai/renderer/FinalDecodedCaptureTest.kt
++++ b/renderers/android/src/test/kotlin/ee/schimke/composeai/renderer/FinalDecodedCaptureTest.kt
+@@ -70,6 +70,31 @@ class FinalDecodedCaptureTest {
+     assertEquals(6, delivered!!.width)
+   }
+
++  @Test
++  fun `alternating shapes with equal pixel counts never settle`() {
++    var captures = 0
++    val result =
++      captureVisuallySettledFrame(temporary.newFile(), "shape", advanceFrame = {}) { output ->
++        val width = if (captures++ % 2 == 0) 4 else 6
++        ImageIO.write(BufferedImage(width, 12 / width, BufferedImage.TYPE_INT_ARGB), "png", output)
++      }
++    assertEquals(VisualSettleOutcome.STILL_CHANGING, result)
++    assertEquals(VISUAL_SETTLE_MAX_SAMPLES, captures)
++  }
++
++  @Test
++  fun `alternating final pixel is compared after buffer reuse`() {
++    var captures = 0
++    val result =
++      captureVisuallySettledFrame(temporary.newFile(), "tail", advanceFrame = {}) { output ->
++        val image = BufferedImage(5, 4, BufferedImage.TYPE_INT_ARGB)
++        image.setRGB(4, 3, if (captures++ % 2 == 0) 0xff000000.toInt() else 0xffffffff.toInt())
++        ImageIO.write(image, "png", output)
++      }
++    assertEquals(VisualSettleOutcome.STILL_CHANGING, result)
++    assertEquals(VISUAL_SETTLE_MAX_SAMPLES, captures)
++  }
++
+   @Test
+   fun `decode failure does not deliver a frame`() {
+     var callbacks = 0

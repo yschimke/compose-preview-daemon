@@ -1,0 +1,329 @@
+{
+  "runs": [
+    {
+      "source": "daemon/android/build/in-memory-settling-baseline-reload-256-nmt/summary.json",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-XX:NativeMemoryTracking=summary",
+        "-XX:+UnlockDiagnosticVMOptions",
+        "-XX:+PrintNMTStatistics"
+      ],
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "fixtureClass": "benchmark.screens.ReloadDashboardPreviewsKt",
+      "checkedFrames": 301,
+      "withinRunParity": true,
+      "fixtureHashes": {
+        "RedSquare": {
+          "pngSha256": "32c435fa3075bb5452cf5a67968fc9cec6c704c6fa87dcde9498ea816ed5df85",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        "ReloadDashboardPreview": {
+          "pngSha256": "e990b4e59d823f573c3c48f59185316aaa7dbf504b0d6928d0974991d08c9b3b",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        }
+      },
+      "forcedGcCheckpointEvery": 50,
+      "checkpoints": [
+        {
+          "renderIndex": 0,
+          "postGcHeapUsedKiB": 89930,
+          "metaspaceUsedKiB": 102529,
+          "VmHWM": 628268,
+          "VmRSS": 606008,
+          "RssAnon": 550824,
+          "RssFile": 52340,
+          "RssShmem": 2844,
+          "Pss": 584744,
+          "Private": 579960
+        },
+        {
+          "renderIndex": 50,
+          "postGcHeapUsedKiB": 92883,
+          "metaspaceUsedKiB": 114868,
+          "VmHWM": 835240,
+          "VmRSS": 818452,
+          "RssAnon": 763140,
+          "RssFile": 52468,
+          "RssShmem": 2844,
+          "Pss": 797394,
+          "Private": 792776
+        },
+        {
+          "renderIndex": 100,
+          "postGcHeapUsedKiB": 93296,
+          "metaspaceUsedKiB": 115987,
+          "VmHWM": 865840,
+          "VmRSS": 848716,
+          "RssAnon": 793404,
+          "RssFile": 52468,
+          "RssShmem": 2844,
+          "Pss": 827649,
+          "Private": 823036
+        },
+        {
+          "renderIndex": 150,
+          "postGcHeapUsedKiB": 93696,
+          "metaspaceUsedKiB": 116936,
+          "VmHWM": 930848,
+          "VmRSS": 913672,
+          "RssAnon": 858360,
+          "RssFile": 52468,
+          "RssShmem": 2844,
+          "Pss": 892605,
+          "Private": 887992
+        },
+        {
+          "renderIndex": 200,
+          "postGcHeapUsedKiB": 94118,
+          "metaspaceUsedKiB": 117520,
+          "VmHWM": 937888,
+          "VmRSS": 921076,
+          "RssAnon": 865748,
+          "RssFile": 52484,
+          "RssShmem": 2844,
+          "Pss": 900007,
+          "Private": 895384
+        },
+        {
+          "renderIndex": 250,
+          "postGcHeapUsedKiB": 81373,
+          "metaspaceUsedKiB": 115352,
+          "VmHWM": 958532,
+          "VmRSS": 941720,
+          "RssAnon": 886392,
+          "RssFile": 52484,
+          "RssShmem": 2844,
+          "Pss": 920642,
+          "Private": 916024
+        },
+        {
+          "renderIndex": 300,
+          "postGcHeapUsedKiB": 81687,
+          "metaspaceUsedKiB": 116439,
+          "VmHWM": 1005436,
+          "VmRSS": 968652,
+          "RssAnon": 913324,
+          "RssFile": 52484,
+          "RssShmem": 2844,
+          "Pss": 947575,
+          "Private": 942956
+        }
+      ],
+      "requestWindows": {
+        "first": {
+          "count": 100,
+          "medianWallMs": 634.0,
+          "meanCpuMs": 841.5
+        },
+        "last": {
+          "count": 100,
+          "medianWallMs": 604.0,
+          "meanCpuMs": 617.9
+        }
+      },
+      "variant": "baseline",
+      "distinctReloadClassLoaderIds": 300,
+      "liveApplicationLoaders": [
+        {
+          "renderIndex": 0,
+          "count": 2
+        },
+        {
+          "renderIndex": 50,
+          "count": 2
+        },
+        {
+          "renderIndex": 100,
+          "count": 2
+        },
+        {
+          "renderIndex": 150,
+          "count": 2
+        },
+        {
+          "renderIndex": 200,
+          "count": 2
+        },
+        {
+          "renderIndex": 250,
+          "count": 2
+        },
+        {
+          "renderIndex": 300,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "source": "daemon/android/build/in-memory-settling-candidate-reload-256-nmt/summary.json",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-XX:NativeMemoryTracking=summary",
+        "-XX:+UnlockDiagnosticVMOptions",
+        "-XX:+PrintNMTStatistics",
+        "-Dcomposeai.render.inMemorySettling=true"
+      ],
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "fixtureClass": "benchmark.screens.ReloadDashboardPreviewsKt",
+      "checkedFrames": 301,
+      "withinRunParity": true,
+      "fixtureHashes": {
+        "RedSquare": {
+          "pngSha256": "32c435fa3075bb5452cf5a67968fc9cec6c704c6fa87dcde9498ea816ed5df85",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        "ReloadDashboardPreview": {
+          "pngSha256": "e990b4e59d823f573c3c48f59185316aaa7dbf504b0d6928d0974991d08c9b3b",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        }
+      },
+      "forcedGcCheckpointEvery": 50,
+      "checkpoints": [
+        {
+          "renderIndex": 0,
+          "postGcHeapUsedKiB": 89953,
+          "metaspaceUsedKiB": 102568,
+          "VmHWM": 622552,
+          "VmRSS": 599360,
+          "RssAnon": 543788,
+          "RssFile": 52728,
+          "RssShmem": 2844,
+          "Pss": 577982,
+          "Private": 573172
+        },
+        {
+          "renderIndex": 50,
+          "postGcHeapUsedKiB": 92918,
+          "metaspaceUsedKiB": 114807,
+          "VmHWM": 884040,
+          "VmRSS": 866756,
+          "RssAnon": 811056,
+          "RssFile": 52856,
+          "RssShmem": 2844,
+          "Pss": 845593,
+          "Private": 840972
+        },
+        {
+          "renderIndex": 100,
+          "postGcHeapUsedKiB": 93336,
+          "metaspaceUsedKiB": 115923,
+          "VmHWM": 894592,
+          "VmRSS": 877188,
+          "RssAnon": 821488,
+          "RssFile": 52856,
+          "RssShmem": 2844,
+          "Pss": 856025,
+          "Private": 851404
+        },
+        {
+          "renderIndex": 150,
+          "postGcHeapUsedKiB": 93725,
+          "metaspaceUsedKiB": 116920,
+          "VmHWM": 930048,
+          "VmRSS": 912816,
+          "RssAnon": 857116,
+          "RssFile": 52856,
+          "RssShmem": 2844,
+          "Pss": 891653,
+          "Private": 887032
+        },
+        {
+          "renderIndex": 200,
+          "postGcHeapUsedKiB": 94145,
+          "metaspaceUsedKiB": 117482,
+          "VmHWM": 939452,
+          "VmRSS": 921868,
+          "RssAnon": 866168,
+          "RssFile": 52856,
+          "RssShmem": 2844,
+          "Pss": 900720,
+          "Private": 896096
+        },
+        {
+          "renderIndex": 250,
+          "postGcHeapUsedKiB": 94599,
+          "metaspaceUsedKiB": 117664,
+          "VmHWM": 953044,
+          "VmRSS": 935164,
+          "RssAnon": 879464,
+          "RssFile": 52856,
+          "RssShmem": 2844,
+          "Pss": 914001,
+          "Private": 909380
+        },
+        {
+          "renderIndex": 300,
+          "postGcHeapUsedKiB": 81705,
+          "metaspaceUsedKiB": 116522,
+          "VmHWM": 968416,
+          "VmRSS": 951108,
+          "RssAnon": 895408,
+          "RssFile": 52856,
+          "RssShmem": 2844,
+          "Pss": 929950,
+          "Private": 925324
+        }
+      ],
+      "requestWindows": {
+        "first": {
+          "count": 100,
+          "medianWallMs": 552.5,
+          "meanCpuMs": 759.1
+        },
+        "last": {
+          "count": 100,
+          "medianWallMs": 538.0,
+          "meanCpuMs": 538.7
+        }
+      },
+      "variant": "candidate",
+      "distinctReloadClassLoaderIds": 300,
+      "liveApplicationLoaders": [
+        {
+          "renderIndex": 0,
+          "count": 2
+        },
+        {
+          "renderIndex": 50,
+          "count": 2
+        },
+        {
+          "renderIndex": 100,
+          "count": 2
+        },
+        {
+          "renderIndex": 150,
+          "count": 2
+        },
+        {
+          "renderIndex": 200,
+          "count": 2
+        },
+        {
+          "renderIndex": 250,
+          "count": 2
+        },
+        {
+          "renderIndex": 300,
+          "count": 2
+        }
+      ]
+    }
+  ],
+  "crossRunParity": true,
+  "note": "Paired diagnostic runs at 256 MiB Serial GC with NMT, forced-GC checkpoints and histograms. Identical frozen jars; candidate enables inMemorySettling. Timings are not uninstrumented performance evidence. PSS/NMT/live heap have different scopes. No indefinite lifetime bound or recycling policy is inferred."
+}

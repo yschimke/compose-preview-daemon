@@ -2457,18 +2457,19 @@ abstract class RobolectricRenderTestBase(
               // annotation asked for. Animated/GIF paths were handled above and never reach here.
               if (settleStillFrame) {
                 val visuallySettled =
-                  captureVisuallySettledFrame(
+                  captureRoborazziVisuallySettledFrame(
                     file = outputFile,
+                    options = roborazziOptions,
                     role = "preview still",
                     onFinalDecodedFrame = { if (!wrapWidth && !wrapHeight) decodedStillFrame = it },
                     advanceFrame = {
                       rule.mainClock.advanceTimeByFrame()
                       currentTime += VISUAL_SETTLE_FRAME_MS
                     },
-                  ) { candidate ->
+                  ) { candidate, captureOptions ->
                     resolveCaptureRoot()
                       .interaction
-                      .captureRoboImage(file = candidate, roborazziOptions = roborazziOptions)
+                      .captureRoboImage(file = candidate, roborazziOptions = captureOptions)
                   }
                 // Recorded, not merely printed: an unsettled still is a wrong sticker on a green
                 // build, and stderr is not something a consumer's build can fail on. The warnings
@@ -3775,6 +3776,16 @@ public fun captureVisuallySettledFrame(
   onFinalDecodedFrame: (BufferedImage) -> Unit,
   capture: (File) -> Unit,
 ): VisualSettleOutcome {
+  return sampleVisuallySettledFrames(advanceFrame, onFinalDecodedFrame) {
+    captureDecodableFrame(file, role = role, capture = capture)
+  }
+}
+
+internal fun sampleVisuallySettledFrames(
+  advanceFrame: () -> Unit,
+  onFinalDecodedFrame: (BufferedImage) -> Unit,
+  capture: () -> BufferedImage,
+): VisualSettleOutcome {
   var previousWidth = -1
   var previousHeight = -1
   var previousPixels: IntArray? = null
@@ -3783,7 +3794,7 @@ public fun captureVisuallySettledFrame(
 
   repeat(VISUAL_SETTLE_MAX_SAMPLES) { sample ->
     if (sample > 0) advanceFrame()
-    val image = captureDecodableFrame(file, role = role, capture = capture)
+    val image = capture()
     val pixels = IntArray(image.width * image.height)
     image.getRGB(0, 0, image.width, image.height, pixels, 0, image.width)
 

@@ -1,0 +1,210 @@
+diff --git a/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt b/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt
+index f1103602..10eb5f32 100644
+--- a/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt
++++ b/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt
+@@ -3775,22 +3775,15 @@ public fun captureVisuallySettledFrame(
+   onFinalDecodedFrame: (BufferedImage) -> Unit,
+   capture: (File) -> Unit,
+ ): VisualSettleOutcome {
+-  var previousWidth = -1
+-  var previousHeight = -1
+-  var previousPixels: IntArray? = null
++  var previousImage: BufferedImage? = null
++  val comparator = FramePixelComparator()
+   var identicalSamples = 0
+   var sawMismatch = false
+
+   repeat(VISUAL_SETTLE_MAX_SAMPLES) { sample ->
+     if (sample > 0) advanceFrame()
+     val image = captureDecodableFrame(file, role = role, capture = capture)
+-    val pixels = IntArray(image.width * image.height)
+-    image.getRGB(0, 0, image.width, image.height, pixels, 0, image.width)
+-
+-    val sameAsPrevious =
+-      image.width == previousWidth &&
+-        image.height == previousHeight &&
+-        previousPixels?.contentEquals(pixels) == true
++    val sameAsPrevious = previousImage?.let { comparator.samePixels(it, image) } == true
+     if (sample > 0 && !sameAsPrevious) sawMismatch = true
+     identicalSamples = if (sameAsPrevious) identicalSamples + 1 else 1
+     if (sawMismatch && identicalSamples >= VISUAL_SETTLE_SLOW_PATH_IDENTICAL_SAMPLES) {
+@@ -3798,9 +3791,7 @@ public fun captureVisuallySettledFrame(
+       return VisualSettleOutcome.SETTLED
+     }
+
+-    previousWidth = image.width
+-    previousHeight = image.height
+-    previousPixels = pixels
++    previousImage = image
+     if (sample == VISUAL_SETTLE_MAX_SAMPLES - 1) onFinalDecodedFrame(image)
+   }
+   return if (sawMismatch) VisualSettleOutcome.STILL_CHANGING else VisualSettleOutcome.NEVER_CHANGED
+diff --git a/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/FramePixelComparator.kt b/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/FramePixelComparator.kt
+new file mode 100644
+index 00000000..c89678cd
+--- /dev/null
++++ b/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/FramePixelComparator.kt
+@@ -0,0 +1,67 @@
++package ee.schimke.composeai.renderer
++
++import java.awt.image.BufferedImage
++import java.awt.image.DataBufferByte
++import java.awt.image.PixelInterleavedSampleModel
++
++/** Exact getRGB-equivalent comparison with buffers owned by one settling invocation. */
++internal class FramePixelComparator {
++  private var leftStrip: IntArray? = null
++  private var rightStrip: IntArray? = null
++
++  fun samePixels(left: BufferedImage, right: BufferedImage): Boolean {
++    if (left.width != right.width || left.height != right.height) return false
++    if (left.type == right.type) {
++      val leftBytes = packedBytes(left)
++      val rightBytes = packedBytes(right)
++      if (leftBytes != null && rightBytes != null) return leftBytes.contentEquals(rightBytes)
++    }
++
++    // Indexed, premultiplied, subimage and nonstandard layouts retain getRGB color semantics.
++    val count = minOf(left.width, 4096)
++    val a = leftStrip?.takeIf { it.size >= count } ?: IntArray(count).also { leftStrip = it }
++    val b = rightStrip?.takeIf { it.size >= count } ?: IntArray(count).also { rightStrip = it }
++    for (y in 0 until left.height) {
++      var x = 0
++      while (x < left.width) {
++        val width = minOf(count, left.width - x)
++        left.getRGB(x, y, width, 1, a, 0, width)
++        right.getRGB(x, y, width, 1, b, 0, width)
++        for (i in 0 until width) if (a[i] != b[i]) return false
++        x += width
++      }
++    }
++    return true
++  }
++
++  private fun packedBytes(image: BufferedImage): ByteArray? {
++    val bands =
++      when (image.type) {
++        BufferedImage.TYPE_3BYTE_BGR -> BGR
++        BufferedImage.TYPE_4BYTE_ABGR -> ABGR
++        else -> return null
++      }
++    if (!image.colorModel.colorSpace.isCS_sRGB || image.isAlphaPremultiplied) return null
++    val raster = image.raster
++    if (raster.sampleModelTranslateX != 0 || raster.sampleModelTranslateY != 0) return null
++    val model = raster.sampleModel as? PixelInterleavedSampleModel ?: return null
++    if (
++      model.width != image.width ||
++        model.height != image.height ||
++        model.pixelStride != bands.size ||
++        model.scanlineStride.toLong() != image.width.toLong() * bands.size ||
++        !model.bandOffsets.contentEquals(bands)
++    )
++      return null
++    val buffer = raster.dataBuffer as? DataBufferByte ?: return null
++    if (buffer.numBanks != 1 || buffer.offset != 0) return null
++    val bytes = buffer.data
++    if (bytes.size.toLong() != image.width.toLong() * image.height * bands.size) return null
++    return bytes
++  }
++
++  private companion object {
++    val BGR = intArrayOf(2, 1, 0)
++    val ABGR = intArrayOf(3, 2, 1, 0)
++  }
++}
+diff --git a/renderers/android/src/test/kotlin/ee/schimke/composeai/renderer/FramePixelComparatorTest.kt b/renderers/android/src/test/kotlin/ee/schimke/composeai/renderer/FramePixelComparatorTest.kt
+new file mode 100644
+index 00000000..a3054196
+--- /dev/null
++++ b/renderers/android/src/test/kotlin/ee/schimke/composeai/renderer/FramePixelComparatorTest.kt
+@@ -0,0 +1,90 @@
++package ee.schimke.composeai.renderer
++
++import java.awt.image.BufferedImage
++import java.awt.image.DataBufferByte
++import java.awt.image.IndexColorModel
++import java.util.Random
++import org.junit.Assert.*
++import org.junit.Test
++
++class FramePixelComparatorTest {
++  private fun reference(a: BufferedImage, b: BufferedImage): Boolean =
++    a.width == b.width &&
++      a.height == b.height &&
++      a.getRGB(0, 0, a.width, a.height, null, 0, a.width)
++        .contentEquals(b.getRGB(0, 0, b.width, b.height, null, 0, b.width))
++
++  @Test
++  fun `all standard types and subimages agree with full getRGB snapshots`() {
++    val random = Random(481)
++    val colors = IntArray(17 * 5) { random.nextInt() }
++    val images =
++      (BufferedImage.TYPE_INT_RGB..BufferedImage.TYPE_BYTE_INDEXED).flatMap { type ->
++        val image = BufferedImage(17, 5, type)
++        image.setRGB(0, 0, 17, 5, colors, 0, 17)
++        val parent = BufferedImage(31, 11, type)
++        val sub = parent.getSubimage(3, 2, 17, 5)
++        sub.setRGB(0, 0, 17, 5, colors, 0, 17)
++        listOf(image, sub)
++      }
++    val comparator = FramePixelComparator()
++    for (a in images) for (b in images) {
++      assertEquals("${a.type} vs ${b.type}", reference(a, b), comparator.samePixels(a, b))
++    }
++  }
++
++  @Test
++  fun `packed byte equality detects alpha and hidden transparent colors`() {
++    for (type in listOf(BufferedImage.TYPE_3BYTE_BGR, BufferedImage.TYPE_4BYTE_ABGR)) {
++      val a = BufferedImage(7, 3, type)
++      val b = BufferedImage(7, 3, type)
++      val comparator = FramePixelComparator()
++      assertTrue(comparator.samePixels(a, b))
++      for (color in listOf(0x00000001, 0x01000000, 0x7fabcdef, 0xfffedcba.toInt())) {
++        b.setRGB(6, 2, color)
++        assertEquals(reference(a, b), comparator.samePixels(a, b))
++        a.setRGB(6, 2, color)
++        assertTrue(comparator.samePixels(a, b))
++      }
++    }
++  }
++
++  @Test
++  fun `palette indices do not substitute for visible colors`() {
++    val red = byteArrayOf(0, -1)
++    val zero = byteArrayOf(0, 0)
++    val first = IndexColorModel(8, 2, red, zero, zero)
++    val second = IndexColorModel(8, 2, red.reversedArray(), zero, zero)
++    val a = BufferedImage(7, 3, BufferedImage.TYPE_BYTE_INDEXED, first)
++    val b = BufferedImage(7, 3, BufferedImage.TYPE_BYTE_INDEXED, second)
++    val comparator = FramePixelComparator()
++    assertFalse(comparator.samePixels(a, b))
++    (b.raster.dataBuffer as DataBufferByte).data.fill(1)
++    assertTrue(comparator.samePixels(a, b))
++  }
++
++  @Test
++  fun `strip boundaries and reused trailing buffers preserve last pixel checks`() {
++    val comparator = FramePixelComparator()
++    for (width in listOf(8193, 4097, 17, 4096, 1)) {
++      val a = BufferedImage(width, 3, BufferedImage.TYPE_INT_ARGB)
++      val b = BufferedImage(width, 3, BufferedImage.TYPE_INT_ARGB_PRE)
++      assertTrue(comparator.samePixels(a, b))
++      b.setRGB(width - 1, 2, -1)
++      assertFalse(comparator.samePixels(a, b))
++      a.setRGB(width - 1, 2, -1)
++      assertTrue(comparator.samePixels(a, b))
++    }
++  }
++
++  @Test
++  fun `equal area does not imply equal dimensions`() {
++    assertFalse(
++      FramePixelComparator()
++        .samePixels(
++          BufferedImage(4, 3, BufferedImage.TYPE_4BYTE_ABGR),
++          BufferedImage(6, 2, BufferedImage.TYPE_4BYTE_ABGR),
++        )
++    )
++  }
++}
