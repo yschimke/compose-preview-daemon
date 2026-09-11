@@ -3789,13 +3789,14 @@ internal fun sampleVisuallySettledFrames(
   var previousWidth = -1
   var previousHeight = -1
   var previousPixels: IntArray? = null
+  var reusablePixels: IntArray? = null
   var identicalSamples = 0
   var sawMismatch = false
 
   repeat(VISUAL_SETTLE_MAX_SAMPLES) { sample ->
     if (sample > 0) advanceFrame()
     val image = capture()
-    val pixels = snapshotArgb(image)
+    val pixels = snapshotArgb(image, reusablePixels)
 
     val sameAsPrevious =
       image.width == previousWidth &&
@@ -3810,6 +3811,9 @@ internal fun sampleVisuallySettledFrames(
 
     previousWidth = image.width
     previousHeight = image.height
+    // Only overwrite the snapshot from two samples ago; the immediately preceding
+    // snapshot must remain independent until comparison. Buffers belong to this call.
+    reusablePixels = previousPixels
     previousPixels = pixels
     if (sample == VISUAL_SETTLE_MAX_SAMPLES - 1) onFinalDecodedFrame(image, pixels)
   }

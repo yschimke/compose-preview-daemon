@@ -1,0 +1,134 @@
+[
+  {
+    "source": "daemon/android/build/settle-buffer-reuse-g1/0-baseline",
+    "jvmArgs": [
+      "-Xmx1g",
+      "-XX:+UseG1GC",
+      "-Dcomposeai.daemon.metrics.everyRenders=1",
+      "-XX:TrimNativeHeapInterval=0",
+      "-Xlog:gc*=info",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true"
+    ],
+    "completedFrames": 61,
+    "totalWorkerCpuMs": 72340.0,
+    "loggedPauseCount": 156,
+    "loggedPauseTotalMs": 4031.334,
+    "explicitFullGcCount": 63,
+    "explicitFullGcPauseTotalMs": 3811.251,
+    "last30ExplicitFullGcMedianMs": 69.1285,
+    "explicitFullGcReportedCpuMs": 15070.0,
+    "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings.",
+    "humongousConcurrentStarts": 53
+  },
+  {
+    "source": "daemon/android/build/settle-buffer-reuse-g1/0-candidate",
+    "jvmArgs": [
+      "-Xmx1g",
+      "-XX:+UseG1GC",
+      "-Dcomposeai.daemon.metrics.everyRenders=1",
+      "-XX:TrimNativeHeapInterval=0",
+      "-Xlog:gc*=info",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true"
+    ],
+    "completedFrames": 61,
+    "totalWorkerCpuMs": 70960.0,
+    "loggedPauseCount": 94,
+    "loggedPauseTotalMs": 3997.082,
+    "explicitFullGcCount": 63,
+    "explicitFullGcPauseTotalMs": 3914.79,
+    "last30ExplicitFullGcMedianMs": 71.6195,
+    "explicitFullGcReportedCpuMs": 14290.0,
+    "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings.",
+    "humongousConcurrentStarts": 12
+  },
+  {
+    "source": "daemon/android/build/settle-buffer-reuse-g1/1-baseline",
+    "jvmArgs": [
+      "-Xmx1g",
+      "-XX:+UseG1GC",
+      "-Dcomposeai.daemon.metrics.everyRenders=1",
+      "-XX:TrimNativeHeapInterval=0",
+      "-Xlog:gc*=info",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true"
+    ],
+    "completedFrames": 61,
+    "totalWorkerCpuMs": 73440.0,
+    "loggedPauseCount": 155,
+    "loggedPauseTotalMs": 4075.615,
+    "explicitFullGcCount": 63,
+    "explicitFullGcPauseTotalMs": 3841.683,
+    "last30ExplicitFullGcMedianMs": 69.73349999999999,
+    "explicitFullGcReportedCpuMs": 15140.0,
+    "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings.",
+    "humongousConcurrentStarts": 60
+  },
+  {
+    "source": "daemon/android/build/settle-buffer-reuse-g1/1-candidate",
+    "jvmArgs": [
+      "-Xmx1g",
+      "-XX:+UseG1GC",
+      "-Dcomposeai.daemon.metrics.everyRenders=1",
+      "-XX:TrimNativeHeapInterval=0",
+      "-Xlog:gc*=info",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true"
+    ],
+    "completedFrames": 61,
+    "totalWorkerCpuMs": 70800.0,
+    "loggedPauseCount": 97,
+    "loggedPauseTotalMs": 3976.769,
+    "explicitFullGcCount": 63,
+    "explicitFullGcPauseTotalMs": 3899.169,
+    "last30ExplicitFullGcMedianMs": 70.767,
+    "explicitFullGcReportedCpuMs": 13980.0,
+    "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings.",
+    "humongousConcurrentStarts": 7
+  },
+  {
+    "source": "daemon/android/build/settle-buffer-reuse-g1/2-baseline",
+    "jvmArgs": [
+      "-Xmx1g",
+      "-XX:+UseG1GC",
+      "-Dcomposeai.daemon.metrics.everyRenders=1",
+      "-XX:TrimNativeHeapInterval=0",
+      "-Xlog:gc*=info",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true"
+    ],
+    "completedFrames": 61,
+    "totalWorkerCpuMs": 72850.0,
+    "loggedPauseCount": 146,
+    "loggedPauseTotalMs": 4021.581,
+    "explicitFullGcCount": 63,
+    "explicitFullGcPauseTotalMs": 3814.011,
+    "last30ExplicitFullGcMedianMs": 68.4135,
+    "explicitFullGcReportedCpuMs": 15110.0,
+    "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings.",
+    "humongousConcurrentStarts": 48
+  },
+  {
+    "source": "daemon/android/build/settle-buffer-reuse-g1/2-candidate",
+    "jvmArgs": [
+      "-Xmx1g",
+      "-XX:+UseG1GC",
+      "-Dcomposeai.daemon.metrics.everyRenders=1",
+      "-XX:TrimNativeHeapInterval=0",
+      "-Xlog:gc*=info",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true"
+    ],
+    "completedFrames": 61,
+    "totalWorkerCpuMs": 73210.0,
+    "loggedPauseCount": 135,
+    "loggedPauseTotalMs": 4021.022,
+    "explicitFullGcCount": 63,
+    "explicitFullGcPauseTotalMs": 3877.249,
+    "last30ExplicitFullGcMedianMs": 70.376,
+    "explicitFullGcReportedCpuMs": 13950.0,
+    "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings.",
+    "humongousConcurrentStarts": 16
+  }
+]

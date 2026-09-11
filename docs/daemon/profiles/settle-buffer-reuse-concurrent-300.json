@@ -1,0 +1,6168 @@
+{
+  "source": "daemon/android/build/settle-buffer-reuse-concurrent-300",
+  "cpuAffinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "workersPerGroup": 2,
+  "rendersPerWorker": 300,
+  "fontCache": "daemon/android/build/bulk-font-cache",
+  "fontOffline": true,
+  "compilerThreads": 2,
+  "trials": 3,
+  "method": "Two concurrent workers sharing CPUs 0,1,2,3 (different physical cores), each with 300 actual reloads and 256 MiB Serial heap/Xms32m. All other local benchmarks/builds stopped. Cores are not exclusive; host load is uncontrolled. PSS is sampled sequentially across both live workers once per second. Max observed sum is not an exact peak. End-of-workload CPU excludes shutdown; group elapsed includes startup, shutdown and up to one sampling interval of polling delay. No NMT, forced checkpoint GC or profiler.",
+  "rows": [
+    {
+      "policy": "classpath",
+      "trial": 0,
+      "variant": "default",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 113648,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 296710.0,
+      "peakObservedConcurrentPssKiB": 1321863,
+      "minorFaults": 446607,
+      "majorFaults": 7,
+      "parityFramesPerWorker": 301,
+      "distinctApplicationLoadersPerWorker": 300,
+      "workers": [
+        {
+          "readyWallMs": 5375,
+          "totalWallMs": 112787,
+          "totalCpuMs": 147710.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 705052,
+            "VmRSS": 648472,
+            "RssAnon": 592444,
+            "RssFile": 53884,
+            "RssShmem": 2144,
+            "Pss": 624016,
+            "Private": 605116
+          },
+          "workloadEndFaults": {
+            "minor": 222821,
+            "major": 3
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5399,
+          "totalWallMs": 112827,
+          "totalCpuMs": 149000.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 706200,
+            "VmRSS": 696308,
+            "RssAnon": 640196,
+            "RssFile": 53968,
+            "RssShmem": 2144,
+            "Pss": 671875,
+            "Private": 652972
+          },
+          "workloadEndFaults": {
+            "minor": 223786,
+            "major": 4
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            117335,
+            118806
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            190900,
+            184782
+          ]
+        },
+        {
+          "elapsedMs": 3020,
+          "pssKiB": [
+            276662,
+            270388
+          ]
+        },
+        {
+          "elapsedMs": 4029,
+          "pssKiB": [
+            335612,
+            331450
+          ]
+        },
+        {
+          "elapsedMs": 5040,
+          "pssKiB": [
+            383463,
+            383178
+          ]
+        },
+        {
+          "elapsedMs": 6052,
+          "pssKiB": [
+            440579,
+            440557
+          ]
+        },
+        {
+          "elapsedMs": 7065,
+          "pssKiB": [
+            444771,
+            442028
+          ]
+        },
+        {
+          "elapsedMs": 8077,
+          "pssKiB": [
+            471487,
+            493789
+          ]
+        },
+        {
+          "elapsedMs": 9090,
+          "pssKiB": [
+            474247,
+            510565
+          ]
+        },
+        {
+          "elapsedMs": 10104,
+          "pssKiB": [
+            519115,
+            535429
+          ]
+        },
+        {
+          "elapsedMs": 11120,
+          "pssKiB": [
+            535300,
+            545479
+          ]
+        },
+        {
+          "elapsedMs": 12134,
+          "pssKiB": [
+            536864,
+            545275
+          ]
+        },
+        {
+          "elapsedMs": 13147,
+          "pssKiB": [
+            541396,
+            553475
+          ]
+        },
+        {
+          "elapsedMs": 14161,
+          "pssKiB": [
+            588172,
+            554063
+          ]
+        },
+        {
+          "elapsedMs": 15176,
+          "pssKiB": [
+            556352,
+            573335
+          ]
+        },
+        {
+          "elapsedMs": 16191,
+          "pssKiB": [
+            577840,
+            590139
+          ]
+        },
+        {
+          "elapsedMs": 17206,
+          "pssKiB": [
+            589640,
+            603095
+          ]
+        },
+        {
+          "elapsedMs": 18221,
+          "pssKiB": [
+            576100,
+            583151
+          ]
+        },
+        {
+          "elapsedMs": 19239,
+          "pssKiB": [
+            595400,
+            607143
+          ]
+        },
+        {
+          "elapsedMs": 20254,
+          "pssKiB": [
+            592692,
+            600503
+          ]
+        },
+        {
+          "elapsedMs": 21269,
+          "pssKiB": [
+            600820,
+            610651
+          ]
+        },
+        {
+          "elapsedMs": 22284,
+          "pssKiB": [
+            607900,
+            600471
+          ]
+        },
+        {
+          "elapsedMs": 23300,
+          "pssKiB": [
+            619308,
+            624571
+          ]
+        },
+        {
+          "elapsedMs": 24315,
+          "pssKiB": [
+            608908,
+            613379
+          ]
+        },
+        {
+          "elapsedMs": 25330,
+          "pssKiB": [
+            623640,
+            627647
+          ]
+        },
+        {
+          "elapsedMs": 26346,
+          "pssKiB": [
+            609252,
+            617643
+          ]
+        },
+        {
+          "elapsedMs": 27362,
+          "pssKiB": [
+            631172,
+            635323
+          ]
+        },
+        {
+          "elapsedMs": 28377,
+          "pssKiB": [
+            611932,
+            620195
+          ]
+        },
+        {
+          "elapsedMs": 29392,
+          "pssKiB": [
+            627424,
+            637971
+          ]
+        },
+        {
+          "elapsedMs": 30405,
+          "pssKiB": [
+            559044,
+            561271
+          ]
+        },
+        {
+          "elapsedMs": 31419,
+          "pssKiB": [
+            564940,
+            554691
+          ]
+        },
+        {
+          "elapsedMs": 32434,
+          "pssKiB": [
+            607112,
+            583067
+          ]
+        },
+        {
+          "elapsedMs": 33449,
+          "pssKiB": [
+            597368,
+            585731
+          ]
+        },
+        {
+          "elapsedMs": 34463,
+          "pssKiB": [
+            604864,
+            596647
+          ]
+        },
+        {
+          "elapsedMs": 35478,
+          "pssKiB": [
+            606608,
+            587819
+          ]
+        },
+        {
+          "elapsedMs": 36493,
+          "pssKiB": [
+            608588,
+            579103
+          ]
+        },
+        {
+          "elapsedMs": 37508,
+          "pssKiB": [
+            609736,
+            589423
+          ]
+        },
+        {
+          "elapsedMs": 38523,
+          "pssKiB": [
+            604772,
+            579167
+          ]
+        },
+        {
+          "elapsedMs": 39537,
+          "pssKiB": [
+            611844,
+            591155
+          ]
+        },
+        {
+          "elapsedMs": 40553,
+          "pssKiB": [
+            611452,
+            592507
+          ]
+        },
+        {
+          "elapsedMs": 41568,
+          "pssKiB": [
+            616725,
+            603683
+          ]
+        },
+        {
+          "elapsedMs": 42583,
+          "pssKiB": [
+            607172,
+            594783
+          ]
+        },
+        {
+          "elapsedMs": 43598,
+          "pssKiB": [
+            627320,
+            601183
+          ]
+        },
+        {
+          "elapsedMs": 44614,
+          "pssKiB": [
+            628532,
+            602043
+          ]
+        },
+        {
+          "elapsedMs": 45627,
+          "pssKiB": [
+            588944,
+            571595
+          ]
+        },
+        {
+          "elapsedMs": 46641,
+          "pssKiB": [
+            607656,
+            584431
+          ]
+        },
+        {
+          "elapsedMs": 47656,
+          "pssKiB": [
+            608016,
+            583671
+          ]
+        },
+        {
+          "elapsedMs": 48671,
+          "pssKiB": [
+            609576,
+            590355
+          ]
+        },
+        {
+          "elapsedMs": 49690,
+          "pssKiB": [
+            611024,
+            592003
+          ]
+        },
+        {
+          "elapsedMs": 50705,
+          "pssKiB": [
+            611028,
+            582863
+          ]
+        },
+        {
+          "elapsedMs": 51721,
+          "pssKiB": [
+            659860,
+            640055
+          ]
+        },
+        {
+          "elapsedMs": 52737,
+          "pssKiB": [
+            660912,
+            637227
+          ]
+        },
+        {
+          "elapsedMs": 53754,
+          "pssKiB": [
+            661492,
+            643035
+          ]
+        },
+        {
+          "elapsedMs": 54770,
+          "pssKiB": [
+            663688,
+            643599
+          ]
+        },
+        {
+          "elapsedMs": 55786,
+          "pssKiB": [
+            664084,
+            643735
+          ]
+        },
+        {
+          "elapsedMs": 56802,
+          "pssKiB": [
+            664444,
+            643815
+          ]
+        },
+        {
+          "elapsedMs": 57818,
+          "pssKiB": [
+            664932,
+            640119
+          ]
+        },
+        {
+          "elapsedMs": 58834,
+          "pssKiB": [
+            665112,
+            630067
+          ]
+        },
+        {
+          "elapsedMs": 59851,
+          "pssKiB": [
+            671616,
+            641007
+          ]
+        },
+        {
+          "elapsedMs": 60865,
+          "pssKiB": [
+            586424,
+            581139
+          ]
+        },
+        {
+          "elapsedMs": 61880,
+          "pssKiB": [
+            593744,
+            583879
+          ]
+        },
+        {
+          "elapsedMs": 62895,
+          "pssKiB": [
+            599872,
+            582831
+          ]
+        },
+        {
+          "elapsedMs": 63910,
+          "pssKiB": [
+            601584,
+            595019
+          ]
+        },
+        {
+          "elapsedMs": 64924,
+          "pssKiB": [
+            605164,
+            595943
+          ]
+        },
+        {
+          "elapsedMs": 65939,
+          "pssKiB": [
+            605836,
+            596291
+          ]
+        },
+        {
+          "elapsedMs": 66954,
+          "pssKiB": [
+            610368,
+            599903
+          ]
+        },
+        {
+          "elapsedMs": 67969,
+          "pssKiB": [
+            615004,
+            602395
+          ]
+        },
+        {
+          "elapsedMs": 68986,
+          "pssKiB": [
+            616880,
+            593655
+          ]
+        },
+        {
+          "elapsedMs": 70000,
+          "pssKiB": [
+            617112,
+            604183
+          ]
+        },
+        {
+          "elapsedMs": 71016,
+          "pssKiB": [
+            618672,
+            609775
+          ]
+        },
+        {
+          "elapsedMs": 72031,
+          "pssKiB": [
+            623380,
+            616747
+          ]
+        },
+        {
+          "elapsedMs": 73047,
+          "pssKiB": [
+            623528,
+            614779
+          ]
+        },
+        {
+          "elapsedMs": 74063,
+          "pssKiB": [
+            624012,
+            604523
+          ]
+        },
+        {
+          "elapsedMs": 75078,
+          "pssKiB": [
+            624296,
+            617239
+          ]
+        },
+        {
+          "elapsedMs": 76092,
+          "pssKiB": [
+            606500,
+            599003
+          ]
+        },
+        {
+          "elapsedMs": 77107,
+          "pssKiB": [
+            618020,
+            602575
+          ]
+        },
+        {
+          "elapsedMs": 78121,
+          "pssKiB": [
+            618128,
+            612895
+          ]
+        },
+        {
+          "elapsedMs": 79135,
+          "pssKiB": [
+            618744,
+            603415
+          ]
+        },
+        {
+          "elapsedMs": 80150,
+          "pssKiB": [
+            621772,
+            616927
+          ]
+        },
+        {
+          "elapsedMs": 81166,
+          "pssKiB": [
+            624332,
+            617587
+          ]
+        },
+        {
+          "elapsedMs": 82181,
+          "pssKiB": [
+            624364,
+            626407
+          ]
+        },
+        {
+          "elapsedMs": 83196,
+          "pssKiB": [
+            624728,
+            616535
+          ]
+        },
+        {
+          "elapsedMs": 84211,
+          "pssKiB": [
+            624920,
+            620947
+          ]
+        },
+        {
+          "elapsedMs": 85227,
+          "pssKiB": [
+            625440,
+            625411
+          ]
+        },
+        {
+          "elapsedMs": 86242,
+          "pssKiB": [
+            625652,
+            625063
+          ]
+        },
+        {
+          "elapsedMs": 87258,
+          "pssKiB": [
+            638804,
+            632431
+          ]
+        },
+        {
+          "elapsedMs": 88273,
+          "pssKiB": [
+            639192,
+            640507
+          ]
+        },
+        {
+          "elapsedMs": 89288,
+          "pssKiB": [
+            639668,
+            644711
+          ]
+        },
+        {
+          "elapsedMs": 90303,
+          "pssKiB": [
+            612900,
+            644735
+          ]
+        },
+        {
+          "elapsedMs": 91318,
+          "pssKiB": [
+            618280,
+            617311
+          ]
+        },
+        {
+          "elapsedMs": 92334,
+          "pssKiB": [
+            618536,
+            620475
+          ]
+        },
+        {
+          "elapsedMs": 93349,
+          "pssKiB": [
+            618876,
+            620531
+          ]
+        },
+        {
+          "elapsedMs": 94364,
+          "pssKiB": [
+            619132,
+            620715
+          ]
+        },
+        {
+          "elapsedMs": 95379,
+          "pssKiB": [
+            622000,
+            622691
+          ]
+        },
+        {
+          "elapsedMs": 96394,
+          "pssKiB": [
+            619812,
+            623255
+          ]
+        },
+        {
+          "elapsedMs": 97410,
+          "pssKiB": [
+            676456,
+            634891
+          ]
+        },
+        {
+          "elapsedMs": 98427,
+          "pssKiB": [
+            677932,
+            635691
+          ]
+        },
+        {
+          "elapsedMs": 99443,
+          "pssKiB": [
+            678180,
+            636463
+          ]
+        },
+        {
+          "elapsedMs": 100459,
+          "pssKiB": [
+            681028,
+            640835
+          ]
+        },
+        {
+          "elapsedMs": 101475,
+          "pssKiB": [
+            679532,
+            638655
+          ]
+        },
+        {
+          "elapsedMs": 102490,
+          "pssKiB": [
+            679716,
+            618191
+          ]
+        },
+        {
+          "elapsedMs": 103506,
+          "pssKiB": [
+            680252,
+            629055
+          ]
+        },
+        {
+          "elapsedMs": 104522,
+          "pssKiB": [
+            680332,
+            633631
+          ]
+        },
+        {
+          "elapsedMs": 105537,
+          "pssKiB": [
+            616664,
+            571867
+          ]
+        },
+        {
+          "elapsedMs": 106554,
+          "pssKiB": [
+            617872,
+            595299
+          ]
+        },
+        {
+          "elapsedMs": 107570,
+          "pssKiB": [
+            619796,
+            583807
+          ]
+        },
+        {
+          "elapsedMs": 108585,
+          "pssKiB": [
+            620588,
+            652715
+          ]
+        },
+        {
+          "elapsedMs": 109600,
+          "pssKiB": [
+            620708,
+            657259
+          ]
+        },
+        {
+          "elapsedMs": 110616,
+          "pssKiB": [
+            623928,
+            672251
+          ]
+        },
+        {
+          "elapsedMs": 111631,
+          "pssKiB": [
+            623636,
+            671791
+          ]
+        },
+        {
+          "elapsedMs": 112647,
+          "pssKiB": [
+            624016,
+            661363
+          ]
+        }
+      ],
+      "classpaths": {
+        "baseline": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/sampled-metrics-frozen/classpath.txt",
+        "candidate": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/settle-buffer-reuse-frozen/classpath.txt"
+      },
+      "last30SecondsMedianConcurrentPssMiB": 1242.4501953125
+    },
+    {
+      "policy": "classpath",
+      "trial": 0,
+      "variant": "candidate",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 112676,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 292670.0,
+      "peakObservedConcurrentPssKiB": 1383095,
+      "minorFaults": 453638,
+      "majorFaults": 20,
+      "parityFramesPerWorker": 301,
+      "distinctApplicationLoadersPerWorker": 300,
+      "workers": [
+        {
+          "readyWallMs": 5344,
+          "totalWallMs": 111963,
+          "totalCpuMs": 146840.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 714260,
+            "VmRSS": 713528,
+            "RssAnon": 657252,
+            "RssFile": 54132,
+            "RssShmem": 2144,
+            "Pss": 707848,
+            "Private": 707616
+          },
+          "workloadEndFaults": {
+            "minor": 257372,
+            "major": 11
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5276,
+          "totalWallMs": 111291,
+          "totalCpuMs": 145830.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 719552,
+            "VmRSS": 699908,
+            "RssAnon": 643808,
+            "RssFile": 53956,
+            "RssShmem": 2144,
+            "Pss": 675681,
+            "Private": 657032
+          },
+          "workloadEndFaults": {
+            "minor": 196266,
+            "major": 9
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            112588,
+            112624
+          ]
+        },
+        {
+          "elapsedMs": 2011,
+          "pssKiB": [
+            185889,
+            185726
+          ]
+        },
+        {
+          "elapsedMs": 3018,
+          "pssKiB": [
+            271085,
+            273238
+          ]
+        },
+        {
+          "elapsedMs": 4028,
+          "pssKiB": [
+            338197,
+            332046
+          ]
+        },
+        {
+          "elapsedMs": 5039,
+          "pssKiB": [
+            396191,
+            386458
+          ]
+        },
+        {
+          "elapsedMs": 6054,
+          "pssKiB": [
+            455033,
+            454692
+          ]
+        },
+        {
+          "elapsedMs": 7068,
+          "pssKiB": [
+            471105,
+            462672
+          ]
+        },
+        {
+          "elapsedMs": 8080,
+          "pssKiB": [
+            485289,
+            497796
+          ]
+        },
+        {
+          "elapsedMs": 9095,
+          "pssKiB": [
+            502761,
+            511144
+          ]
+        },
+        {
+          "elapsedMs": 10108,
+          "pssKiB": [
+            515593,
+            520488
+          ]
+        },
+        {
+          "elapsedMs": 11122,
+          "pssKiB": [
+            507446,
+            532733
+          ]
+        },
+        {
+          "elapsedMs": 12135,
+          "pssKiB": [
+            508366,
+            546397
+          ]
+        },
+        {
+          "elapsedMs": 13149,
+          "pssKiB": [
+            544782,
+            558049
+          ]
+        },
+        {
+          "elapsedMs": 14166,
+          "pssKiB": [
+            533222,
+            561045
+          ]
+        },
+        {
+          "elapsedMs": 15181,
+          "pssKiB": [
+            535830,
+            553893
+          ]
+        },
+        {
+          "elapsedMs": 16197,
+          "pssKiB": [
+            537898,
+            623909
+          ]
+        },
+        {
+          "elapsedMs": 17215,
+          "pssKiB": [
+            595594,
+            631449
+          ]
+        },
+        {
+          "elapsedMs": 18230,
+          "pssKiB": [
+            598978,
+            641521
+          ]
+        },
+        {
+          "elapsedMs": 19246,
+          "pssKiB": [
+            610978,
+            642473
+          ]
+        },
+        {
+          "elapsedMs": 20262,
+          "pssKiB": [
+            621838,
+            643853
+          ]
+        },
+        {
+          "elapsedMs": 21277,
+          "pssKiB": [
+            626470,
+            645489
+          ]
+        },
+        {
+          "elapsedMs": 22293,
+          "pssKiB": [
+            627678,
+            646665
+          ]
+        },
+        {
+          "elapsedMs": 23308,
+          "pssKiB": [
+            628330,
+            648689
+          ]
+        },
+        {
+          "elapsedMs": 24323,
+          "pssKiB": [
+            629074,
+            649501
+          ]
+        },
+        {
+          "elapsedMs": 25341,
+          "pssKiB": [
+            640062,
+            650185
+          ]
+        },
+        {
+          "elapsedMs": 26357,
+          "pssKiB": [
+            642210,
+            652325
+          ]
+        },
+        {
+          "elapsedMs": 27372,
+          "pssKiB": [
+            643254,
+            653797
+          ]
+        },
+        {
+          "elapsedMs": 28389,
+          "pssKiB": [
+            644842,
+            655353
+          ]
+        },
+        {
+          "elapsedMs": 29404,
+          "pssKiB": [
+            645438,
+            656425
+          ]
+        },
+        {
+          "elapsedMs": 30418,
+          "pssKiB": [
+            597030,
+            587301
+          ]
+        },
+        {
+          "elapsedMs": 31433,
+          "pssKiB": [
+            605554,
+            614897
+          ]
+        },
+        {
+          "elapsedMs": 32448,
+          "pssKiB": [
+            630678,
+            616617
+          ]
+        },
+        {
+          "elapsedMs": 33467,
+          "pssKiB": [
+            631106,
+            618337
+          ]
+        },
+        {
+          "elapsedMs": 34490,
+          "pssKiB": [
+            631374,
+            619497
+          ]
+        },
+        {
+          "elapsedMs": 35507,
+          "pssKiB": [
+            632246,
+            620665
+          ]
+        },
+        {
+          "elapsedMs": 36525,
+          "pssKiB": [
+            633186,
+            622305
+          ]
+        },
+        {
+          "elapsedMs": 37542,
+          "pssKiB": [
+            634430,
+            622989
+          ]
+        },
+        {
+          "elapsedMs": 38557,
+          "pssKiB": [
+            634874,
+            623529
+          ]
+        },
+        {
+          "elapsedMs": 39572,
+          "pssKiB": [
+            636186,
+            624961
+          ]
+        },
+        {
+          "elapsedMs": 40587,
+          "pssKiB": [
+            636206,
+            625777
+          ]
+        },
+        {
+          "elapsedMs": 41601,
+          "pssKiB": [
+            636318,
+            626697
+          ]
+        },
+        {
+          "elapsedMs": 42619,
+          "pssKiB": [
+            636406,
+            626877
+          ]
+        },
+        {
+          "elapsedMs": 43634,
+          "pssKiB": [
+            637226,
+            627017
+          ]
+        },
+        {
+          "elapsedMs": 44649,
+          "pssKiB": [
+            638898,
+            627145
+          ]
+        },
+        {
+          "elapsedMs": 45664,
+          "pssKiB": [
+            604254,
+            595621
+          ]
+        },
+        {
+          "elapsedMs": 46679,
+          "pssKiB": [
+            605946,
+            614381
+          ]
+        },
+        {
+          "elapsedMs": 47695,
+          "pssKiB": [
+            607658,
+            615293
+          ]
+        },
+        {
+          "elapsedMs": 48711,
+          "pssKiB": [
+            611362,
+            617773
+          ]
+        },
+        {
+          "elapsedMs": 49726,
+          "pssKiB": [
+            612314,
+            618825
+          ]
+        },
+        {
+          "elapsedMs": 50744,
+          "pssKiB": [
+            660790,
+            664985
+          ]
+        },
+        {
+          "elapsedMs": 51760,
+          "pssKiB": [
+            661618,
+            665685
+          ]
+        },
+        {
+          "elapsedMs": 52777,
+          "pssKiB": [
+            662698,
+            649173
+          ]
+        },
+        {
+          "elapsedMs": 53792,
+          "pssKiB": [
+            663494,
+            662453
+          ]
+        },
+        {
+          "elapsedMs": 54809,
+          "pssKiB": [
+            664902,
+            674629
+          ]
+        },
+        {
+          "elapsedMs": 55825,
+          "pssKiB": [
+            668634,
+            643745
+          ]
+        },
+        {
+          "elapsedMs": 56840,
+          "pssKiB": [
+            669494,
+            644097
+          ]
+        },
+        {
+          "elapsedMs": 57856,
+          "pssKiB": [
+            669918,
+            644417
+          ]
+        },
+        {
+          "elapsedMs": 58878,
+          "pssKiB": [
+            670102,
+            644989
+          ]
+        },
+        {
+          "elapsedMs": 59896,
+          "pssKiB": [
+            674362,
+            645589
+          ]
+        },
+        {
+          "elapsedMs": 60910,
+          "pssKiB": [
+            610534,
+            606053
+          ]
+        },
+        {
+          "elapsedMs": 61925,
+          "pssKiB": [
+            615926,
+            615629
+          ]
+        },
+        {
+          "elapsedMs": 62939,
+          "pssKiB": [
+            619322,
+            616713
+          ]
+        },
+        {
+          "elapsedMs": 63954,
+          "pssKiB": [
+            620374,
+            617565
+          ]
+        },
+        {
+          "elapsedMs": 64968,
+          "pssKiB": [
+            622166,
+            618561
+          ]
+        },
+        {
+          "elapsedMs": 65982,
+          "pssKiB": [
+            623450,
+            618641
+          ]
+        },
+        {
+          "elapsedMs": 66997,
+          "pssKiB": [
+            634777,
+            626817
+          ]
+        },
+        {
+          "elapsedMs": 68013,
+          "pssKiB": [
+            635182,
+            634261
+          ]
+        },
+        {
+          "elapsedMs": 69029,
+          "pssKiB": [
+            635574,
+            634433
+          ]
+        },
+        {
+          "elapsedMs": 70044,
+          "pssKiB": [
+            635734,
+            637577
+          ]
+        },
+        {
+          "elapsedMs": 71062,
+          "pssKiB": [
+            635862,
+            637721
+          ]
+        },
+        {
+          "elapsedMs": 72077,
+          "pssKiB": [
+            636062,
+            637805
+          ]
+        },
+        {
+          "elapsedMs": 73091,
+          "pssKiB": [
+            637242,
+            637901
+          ]
+        },
+        {
+          "elapsedMs": 74107,
+          "pssKiB": [
+            637666,
+            639125
+          ]
+        },
+        {
+          "elapsedMs": 75122,
+          "pssKiB": [
+            638106,
+            592025
+          ]
+        },
+        {
+          "elapsedMs": 76136,
+          "pssKiB": [
+            618958,
+            616565
+          ]
+        },
+        {
+          "elapsedMs": 77152,
+          "pssKiB": [
+            632502,
+            621357
+          ]
+        },
+        {
+          "elapsedMs": 78167,
+          "pssKiB": [
+            634166,
+            624597
+          ]
+        },
+        {
+          "elapsedMs": 79181,
+          "pssKiB": [
+            634698,
+            634925
+          ]
+        },
+        {
+          "elapsedMs": 80196,
+          "pssKiB": [
+            636494,
+            634777
+          ]
+        },
+        {
+          "elapsedMs": 81211,
+          "pssKiB": [
+            646826,
+            636337
+          ]
+        },
+        {
+          "elapsedMs": 82226,
+          "pssKiB": [
+            647230,
+            640781
+          ]
+        },
+        {
+          "elapsedMs": 83241,
+          "pssKiB": [
+            648078,
+            644957
+          ]
+        },
+        {
+          "elapsedMs": 84257,
+          "pssKiB": [
+            648454,
+            646025
+          ]
+        },
+        {
+          "elapsedMs": 85272,
+          "pssKiB": [
+            648498,
+            645921
+          ]
+        },
+        {
+          "elapsedMs": 86287,
+          "pssKiB": [
+            648990,
+            646549
+          ]
+        },
+        {
+          "elapsedMs": 87303,
+          "pssKiB": [
+            650226,
+            662789
+          ]
+        },
+        {
+          "elapsedMs": 88319,
+          "pssKiB": [
+            650914,
+            663013
+          ]
+        },
+        {
+          "elapsedMs": 89336,
+          "pssKiB": [
+            651038,
+            663045
+          ]
+        },
+        {
+          "elapsedMs": 90351,
+          "pssKiB": [
+            620922,
+            633389
+          ]
+        },
+        {
+          "elapsedMs": 91366,
+          "pssKiB": [
+            630582,
+            639685
+          ]
+        },
+        {
+          "elapsedMs": 92381,
+          "pssKiB": [
+            647974,
+            640689
+          ]
+        },
+        {
+          "elapsedMs": 93397,
+          "pssKiB": [
+            649166,
+            645705
+          ]
+        },
+        {
+          "elapsedMs": 94412,
+          "pssKiB": [
+            649518,
+            645761
+          ]
+        },
+        {
+          "elapsedMs": 95427,
+          "pssKiB": [
+            649666,
+            645829
+          ]
+        },
+        {
+          "elapsedMs": 96444,
+          "pssKiB": [
+            652134,
+            648217
+          ]
+        },
+        {
+          "elapsedMs": 97458,
+          "pssKiB": [
+            653434,
+            648945
+          ]
+        },
+        {
+          "elapsedMs": 98473,
+          "pssKiB": [
+            653722,
+            649537
+          ]
+        },
+        {
+          "elapsedMs": 99489,
+          "pssKiB": [
+            656422,
+            653485
+          ]
+        },
+        {
+          "elapsedMs": 100506,
+          "pssKiB": [
+            656926,
+            653825
+          ]
+        },
+        {
+          "elapsedMs": 101521,
+          "pssKiB": [
+            657210,
+            654057
+          ]
+        },
+        {
+          "elapsedMs": 102536,
+          "pssKiB": [
+            657642,
+            654333
+          ]
+        },
+        {
+          "elapsedMs": 103551,
+          "pssKiB": [
+            657890,
+            658353
+          ]
+        },
+        {
+          "elapsedMs": 104567,
+          "pssKiB": [
+            658186,
+            658793
+          ]
+        },
+        {
+          "elapsedMs": 105581,
+          "pssKiB": [
+            615886,
+            620733
+          ]
+        },
+        {
+          "elapsedMs": 106597,
+          "pssKiB": [
+            625062,
+            684065
+          ]
+        },
+        {
+          "elapsedMs": 107613,
+          "pssKiB": [
+            685926,
+            685105
+          ]
+        },
+        {
+          "elapsedMs": 108629,
+          "pssKiB": [
+            688290,
+            686465
+          ]
+        },
+        {
+          "elapsedMs": 109644,
+          "pssKiB": [
+            688614,
+            694481
+          ]
+        },
+        {
+          "elapsedMs": 110660,
+          "pssKiB": [
+            688854,
+            675261
+          ]
+        },
+        {
+          "elapsedMs": 111675,
+          "pssKiB": [
+            689194,
+            678905
+          ]
+        }
+      ],
+      "classpaths": {
+        "baseline": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/sampled-metrics-frozen/classpath.txt",
+        "candidate": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/settle-buffer-reuse-frozen/classpath.txt"
+      },
+      "last30SecondsMedianConcurrentPssMiB": 1275.5791015625
+    },
+    {
+      "policy": "classpath",
+      "trial": 1,
+      "variant": "candidate",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 114653,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 292050.0,
+      "peakObservedConcurrentPssKiB": 1317611,
+      "minorFaults": 431503,
+      "majorFaults": 15,
+      "parityFramesPerWorker": 301,
+      "distinctApplicationLoadersPerWorker": 300,
+      "workers": [
+        {
+          "readyWallMs": 5352,
+          "totalWallMs": 113289,
+          "totalCpuMs": 147300.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 695440,
+            "VmRSS": 658608,
+            "RssAnon": 602512,
+            "RssFile": 53952,
+            "RssShmem": 2144,
+            "Pss": 652882,
+            "Private": 652652
+          },
+          "workloadEndFaults": {
+            "minor": 238411,
+            "major": 5
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5333,
+          "totalWallMs": 110697,
+          "totalCpuMs": 144750.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 695356,
+            "VmRSS": 695356,
+            "RssAnon": 639096,
+            "RssFile": 54116,
+            "RssShmem": 2144,
+            "Pss": 673036,
+            "Private": 654552
+          },
+          "workloadEndFaults": {
+            "minor": 193092,
+            "major": 10
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            114435,
+            113208
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            186237,
+            187408
+          ]
+        },
+        {
+          "elapsedMs": 3017,
+          "pssKiB": [
+            272099,
+            271510
+          ]
+        },
+        {
+          "elapsedMs": 4028,
+          "pssKiB": [
+            332211,
+            322286
+          ]
+        },
+        {
+          "elapsedMs": 5039,
+          "pssKiB": [
+            378869,
+            397021
+          ]
+        },
+        {
+          "elapsedMs": 6054,
+          "pssKiB": [
+            442627,
+            456031
+          ]
+        },
+        {
+          "elapsedMs": 7067,
+          "pssKiB": [
+            461107,
+            473051
+          ]
+        },
+        {
+          "elapsedMs": 8080,
+          "pssKiB": [
+            498687,
+            498471
+          ]
+        },
+        {
+          "elapsedMs": 9092,
+          "pssKiB": [
+            509155,
+            520959
+          ]
+        },
+        {
+          "elapsedMs": 10107,
+          "pssKiB": [
+            513691,
+            533087
+          ]
+        },
+        {
+          "elapsedMs": 11120,
+          "pssKiB": [
+            543159,
+            545904
+          ]
+        },
+        {
+          "elapsedMs": 12133,
+          "pssKiB": [
+            530295,
+            549664
+          ]
+        },
+        {
+          "elapsedMs": 13147,
+          "pssKiB": [
+            520375,
+            561556
+          ]
+        },
+        {
+          "elapsedMs": 14162,
+          "pssKiB": [
+            547807,
+            611428
+          ]
+        },
+        {
+          "elapsedMs": 15179,
+          "pssKiB": [
+            569259,
+            596344
+          ]
+        },
+        {
+          "elapsedMs": 16193,
+          "pssKiB": [
+            588723,
+            603548
+          ]
+        },
+        {
+          "elapsedMs": 17208,
+          "pssKiB": [
+            608727,
+            607600
+          ]
+        },
+        {
+          "elapsedMs": 18224,
+          "pssKiB": [
+            632987,
+            610856
+          ]
+        },
+        {
+          "elapsedMs": 19240,
+          "pssKiB": [
+            626971,
+            613112
+          ]
+        },
+        {
+          "elapsedMs": 20255,
+          "pssKiB": [
+            624311,
+            613828
+          ]
+        },
+        {
+          "elapsedMs": 21270,
+          "pssKiB": [
+            619039,
+            630704
+          ]
+        },
+        {
+          "elapsedMs": 22286,
+          "pssKiB": [
+            629299,
+            632140
+          ]
+        },
+        {
+          "elapsedMs": 23303,
+          "pssKiB": [
+            621915,
+            634776
+          ]
+        },
+        {
+          "elapsedMs": 24319,
+          "pssKiB": [
+            612331,
+            637108
+          ]
+        },
+        {
+          "elapsedMs": 25334,
+          "pssKiB": [
+            624859,
+            638604
+          ]
+        },
+        {
+          "elapsedMs": 26349,
+          "pssKiB": [
+            615771,
+            639308
+          ]
+        },
+        {
+          "elapsedMs": 27364,
+          "pssKiB": [
+            635663,
+            640720
+          ]
+        },
+        {
+          "elapsedMs": 28385,
+          "pssKiB": [
+            618363,
+            642412
+          ]
+        },
+        {
+          "elapsedMs": 29403,
+          "pssKiB": [
+            637895,
+            643640
+          ]
+        },
+        {
+          "elapsedMs": 30416,
+          "pssKiB": [
+            542387,
+            568604
+          ]
+        },
+        {
+          "elapsedMs": 31435,
+          "pssKiB": [
+            568895,
+            601628
+          ]
+        },
+        {
+          "elapsedMs": 32450,
+          "pssKiB": [
+            575367,
+            604180
+          ]
+        },
+        {
+          "elapsedMs": 33464,
+          "pssKiB": [
+            596503,
+            604560
+          ]
+        },
+        {
+          "elapsedMs": 34480,
+          "pssKiB": [
+            589383,
+            605952
+          ]
+        },
+        {
+          "elapsedMs": 35494,
+          "pssKiB": [
+            581575,
+            607656
+          ]
+        },
+        {
+          "elapsedMs": 36508,
+          "pssKiB": [
+            594347,
+            609288
+          ]
+        },
+        {
+          "elapsedMs": 37521,
+          "pssKiB": [
+            582663,
+            610000
+          ]
+        },
+        {
+          "elapsedMs": 38535,
+          "pssKiB": [
+            602283,
+            610180
+          ]
+        },
+        {
+          "elapsedMs": 39550,
+          "pssKiB": [
+            594587,
+            611032
+          ]
+        },
+        {
+          "elapsedMs": 40566,
+          "pssKiB": [
+            603647,
+            612076
+          ]
+        },
+        {
+          "elapsedMs": 41585,
+          "pssKiB": [
+            596915,
+            613208
+          ]
+        },
+        {
+          "elapsedMs": 42600,
+          "pssKiB": [
+            586935,
+            614248
+          ]
+        },
+        {
+          "elapsedMs": 43616,
+          "pssKiB": [
+            605419,
+            614604
+          ]
+        },
+        {
+          "elapsedMs": 44633,
+          "pssKiB": [
+            597363,
+            615100
+          ]
+        },
+        {
+          "elapsedMs": 45648,
+          "pssKiB": [
+            588503,
+            582248
+          ]
+        },
+        {
+          "elapsedMs": 46662,
+          "pssKiB": [
+            583063,
+            588160
+          ]
+        },
+        {
+          "elapsedMs": 47677,
+          "pssKiB": [
+            575459,
+            591672
+          ]
+        },
+        {
+          "elapsedMs": 48691,
+          "pssKiB": [
+            606107,
+            593184
+          ]
+        },
+        {
+          "elapsedMs": 49708,
+          "pssKiB": [
+            588207,
+            645108
+          ]
+        },
+        {
+          "elapsedMs": 50723,
+          "pssKiB": [
+            607155,
+            646296
+          ]
+        },
+        {
+          "elapsedMs": 51737,
+          "pssKiB": [
+            651243,
+            646704
+          ]
+        },
+        {
+          "elapsedMs": 52754,
+          "pssKiB": [
+            660227,
+            650536
+          ]
+        },
+        {
+          "elapsedMs": 53769,
+          "pssKiB": [
+            660495,
+            651512
+          ]
+        },
+        {
+          "elapsedMs": 54785,
+          "pssKiB": [
+            642303,
+            651804
+          ]
+        },
+        {
+          "elapsedMs": 55801,
+          "pssKiB": [
+            661031,
+            652192
+          ]
+        },
+        {
+          "elapsedMs": 56817,
+          "pssKiB": [
+            654247,
+            652420
+          ]
+        },
+        {
+          "elapsedMs": 57833,
+          "pssKiB": [
+            644155,
+            652676
+          ]
+        },
+        {
+          "elapsedMs": 58848,
+          "pssKiB": [
+            662699,
+            654912
+          ]
+        },
+        {
+          "elapsedMs": 59864,
+          "pssKiB": [
+            644575,
+            658364
+          ]
+        },
+        {
+          "elapsedMs": 60879,
+          "pssKiB": [
+            608259,
+            599448
+          ]
+        },
+        {
+          "elapsedMs": 61894,
+          "pssKiB": [
+            602027,
+            601020
+          ]
+        },
+        {
+          "elapsedMs": 62908,
+          "pssKiB": [
+            593735,
+            601644
+          ]
+        },
+        {
+          "elapsedMs": 63922,
+          "pssKiB": [
+            615099,
+            602276
+          ]
+        },
+        {
+          "elapsedMs": 64937,
+          "pssKiB": [
+            597227,
+            605012
+          ]
+        },
+        {
+          "elapsedMs": 65953,
+          "pssKiB": [
+            667067,
+            606008
+          ]
+        },
+        {
+          "elapsedMs": 66967,
+          "pssKiB": [
+            659547,
+            606844
+          ]
+        },
+        {
+          "elapsedMs": 67983,
+          "pssKiB": [
+            668247,
+            608664
+          ]
+        },
+        {
+          "elapsedMs": 68999,
+          "pssKiB": [
+            668875,
+            608808
+          ]
+        },
+        {
+          "elapsedMs": 70014,
+          "pssKiB": [
+            651479,
+            614312
+          ]
+        },
+        {
+          "elapsedMs": 71029,
+          "pssKiB": [
+            670207,
+            614680
+          ]
+        },
+        {
+          "elapsedMs": 72045,
+          "pssKiB": [
+            662239,
+            615356
+          ]
+        },
+        {
+          "elapsedMs": 73060,
+          "pssKiB": [
+            670755,
+            614944
+          ]
+        },
+        {
+          "elapsedMs": 74076,
+          "pssKiB": [
+            670927,
+            615616
+          ]
+        },
+        {
+          "elapsedMs": 75091,
+          "pssKiB": [
+            652455,
+            615784
+          ]
+        },
+        {
+          "elapsedMs": 76105,
+          "pssKiB": [
+            602915,
+            613060
+          ]
+        },
+        {
+          "elapsedMs": 77120,
+          "pssKiB": [
+            598715,
+            614604
+          ]
+        },
+        {
+          "elapsedMs": 78134,
+          "pssKiB": [
+            608351,
+            614404
+          ]
+        },
+        {
+          "elapsedMs": 79149,
+          "pssKiB": [
+            608727,
+            616736
+          ]
+        },
+        {
+          "elapsedMs": 80164,
+          "pssKiB": [
+            591351,
+            616900
+          ]
+        },
+        {
+          "elapsedMs": 81183,
+          "pssKiB": [
+            624027,
+            617684
+          ]
+        },
+        {
+          "elapsedMs": 82198,
+          "pssKiB": [
+            616515,
+            618380
+          ]
+        },
+        {
+          "elapsedMs": 83213,
+          "pssKiB": [
+            625355,
+            619252
+          ]
+        },
+        {
+          "elapsedMs": 84230,
+          "pssKiB": [
+            626215,
+            619404
+          ]
+        },
+        {
+          "elapsedMs": 85245,
+          "pssKiB": [
+            619379,
+            620164
+          ]
+        },
+        {
+          "elapsedMs": 86260,
+          "pssKiB": [
+            627799,
+            642228
+          ]
+        },
+        {
+          "elapsedMs": 87275,
+          "pssKiB": [
+            620731,
+            642632
+          ]
+        },
+        {
+          "elapsedMs": 88291,
+          "pssKiB": [
+            629735,
+            643016
+          ]
+        },
+        {
+          "elapsedMs": 89307,
+          "pssKiB": [
+            644383,
+            643384
+          ]
+        },
+        {
+          "elapsedMs": 90321,
+          "pssKiB": [
+            605623,
+            643600
+          ]
+        },
+        {
+          "elapsedMs": 91336,
+          "pssKiB": [
+            624935,
+            620504
+          ]
+        },
+        {
+          "elapsedMs": 92351,
+          "pssKiB": [
+            617743,
+            622432
+          ]
+        },
+        {
+          "elapsedMs": 93367,
+          "pssKiB": [
+            618915,
+            627684
+          ]
+        },
+        {
+          "elapsedMs": 94382,
+          "pssKiB": [
+            627479,
+            627724
+          ]
+        },
+        {
+          "elapsedMs": 95397,
+          "pssKiB": [
+            617679,
+            628852
+          ]
+        },
+        {
+          "elapsedMs": 96414,
+          "pssKiB": [
+            631067,
+            630724
+          ]
+        },
+        {
+          "elapsedMs": 97428,
+          "pssKiB": [
+            622959,
+            631200
+          ]
+        },
+        {
+          "elapsedMs": 98444,
+          "pssKiB": [
+            634867,
+            635496
+          ]
+        },
+        {
+          "elapsedMs": 99459,
+          "pssKiB": [
+            635647,
+            637924
+          ]
+        },
+        {
+          "elapsedMs": 100474,
+          "pssKiB": [
+            627203,
+            638148
+          ]
+        },
+        {
+          "elapsedMs": 101490,
+          "pssKiB": [
+            640959,
+            638472
+          ]
+        },
+        {
+          "elapsedMs": 102505,
+          "pssKiB": [
+            633067,
+            638588
+          ]
+        },
+        {
+          "elapsedMs": 103521,
+          "pssKiB": [
+            641799,
+            639104
+          ]
+        },
+        {
+          "elapsedMs": 104538,
+          "pssKiB": [
+            642179,
+            639712
+          ]
+        },
+        {
+          "elapsedMs": 105553,
+          "pssKiB": [
+            601135,
+            579192
+          ]
+        },
+        {
+          "elapsedMs": 106569,
+          "pssKiB": [
+            609559,
+            658368
+          ]
+        },
+        {
+          "elapsedMs": 107585,
+          "pssKiB": [
+            629595,
+            659440
+          ]
+        },
+        {
+          "elapsedMs": 108600,
+          "pssKiB": [
+            628531,
+            669416
+          ]
+        },
+        {
+          "elapsedMs": 109615,
+          "pssKiB": [
+            634643,
+            670000
+          ]
+        },
+        {
+          "elapsedMs": 110630,
+          "pssKiB": [
+            623463,
+            671216
+          ]
+        }
+      ],
+      "classpaths": {
+        "baseline": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/sampled-metrics-frozen/classpath.txt",
+        "candidate": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/settle-buffer-reuse-frozen/classpath.txt"
+      },
+      "last30SecondsMedianConcurrentPssMiB": 1234.7236328125
+    },
+    {
+      "policy": "classpath",
+      "trial": 1,
+      "variant": "default",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 113689,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 294130.0,
+      "peakObservedConcurrentPssKiB": 1387384,
+      "minorFaults": 420817,
+      "majorFaults": 18,
+      "parityFramesPerWorker": 301,
+      "distinctApplicationLoadersPerWorker": 300,
+      "workers": [
+        {
+          "readyWallMs": 5349,
+          "totalWallMs": 112282,
+          "totalCpuMs": 148010.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 728756,
+            "VmRSS": 676192,
+            "RssAnon": 620004,
+            "RssFile": 54044,
+            "RssShmem": 2144,
+            "Pss": 652113,
+            "Private": 633620
+          },
+          "workloadEndFaults": {
+            "minor": 211491,
+            "major": 8
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5292,
+          "totalWallMs": 112906,
+          "totalCpuMs": 146120.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 725004,
+            "VmRSS": 651624,
+            "RssAnon": 595580,
+            "RssFile": 53900,
+            "RssShmem": 2144,
+            "Pss": 645917,
+            "Private": 645676
+          },
+          "workloadEndFaults": {
+            "minor": 209326,
+            "major": 10
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            114239,
+            116954
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            187329,
+            205204
+          ]
+        },
+        {
+          "elapsedMs": 3018,
+          "pssKiB": [
+            278051,
+            272342
+          ]
+        },
+        {
+          "elapsedMs": 4030,
+          "pssKiB": [
+            340911,
+            335750
+          ]
+        },
+        {
+          "elapsedMs": 5041,
+          "pssKiB": [
+            390870,
+            384790
+          ]
+        },
+        {
+          "elapsedMs": 6053,
+          "pssKiB": [
+            443148,
+            438788
+          ]
+        },
+        {
+          "elapsedMs": 7065,
+          "pssKiB": [
+            469172,
+            468236
+          ]
+        },
+        {
+          "elapsedMs": 8078,
+          "pssKiB": [
+            484184,
+            487852
+          ]
+        },
+        {
+          "elapsedMs": 9092,
+          "pssKiB": [
+            494516,
+            494776
+          ]
+        },
+        {
+          "elapsedMs": 10105,
+          "pssKiB": [
+            526940,
+            535736
+          ]
+        },
+        {
+          "elapsedMs": 11120,
+          "pssKiB": [
+            537229,
+            544155
+          ]
+        },
+        {
+          "elapsedMs": 12138,
+          "pssKiB": [
+            534337,
+            540363
+          ]
+        },
+        {
+          "elapsedMs": 13151,
+          "pssKiB": [
+            540189,
+            590503
+          ]
+        },
+        {
+          "elapsedMs": 14166,
+          "pssKiB": [
+            544425,
+            591695
+          ]
+        },
+        {
+          "elapsedMs": 15180,
+          "pssKiB": [
+            529933,
+            580787
+          ]
+        },
+        {
+          "elapsedMs": 16195,
+          "pssKiB": [
+            592685,
+            584087
+          ]
+        },
+        {
+          "elapsedMs": 17212,
+          "pssKiB": [
+            607913,
+            604823
+          ]
+        },
+        {
+          "elapsedMs": 18230,
+          "pssKiB": [
+            597897,
+            601799
+          ]
+        },
+        {
+          "elapsedMs": 19245,
+          "pssKiB": [
+            614449,
+            604603
+          ]
+        },
+        {
+          "elapsedMs": 20262,
+          "pssKiB": [
+            602873,
+            593135
+          ]
+        },
+        {
+          "elapsedMs": 21278,
+          "pssKiB": [
+            609049,
+            612655
+          ]
+        },
+        {
+          "elapsedMs": 22294,
+          "pssKiB": [
+            613313,
+            611707
+          ]
+        },
+        {
+          "elapsedMs": 23313,
+          "pssKiB": [
+            626361,
+            617287
+          ]
+        },
+        {
+          "elapsedMs": 24328,
+          "pssKiB": [
+            619405,
+            610959
+          ]
+        },
+        {
+          "elapsedMs": 25344,
+          "pssKiB": [
+            629113,
+            630147
+          ]
+        },
+        {
+          "elapsedMs": 26359,
+          "pssKiB": [
+            624481,
+            618907
+          ]
+        },
+        {
+          "elapsedMs": 27374,
+          "pssKiB": [
+            639609,
+            625827
+          ]
+        },
+        {
+          "elapsedMs": 28389,
+          "pssKiB": [
+            629701,
+            619151
+          ]
+        },
+        {
+          "elapsedMs": 29405,
+          "pssKiB": [
+            614989,
+            636555
+          ]
+        },
+        {
+          "elapsedMs": 30421,
+          "pssKiB": [
+            575765,
+            567843
+          ]
+        },
+        {
+          "elapsedMs": 31435,
+          "pssKiB": [
+            593717,
+            568903
+          ]
+        },
+        {
+          "elapsedMs": 32450,
+          "pssKiB": [
+            611297,
+            594463
+          ]
+        },
+        {
+          "elapsedMs": 33466,
+          "pssKiB": [
+            615917,
+            585759
+          ]
+        },
+        {
+          "elapsedMs": 34480,
+          "pssKiB": [
+            616485,
+            602771
+          ]
+        },
+        {
+          "elapsedMs": 35497,
+          "pssKiB": [
+            627641,
+            595495
+          ]
+        },
+        {
+          "elapsedMs": 36514,
+          "pssKiB": [
+            628985,
+            602959
+          ]
+        },
+        {
+          "elapsedMs": 37529,
+          "pssKiB": [
+            629889,
+            599331
+          ]
+        },
+        {
+          "elapsedMs": 38545,
+          "pssKiB": [
+            630013,
+            616779
+          ]
+        },
+        {
+          "elapsedMs": 39562,
+          "pssKiB": [
+            630393,
+            607571
+          ]
+        },
+        {
+          "elapsedMs": 40577,
+          "pssKiB": [
+            631589,
+            598075
+          ]
+        },
+        {
+          "elapsedMs": 41592,
+          "pssKiB": [
+            632301,
+            611351
+          ]
+        },
+        {
+          "elapsedMs": 42607,
+          "pssKiB": [
+            633241,
+            607919
+          ]
+        },
+        {
+          "elapsedMs": 43622,
+          "pssKiB": [
+            634161,
+            612283
+          ]
+        },
+        {
+          "elapsedMs": 44637,
+          "pssKiB": [
+            635349,
+            608339
+          ]
+        },
+        {
+          "elapsedMs": 45652,
+          "pssKiB": [
+            607741,
+            568871
+          ]
+        },
+        {
+          "elapsedMs": 46666,
+          "pssKiB": [
+            614969,
+            587163
+          ]
+        },
+        {
+          "elapsedMs": 47681,
+          "pssKiB": [
+            606049,
+            585699
+          ]
+        },
+        {
+          "elapsedMs": 48696,
+          "pssKiB": [
+            617377,
+            592447
+          ]
+        },
+        {
+          "elapsedMs": 49714,
+          "pssKiB": [
+            620321,
+            594775
+          ]
+        },
+        {
+          "elapsedMs": 50729,
+          "pssKiB": [
+            620905,
+            587703
+          ]
+        },
+        {
+          "elapsedMs": 51745,
+          "pssKiB": [
+            665793,
+            660711
+          ]
+        },
+        {
+          "elapsedMs": 52761,
+          "pssKiB": [
+            666641,
+            657263
+          ]
+        },
+        {
+          "elapsedMs": 53776,
+          "pssKiB": [
+            667349,
+            668595
+          ]
+        },
+        {
+          "elapsedMs": 54792,
+          "pssKiB": [
+            669069,
+            658419
+          ]
+        },
+        {
+          "elapsedMs": 55808,
+          "pssKiB": [
+            669525,
+            646219
+          ]
+        },
+        {
+          "elapsedMs": 56824,
+          "pssKiB": [
+            669625,
+            662819
+          ]
+        },
+        {
+          "elapsedMs": 57840,
+          "pssKiB": [
+            669801,
+            658831
+          ]
+        },
+        {
+          "elapsedMs": 58856,
+          "pssKiB": [
+            669917,
+            669871
+          ]
+        },
+        {
+          "elapsedMs": 59872,
+          "pssKiB": [
+            674673,
+            661159
+          ]
+        },
+        {
+          "elapsedMs": 60887,
+          "pssKiB": [
+            609105,
+            589647
+          ]
+        },
+        {
+          "elapsedMs": 61902,
+          "pssKiB": [
+            614017,
+            617551
+          ]
+        },
+        {
+          "elapsedMs": 62918,
+          "pssKiB": [
+            618865,
+            613675
+          ]
+        },
+        {
+          "elapsedMs": 63935,
+          "pssKiB": [
+            611502,
+            625899
+          ]
+        },
+        {
+          "elapsedMs": 64950,
+          "pssKiB": [
+            614429,
+            617779
+          ]
+        },
+        {
+          "elapsedMs": 65966,
+          "pssKiB": [
+            614417,
+            604527
+          ]
+        },
+        {
+          "elapsedMs": 66981,
+          "pssKiB": [
+            630673,
+            621219
+          ]
+        },
+        {
+          "elapsedMs": 67997,
+          "pssKiB": [
+            635777,
+            626019
+          ]
+        },
+        {
+          "elapsedMs": 69013,
+          "pssKiB": [
+            639029,
+            628983
+          ]
+        },
+        {
+          "elapsedMs": 70027,
+          "pssKiB": [
+            641245,
+            626951
+          ]
+        },
+        {
+          "elapsedMs": 71045,
+          "pssKiB": [
+            639373,
+            629147
+          ]
+        },
+        {
+          "elapsedMs": 72060,
+          "pssKiB": [
+            639449,
+            631491
+          ]
+        },
+        {
+          "elapsedMs": 73075,
+          "pssKiB": [
+            639521,
+            631523
+          ]
+        },
+        {
+          "elapsedMs": 74091,
+          "pssKiB": [
+            639729,
+            631627
+          ]
+        },
+        {
+          "elapsedMs": 75106,
+          "pssKiB": [
+            641997,
+            592003
+          ]
+        },
+        {
+          "elapsedMs": 76121,
+          "pssKiB": [
+            609085,
+            611167
+          ]
+        },
+        {
+          "elapsedMs": 77136,
+          "pssKiB": [
+            615289,
+            659351
+          ]
+        },
+        {
+          "elapsedMs": 78151,
+          "pssKiB": [
+            617945,
+            672435
+          ]
+        },
+        {
+          "elapsedMs": 79167,
+          "pssKiB": [
+            620421,
+            673091
+          ]
+        },
+        {
+          "elapsedMs": 80182,
+          "pssKiB": [
+            624297,
+            673183
+          ]
+        },
+        {
+          "elapsedMs": 81197,
+          "pssKiB": [
+            633713,
+            667711
+          ]
+        },
+        {
+          "elapsedMs": 82213,
+          "pssKiB": [
+            634369,
+            678267
+          ]
+        },
+        {
+          "elapsedMs": 83228,
+          "pssKiB": [
+            635129,
+            678795
+          ]
+        },
+        {
+          "elapsedMs": 84244,
+          "pssKiB": [
+            641481,
+            679819
+          ]
+        },
+        {
+          "elapsedMs": 85260,
+          "pssKiB": [
+            643801,
+            680359
+          ]
+        },
+        {
+          "elapsedMs": 86276,
+          "pssKiB": [
+            681065,
+            676855
+          ]
+        },
+        {
+          "elapsedMs": 87292,
+          "pssKiB": [
+            683493,
+            687815
+          ]
+        },
+        {
+          "elapsedMs": 88308,
+          "pssKiB": [
+            685061,
+            700423
+          ]
+        },
+        {
+          "elapsedMs": 89324,
+          "pssKiB": [
+            686125,
+            701259
+          ]
+        },
+        {
+          "elapsedMs": 90339,
+          "pssKiB": [
+            641133,
+            622915
+          ]
+        },
+        {
+          "elapsedMs": 91354,
+          "pssKiB": [
+            661781,
+            625447
+          ]
+        },
+        {
+          "elapsedMs": 92369,
+          "pssKiB": [
+            671313,
+            635823
+          ]
+        },
+        {
+          "elapsedMs": 93385,
+          "pssKiB": [
+            671977,
+            635871
+          ]
+        },
+        {
+          "elapsedMs": 94402,
+          "pssKiB": [
+            683381,
+            636131
+          ]
+        },
+        {
+          "elapsedMs": 95418,
+          "pssKiB": [
+            702145,
+            636879
+          ]
+        },
+        {
+          "elapsedMs": 96435,
+          "pssKiB": [
+            702257,
+            628735
+          ]
+        },
+        {
+          "elapsedMs": 97451,
+          "pssKiB": [
+            703365,
+            641087
+          ]
+        },
+        {
+          "elapsedMs": 98466,
+          "pssKiB": [
+            704005,
+            641959
+          ]
+        },
+        {
+          "elapsedMs": 99482,
+          "pssKiB": [
+            696201,
+            642603
+          ]
+        },
+        {
+          "elapsedMs": 100498,
+          "pssKiB": [
+            696601,
+            644775
+          ]
+        },
+        {
+          "elapsedMs": 101514,
+          "pssKiB": [
+            697037,
+            636907
+          ]
+        },
+        {
+          "elapsedMs": 102530,
+          "pssKiB": [
+            697369,
+            645335
+          ]
+        },
+        {
+          "elapsedMs": 103545,
+          "pssKiB": [
+            697577,
+            645667
+          ]
+        },
+        {
+          "elapsedMs": 104560,
+          "pssKiB": [
+            698037,
+            638223
+          ]
+        },
+        {
+          "elapsedMs": 105577,
+          "pssKiB": [
+            622105,
+            606131
+          ]
+        },
+        {
+          "elapsedMs": 106592,
+          "pssKiB": [
+            633465,
+            613351
+          ]
+        },
+        {
+          "elapsedMs": 107607,
+          "pssKiB": [
+            641397,
+            613499
+          ]
+        },
+        {
+          "elapsedMs": 108625,
+          "pssKiB": [
+            643545,
+            620111
+          ]
+        },
+        {
+          "elapsedMs": 109641,
+          "pssKiB": [
+            644337,
+            622479
+          ]
+        },
+        {
+          "elapsedMs": 110656,
+          "pssKiB": [
+            644381,
+            624827
+          ]
+        },
+        {
+          "elapsedMs": 111673,
+          "pssKiB": [
+            651877,
+            616483
+          ]
+        },
+        {
+          "elapsedMs": 112688,
+          "pssKiB": [
+            658207,
+            627449
+          ]
+        }
+      ],
+      "classpaths": {
+        "baseline": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/sampled-metrics-frozen/classpath.txt",
+        "candidate": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/settle-buffer-reuse-frozen/classpath.txt"
+      },
+      "last30SecondsMedianConcurrentPssMiB": 1291.728515625
+    },
+    {
+      "policy": "classpath",
+      "trial": 2,
+      "variant": "default",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 113651,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 294580.0,
+      "peakObservedConcurrentPssKiB": 1326852,
+      "minorFaults": 487098,
+      "majorFaults": 22,
+      "parityFramesPerWorker": 301,
+      "distinctApplicationLoadersPerWorker": 300,
+      "workers": [
+        {
+          "readyWallMs": 5276,
+          "totalWallMs": 113013,
+          "totalCpuMs": 147840.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 705024,
+            "VmRSS": 657276,
+            "RssAnon": 601276,
+            "RssFile": 53856,
+            "RssShmem": 2144,
+            "Pss": 633003,
+            "Private": 614312
+          },
+          "workloadEndFaults": {
+            "minor": 271043,
+            "major": 13
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5219,
+          "totalWallMs": 112870,
+          "totalCpuMs": 146740.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 701784,
+            "VmRSS": 664836,
+            "RssAnon": 608944,
+            "RssFile": 53748,
+            "RssShmem": 2144,
+            "Pss": 640553,
+            "Private": 621856
+          },
+          "workloadEndFaults": {
+            "minor": 216055,
+            "major": 9
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            113786,
+            115162
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            196832,
+            206786
+          ]
+        },
+        {
+          "elapsedMs": 3018,
+          "pssKiB": [
+            272356,
+            275038
+          ]
+        },
+        {
+          "elapsedMs": 4027,
+          "pssKiB": [
+            333148,
+            330338
+          ]
+        },
+        {
+          "elapsedMs": 5039,
+          "pssKiB": [
+            396714,
+            387232
+          ]
+        },
+        {
+          "elapsedMs": 6051,
+          "pssKiB": [
+            449132,
+            449190
+          ]
+        },
+        {
+          "elapsedMs": 7064,
+          "pssKiB": [
+            473716,
+            458882
+          ]
+        },
+        {
+          "elapsedMs": 8077,
+          "pssKiB": [
+            486504,
+            491914
+          ]
+        },
+        {
+          "elapsedMs": 9090,
+          "pssKiB": [
+            492104,
+            502242
+          ]
+        },
+        {
+          "elapsedMs": 10104,
+          "pssKiB": [
+            534884,
+            533222
+          ]
+        },
+        {
+          "elapsedMs": 11118,
+          "pssKiB": [
+            543575,
+            544593
+          ]
+        },
+        {
+          "elapsedMs": 12132,
+          "pssKiB": [
+            543607,
+            538089
+          ]
+        },
+        {
+          "elapsedMs": 13146,
+          "pssKiB": [
+            548483,
+            545821
+          ]
+        },
+        {
+          "elapsedMs": 14161,
+          "pssKiB": [
+            549787,
+            587493
+          ]
+        },
+        {
+          "elapsedMs": 15175,
+          "pssKiB": [
+            559895,
+            570565
+          ]
+        },
+        {
+          "elapsedMs": 16189,
+          "pssKiB": [
+            557447,
+            579081
+          ]
+        },
+        {
+          "elapsedMs": 17203,
+          "pssKiB": [
+            578687,
+            612225
+          ]
+        },
+        {
+          "elapsedMs": 18217,
+          "pssKiB": [
+            563335,
+            598653
+          ]
+        },
+        {
+          "elapsedMs": 19234,
+          "pssKiB": [
+            579163,
+            607253
+          ]
+        },
+        {
+          "elapsedMs": 20248,
+          "pssKiB": [
+            576143,
+            603253
+          ]
+        },
+        {
+          "elapsedMs": 21263,
+          "pssKiB": [
+            587215,
+            618205
+          ]
+        },
+        {
+          "elapsedMs": 22278,
+          "pssKiB": [
+            589251,
+            618733
+          ]
+        },
+        {
+          "elapsedMs": 23292,
+          "pssKiB": [
+            599627,
+            606185
+          ]
+        },
+        {
+          "elapsedMs": 24307,
+          "pssKiB": [
+            588483,
+            622841
+          ]
+        },
+        {
+          "elapsedMs": 25322,
+          "pssKiB": [
+            574671,
+            627629
+          ]
+        },
+        {
+          "elapsedMs": 26336,
+          "pssKiB": [
+            590827,
+            628973
+          ]
+        },
+        {
+          "elapsedMs": 27351,
+          "pssKiB": [
+            613791,
+            640225
+          ]
+        },
+        {
+          "elapsedMs": 28366,
+          "pssKiB": [
+            594259,
+            627993
+          ]
+        },
+        {
+          "elapsedMs": 29383,
+          "pssKiB": [
+            612075,
+            641817
+          ]
+        },
+        {
+          "elapsedMs": 30396,
+          "pssKiB": [
+            565835,
+            577645
+          ]
+        },
+        {
+          "elapsedMs": 31411,
+          "pssKiB": [
+            559183,
+            592749
+          ]
+        },
+        {
+          "elapsedMs": 32425,
+          "pssKiB": [
+            587199,
+            601061
+          ]
+        },
+        {
+          "elapsedMs": 33440,
+          "pssKiB": [
+            575239,
+            593773
+          ]
+        },
+        {
+          "elapsedMs": 34455,
+          "pssKiB": [
+            592751,
+            602673
+          ]
+        },
+        {
+          "elapsedMs": 35469,
+          "pssKiB": [
+            565767,
+            603265
+          ]
+        },
+        {
+          "elapsedMs": 36484,
+          "pssKiB": [
+            601719,
+            614477
+          ]
+        },
+        {
+          "elapsedMs": 37498,
+          "pssKiB": [
+            586679,
+            605369
+          ]
+        },
+        {
+          "elapsedMs": 38512,
+          "pssKiB": [
+            582491,
+            609893
+          ]
+        },
+        {
+          "elapsedMs": 39526,
+          "pssKiB": [
+            597459,
+            605009
+          ]
+        },
+        {
+          "elapsedMs": 40541,
+          "pssKiB": [
+            584459,
+            604989
+          ]
+        },
+        {
+          "elapsedMs": 41556,
+          "pssKiB": [
+            605959,
+            614493
+          ]
+        },
+        {
+          "elapsedMs": 42571,
+          "pssKiB": [
+            579031,
+            609757
+          ]
+        },
+        {
+          "elapsedMs": 43587,
+          "pssKiB": [
+            580299,
+            619833
+          ]
+        },
+        {
+          "elapsedMs": 44602,
+          "pssKiB": [
+            592835,
+            610977
+          ]
+        },
+        {
+          "elapsedMs": 45616,
+          "pssKiB": [
+            563615,
+            572225
+          ]
+        },
+        {
+          "elapsedMs": 46635,
+          "pssKiB": [
+            583327,
+            601845
+          ]
+        },
+        {
+          "elapsedMs": 47652,
+          "pssKiB": [
+            583203,
+            596601
+          ]
+        },
+        {
+          "elapsedMs": 48666,
+          "pssKiB": [
+            592367,
+            609437
+          ]
+        },
+        {
+          "elapsedMs": 49682,
+          "pssKiB": [
+            588175,
+            602333
+          ]
+        },
+        {
+          "elapsedMs": 50696,
+          "pssKiB": [
+            588695,
+            592917
+          ]
+        },
+        {
+          "elapsedMs": 51714,
+          "pssKiB": [
+            641791,
+            662033
+          ]
+        },
+        {
+          "elapsedMs": 52731,
+          "pssKiB": [
+            637783,
+            656489
+          ]
+        },
+        {
+          "elapsedMs": 53746,
+          "pssKiB": [
+            644651,
+            662969
+          ]
+        },
+        {
+          "elapsedMs": 54762,
+          "pssKiB": [
+            636663,
+            663689
+          ]
+        },
+        {
+          "elapsedMs": 55777,
+          "pssKiB": [
+            639967,
+            672801
+          ]
+        },
+        {
+          "elapsedMs": 56794,
+          "pssKiB": [
+            644407,
+            673401
+          ]
+        },
+        {
+          "elapsedMs": 57810,
+          "pssKiB": [
+            640035,
+            674017
+          ]
+        },
+        {
+          "elapsedMs": 58825,
+          "pssKiB": [
+            646339,
+            674201
+          ]
+        },
+        {
+          "elapsedMs": 59841,
+          "pssKiB": [
+            637623,
+            674373
+          ]
+        },
+        {
+          "elapsedMs": 60854,
+          "pssKiB": [
+            572767,
+            611177
+          ]
+        },
+        {
+          "elapsedMs": 61869,
+          "pssKiB": [
+            578715,
+            613569
+          ]
+        },
+        {
+          "elapsedMs": 62888,
+          "pssKiB": [
+            580123,
+            614381
+          ]
+        },
+        {
+          "elapsedMs": 63903,
+          "pssKiB": [
+            570683,
+            617413
+          ]
+        },
+        {
+          "elapsedMs": 64917,
+          "pssKiB": [
+            588671,
+            617577
+          ]
+        },
+        {
+          "elapsedMs": 65932,
+          "pssKiB": [
+            587291,
+            665541
+          ]
+        },
+        {
+          "elapsedMs": 66948,
+          "pssKiB": [
+            591779,
+            669277
+          ]
+        },
+        {
+          "elapsedMs": 67964,
+          "pssKiB": [
+            593663,
+            673185
+          ]
+        },
+        {
+          "elapsedMs": 68979,
+          "pssKiB": [
+            602315,
+            673537
+          ]
+        },
+        {
+          "elapsedMs": 69994,
+          "pssKiB": [
+            597447,
+            674217
+          ]
+        },
+        {
+          "elapsedMs": 71009,
+          "pssKiB": [
+            600839,
+            674557
+          ]
+        },
+        {
+          "elapsedMs": 72026,
+          "pssKiB": [
+            612367,
+            675777
+          ]
+        },
+        {
+          "elapsedMs": 73042,
+          "pssKiB": [
+            607943,
+            676061
+          ]
+        },
+        {
+          "elapsedMs": 74057,
+          "pssKiB": [
+            614131,
+            676217
+          ]
+        },
+        {
+          "elapsedMs": 75072,
+          "pssKiB": [
+            605543,
+            676609
+          ]
+        },
+        {
+          "elapsedMs": 76086,
+          "pssKiB": [
+            590483,
+            620017
+          ]
+        },
+        {
+          "elapsedMs": 77102,
+          "pssKiB": [
+            597207,
+            634253
+          ]
+        },
+        {
+          "elapsedMs": 78118,
+          "pssKiB": [
+            606723,
+            635301
+          ]
+        },
+        {
+          "elapsedMs": 79133,
+          "pssKiB": [
+            613783,
+            637777
+          ]
+        },
+        {
+          "elapsedMs": 80151,
+          "pssKiB": [
+            605451,
+            638065
+          ]
+        },
+        {
+          "elapsedMs": 81167,
+          "pssKiB": [
+            610163,
+            640881
+          ]
+        },
+        {
+          "elapsedMs": 82183,
+          "pssKiB": [
+            614631,
+            641373
+          ]
+        },
+        {
+          "elapsedMs": 83200,
+          "pssKiB": [
+            610355,
+            641777
+          ]
+        },
+        {
+          "elapsedMs": 84216,
+          "pssKiB": [
+            617395,
+            642393
+          ]
+        },
+        {
+          "elapsedMs": 85231,
+          "pssKiB": [
+            610739,
+            643257
+          ]
+        },
+        {
+          "elapsedMs": 86247,
+          "pssKiB": [
+            612679,
+            648753
+          ]
+        },
+        {
+          "elapsedMs": 87264,
+          "pssKiB": [
+            617019,
+            648973
+          ]
+        },
+        {
+          "elapsedMs": 88280,
+          "pssKiB": [
+            627651,
+            659493
+          ]
+        },
+        {
+          "elapsedMs": 89296,
+          "pssKiB": [
+            634999,
+            659577
+          ]
+        },
+        {
+          "elapsedMs": 90311,
+          "pssKiB": [
+            598647,
+            612937
+          ]
+        },
+        {
+          "elapsedMs": 91326,
+          "pssKiB": [
+            605599,
+            628293
+          ]
+        },
+        {
+          "elapsedMs": 92341,
+          "pssKiB": [
+            611887,
+            630057
+          ]
+        },
+        {
+          "elapsedMs": 93357,
+          "pssKiB": [
+            607671,
+            632077
+          ]
+        },
+        {
+          "elapsedMs": 94373,
+          "pssKiB": [
+            594355,
+            632801
+          ]
+        },
+        {
+          "elapsedMs": 95387,
+          "pssKiB": [
+            616081,
+            633783
+          ]
+        },
+        {
+          "elapsedMs": 96405,
+          "pssKiB": [
+            610387,
+            634585
+          ]
+        },
+        {
+          "elapsedMs": 97420,
+          "pssKiB": [
+            659907,
+            643513
+          ]
+        },
+        {
+          "elapsedMs": 98435,
+          "pssKiB": [
+            658583,
+            644593
+          ]
+        },
+        {
+          "elapsedMs": 99451,
+          "pssKiB": [
+            646839,
+            647033
+          ]
+        },
+        {
+          "elapsedMs": 100466,
+          "pssKiB": [
+            666079,
+            647321
+          ]
+        },
+        {
+          "elapsedMs": 101483,
+          "pssKiB": [
+            674659,
+            647721
+          ]
+        },
+        {
+          "elapsedMs": 102498,
+          "pssKiB": [
+            678835,
+            648017
+          ]
+        },
+        {
+          "elapsedMs": 103513,
+          "pssKiB": [
+            674947,
+            648269
+          ]
+        },
+        {
+          "elapsedMs": 104529,
+          "pssKiB": [
+            667379,
+            648453
+          ]
+        },
+        {
+          "elapsedMs": 105543,
+          "pssKiB": [
+            640495,
+            623289
+          ]
+        },
+        {
+          "elapsedMs": 106558,
+          "pssKiB": [
+            629791,
+            629349
+          ]
+        },
+        {
+          "elapsedMs": 107573,
+          "pssKiB": [
+            645895,
+            631357
+          ]
+        },
+        {
+          "elapsedMs": 108589,
+          "pssKiB": [
+            646831,
+            638905
+          ]
+        },
+        {
+          "elapsedMs": 109603,
+          "pssKiB": [
+            647511,
+            639005
+          ]
+        },
+        {
+          "elapsedMs": 110619,
+          "pssKiB": [
+            657067,
+            639313
+          ]
+        },
+        {
+          "elapsedMs": 111635,
+          "pssKiB": [
+            652219,
+            639661
+          ]
+        },
+        {
+          "elapsedMs": 112651,
+          "pssKiB": [
+            657427,
+            640549
+          ]
+        }
+      ],
+      "classpaths": {
+        "baseline": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/sampled-metrics-frozen/classpath.txt",
+        "candidate": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/settle-buffer-reuse-frozen/classpath.txt"
+      },
+      "last30SecondsMedianConcurrentPssMiB": 1251.458984375
+    },
+    {
+      "policy": "classpath",
+      "trial": 2,
+      "variant": "candidate",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 113603,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 292460.0,
+      "peakObservedConcurrentPssKiB": 1334134,
+      "minorFaults": 470370,
+      "majorFaults": 22,
+      "parityFramesPerWorker": 301,
+      "distinctApplicationLoadersPerWorker": 300,
+      "workers": [
+        {
+          "readyWallMs": 5333,
+          "totalWallMs": 112298,
+          "totalCpuMs": 146700.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 688300,
+            "VmRSS": 661688,
+            "RssAnon": 605356,
+            "RssFile": 54188,
+            "RssShmem": 2144,
+            "Pss": 655939,
+            "Private": 655700
+          },
+          "workloadEndFaults": {
+            "minor": 214405,
+            "major": 7
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5340,
+          "totalWallMs": 111000,
+          "totalCpuMs": 145760.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 708016,
+            "VmRSS": 616696,
+            "RssAnon": 560528,
+            "RssFile": 54024,
+            "RssShmem": 2144,
+            "Pss": 592401,
+            "Private": 573740
+          },
+          "workloadEndFaults": {
+            "minor": 255965,
+            "major": 15
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-XX:TrimNativeHeapInterval=15000",
+            "-Xlog:trimnative=debug",
+            "-Xlog:gc*=info",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            114365,
+            116902
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            185751,
+            185179
+          ]
+        },
+        {
+          "elapsedMs": 3018,
+          "pssKiB": [
+            271093,
+            272033
+          ]
+        },
+        {
+          "elapsedMs": 4027,
+          "pssKiB": [
+            336515,
+            323331
+          ]
+        },
+        {
+          "elapsedMs": 5038,
+          "pssKiB": [
+            384992,
+            378387
+          ]
+        },
+        {
+          "elapsedMs": 6050,
+          "pssKiB": [
+            442082,
+            447665
+          ]
+        },
+        {
+          "elapsedMs": 7062,
+          "pssKiB": [
+            465638,
+            465925
+          ]
+        },
+        {
+          "elapsedMs": 8075,
+          "pssKiB": [
+            500530,
+            486193
+          ]
+        },
+        {
+          "elapsedMs": 9091,
+          "pssKiB": [
+            505048,
+            486055
+          ]
+        },
+        {
+          "elapsedMs": 10104,
+          "pssKiB": [
+            523576,
+            510915
+          ]
+        },
+        {
+          "elapsedMs": 11118,
+          "pssKiB": [
+            545429,
+            529793
+          ]
+        },
+        {
+          "elapsedMs": 12131,
+          "pssKiB": [
+            549981,
+            528525
+          ]
+        },
+        {
+          "elapsedMs": 13145,
+          "pssKiB": [
+            556125,
+            545937
+          ]
+        },
+        {
+          "elapsedMs": 14159,
+          "pssKiB": [
+            552733,
+            600645
+          ]
+        },
+        {
+          "elapsedMs": 15173,
+          "pssKiB": [
+            593625,
+            591713
+          ]
+        },
+        {
+          "elapsedMs": 16188,
+          "pssKiB": [
+            600581,
+            574113
+          ]
+        },
+        {
+          "elapsedMs": 17203,
+          "pssKiB": [
+            582957,
+            616673
+          ]
+        },
+        {
+          "elapsedMs": 18218,
+          "pssKiB": [
+            605681,
+            590277
+          ]
+        },
+        {
+          "elapsedMs": 19233,
+          "pssKiB": [
+            608777,
+            620101
+          ]
+        },
+        {
+          "elapsedMs": 20248,
+          "pssKiB": [
+            610765,
+            603505
+          ]
+        },
+        {
+          "elapsedMs": 21263,
+          "pssKiB": [
+            597133,
+            622797
+          ]
+        },
+        {
+          "elapsedMs": 22279,
+          "pssKiB": [
+            597425,
+            616061
+          ]
+        },
+        {
+          "elapsedMs": 23294,
+          "pssKiB": [
+            598877,
+            626161
+          ]
+        },
+        {
+          "elapsedMs": 24308,
+          "pssKiB": [
+            592341,
+            618941
+          ]
+        },
+        {
+          "elapsedMs": 25323,
+          "pssKiB": [
+            602785,
+            609817
+          ]
+        },
+        {
+          "elapsedMs": 26338,
+          "pssKiB": [
+            603733,
+            622109
+          ]
+        },
+        {
+          "elapsedMs": 27353,
+          "pssKiB": [
+            595769,
+            623281
+          ]
+        },
+        {
+          "elapsedMs": 28367,
+          "pssKiB": [
+            605217,
+            633445
+          ]
+        },
+        {
+          "elapsedMs": 29382,
+          "pssKiB": [
+            607125,
+            626377
+          ]
+        },
+        {
+          "elapsedMs": 30396,
+          "pssKiB": [
+            572605,
+            570865
+          ]
+        },
+        {
+          "elapsedMs": 31410,
+          "pssKiB": [
+            573889,
+            589613
+          ]
+        },
+        {
+          "elapsedMs": 32425,
+          "pssKiB": [
+            586861,
+            581281
+          ]
+        },
+        {
+          "elapsedMs": 33439,
+          "pssKiB": [
+            578573,
+            600785
+          ]
+        },
+        {
+          "elapsedMs": 34453,
+          "pssKiB": [
+            566541,
+            584637
+          ]
+        },
+        {
+          "elapsedMs": 35467,
+          "pssKiB": [
+            588637,
+            604381
+          ]
+        },
+        {
+          "elapsedMs": 36481,
+          "pssKiB": [
+            590289,
+            595121
+          ]
+        },
+        {
+          "elapsedMs": 37497,
+          "pssKiB": [
+            592041,
+            586009
+          ]
+        },
+        {
+          "elapsedMs": 38510,
+          "pssKiB": [
+            592069,
+            605577
+          ]
+        },
+        {
+          "elapsedMs": 39524,
+          "pssKiB": [
+            593405,
+            589217
+          ]
+        },
+        {
+          "elapsedMs": 40538,
+          "pssKiB": [
+            585133,
+            609181
+          ]
+        },
+        {
+          "elapsedMs": 41552,
+          "pssKiB": [
+            593557,
+            600849
+          ]
+        },
+        {
+          "elapsedMs": 42566,
+          "pssKiB": [
+            594161,
+            591321
+          ]
+        },
+        {
+          "elapsedMs": 43580,
+          "pssKiB": [
+            594781,
+            611061
+          ]
+        },
+        {
+          "elapsedMs": 44594,
+          "pssKiB": [
+            596237,
+            603393
+          ]
+        },
+        {
+          "elapsedMs": 45608,
+          "pssKiB": [
+            574185,
+            583473
+          ]
+        },
+        {
+          "elapsedMs": 46622,
+          "pssKiB": [
+            584729,
+            577577
+          ]
+        },
+        {
+          "elapsedMs": 47635,
+          "pssKiB": [
+            575593,
+            580953
+          ]
+        },
+        {
+          "elapsedMs": 48650,
+          "pssKiB": [
+            589009,
+            592805
+          ]
+        },
+        {
+          "elapsedMs": 49664,
+          "pssKiB": [
+            590233,
+            585309
+          ]
+        },
+        {
+          "elapsedMs": 50681,
+          "pssKiB": [
+            582201,
+            647909
+          ]
+        },
+        {
+          "elapsedMs": 51697,
+          "pssKiB": [
+            650729,
+            640485
+          ]
+        },
+        {
+          "elapsedMs": 52713,
+          "pssKiB": [
+            640685,
+            619673
+          ]
+        },
+        {
+          "elapsedMs": 53728,
+          "pssKiB": [
+            650997,
+            650821
+          ]
+        },
+        {
+          "elapsedMs": 54744,
+          "pssKiB": [
+            652745,
+            645237
+          ]
+        },
+        {
+          "elapsedMs": 55760,
+          "pssKiB": [
+            653501,
+            635777
+          ]
+        },
+        {
+          "elapsedMs": 56775,
+          "pssKiB": [
+            654105,
+            655097
+          ]
+        },
+        {
+          "elapsedMs": 57791,
+          "pssKiB": [
+            644533,
+            647349
+          ]
+        },
+        {
+          "elapsedMs": 58810,
+          "pssKiB": [
+            654889,
+            661709
+          ]
+        },
+        {
+          "elapsedMs": 59828,
+          "pssKiB": [
+            658581,
+            652729
+          ]
+        },
+        {
+          "elapsedMs": 60843,
+          "pssKiB": [
+            593933,
+            586381
+          ]
+        },
+        {
+          "elapsedMs": 61857,
+          "pssKiB": [
+            598729,
+            617941
+          ]
+        },
+        {
+          "elapsedMs": 62871,
+          "pssKiB": [
+            595057,
+            610589
+          ]
+        },
+        {
+          "elapsedMs": 63886,
+          "pssKiB": [
+            605689,
+            598757
+          ]
+        },
+        {
+          "elapsedMs": 64902,
+          "pssKiB": [
+            654345,
+            619945
+          ]
+        },
+        {
+          "elapsedMs": 65917,
+          "pssKiB": [
+            654489,
+            591997
+          ]
+        },
+        {
+          "elapsedMs": 66932,
+          "pssKiB": [
+            657561,
+            621337
+          ]
+        },
+        {
+          "elapsedMs": 67947,
+          "pssKiB": [
+            651361,
+            613389
+          ]
+        },
+        {
+          "elapsedMs": 68962,
+          "pssKiB": [
+            661757,
+            603241
+          ]
+        },
+        {
+          "elapsedMs": 69978,
+          "pssKiB": [
+            661897,
+            621741
+          ]
+        },
+        {
+          "elapsedMs": 70992,
+          "pssKiB": [
+            662121,
+            604477
+          ]
+        },
+        {
+          "elapsedMs": 72007,
+          "pssKiB": [
+            662529,
+            622101
+          ]
+        },
+        {
+          "elapsedMs": 73021,
+          "pssKiB": [
+            662881,
+            614337
+          ]
+        },
+        {
+          "elapsedMs": 74038,
+          "pssKiB": [
+            663113,
+            601297
+          ]
+        },
+        {
+          "elapsedMs": 75052,
+          "pssKiB": [
+            663741,
+            670393
+          ]
+        },
+        {
+          "elapsedMs": 76066,
+          "pssKiB": [
+            594605,
+            653489
+          ]
+        },
+        {
+          "elapsedMs": 77081,
+          "pssKiB": [
+            595777,
+            664165
+          ]
+        },
+        {
+          "elapsedMs": 78097,
+          "pssKiB": [
+            599997,
+            658369
+          ]
+        },
+        {
+          "elapsedMs": 79114,
+          "pssKiB": [
+            619113,
+            649781
+          ]
+        },
+        {
+          "elapsedMs": 80129,
+          "pssKiB": [
+            620193,
+            668657
+          ]
+        },
+        {
+          "elapsedMs": 81144,
+          "pssKiB": [
+            620645,
+            661521
+          ]
+        },
+        {
+          "elapsedMs": 82159,
+          "pssKiB": [
+            620729,
+            670409
+          ]
+        },
+        {
+          "elapsedMs": 83175,
+          "pssKiB": [
+            621917,
+            663245
+          ]
+        },
+        {
+          "elapsedMs": 84190,
+          "pssKiB": [
+            623189,
+            655181
+          ]
+        },
+        {
+          "elapsedMs": 85204,
+          "pssKiB": [
+            632425,
+            673965
+          ]
+        },
+        {
+          "elapsedMs": 86220,
+          "pssKiB": [
+            628709,
+            673525
+          ]
+        },
+        {
+          "elapsedMs": 87235,
+          "pssKiB": [
+            638953,
+            682537
+          ]
+        },
+        {
+          "elapsedMs": 88250,
+          "pssKiB": [
+            643913,
+            674705
+          ]
+        },
+        {
+          "elapsedMs": 89266,
+          "pssKiB": [
+            629389,
+            653169
+          ]
+        },
+        {
+          "elapsedMs": 90280,
+          "pssKiB": [
+            644181,
+            616805
+          ]
+        },
+        {
+          "elapsedMs": 91295,
+          "pssKiB": [
+            627261,
+            612217
+          ]
+        },
+        {
+          "elapsedMs": 92310,
+          "pssKiB": [
+            638897,
+            621609
+          ]
+        },
+        {
+          "elapsedMs": 93325,
+          "pssKiB": [
+            628845,
+            614513
+          ]
+        },
+        {
+          "elapsedMs": 94340,
+          "pssKiB": [
+            629297,
+            614633
+          ]
+        },
+        {
+          "elapsedMs": 95356,
+          "pssKiB": [
+            641121,
+            623301
+          ]
+        },
+        {
+          "elapsedMs": 96372,
+          "pssKiB": [
+            631401,
+            619925
+          ]
+        },
+        {
+          "elapsedMs": 97388,
+          "pssKiB": [
+            631581,
+            628761
+          ]
+        },
+        {
+          "elapsedMs": 98403,
+          "pssKiB": [
+            654973,
+            623101
+          ]
+        },
+        {
+          "elapsedMs": 99418,
+          "pssKiB": [
+            646545,
+            623345
+          ]
+        },
+        {
+          "elapsedMs": 100434,
+          "pssKiB": [
+            657297,
+            631697
+          ]
+        },
+        {
+          "elapsedMs": 101449,
+          "pssKiB": [
+            647629,
+            623961
+          ]
+        },
+        {
+          "elapsedMs": 102464,
+          "pssKiB": [
+            647981,
+            613907
+          ]
+        },
+        {
+          "elapsedMs": 103479,
+          "pssKiB": [
+            658325,
+            632621
+          ]
+        },
+        {
+          "elapsedMs": 104494,
+          "pssKiB": [
+            648493,
+            615577
+          ]
+        },
+        {
+          "elapsedMs": 105513,
+          "pssKiB": [
+            601101,
+            608745
+          ]
+        },
+        {
+          "elapsedMs": 106527,
+          "pssKiB": [
+            639605,
+            602853
+          ]
+        },
+        {
+          "elapsedMs": 107541,
+          "pssKiB": [
+            632737,
+            606581
+          ]
+        },
+        {
+          "elapsedMs": 108557,
+          "pssKiB": [
+            646201,
+            619837
+          ]
+        },
+        {
+          "elapsedMs": 109572,
+          "pssKiB": [
+            636317,
+            612429
+          ]
+        },
+        {
+          "elapsedMs": 110588,
+          "pssKiB": [
+            636421,
+            620997
+          ]
+        }
+      ],
+      "classpaths": {
+        "baseline": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/sampled-metrics-frozen/classpath.txt",
+        "candidate": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/settle-buffer-reuse-frozen/classpath.txt"
+      },
+      "last30SecondsMedianConcurrentPssMiB": 1235.576171875
+    }
+  ],
+  "aggregates": {
+    "default": {
+      "meanCpuMs": 295140.0,
+      "medianGroupElapsedMs": 113651,
+      "medianPeakObservedConcurrentPssMiB": 1295.75390625,
+      "medianLast30SecondsConcurrentPssMiB": 1251.458984375,
+      "meanMinorFaults": 451507.3333333333
+    },
+    "candidate": {
+      "meanCpuMs": 292393.3333333333,
+      "medianGroupElapsedMs": 113603,
+      "medianPeakObservedConcurrentPssMiB": 1302.865234375,
+      "medianLast30SecondsConcurrentPssMiB": 1235.576171875,
+      "meanMinorFaults": 451837
+    }
+  },
+  "matchingFinalSvgSha256": {
+    "compose-figma.svg": "8218330d03fd6ce3a57fc19d7a06aa1d1519849e64730992b1e1651a7527ff46",
+    "compose-semantics-wireframe.svg": "2b0112a44214e0e60ab432aaa60c5a4ec923be349006568282a502a7121d4ac7"
+  },
+  "renderWindows": [
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 747.8,
+      "medianWallMs": 404.0
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 452.0,
+      "medianWallMs": 315.5
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 398.2,
+      "medianWallMs": 301.5
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 380.8,
+      "medianWallMs": 294.5
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 383.4,
+      "medianWallMs": 294.0
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 373.4,
+      "medianWallMs": 291.0
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 765.6,
+      "medianWallMs": 401.0
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 459.4,
+      "medianWallMs": 312.0
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 401.2,
+      "medianWallMs": 297.0
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 383.6,
+      "medianWallMs": 293.0
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 383.4,
+      "medianWallMs": 291.5
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 372.8,
+      "medianWallMs": 291.0
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 736.6,
+      "medianWallMs": 381.5
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 451.0,
+      "medianWallMs": 316.5
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 395.2,
+      "medianWallMs": 298.5
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 377.2,
+      "medianWallMs": 293.5
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 391.6,
+      "medianWallMs": 291.0
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 371.0,
+      "medianWallMs": 288.0
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 737.4,
+      "medianWallMs": 382.5
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 438.4,
+      "medianWallMs": 320.0
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 390.0,
+      "medianWallMs": 300.0
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 377.0,
+      "medianWallMs": 294.0
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 395.2,
+      "medianWallMs": 292.5
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 369.4,
+      "medianWallMs": 289.5
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 753.0,
+      "medianWallMs": 387.0
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 446.4,
+      "medianWallMs": 318.5
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 404.4,
+      "medianWallMs": 303.0
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 379.2,
+      "medianWallMs": 296.0
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 383.2,
+      "medianWallMs": 295.0
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 364.0,
+      "medianWallMs": 290.0
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 722.8,
+      "medianWallMs": 373.0
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 443.2,
+      "medianWallMs": 312.0
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 389.0,
+      "medianWallMs": 300.0
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 381.0,
+      "medianWallMs": 294.0
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 378.8,
+      "medianWallMs": 293.0
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 368.6,
+      "medianWallMs": 288.0
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 751.4,
+      "medianWallMs": 400.5
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 458.8,
+      "medianWallMs": 314.0
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 393.0,
+      "medianWallMs": 296.5
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 384.0,
+      "medianWallMs": 295.0
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 393.8,
+      "medianWallMs": 293.0
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 363.4,
+      "medianWallMs": 288.0
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 735.2,
+      "medianWallMs": 387.0
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 450.8,
+      "medianWallMs": 316.5
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 388.2,
+      "medianWallMs": 296.0
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 379.6,
+      "medianWallMs": 297.0
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 395.8,
+      "medianWallMs": 294.5
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 359.8,
+      "medianWallMs": 288.0
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 737.4,
+      "medianWallMs": 402.5
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 451.8,
+      "medianWallMs": 316.0
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 394.0,
+      "medianWallMs": 300.5
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 391.6,
+      "medianWallMs": 299.5
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 385.4,
+      "medianWallMs": 296.0
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 0,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 386.8,
+      "medianWallMs": 291.0
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 741.2,
+      "medianWallMs": 400.5
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 452.8,
+      "medianWallMs": 312.0
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 390.4,
+      "medianWallMs": 296.5
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 392.2,
+      "medianWallMs": 296.0
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 385.2,
+      "medianWallMs": 292.5
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 1,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 363.4,
+      "medianWallMs": 290.0
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 749.2,
+      "medianWallMs": 390.5
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 434.8,
+      "medianWallMs": 312.5
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 391.0,
+      "medianWallMs": 300.0
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 390.6,
+      "medianWallMs": 297.0
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 389.2,
+      "medianWallMs": 298.5
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 0,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 363.6,
+      "medianWallMs": 291.0
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 1,
+      "lastReload": 50,
+      "meanCpuMs": 733.6,
+      "medianWallMs": 387.0
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 51,
+      "lastReload": 100,
+      "meanCpuMs": 437.6,
+      "medianWallMs": 313.5
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 101,
+      "lastReload": 150,
+      "meanCpuMs": 386.0,
+      "medianWallMs": 298.5
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 151,
+      "lastReload": 200,
+      "meanCpuMs": 389.0,
+      "medianWallMs": 295.0
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 201,
+      "lastReload": 250,
+      "meanCpuMs": 394.8,
+      "medianWallMs": 297.0
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 1,
+      "firstReload": 251,
+      "lastReload": 300,
+      "meanCpuMs": 362.2,
+      "medianWallMs": 289.0
+    }
+  ],
+  "changedClasspathEntries": [
+    {
+      "index": 19,
+      "baselineSha256": "d29999c1caa25ef8ffa68600321bbfa09811961bf2155fca355f402eeba91b90",
+      "candidateSha256": "483486c253e6ca2bd905d96bf266c3344d8ace0c71c6998c24b4763a4ff69b40"
+    }
+  ],
+  "periodicTrims": [
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 0,
+      "durationsMs": [
+        3.021,
+        5.667,
+        3.914,
+        7.043,
+        2.117,
+        2.451,
+        3.565
+      ]
+    },
+    {
+      "trial": 0,
+      "variant": "default",
+      "worker": 1,
+      "durationsMs": [
+        1.486,
+        5.968,
+        3.644,
+        5.845,
+        3.499,
+        2.167,
+        5.431
+      ]
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 0,
+      "durationsMs": [
+        2.591,
+        5.079,
+        4.994,
+        6.608,
+        3.212,
+        2.495,
+        3.656
+      ]
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "worker": 1,
+      "durationsMs": [
+        1.145,
+        5.37,
+        3.522,
+        4.61,
+        3.31,
+        2.795,
+        3.183
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 0,
+      "durationsMs": [
+        2.295,
+        6.589,
+        3.147,
+        5.689,
+        4.858,
+        2.116,
+        3.166
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "worker": 1,
+      "durationsMs": [
+        1.771,
+        6.628,
+        3.261,
+        4.93,
+        1.963,
+        1.937,
+        5.543
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 0,
+      "durationsMs": [
+        1.842,
+        4.642,
+        4.068,
+        5.655,
+        3.819,
+        2.727,
+        4.305
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "default",
+      "worker": 1,
+      "durationsMs": [
+        1.721,
+        5.94,
+        2.794,
+        5.313,
+        3.153,
+        3.92,
+        3.303
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 0,
+      "durationsMs": [
+        2.514,
+        4.909,
+        3.618,
+        6.241,
+        2.105,
+        2.038,
+        2.517
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "default",
+      "worker": 1,
+      "durationsMs": [
+        2.114,
+        5.132,
+        3.446,
+        5.093,
+        3.611,
+        3.085,
+        2.615
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 0,
+      "durationsMs": [
+        2.008,
+        3.485,
+        2.004,
+        5.926,
+        5.681,
+        2.042,
+        4.396
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "worker": 1,
+      "durationsMs": [
+        1.09,
+        5.105,
+        2.928,
+        5.408,
+        2.908,
+        2.963,
+        2.501
+      ]
+    }
+  ],
+  "fontCacheSha256": {
+    "carrois-gothic-sc-400.ttf": "cde765545a44feea3bd1d1665de6aad01bbbbced1b619c3a462bc407febe8560",
+    "coming-soon-400.ttf": "c86be0372fad98e347efe9d38bb976a89b9f2eeda158d59a169a6981bdb56990",
+    "cutive-mono-400.ttf": "20c0220ef9ccb50de02353bd22e239da29a7837b3a1953abc354a10d94b290cc",
+    "dancing-script-400.ttf": "14e256280323ac39486a22d4a7cd6f5a737772ea4a7ec3052ee4ac463b71c4aa",
+    "google-sans-flex-400.ttf": "c16fda9ab98b0027caee4881acc07d57eddf9c1b2a68f91baa773c1c9ca7ba41",
+    "noto-sans-400.ttf": "61ea1e781b9d7b10db9b4a6aa2d855cf2215c316c7cb700aeb067a0440d031e0",
+    "noto-sans-mono-400.ttf": "f3e000b8a56b489f9cd3d1d531d2421fad3c67835acabd39cff8cd8299fa0dfc",
+    "noto-serif-400.ttf": "a6e0283968e506c67c3d4ff94093e3ff9f4d7ec3c704ff1cb51382f1e45b66b9",
+    "roboto-400.ttf": "66b9c6a9e7ab0d889f31775fc0fd71bf802d61068ab70f69d37e0cd536604617",
+    "roboto-400.woff2": "425c0713a8176f92273d378599c7eac57de7fafabd4bd0ed457b70eb8f80d371",
+    "roboto-500.woff2": "5bcc3aa180e7f26f643cd5b2621cd7c2de193d0661d913a94afd3d4881a7a34b",
+    "roboto-flex-400.ttf": "7a0aae29a147c35f86b7950556933ecd8daacf8c7080c6686246f46e1e27c3f8"
+  },
+  "matchingPngUiaPairs": 1806,
+  "metricsCadenceVerified": true
+}
