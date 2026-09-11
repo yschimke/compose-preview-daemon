@@ -96,6 +96,13 @@ merged, stop: branch fresh for the follow-up.
 - **Don't auto-merge.** Opening, tracking and fix-up commits are automatic; merging is the user's
   call.
 
+## Robolectric integration findings
+
+Keep [`docs/daemon/ROBOLECTRIC-UPSTREAM-FEEDBACK.md`](docs/daemon/ROBOLECTRIC-UPSTREAM-FEEDBACK.md)
+updated when investigations uncover upstream friction, coupling, performance opportunities, bugs,
+missing APIs or simulator feedback. Preserve evidence/version, ownership and validation status;
+distinguish our bugs from confirmed upstream bugs and hypotheses.
+
 ## Where everything else lives
 
 | You need | Read |
