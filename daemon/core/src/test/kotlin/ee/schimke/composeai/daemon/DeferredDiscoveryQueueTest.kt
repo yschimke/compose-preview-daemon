@@ -28,6 +28,11 @@ class DeferredDiscoveryQueueTest {
 
     fun lastDelay(): Long = scheduled.last().first
 
+    /** Fire one selected timer so a stale watchdog can race a later enqueue. */
+    fun fireFirst() {
+      scheduled.removeAt(0).second()
+    }
+
     /** Fire every queued action in scheduled order. */
     fun fireAll() {
       val snapshot = scheduled.toList()
@@ -109,7 +114,7 @@ class DeferredDiscoveryQueueTest {
     q.enqueue("/b.kt")
     q.enqueue("/c.kt")
     // Three enqueues => three independent watchdogs. Each is a safety net for its own save; any
-    // surviving one drains the whole queue, which is fine.
+    // timer may claim only the entry it was scheduled for.
     assertEquals(3, scheduler.count())
   }
 
@@ -171,5 +176,50 @@ class DeferredDiscoveryQueueTest {
     assertEquals(200, seen.size)
     assertEquals(200, seen.toSet().size) // every path ran exactly once
     assertEquals(0, q.pendingCount())
+  }
+
+  @Test
+  fun `a stale watchdog cannot run a later save before its own render or deadline`() {
+    val ran = mutableListOf<String>()
+    val (q, scheduler) = newQueue(runForPath = { ran.add(it) })
+    q.enqueue("/first.kt")
+    q.drain()
+    q.enqueue("/second.kt")
+    scheduler.fireFirst()
+    assertEquals(listOf("/first.kt"), ran)
+    assertEquals(1, q.pendingCount())
+    scheduler.fireFirst()
+    assertEquals(listOf("/first.kt", "/second.kt"), ran)
+  }
+
+  @Test
+  fun `a render drain excludes saves enqueued after the frame boundary`() {
+    val ran = mutableListOf<String>()
+    val (q, scheduler) = newQueue(runForPath = { ran.add(it) })
+    q.enqueue("/same.kt")
+    val boundary = q.currentSequence()
+    // The client receives renderFinished and immediately saves the same file again.
+    q.enqueue("/same.kt")
+    q.drainThrough(boundary)
+    assertEquals(listOf("/same.kt"), ran)
+    assertEquals(1, q.pendingCount())
+    scheduler.fireFirst() // the already-drained save's stale timer
+    assertEquals(1, ran.size)
+    q.drain()
+    scheduler.fireAll()
+    assertEquals(listOf("/same.kt", "/same.kt"), ran)
+  }
+
+  @Test
+  fun `the initial render cannot drain the first save reacting to its notification`() {
+    val ran = mutableListOf<String>()
+    val (q, _) = newQueue(runForPath = { ran.add(it) })
+    val initialFrameBoundary = q.currentSequence()
+    q.enqueue("/first-edit.kt")
+    q.drainThrough(initialFrameBoundary)
+    assertTrue(ran.isEmpty())
+    assertEquals(1, q.pendingCount())
+    q.drain()
+    assertEquals(listOf("/first-edit.kt"), ran)
   }
 }

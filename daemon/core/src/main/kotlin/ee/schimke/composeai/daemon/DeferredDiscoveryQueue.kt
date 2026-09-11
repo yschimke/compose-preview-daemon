@@ -1,25 +1,14 @@
 package ee.schimke.composeai.daemon
 
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicLong
 
 /**
- * "Run incremental discovery for this source path, but defer it until after the next render
- * finishes or a watchdog window elapses." Used by [JsonRpcServer]'s `fileChanged({kind:source})`
- * handler so a save NEVER surfaces a `discoveryUpdated` metadata event before the corresponding
- * render notification — renders are what the user actually looks at; the metadata reconcile is a
- * quiet background pass that only paints the panel when the preview set actually drifted.
- *
- * Two drain triggers race the queue:
- *
- * 1. [JsonRpcServer.emitRenderFinished] calls [drain] after the render notification has flushed, so
- *    the metadata event lands in order behind it.
- * 2. A per-enqueue watchdog calls [drain] after [watchdogMs], so a save against a file with no
- *    focused previews (no `renderNow` follows) still eventually runs the cascade.
- *
- * Both paths poll the same atomic queue; whichever wins runs the scan, the loser sees an empty
- * queue and returns. The dedup is correctness-safe under contention; identity-dedup of enqueued
- * paths isn't worth it (two saves of the same file scan twice, but each scan is scoped and the
- * daemon is bounded by editor cadence).
+ * Defer discovery until a render notification or the save's own watchdog deadline. Render
+ * completion captures a sequence boundary before publishing the frame, then drains only saves up to
+ * that boundary. A client reacting to that frame may enqueue another save while the render watcher
+ * is finishing history work; that newer save must wait for its own render/timer. Watchdogs claim
+ * only their own entry, so an old timer cannot drain a newer save early.
  */
 internal class DeferredDiscoveryQueue(
   private val watchdogMs: Long,
@@ -32,22 +21,27 @@ internal class DeferredDiscoveryQueue(
   private val watchdogScheduler: (delayMs: Long, action: () -> Unit) -> Unit =
     ::defaultWatchdogScheduler,
 ) {
-  private val pending = ConcurrentLinkedQueue<String>()
+  private class Entry(val sequence: Long, val path: String)
 
-  /** Queue [path] for a deferred discovery run and start the watchdog timer. */
+  private val sequence = AtomicLong()
+  private val pending = ConcurrentLinkedQueue<Entry>()
+
+  /** Queue a distinct entry even when successive saves have the same path. */
   fun enqueue(path: String) {
-    pending.add(path)
-    watchdogScheduler(watchdogMs) { drain() }
+    val entry = Entry(sequence.incrementAndGet(), path)
+    pending.add(entry)
+    watchdogScheduler(watchdogMs) { if (pending.remove(entry)) runForPath(entry.path) }
   }
 
-  /**
-   * Drain every pending path through [runForPath]. Safe to call from multiple threads; each path is
-   * polled atomically so it runs at most once per enqueue.
-   */
-  fun drain() {
-    while (true) {
-      val path = pending.poll() ?: return
-      runForPath(path)
+  /** Capture before publishing renderFinished, so subsequent saves belong to a later render. */
+  fun currentSequence(): Long = sequence.get()
+
+  fun drain() = drainThrough(currentSequence())
+
+  /** Claim eligible entries atomically; concurrent drains/timers cannot run an entry twice. */
+  fun drainThrough(boundary: Long) {
+    for (entry in pending) {
+      if (entry.sequence <= boundary && pending.remove(entry)) runForPath(entry.path)
     }
   }
 
