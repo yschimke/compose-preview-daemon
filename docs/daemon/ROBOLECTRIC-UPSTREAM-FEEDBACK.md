@@ -304,6 +304,12 @@ The [corrected per-render-reload pair](BOOT-ALLOCATOR-REAL-RELOADS.md) verifies
 local allocator-retention evidence; it does not establish a recycling interval,
 Robolectric ownership, or ordinary-test benefit. Priority remains P3 upstream.
 
+A [two-worker/two-CPU comparison](BOOT-ALLOCATOR-CONCURRENT-EXPERIMENT.md) finds
+no consistent substantial arena-limit benefit: median observed concurrent peak
+PSS changes by 0.8% and mean CPU by 0.15%, with one memory reversal. All 366
+paired PNG/UIA frames match. This limits any generalization of the single-worker
+saving; allocator tuning remains workload-specific and R09 remains P3 upstream.
+
 **Next:** minimize the AWT initialization/TCCL case and determine whether our embedder
 should initialize it under a stable loader or Robolectric should provide a lifecycle
 hook. Ask for a supported application-loader replacement/unloading recipe and
