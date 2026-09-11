@@ -1,0 +1,208 @@
+diff --git a/daemon/android/src/main/kotlin/ee/schimke/composeai/daemon/RenderEngine.kt b/daemon/android/src/main/kotlin/ee/schimke/composeai/daemon/RenderEngine.kt
+index 44fde336..2f22b1ba 100644
+--- a/daemon/android/src/main/kotlin/ee/schimke/composeai/daemon/RenderEngine.kt
++++ b/daemon/android/src/main/kotlin/ee/schimke/composeai/daemon/RenderEngine.kt
+@@ -272,6 +272,7 @@ class RenderEngine(
+
+     outputDir.mkdirs()
+     val outputFile = File(outputDir, "${spec.outputBaseName}.png")
++    var decodedStillFrame = false
+     val startNs = System.nanoTime()
+     val trace = PerfettoTraceDataProducer.recorder(spec.outputBaseName, backend = "android")
+     val slotTableCapture = PreviewSlotTableCapture()
+@@ -926,6 +927,7 @@ class RenderEngine(
+                     advanceFrame = { rule.mainClock.advanceTimeByFrame() },
+                     capture = ::capture,
+                   )
++                decodedStillFrame = true
+                 // Recorded rather than merely printed, so the live lane's sidecar says the same
+                 // thing the batch lane's does (issue #4239).
+                 ee.schimke.composeai.renderer.VisualSettleDiagnostics.record(
+@@ -1014,6 +1016,8 @@ class RenderEngine(
+             // inside. Same arithmetic as the batch renderer's `resizeGutter` branch.
+             resizeFixedAxesPng(
+               file = outputFile,
++              alreadyDecoded =
++                decodedStillFrame && dialogWindow == null && !spec.wrapWidth && !spec.wrapHeight,
+               targetWidth =
+                 if (spec.wrapWidth) null
+                 else
+@@ -2267,9 +2271,37 @@ class RenderEngine(
+     return Math.round(scaled).toInt().coerceAtLeast(1)
+   }
+
+-  private fun resizeFixedAxesPng(file: File, targetWidth: Int?, targetHeight: Int?) {
++  private fun resizeFixedAxesPng(
++    file: File,
++    targetWidth: Int?,
++    targetHeight: Int?,
++    alreadyDecoded: Boolean = false,
++  ) {
+     if (targetWidth == null && targetHeight == null) return
+     if (!file.exists()) return
++    // Only the successfully decoded, unchanged settling output may bypass full decoding.
++    // Metadata failures fall through to the original decoder and its error behavior.
++    if (
++      alreadyDecoded &&
++        runCatching {
++            javax.imageio.ImageIO.createImageInputStream(file).use { input ->
++              if (input == null) return@use false
++              val readers = javax.imageio.ImageIO.getImageReaders(input)
++              if (!readers.hasNext()) return@use false
++              val reader = readers.next()
++              try {
++                reader.input = input
++                (targetWidth == null || reader.getWidth(0) == targetWidth) &&
++                  (targetHeight == null || reader.getHeight(0) == targetHeight)
++              } finally {
++                reader.dispose()
++              }
++            }
++          }
++          .getOrDefault(false)
++    )
++      return
++
+     val original = runCatching { javax.imageio.ImageIO.read(file) }.getOrNull() ?: return
+     val newWidth = targetWidth ?: original.width
+     val newHeight = targetHeight ?: original.height
+diff --git a/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt b/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt
+index 93a28f7c..f092f12a 100644
+--- a/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt
++++ b/renderers/android/src/main/kotlin/ee/schimke/composeai/renderer/RobolectricRenderTest.kt
+@@ -2126,6 +2126,7 @@ abstract class RobolectricRenderTestBase(
+             // tall PNG with an optional Wear pill clip. See
+             // [handleLongCapture].
+             val outputFile = job.outputFile
++            var decodedStillFrame = false
+             outputFile.parentFile?.mkdirs()
+             // Clean any stale .error.json from this slot before
+             // attempting a fresh render. Today's success must not
+@@ -2468,6 +2469,7 @@ abstract class RobolectricRenderTestBase(
+                       .interaction
+                       .captureRoboImage(file = candidate, roborazziOptions = roborazziOptions)
+                   }
++                decodedStillFrame = true
+                 // Recorded, not merely printed: an unsettled still is a wrong sticker on a green
+                 // build, and stderr is not something a consumer's build can fail on. The warnings
+                 // sidecar is (issue #4239).
+@@ -2569,6 +2571,7 @@ abstract class RobolectricRenderTestBase(
+               // `fixedAxisTarget`.
+               resizeFixedAxesPng(
+                 file = outputFile,
++                alreadyDecoded = decodedStillFrame && !wrapWidth && !wrapHeight,
+                 targetWidth = fixedAxisTarget.widthPx,
+                 targetHeight = fixedAxisTarget.heightPx,
+               )
+@@ -2957,9 +2960,37 @@ private fun cropPngTopLeft(file: File, wrapWidth: Boolean, wrapHeight: Boolean,
+   javax.imageio.ImageIO.write(cropped, "PNG", file)
+ }
+
+-internal fun resizeFixedAxesPng(file: File, targetWidth: Int?, targetHeight: Int?) {
++internal fun resizeFixedAxesPng(
++  file: File,
++  targetWidth: Int?,
++  targetHeight: Int?,
++  alreadyDecoded: Boolean = false,
++) {
+   if (targetWidth == null && targetHeight == null) return
+   if (!file.exists()) return
++  // Only the successfully decoded, unchanged settling output may bypass full decoding.
++  // Metadata failures fall through to the original decoder and its error behavior.
++  if (
++    alreadyDecoded &&
++      runCatching {
++          javax.imageio.ImageIO.createImageInputStream(file).use { input ->
++            if (input == null) return@use false
++            val readers = javax.imageio.ImageIO.getImageReaders(input)
++            if (!readers.hasNext()) return@use false
++            val reader = readers.next()
++            try {
++              reader.input = input
++              (targetWidth == null || reader.getWidth(0) == targetWidth) &&
++                (targetHeight == null || reader.getHeight(0) == targetHeight)
++            } finally {
++              reader.dispose()
++            }
++          }
++        }
++        .getOrDefault(false)
++  )
++    return
++
+   val original = javax.imageio.ImageIO.read(file) ?: return
+   val newWidth = targetWidth ?: original.width
+   val newHeight = targetHeight ?: original.height
+diff --git a/renderers/android/src/test/kotlin/ee/schimke/composeai/renderer/FixedAxesPngResizeTest.kt b/renderers/android/src/test/kotlin/ee/schimke/composeai/renderer/FixedAxesPngResizeTest.kt
+new file mode 100644
+index 00000000..99db6c1f
+--- /dev/null
++++ b/renderers/android/src/test/kotlin/ee/schimke/composeai/renderer/FixedAxesPngResizeTest.kt
+@@ -0,0 +1,67 @@
++package ee.schimke.composeai.renderer
++
++import java.awt.image.BufferedImage
++import java.io.File
++import javax.imageio.ImageIO
++import org.junit.Assert.*
++import org.junit.Rule
++import org.junit.Test
++import org.junit.rules.TemporaryFolder
++
++class FixedAxesPngResizeTest {
++  @get:Rule val temporary = TemporaryFolder()
++
++  private fun image(): File =
++    temporary.newFile().also { file ->
++      val image = BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB)
++      image.setRGB(0, 0, 0xffff0000.toInt())
++      image.setRGB(1, 0, 0xff00ff00.toInt())
++      image.setRGB(0, 1, 0xff0000ff.toInt())
++      image.setRGB(1, 1, 0xffffffff.toInt())
++      ImageIO.write(image, "png", file)
++    }
++
++  @Test
++  fun `matching validated frame preserves the original PNG bytes`() {
++    val file = image()
++    val bytes = file.readBytes()
++    resizeFixedAxesPng(file, 2, 2, alreadyDecoded = true)
++    assertArrayEquals(bytes, file.readBytes())
++  }
++
++  @Test
++  fun `mismatched dimensions still resize and extend edge pixels`() {
++    for (validated in listOf(false, true)) {
++      val file = image()
++      resizeFixedAxesPng(file, 4, 3, alreadyDecoded = validated)
++      val resized = ImageIO.read(file)
++      assertEquals(4, resized.width)
++      assertEquals(3, resized.height)
++      assertEquals(0xffff0000.toInt(), resized.getRGB(0, 0))
++      assertEquals(0xff00ff00.toInt(), resized.getRGB(3, 0))
++      assertEquals(0xff0000ff.toInt(), resized.getRGB(0, 2))
++      assertEquals(0xffffffff.toInt(), resized.getRGB(3, 2))
++    }
++  }
++
++  @Test
++  fun `one fixed axis leaves the other unchanged`() {
++    val file = image()
++    resizeFixedAxesPng(file, 1, null, alreadyDecoded = true)
++    val resized = ImageIO.read(file)
++    assertEquals(1, resized.width)
++    assertEquals(2, resized.height)
++    assertEquals(0xff0000ff.toInt(), resized.getRGB(0, 1))
++  }
++
++  @Test
++  fun `failed metadata probe retains the original decode failure`() {
++    for (validated in listOf(false, true)) {
++      val file = image()
++      file.writeBytes(file.readBytes().copyOf(20))
++      assertThrows(javax.imageio.IIOException::class.java) {
++        resizeFixedAxesPng(file, 2, 2, alreadyDecoded = validated)
++      }
++    }
++  }
++}
