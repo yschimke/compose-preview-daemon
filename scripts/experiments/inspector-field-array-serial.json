@@ -1,0 +1,24 @@
+[
+  {
+    "name": "baseline",
+    "classpath": "daemon/android/build/layout-method-candidate-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-XX:+UseSerialGC",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-Xlog:gc*=info"
+    ]
+  },
+  {
+    "name": "candidate",
+    "classpath": "daemon/android/build/inspector-field-array-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-XX:+UseSerialGC",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-Xlog:gc*=info"
+    ]
+  }
+]
