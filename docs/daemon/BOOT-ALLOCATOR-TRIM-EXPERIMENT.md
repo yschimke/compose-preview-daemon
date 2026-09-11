@@ -1,10 +1,19 @@
-# Allocator-retained memory after application reloads
+# Allocator-retained memory during rendering
 
-A diagnostic `malloc_trim(0)` after 300 actual application reloads reclaimed
-**182.90 MiB PSS** in **13.19 ms**. Fifty further reloads succeeded with matching
+A diagnostic `malloc_trim(0)` after 300 dashboard renders reclaimed
+**182.90 MiB PSS** in **13.19 ms**. Fifty further renders succeeded with matching
 PNG/UIA output. This establishes reclaimable allocator pages in this worker; it
 does not establish a leak, Robolectric ownership, an optimal trim interval, or a
 production recycling policy. No production allocator/worker policy changes here.
+
+## Correction
+
+The original description incorrectly called this a 350-reload experiment. The
+saved run has `swapEvery=50` and seven application loader identities. A temporary
+script changed both the checkpoint interval and swap interval together. The
+reclamation measurement remains valid for this workload; it does not validate
+350 actual reloads. The reproduction command below now matches the measured
+cadence. A fresh per-render-swap comparison is being run separately.
 
 ## Evidence
 
@@ -12,7 +21,7 @@ Same frozen final in-memory-settling jars as
 [the native-memory investigation](BOOT-NATIVE-MEMORY-CHECKPOINTS.md): JDK 17,
 `-Xmx256m -Xms32m -XX:+UseSerialGC -XX:MinHeapFreeRatio=10
 -XX:MaxHeapFreeRatio=30 -XX:NativeMemoryTracking=detail`, 480×1200 density 2,
-`ReloadDashboardPreview`, a new application loader per render. Forced GC,
+`ReloadDashboardPreview`, a loader replacement every 50 renders (seven distinct application loaders total). Forced GC,
 histograms and NMT/smaps snapshots every 50 renders. This is an instrumented
 single-run diagnostic, not a throughput benchmark. Background JVM work can
 continue between sequential snapshots.
@@ -20,12 +29,12 @@ continue between sequential snapshots.
 | Point | PSS MiB |
 | --- | ---: |
 | Initial red frame | 534.51 |
-| 50 reloads | 764.89 |
-| 150 reloads | 831.55 |
-| 250 reloads | 829.17 |
+| 50 renders | 764.89 |
+| 150 renders | 831.55 |
+| 250 renders | 829.17 |
 | 300, immediately before trim | 842.60 |
 | Immediately after trim | 659.70 |
-| 350, after another 50 reloads | 704.79 |
+| 350, after another 50 renders | 704.79 |
 
 Anonymous mappings outside NMT reservations fell **393.20 → 210.41 MiB**.
 Java heap (**162.44 MiB**), code (**116.64 MiB**) and metaspace (**108.45 MiB**)
@@ -67,7 +76,7 @@ python3 scripts/benchmark-worker-startup.py \
   --fixture ReloadDashboardPreview \
   --class-name benchmark.screens.ReloadDashboardPreviewsKt \
   --user-class-dir daemon/android/build/locale-weak-frozen/1-testFixtures-classes.jar \
-  --swap-every 1 --reuse-output --gc-checkpoint-every 50 --heap-histograms \
+  --swap-every 50 --reuse-output --gc-checkpoint-every 50 --heap-histograms \
   --native-memory-checkpoints --width 480 --height 1200 --density 2 --memory \
   --jvm-arg=-Xmx256m --jvm-arg=-Xms32m --jvm-arg=-XX:+UseSerialGC \
   --jvm-arg=-XX:MinHeapFreeRatio=10 --jvm-arg=-XX:MaxHeapFreeRatio=30 \

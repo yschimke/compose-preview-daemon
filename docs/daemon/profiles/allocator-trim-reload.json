@@ -29228,5 +29228,7 @@
   },
   "comparedBaselineFrames": 301,
   "postTrimFrames": 50,
-  "distinctApplicationLoaders": 7
+  "distinctApplicationLoaders": 7,
+  "swapEvery": 50,
+  "correction": "350 dashboard renders, seven application loader identities; the original prose incorrectly claimed a reload per render."
 }

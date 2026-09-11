@@ -282,8 +282,10 @@ measured workload is our application-reloading daemon. **Priority remains P3** u
 ownership and consequential retained growth are demonstrated.
 
 A [disposable-worker allocator probe](BOOT-ALLOCATOR-TRIM-EXPERIMENT.md) reclaimed
-182.90 MiB PSS after 300 reloads with `malloc_trim(0)`; 50 further renders matched
-PNG/UIA output and partially refilled residency. Heap/code residency was unchanged.
+182.90 MiB PSS after 300 renders (loader swaps every 50 renders) with `malloc_trim(0)`; 50 further renders matched
+PNG/UIA output and partially refilled residency. The original description
+incorrectly claimed a reload per render; the saved run used seven loaders total.
+Heap/code residency was unchanged.
 This establishes reclaimable allocator pages, not a Robolectric native leak or a
 production trim/recycling policy. The mechanism also applies to long-lived test
 JVMs, but its magnitude is unmeasured in ordinary unit/screenshot suites.
