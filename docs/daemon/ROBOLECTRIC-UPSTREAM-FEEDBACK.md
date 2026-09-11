@@ -313,7 +313,10 @@ saving; allocator tuning remains workload-specific and R09 remains P3 upstream.
 A [periodic native-trimming study](BOOT-PERIODIC-NATIVE-TRIM.md) uses an existing
 HotSpot/glibc option to recover most of the single-worker memory cost of sampled
 metrics. This is a local JVM-policy opportunity, not a missing Robolectric API or
-a confirmed leak. Concurrent/long-reload qualification remains pending; R09 stays P3.
+a confirmed leak. A 300-reload trio and three two-worker pairs now support the
+local opportunity: concurrent observed peak PSS falls 7.1%, with 25.0% more minor
+page faults. Longer lifetime stability and ordinary-test benefit remain unproven;
+R09 stays P3.
 
 **Next:** minimize the AWT initialization/TCCL case and determine whether our embedder
 should initialize it under a stable loader or Robolectric should provide a lifecycle

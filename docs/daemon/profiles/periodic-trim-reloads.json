@@ -1,0 +1,2045 @@
+{
+  "rows": [
+    {
+      "variant": "every1",
+      "source": "daemon/android/build/periodic-trim-reloads-every1",
+      "java": "/usr/lib/jvm/java-17-openjdk/bin/java",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:trimnative=debug"
+      ],
+      "totalCpuMs": 173510.0,
+      "totalWallMs": 135436,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 684932,
+        "VmRSS": 666108,
+        "RssAnon": 609672,
+        "RssFile": 54292,
+        "RssShmem": 2144,
+        "Pss": 648197,
+        "Private": 641788
+      },
+      "distinctApplicationLoaders": 300,
+      "framesOverTwoSeconds": 0,
+      "windows": [
+        {
+          "fromReload": 1,
+          "throughReload": 50,
+          "meanCpuMs": 804.8,
+          "medianWallMs": 452.0,
+          "medianRssMiB": 571.146484375,
+          "maxObservedRssMiB": 594.5
+        },
+        {
+          "fromReload": 51,
+          "throughReload": 100,
+          "meanCpuMs": 533.2,
+          "medianWallMs": 427.0,
+          "medianRssMiB": 599.09765625,
+          "maxObservedRssMiB": 607.20703125
+        },
+        {
+          "fromReload": 101,
+          "throughReload": 150,
+          "meanCpuMs": 485.6,
+          "medianWallMs": 422.0,
+          "medianRssMiB": 640.3984375,
+          "maxObservedRssMiB": 650.1484375
+        },
+        {
+          "fromReload": 151,
+          "throughReload": 200,
+          "meanCpuMs": 479.8,
+          "medianWallMs": 425.0,
+          "medianRssMiB": 652.75390625,
+          "maxObservedRssMiB": 657.859375
+        },
+        {
+          "fromReload": 201,
+          "throughReload": 250,
+          "meanCpuMs": 489.2,
+          "medianWallMs": 428.0,
+          "medianRssMiB": 660.33984375,
+          "maxObservedRssMiB": 665.65625
+        },
+        {
+          "fromReload": 251,
+          "throughReload": 300,
+          "meanCpuMs": 475.8,
+          "medianWallMs": 427.0,
+          "medianRssMiB": 667.7578125,
+          "maxObservedRssMiB": 670.98046875
+        }
+      ],
+      "measuredHeapSamples": [
+        {
+          "count": 2,
+          "heapAfterGcMb": 85
+        },
+        {
+          "count": 3,
+          "heapAfterGcMb": 94
+        },
+        {
+          "count": 4,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 5,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 6,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 7,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 8,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 9,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 10,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 11,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 12,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 13,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 14,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 15,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 16,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 17,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 18,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 19,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 20,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 21,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 22,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 23,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 24,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 25,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 26,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 27,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 28,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 29,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 30,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 31,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 32,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 33,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 34,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 35,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 36,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 37,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 38,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 39,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 40,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 41,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 42,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 43,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 44,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 45,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 46,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 47,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 48,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 49,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 50,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 51,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 52,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 53,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 54,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 55,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 56,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 57,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 58,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 59,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 60,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 61,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 62,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 63,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 64,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 65,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 66,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 67,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 68,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 69,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 70,
+          "heapAfterGcMb": 91
+        },
+        {
+          "count": 71,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 72,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 73,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 74,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 75,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 76,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 77,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 78,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 79,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 80,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 81,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 82,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 83,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 84,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 85,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 86,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 87,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 88,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 89,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 90,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 91,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 92,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 93,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 94,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 95,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 96,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 97,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 98,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 99,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 100,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 101,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 102,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 103,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 104,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 105,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 106,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 107,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 108,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 109,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 110,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 111,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 112,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 113,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 114,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 115,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 116,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 117,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 118,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 119,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 120,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 121,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 122,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 123,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 124,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 125,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 126,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 127,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 128,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 129,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 130,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 131,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 132,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 133,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 134,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 135,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 136,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 137,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 138,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 139,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 140,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 141,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 142,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 143,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 144,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 145,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 146,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 147,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 148,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 149,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 150,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 151,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 152,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 153,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 154,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 155,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 156,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 157,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 158,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 159,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 160,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 161,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 162,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 163,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 164,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 165,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 166,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 167,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 168,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 169,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 170,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 171,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 172,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 173,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 174,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 175,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 176,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 177,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 178,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 179,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 180,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 181,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 182,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 183,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 184,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 185,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 186,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 187,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 188,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 189,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 190,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 191,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 192,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 193,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 194,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 195,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 196,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 197,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 198,
+          "heapAfterGcMb": 92
+        },
+        {
+          "count": 199,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 200,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 201,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 202,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 203,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 204,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 205,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 206,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 207,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 208,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 209,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 210,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 211,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 212,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 213,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 214,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 215,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 216,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 217,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 218,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 219,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 220,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 221,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 222,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 223,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 224,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 225,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 226,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 227,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 228,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 229,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 230,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 231,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 232,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 233,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 234,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 235,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 236,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 237,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 238,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 239,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 240,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 241,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 242,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 243,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 244,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 245,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 246,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 247,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 248,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 249,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 250,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 251,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 252,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 253,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 254,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 255,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 256,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 257,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 258,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 259,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 260,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 261,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 262,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 263,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 264,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 265,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 266,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 267,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 268,
+          "heapAfterGcMb": 99
+        },
+        {
+          "count": 269,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 270,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 271,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 272,
+          "heapAfterGcMb": 99
+        },
+        {
+          "count": 273,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 274,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 275,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 276,
+          "heapAfterGcMb": 99
+        },
+        {
+          "count": 277,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 278,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 279,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 280,
+          "heapAfterGcMb": 99
+        },
+        {
+          "count": 281,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 282,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 283,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 284,
+          "heapAfterGcMb": 99
+        },
+        {
+          "count": 285,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 286,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 287,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 288,
+          "heapAfterGcMb": 99
+        },
+        {
+          "count": 289,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 290,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 291,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 292,
+          "heapAfterGcMb": 99
+        },
+        {
+          "count": 293,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 294,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 295,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 296,
+          "heapAfterGcMb": 99
+        },
+        {
+          "count": 297,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 298,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 299,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 300,
+          "heapAfterGcMb": 99
+        },
+        {
+          "count": 301,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 302,
+          "heapAfterGcMb": 93
+        }
+      ],
+      "periodicTrims": []
+    },
+    {
+      "variant": "every5",
+      "source": "daemon/android/build/periodic-trim-reloads-every5",
+      "java": "/usr/lib/jvm/java-17-openjdk/bin/java",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-Dcomposeai.daemon.metrics.everyRenders=5",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:trimnative=debug"
+      ],
+      "totalCpuMs": 143560.0,
+      "totalWallMs": 107465,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 759076,
+        "VmRSS": 759076,
+        "RssAnon": 702704,
+        "RssFile": 54228,
+        "RssShmem": 2144,
+        "Pss": 741113,
+        "Private": 734692
+      },
+      "distinctApplicationLoaders": 300,
+      "framesOverTwoSeconds": 0,
+      "windows": [
+        {
+          "fromReload": 1,
+          "throughReload": 50,
+          "meanCpuMs": 731.4,
+          "medianWallMs": 361.0,
+          "medianRssMiB": 629.5078125,
+          "maxObservedRssMiB": 660.125
+        },
+        {
+          "fromReload": 51,
+          "throughReload": 100,
+          "meanCpuMs": 428.0,
+          "medianWallMs": 303.0,
+          "medianRssMiB": 659.001953125,
+          "maxObservedRssMiB": 668.7265625
+        },
+        {
+          "fromReload": 101,
+          "throughReload": 150,
+          "meanCpuMs": 397.2,
+          "medianWallMs": 292.0,
+          "medianRssMiB": 689.8125,
+          "maxObservedRssMiB": 711.16796875
+        },
+        {
+          "fromReload": 151,
+          "throughReload": 200,
+          "meanCpuMs": 371.0,
+          "medianWallMs": 286.0,
+          "medianRssMiB": 694.4453125,
+          "maxObservedRssMiB": 730.5078125
+        },
+        {
+          "fromReload": 201,
+          "throughReload": 250,
+          "meanCpuMs": 377.0,
+          "medianWallMs": 286.0,
+          "medianRssMiB": 732.955078125,
+          "maxObservedRssMiB": 737.4140625
+        },
+        {
+          "fromReload": 251,
+          "throughReload": 300,
+          "meanCpuMs": 363.4,
+          "medianWallMs": 283.0,
+          "medianRssMiB": 738.54296875,
+          "maxObservedRssMiB": 741.9140625
+        }
+      ],
+      "measuredHeapSamples": [
+        {
+          "count": 6,
+          "heapAfterGcMb": 101
+        },
+        {
+          "count": 11,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 16,
+          "heapAfterGcMb": 110
+        },
+        {
+          "count": 21,
+          "heapAfterGcMb": 102
+        },
+        {
+          "count": 26,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 31,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 36,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 41,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 46,
+          "heapAfterGcMb": 99
+        },
+        {
+          "count": 51,
+          "heapAfterGcMb": 106
+        },
+        {
+          "count": 56,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 61,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 66,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 71,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 76,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 81,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 86,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 91,
+          "heapAfterGcMb": 104
+        },
+        {
+          "count": 96,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 101,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 106,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 111,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 116,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 121,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 126,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 131,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 136,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 141,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 146,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 151,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 156,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 161,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 166,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 171,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 176,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 181,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 186,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 191,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 196,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 201,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 206,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 211,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 216,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 221,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 226,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 231,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 236,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 241,
+          "heapAfterGcMb": 106
+        },
+        {
+          "count": 246,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 251,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 256,
+          "heapAfterGcMb": 106
+        },
+        {
+          "count": 261,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 266,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 271,
+          "heapAfterGcMb": 106
+        },
+        {
+          "count": 276,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 281,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 286,
+          "heapAfterGcMb": 106
+        },
+        {
+          "count": 291,
+          "heapAfterGcMb": 113
+        },
+        {
+          "count": 296,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 301,
+          "heapAfterGcMb": 106
+        }
+      ],
+      "periodicTrims": []
+    },
+    {
+      "variant": "every5trim",
+      "source": "daemon/android/build/periodic-trim-reloads-every5trim",
+      "java": "/usr/lib/jvm/java-17-openjdk/bin/java",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-Dcomposeai.daemon.metrics.everyRenders=5",
+        "-XX:TrimNativeHeapInterval=5000",
+        "-Xlog:trimnative=debug"
+      ],
+      "totalCpuMs": 142710.0,
+      "totalWallMs": 107485,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 696856,
+        "VmRSS": 654036,
+        "RssAnon": 597600,
+        "RssFile": 54292,
+        "RssShmem": 2144,
+        "Pss": 636073,
+        "Private": 629644
+      },
+      "distinctApplicationLoaders": 300,
+      "framesOverTwoSeconds": 0,
+      "windows": [
+        {
+          "fromReload": 1,
+          "throughReload": 50,
+          "meanCpuMs": 718.6,
+          "medianWallMs": 360.5,
+          "medianRssMiB": 595.03125,
+          "maxObservedRssMiB": 620.5625
+        },
+        {
+          "fromReload": 51,
+          "throughReload": 100,
+          "meanCpuMs": 435.0,
+          "medianWallMs": 304.0,
+          "medianRssMiB": 611.9375,
+          "maxObservedRssMiB": 626.2578125
+        },
+        {
+          "fromReload": 101,
+          "throughReload": 150,
+          "meanCpuMs": 379.4,
+          "medianWallMs": 290.5,
+          "medianRssMiB": 619.93359375,
+          "maxObservedRssMiB": 671.8359375
+        },
+        {
+          "fromReload": 151,
+          "throughReload": 200,
+          "meanCpuMs": 378.4,
+          "medianWallMs": 289.0,
+          "medianRssMiB": 631.96875,
+          "maxObservedRssMiB": 638.671875
+        },
+        {
+          "fromReload": 201,
+          "throughReload": 250,
+          "meanCpuMs": 379.2,
+          "medianWallMs": 285.5,
+          "medianRssMiB": 636.552734375,
+          "maxObservedRssMiB": 660.515625
+        },
+        {
+          "fromReload": 251,
+          "throughReload": 300,
+          "meanCpuMs": 361.8,
+          "medianWallMs": 282.0,
+          "medianRssMiB": 631.9765625,
+          "maxObservedRssMiB": 682.84375
+        }
+      ],
+      "measuredHeapSamples": [
+        {
+          "count": 6,
+          "heapAfterGcMb": 101
+        },
+        {
+          "count": 11,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 16,
+          "heapAfterGcMb": 110
+        },
+        {
+          "count": 21,
+          "heapAfterGcMb": 102
+        },
+        {
+          "count": 26,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 31,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 36,
+          "heapAfterGcMb": 93
+        },
+        {
+          "count": 41,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 46,
+          "heapAfterGcMb": 99
+        },
+        {
+          "count": 51,
+          "heapAfterGcMb": 106
+        },
+        {
+          "count": 56,
+          "heapAfterGcMb": 95
+        },
+        {
+          "count": 61,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 66,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 71,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 76,
+          "heapAfterGcMb": 90
+        },
+        {
+          "count": 81,
+          "heapAfterGcMb": 110
+        },
+        {
+          "count": 86,
+          "heapAfterGcMb": 96
+        },
+        {
+          "count": 91,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 96,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 101,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 106,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 111,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 116,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 121,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 126,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 131,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 136,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 141,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 146,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 151,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 156,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 161,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 166,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 171,
+          "heapAfterGcMb": 111
+        },
+        {
+          "count": 176,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 181,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 186,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 191,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 196,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 201,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 206,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 211,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 216,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 221,
+          "heapAfterGcMb": 100
+        },
+        {
+          "count": 226,
+          "heapAfterGcMb": 105
+        },
+        {
+          "count": 231,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 236,
+          "heapAfterGcMb": 97
+        },
+        {
+          "count": 241,
+          "heapAfterGcMb": 106
+        },
+        {
+          "count": 246,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 251,
+          "heapAfterGcMb": 101
+        },
+        {
+          "count": 256,
+          "heapAfterGcMb": 106
+        },
+        {
+          "count": 261,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 266,
+          "heapAfterGcMb": 101
+        },
+        {
+          "count": 271,
+          "heapAfterGcMb": 106
+        },
+        {
+          "count": 276,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 281,
+          "heapAfterGcMb": 101
+        },
+        {
+          "count": 286,
+          "heapAfterGcMb": 106
+        },
+        {
+          "count": 291,
+          "heapAfterGcMb": 112
+        },
+        {
+          "count": 296,
+          "heapAfterGcMb": 98
+        },
+        {
+          "count": 301,
+          "heapAfterGcMb": 106
+        }
+      ],
+      "periodicTrims": [
+        {
+          "memoryLog": "459M->453M (-6000K)",
+          "durationMs": 0.663
+        },
+        {
+          "memoryLog": "551M->518M (-33452K)",
+          "durationMs": 1.975
+        },
+        {
+          "memoryLog": "620M->595M (-25488K)",
+          "durationMs": 1.391
+        },
+        {
+          "memoryLog": "618M->545M (-74244K)",
+          "durationMs": 5.735
+        },
+        {
+          "memoryLog": "588M->546M (-42964K)",
+          "durationMs": 3.767
+        },
+        {
+          "memoryLog": "626M->556M (-71420K)",
+          "durationMs": 4.73
+        },
+        {
+          "memoryLog": "615M->590M (-25996K)",
+          "durationMs": 2.168
+        },
+        {
+          "memoryLog": "618M->593M (-25336K)",
+          "durationMs": 1.617
+        },
+        {
+          "memoryLog": "622M->603M (-19420K)",
+          "durationMs": 1.726
+        },
+        {
+          "memoryLog": "671M->568M (-103M)",
+          "durationMs": 7.208
+        },
+        {
+          "memoryLog": "618M->571M (-48096K)",
+          "durationMs": 3.024
+        },
+        {
+          "memoryLog": "634M->585M (-50560K)",
+          "durationMs": 4.166
+        },
+        {
+          "memoryLog": "634M->587M (-48200K)",
+          "durationMs": 2.845
+        },
+        {
+          "memoryLog": "633M->582M (-52988K)",
+          "durationMs": 3.628
+        },
+        {
+          "memoryLog": "638M->593M (-46420K)",
+          "durationMs": 3.786
+        },
+        {
+          "memoryLog": "640M->589M (-51764K)",
+          "durationMs": 3.246
+        },
+        {
+          "memoryLog": "660M->600M (-61788K)",
+          "durationMs": 3.666
+        },
+        {
+          "memoryLog": "638M->585M (-54612K)",
+          "durationMs": 4.206
+        },
+        {
+          "memoryLog": "683M->604M (-80476K)",
+          "durationMs": 3.167
+        },
+        {
+          "memoryLog": "631M->588M (-44208K)",
+          "durationMs": 3.01
+        },
+        {
+          "memoryLog": "648M->601M (-47576K)",
+          "durationMs": 3.807
+        }
+      ]
+    }
+  ],
+  "matchingPngUiaPairsPerCandidate": 301,
+  "fontCacheSha256": {
+    "carrois-gothic-sc-400.ttf": "cde765545a44feea3bd1d1665de6aad01bbbbced1b619c3a462bc407febe8560",
+    "coming-soon-400.ttf": "c86be0372fad98e347efe9d38bb976a89b9f2eeda158d59a169a6981bdb56990",
+    "cutive-mono-400.ttf": "20c0220ef9ccb50de02353bd22e239da29a7837b3a1953abc354a10d94b290cc",
+    "dancing-script-400.ttf": "14e256280323ac39486a22d4a7cd6f5a737772ea4a7ec3052ee4ac463b71c4aa",
+    "google-sans-flex-400.ttf": "c16fda9ab98b0027caee4881acc07d57eddf9c1b2a68f91baa773c1c9ca7ba41",
+    "noto-sans-400.ttf": "61ea1e781b9d7b10db9b4a6aa2d855cf2215c316c7cb700aeb067a0440d031e0",
+    "noto-sans-mono-400.ttf": "f3e000b8a56b489f9cd3d1d531d2421fad3c67835acabd39cff8cd8299fa0dfc",
+    "noto-serif-400.ttf": "a6e0283968e506c67c3d4ff94093e3ff9f4d7ec3c704ff1cb51382f1e45b66b9",
+    "roboto-400.ttf": "66b9c6a9e7ab0d889f31775fc0fd71bf802d61068ab70f69d37e0cd536604617",
+    "roboto-400.woff2": "425c0713a8176f92273d378599c7eac57de7fafabd4bd0ed457b70eb8f80d371",
+    "roboto-500.woff2": "5bcc3aa180e7f26f643cd5b2621cd7c2de193d0661d913a94afd3d4881a7a34b",
+    "roboto-flex-400.ttf": "7a0aae29a147c35f86b7950556933ecd8daacf8c7080c6686246f46e1e27c3f8"
+  },
+  "scope": "One ordered trio, no extra diagnostic GC or histograms. Worker post-GC readings are only reported on measured renders. RSS windows are aligned by actual request timestamps; they are not PSS or a live-loader census. Reused output paths do not retain all historical data artifacts.",
+  "matchingFinalSvgSha256": "8218330d03fd6ce3a57fc19d7a06aa1d1519849e64730992b1e1651a7527ff46"
+}

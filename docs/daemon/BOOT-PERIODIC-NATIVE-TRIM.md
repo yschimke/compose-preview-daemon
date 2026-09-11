@@ -67,14 +67,85 @@ run is 7.280, 4.053 and 4.385 ms. These are operation durations, not exclusive C
 cost or an end-to-end stall bound. Do not sum reclaimed bytes across trims as if
 they were distinct permanent savings: freed pages can be allocated and trimmed again.
 
+## 300 actual application reloads
+
+One ordered trio uses the same policies and frozen classpath, with
+`ReloadDashboardPreview` loaded through a fresh application classloader for every
+render. Each worker completes 300 reloads plus warm-up. No diagnostic GC,
+histograms or profiler were added. The [reload report](profiles/periodic-trim-reloads.json)
+records request-aligned RSS windows, sampled heap readings and actual trim events.
+
+| Metric | Every render | Every fifth | Every fifth + trim |
+| --- | ---: | ---: | ---: |
+| Total CPU | 173.510 s | 143.560 s | 142.710 s |
+| Total wall | 135.436 s | 107.465 s | 107.485 s |
+| End PSS | 633.00 MiB | 723.74 MiB | 621.17 MiB |
+| Reloads 251–300 median RSS | 667.76 MiB | 738.54 MiB | 631.98 MiB |
+| Reloads 251–300 median wall | 427 ms | 283 ms | 282 ms |
+
+Against sampling alone, trimming ends **102.58 MiB lower in PSS**, with nearly
+identical wall time and 0.6% lower CPU. Against every-render measurement, the
+combined profile uses **17.8% less CPU**, **20.6% less wall time**, and ends
+**11.84 MiB lower in PSS**. This is one ordered trio, not a repeated estimate of
+small CPU or memory differences.
+
+The trimmed worker's median RSS across successive 50-reload windows is 595.0,
+611.9, 619.9, 632.0, 636.6 and 632.0 MiB. The final two windows are encouraging,
+but do not establish a permanent plateau or a safe recycling interval. Observed
+RSS can spike between trims (maximum 682.84 MiB in the final window). RSS windows
+and endpoint PSS must not be treated as the same metric.
+
+All **602 paired PNG/UIA frames** match across the two candidate comparisons.
+All three workers use 300 distinct application-loader identities; this is not a
+live-loader census. Final SVG bytes also match. Reused output paths retain only
+the final other artifacts, so historical SVG/data parity is not claimed. No frame
+exceeds two seconds. The trimmed run logs 21 actual trims, with maximum logged
+operation duration 7.208 ms. Metric cadence and unchanged font-cache hashes are
+verified.
+
+## Two concurrent workers sharing four CPUs
+
+Three alternating pairs compare every-fifth metrics with trimming off versus
+5000 ms. Each pair uses two concurrent workers, each doing 60 actual application
+reloads, with the same frozen jars, warmed offline fonts, Serial heap settings
+and two compiler threads. Affinity is verified as CPUs 0,1,2,3 (distinct physical
+cores). Other local builds/benchmarks are stopped; these cores are not exclusive
+and host load remains uncontrolled. See the [concurrent report](profiles/periodic-trim-concurrent.json).
+
+| Metric | Every fifth | Every fifth + trim |
+| --- | ---: | ---: |
+| Mean combined CPU | 106.460 s | 105.380 s |
+| Median group elapsed | 33.373 s | 32.372 s |
+| Median observed peak combined PSS | 1246.94 MiB | 1157.86 MiB |
+| Mean minor page faults | 274,180 | 342,702 |
+
+Observed combined peak PSS is lower in all three pairs: 1228.45→1157.86,
+1288.06→1178.57 and 1246.94→1146.16 MiB. The difference of aggregate medians is
+**89.09 MiB (7.1%)**. Mean CPU is 1.0% lower and median group elapsed 3.0% lower;
+these small timing differences do not establish a precise speedup from trimming.
+Minor faults increase **25.0%**, consistent with returned pages needing to be
+faulted back in; this is a cost to monitor on busier workloads, not free memory.
+
+PSS is read sequentially from both live workers roughly once per second, so the
+maximum observed sum is not an exact or atomic peak. Group elapsed includes
+startup, shutdown and up to one polling interval; process CPU ends at workload
+completion. Do not compare this combined peak directly with single-worker endpoint
+PSS or RSS windows.
+
+All **366 paired PNG/UIA frames** match, with 60 distinct application-loader
+identities per worker. All 12 workers' sampled-metric cadence and unchanged font
+cache hashes are verified. Each trimmed worker logs six trims; maximum logged
+operation duration is 6.198 ms. No checkpoint GC, histograms or profiler were added.
+
 ## Decision and next validation
 
 Keep this as a measured opt-in launch-policy candidate. Five seconds was tested,
-not established as optimal. It has not yet been tested with concurrent workers,
-long application-reload runs, another collector, another OS/libc or older JDK
-updates. Do not infer the same saving on a server from a single-worker PSS endpoint.
-The next step is a controlled concurrent/reload comparison with the same warmed
-fonts, CPU limits and output checks, retaining whole-process CPU and combined PSS.
+not established as optimal. Another collector, another OS/libc, older JDK updates and longer concurrent
+workloads remain untested. The 300-reload comparison above extends
+single-worker evidence without establishing unbounded lifetime stability. Do not infer the same saving on a server from a single-worker PSS endpoint.
+The next step is a longer concurrent reload run to test whether late residency
+continues growing, then compare trim intervals if this policy remains useful.
+Retain whole-process CPU, page faults, combined PSS and output checks.
 
 This is a HotSpot/glibc policy opportunity, not a Robolectric defect or a reason
 to add another Robolectric native-memory API. The existing metrics default, heap
@@ -93,4 +164,26 @@ python3 scripts/benchmark-worker-matrix.py \
   --output daemon/android/build/sampled-metrics-trim-matrix \
   --trials 3 --renders 60 --fixture DenseDashboardPreview \
   --width 480 --height 1200 --memory
+```
+
+For the 300-reload trio (the matrix supplies frozen classpath and warmed-cache paths):
+
+```sh
+python3 scripts/experiments/periodic-trim-reloads.py \
+  --output daemon/android/build/periodic-trim-reloads-repeat \
+  --java /usr/lib/jvm/java-17-openjdk/bin/java \
+  --user-jar daemon/android/build/locale-weak-frozen/1-testFixtures-classes.jar
+```
+
+For three alternating concurrent pairs, both sampling every fifth render, with
+trimming as the only policy difference:
+
+```sh
+python3 scripts/experiments/benchmark-allocator-concurrent.py \
+  --output daemon/android/build/periodic-trim-concurrent-repeat \
+  --classpath daemon/android/build/sampled-metrics-frozen/classpath.txt \
+  --java /usr/lib/jvm/java-17-openjdk/bin/java \
+  --user-jar daemon/android/build/locale-weak-frozen/1-testFixtures-classes.jar \
+  --cpus 0,1,2,3 --renders 60 --policy trim \
+  --font-cache daemon/android/build/bulk-font-cache
 ```
