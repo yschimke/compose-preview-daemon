@@ -73,7 +73,10 @@ claim ordinary Robolectric tests leak, or change the upstream R09 priority from 
 There is still a meaningful gap between used heap and heap residency. A smaller
 heap with this same sampled-metrics/trim profile is an experiment to compare for
 CPU, allocation pressure and complex-screen headroom, not a default recommendation.
-The code cache is still growing slowly; it is neither proven minimal nor safe to
+The subsequent [concurrent 192-versus-256 MiB comparison](BOOT-SAMPLED-METRICS-HEAP.md)
+finds only a modest aggregate residency reduction, with one paired reversal and
+essentially unchanged CPU; it does not extend this 1,000-reload lifetime result
+to the smaller heap. The code cache is still growing slowly; it is neither proven minimal nor safe to
 cap aggressively. No runtime defaults change.
 
 ## Reproduction

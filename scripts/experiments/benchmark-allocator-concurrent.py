@@ -17,13 +17,13 @@ parser.add_argument('--user-jar', type=Path, required=True)
 parser.add_argument('--java', required=True)
 parser.add_argument('--cpus', required=True, help='Comma-separated logical CPUs shared by both workers')
 parser.add_argument('--renders', type=int, default=60)
-parser.add_argument('--policy', choices=['allocator', 'compiler', 'metrics', 'trim'], default='allocator')
+parser.add_argument('--policy', choices=['allocator', 'compiler', 'metrics', 'trim', 'heap'], default='allocator')
 parser.add_argument('--baseline-trim-ms', type=int, default=0,
     help='Baseline native-trim interval for trim policy (0 disables trimming)')
 parser.add_argument('--candidate-trim-ms', type=int, default=5000,
     help='Candidate native-trim interval for trim policy')
 parser.add_argument('--font-cache', type=Path,
-    help='Existing warmed font cache; enables offline mode, required for metrics/trim policies')
+    help='Existing warmed font cache; enables offline mode, required for metrics/trim/heap policies')
 args = parser.parse_args()
 if min(args.baseline_trim_ms, args.candidate_trim_ms) < 0:
     parser.error('Trim intervals must be nonnegative')
@@ -31,11 +31,11 @@ if args.policy == 'trim' and args.baseline_trim_ms == args.candidate_trim_ms:
     parser.error('Trim policy requires different baseline and candidate intervals')
 if args.policy != 'trim' and (args.baseline_trim_ms, args.candidate_trim_ms) != (0, 5000):
     parser.error('Trim interval overrides require --policy trim')
-if args.policy in ('metrics', 'trim') and args.font_cache is None:
-    parser.error('metrics/trim policy requires a warmed --font-cache')
+if args.policy in ('metrics', 'trim', 'heap') and args.font_cache is None:
+    parser.error('metrics/trim/heap policy requires a warmed --font-cache')
 if args.font_cache is not None and not args.font_cache.is_dir():
     parser.error('--font-cache must be an existing directory')
-if args.policy in ('metrics', 'trim'):
+if args.policy in ('metrics', 'trim', 'heap'):
     for face in ['roboto-400.woff2', 'roboto-500.woff2']:
         path = args.font_cache / face
         if not path.is_file() or path.read_bytes()[:4] != b'wOF2':
@@ -49,7 +49,7 @@ if any(os.environ.get(k) for k in ['GLIBC_TUNABLES','LD_PRELOAD','MALLOC_ARENA_M
 args.output.mkdir(parents=True, exist_ok=False)
 reference = None
 rows = []
-candidate = {'allocator':'arena2','compiler':'compiler2','metrics':'metrics5','trim':'metrics5trim'}[args.policy]
+candidate = {'allocator':'arena2','compiler':'compiler2','metrics':'metrics5','trim':'metrics5trim','heap':'heap192'}[args.policy]
 for trial in range(3):
     for variant in (['default',candidate] if trial % 2 == 0 else [candidate,'default']):
         directory = args.output / f'{trial}-{variant}'
@@ -73,15 +73,16 @@ for trial in range(3):
                     '--user-class-dir',str(args.user_jar.resolve()),'--swap-every','1',
                     '--reuse-output','--width','480','--height','1200','--density','2',
                     '--memory','--output',str(output.resolve())]
-                command += ['--jvm-arg='+f for f in ['-Xmx256m','-Xms32m','-XX:+UseSerialGC',
+                command += ['--jvm-arg='+f for f in ['-Xmx192m' if variant == 'heap192' else '-Xmx256m','-Xms32m','-XX:+UseSerialGC',
                     '-XX:MinHeapFreeRatio=10','-XX:MaxHeapFreeRatio=30']]
-                if variant == 'compiler2' or args.policy in ('metrics', 'trim'):
+                if variant == 'compiler2' or args.policy in ('metrics', 'trim', 'heap'):
                     command.append('--jvm-arg=-XX:CICompilerCount=2')
-                if args.policy in ('metrics', 'trim'):
-                    cadence = 5 if variant == 'metrics5' or args.policy == 'trim' else 1
+                if args.policy in ('metrics', 'trim', 'heap'):
+                    cadence = 5 if variant == 'metrics5' or args.policy in ('trim', 'heap') else 1
                     command.append(f'--jvm-arg=-Dcomposeai.daemon.metrics.everyRenders={cadence}')
-                if args.policy == 'trim':
-                    interval = args.candidate_trim_ms if variant == 'metrics5trim' else args.baseline_trim_ms
+                if args.policy in ('trim', 'heap'):
+                    interval = (15000 if args.policy == 'heap' else
+                        args.candidate_trim_ms if variant == 'metrics5trim' else args.baseline_trim_ms)
                     command += [f'--jvm-arg=-XX:TrimNativeHeapInterval={interval}',
                         '--jvm-arg=-Xlog:trimnative=debug', '--jvm-arg=-Xlog:gc*=info']
                 if args.font_cache is not None:
