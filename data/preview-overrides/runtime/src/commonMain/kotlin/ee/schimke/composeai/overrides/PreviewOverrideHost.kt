@@ -1,31 +1,62 @@
 package ee.schimke.composeai.overrides
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import ee.schimke.composeai.daemon.protocol.PreviewOverrideValue
-import ee.schimke.composeai.data.overrides.PreviewOverrideDeclaration
-import ee.schimke.composeai.data.overrides.PreviewOverrideOption
-import ee.schimke.composeai.data.overrides.PreviewOverrideType
+import kotlin.jvm.JvmName
+
+/**
+ * The [PreviewOverrideHost] a render gets when nothing provides [LocalPreviewOverrideHost] — the
+ * platform's default binding.
+ *
+ * On the JVM this is `ControllerPreviewOverrideHost`, backed by the process-static
+ * `PreviewOverrideController` that the daemon connector seeds and the `compose/overrides` producer
+ * reads. Platforms with no controller (wasmJs) bind a host that resolves every lookup to its author
+ * default and records nothing — so a `previewOverride*` call is still a legal, behaviour-preserving
+ * read of the default there, which is what makes the helpers callable from `commonMain`.
+ */
+expect val DefaultPreviewOverrideHost: PreviewOverrideHost
+
+/**
+ * A closed-value-set entry for [previewOverrideChoice]: the `value` a preview reads, and the
+ * `label` a viewer shows for it (defaulting to the value).
+ *
+ * `expect` rather than a plain common class so the JVM keeps the *existing*
+ * `ee.schimke.composeai.data.overrides.PreviewOverrideOption` — the serializable wire shape from
+ * `:data-preview-overrides-core`, which is JVM-only — as its `actual typealias`. That makes the
+ * multiplatform split source- and binary-compatible for every JVM consumer already importing the
+ * core type, while `commonMain` gets a name it can compile against.
+ */
+expect class PreviewOverrideOption {
+  val value: String
+  val label: String
+}
+
+/**
+ * Builds a [PreviewOverrideOption]; `label` defaults to `value`.
+ *
+ * A factory rather than a constructor on the `expect` class: an `actual typealias` may not
+ * actualize an `expect` constructor whose target declares default argument values
+ * (`DEFAULT_ARGUMENTS_IN_EXPECT_WITH_ACTUAL_TYPEALIAS`), and declaring the constructor without the
+ * default then makes the two incompatible. Leaving the constructor off the `expect` altogether
+ * costs common code one function name and costs JVM code nothing at all — through the typealias a
+ * JVM consumer still sees the core class and calls its constructor exactly as before.
+ */
+expect fun previewOverrideOption(value: String, label: String = value): PreviewOverrideOption
 
 /**
  * Composition local exposing the live named-override surface to a preview. Wired to
- * [ControllerPreviewOverrideHost] by default — the process-static [PreviewOverrideController] — so
+ * [DefaultPreviewOverrideHost] by default — on the JVM the process-static override controller — so
  * the `previewOverride*` lookups work in a plain Gradle render with no daemon (every lookup returns
  * its author default and records its declaration). The connector's around-composable
  * (`:data-preview-overrides-connector`) seeds the same controller before the preview composes, so
  * the lookups then return the daemon-supplied values. Tests can provide a fake host.
  */
-val LocalPreviewOverrideHost:
-  androidx.compose.runtime.ProvidableCompositionLocal<PreviewOverrideHost> =
-  compositionLocalOf {
-    ControllerPreviewOverrideHost
-  }
+val LocalPreviewOverrideHost: ProvidableCompositionLocal<PreviewOverrideHost> = compositionLocalOf {
+  DefaultPreviewOverrideHost
+}
 
 /**
  * Resolves an author-declared, keyed editable knob to its effective value, recording the
@@ -75,199 +106,6 @@ interface PreviewOverrideHost {
     index: Int?,
     options: List<PreviewOverrideOption>,
   ): String = string(key, default, index)
-}
-
-/**
- * Default [PreviewOverrideHost] backed by the process-static [PreviewOverrideController]. Each read
- * (a) resolves the controller's seeded value for the (key, index) — falling back to [default] when
- * none is bound or the bound value's type doesn't match — and (b) records the declaration (with its
- * resolved `current`) into the controller so the `compose/overrides` producer can surface it.
- */
-object ControllerPreviewOverrideHost : PreviewOverrideHost {
-
-  @Composable
-  override fun string(key: String, default: String, index: Int?): String {
-    val seeded by PreviewOverrideController.seededValues
-    val effective =
-      (seeded[seedKey(key, index)] as? PreviewOverrideValue.StringValue)?.value ?: default
-    declare(
-      key,
-      index,
-      PreviewOverrideType.STRING,
-      PreviewOverrideValue.StringValue(default),
-      PreviewOverrideValue.StringValue(effective),
-    )
-    return effective
-  }
-
-  @Composable
-  override fun int(key: String, default: Int, index: Int?): Int {
-    val seeded by PreviewOverrideController.seededValues
-    val effective =
-      (seeded[seedKey(key, index)] as? PreviewOverrideValue.IntValue)?.value ?: default
-    declare(
-      key,
-      index,
-      PreviewOverrideType.INT,
-      PreviewOverrideValue.IntValue(default),
-      PreviewOverrideValue.IntValue(effective),
-    )
-    return effective
-  }
-
-  @Composable
-  override fun float(key: String, default: Float, index: Int?): Float {
-    val seeded by PreviewOverrideController.seededValues
-    val effective =
-      (seeded[seedKey(key, index)] as? PreviewOverrideValue.FloatValue)?.value ?: default
-    declare(
-      key,
-      index,
-      PreviewOverrideType.FLOAT,
-      PreviewOverrideValue.FloatValue(default),
-      PreviewOverrideValue.FloatValue(effective),
-    )
-    return effective
-  }
-
-  @Composable
-  override fun boolean(key: String, default: Boolean, index: Int?): Boolean {
-    val seeded by PreviewOverrideController.seededValues
-    val effective =
-      (seeded[seedKey(key, index)] as? PreviewOverrideValue.BooleanValue)?.value ?: default
-    declare(
-      key,
-      index,
-      PreviewOverrideType.BOOL,
-      PreviewOverrideValue.BooleanValue(default),
-      PreviewOverrideValue.BooleanValue(effective),
-    )
-    return effective
-  }
-
-  @Composable
-  override fun color(key: String, default: Color, index: Int?): Color {
-    val seeded by PreviewOverrideController.seededValues
-    val seededArgb = (seeded[seedKey(key, index)] as? PreviewOverrideValue.ColorValue)?.argb
-    val effective = seededArgb?.let(::parseColorOrNull) ?: default
-    declare(
-      key,
-      index,
-      PreviewOverrideType.COLOR,
-      PreviewOverrideValue.ColorValue(default.toArgbHex()),
-      PreviewOverrideValue.ColorValue(effective.toArgbHex()),
-    )
-    return effective
-  }
-
-  @Composable
-  override fun dp(key: String, default: Dp, index: Int?): Dp {
-    // Dp carried as a plain float (its `.value`); no Remote-style dp wrapper.
-    val seeded by PreviewOverrideController.seededValues
-    val effective =
-      (seeded[seedKey(key, index)] as? PreviewOverrideValue.FloatValue)?.value ?: default.value
-    declare(
-      key,
-      index,
-      PreviewOverrideType.FLOAT,
-      PreviewOverrideValue.FloatValue(default.value),
-      PreviewOverrideValue.FloatValue(effective),
-    )
-    return effective.dp
-  }
-
-  @Composable
-  override fun font(
-    key: String,
-    default: String,
-    index: Int?,
-    suggestions: List<String>,
-    googleFonts: Boolean,
-  ): String {
-    val seeded by PreviewOverrideController.seededValues
-    val effective =
-      (seeded[seedKey(key, index)] as? PreviewOverrideValue.StringValue)?.value ?: default
-    declare(
-      key,
-      index,
-      PreviewOverrideType.STRING,
-      PreviewOverrideValue.StringValue(default),
-      PreviewOverrideValue.StringValue(effective),
-      suggestions = suggestions,
-      googleFonts = googleFonts,
-    )
-    return effective
-  }
-
-  @Composable
-  override fun choice(
-    key: String,
-    default: String,
-    index: Int?,
-    options: List<PreviewOverrideOption>,
-  ): String {
-    val seeded by PreviewOverrideController.seededValues
-    val effective =
-      (seeded[seedKey(key, index)] as? PreviewOverrideValue.StringValue)?.value ?: default
-    declare(
-      key,
-      index,
-      PreviewOverrideType.STRING,
-      PreviewOverrideValue.StringValue(default),
-      PreviewOverrideValue.StringValue(effective),
-      options = options,
-      // A choice knob's set is closed by construction — that is what distinguishes it from the
-      // `suggestions` a font knob offers over a field that stays free-text.
-      optionsExhaustive = true,
-    )
-    return effective
-  }
-
-  @Composable
-  private fun declare(
-    key: String,
-    index: Int?,
-    type: String,
-    default: PreviewOverrideValue,
-    current: PreviewOverrideValue,
-    suggestions: List<String> = emptyList(),
-    googleFonts: Boolean = false,
-    options: List<PreviewOverrideOption> = emptyList(),
-    optionsExhaustive: Boolean = false,
-  ) {
-    val declaration =
-      PreviewOverrideDeclaration(
-        key = key,
-        type = type,
-        label = key,
-        default = default,
-        current = current,
-        index = index,
-        suggestions = suggestions,
-        googleFonts = googleFonts,
-        options = options,
-        optionsExhaustive = optionsExhaustive,
-      )
-    // Record on commit, not mid-composition: keeps the controller mutation a side effect of a
-    // successful composition (idempotent — the controller de-dupes by seedKey).
-    SideEffect { PreviewOverrideController.record(declaration) }
-  }
-}
-
-private fun seedKey(key: String, index: Int?): String = if (index == null) key else "$key[$index]"
-
-/** `#AARRGGBB` for a Compose [Color] (converted to sRGB by [toArgb]). */
-internal fun Color.toArgbHex(): String = "#%08X".format(toArgb())
-
-/** Parse `#AARRGGBB` / `#RRGGBB` (or without `#`) to a [Color], or null when malformed. */
-internal fun parseColorOrNull(hex: String): Color? {
-  val raw = hex.removePrefix("#")
-  val v = raw.toLongOrNull(16) ?: return null
-  return when (raw.length) {
-    8 -> Color((v and 0xFFFFFFFF).toInt())
-    6 -> Color((0xFF000000 or v).toInt())
-    else -> null
-  }
 }
 
 // --- Public opt-in lookups
@@ -381,4 +219,4 @@ fun previewOverrideChoice(
   default: String,
   values: List<String>,
   index: Int? = null,
-): String = previewOverrideChoice(key, default, values.map { PreviewOverrideOption(it) }, index)
+): String = previewOverrideChoice(key, default, values.map { previewOverrideOption(it) }, index)

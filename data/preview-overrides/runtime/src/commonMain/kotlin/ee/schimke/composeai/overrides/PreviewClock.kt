@@ -19,8 +19,14 @@ fun interface PreviewClock {
   fun nowEpochMillis(): Long
 }
 
-/** The real wall clock: the default [LocalClock] value when no fake-clock override is active. */
-val SystemPreviewClock: PreviewClock = PreviewClock { System.currentTimeMillis() }
+/**
+ * The real wall clock: the default [LocalClock] value when no fake-clock override is active.
+ *
+ * `expect` only because "milliseconds since the epoch" has no common-stdlib spelling that is stable
+ * across the Kotlin versions this artifact is consumed on — each platform supplies its own (the JVM
+ * `System.currentTimeMillis()`, `Date.now()` on wasmJs).
+ */
+expect val SystemPreviewClock: PreviewClock
 
 /** A [PreviewClock] frozen at [epochMillis] — what the fake-clock override installs. */
 fun fixedPreviewClock(epochMillis: Long): PreviewClock = PreviewClock { epochMillis }
