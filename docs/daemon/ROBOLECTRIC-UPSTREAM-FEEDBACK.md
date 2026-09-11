@@ -316,8 +316,17 @@ metrics. This is a local JVM-policy opportunity, not a missing Robolectric API o
 a confirmed leak. A 300-reload trio and three two-worker pairs now support the
 local opportunity: the longer 300-reload concurrent comparison lowers observed
 peak PSS 9.8% with essentially unchanged CPU, but 145.6% more minor page faults.
-Some late RSS windows still rise. Lifetime stability and ordinary-test benefit remain unproven;
+A direct 5 s versus 15 s comparison reduces minor faults 34.2% at 15 s, with
+2.1% higher aggregate peak PSS and essentially unchanged CPU. Some late RSS
+windows still rise. Lifetime stability and ordinary-test benefit remain unproven;
 R09 stays P3.
+
+A [1,000-reload diagnostic](BOOT-TRIM-RETENTION-1000.md) retains two live application
+loaders at all eleven forced-GC checkpoints. Used heap stays between 82.84 and
+100.61 MiB after reload 100, code-cache growth slows, and later PSS fluctuations
+are mainly in unmatched anonymous mappings. This strengthens local collectibility
+evidence, not a universal lifetime bound, recycling policy or ordinary-test leak.
+R09 remains P3.
 
 **Next:** minimize the AWT initialization/TCCL case and determine whether our embedder
 should initialize it under a stable loader or Robolectric should provide a lifecycle

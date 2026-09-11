@@ -177,16 +177,53 @@ seconds. Metric cadence, CPU affinity and unchanged font-cache hashes pass.
 Every trimmed worker logs 22 actual trims; maximum logged operation duration is
 7.553 ms. The same sampling and endpoint limitations as the short comparison apply.
 
+## Five versus fifteen seconds
+
+A further three alternating pairs compare **5000 ms versus 15000 ms**, with both
+variants measuring every fifth render and doing 300 actual reloads per worker.
+The same frozen jars, shared four-CPU affinity, heap, compiler settings and offline
+fonts apply. This directly compares intervals rather than relying on historical
+runs. See the [interval report](profiles/periodic-trim-intervals-300.json).
+
+| Metric | Trim every 5 s | Trim every 15 s |
+| --- | ---: | ---: |
+| Mean combined CPU | 296.680 s | 295.910 s |
+| Median group elapsed | 114.635 s | 114.673 s |
+| Median observed peak combined PSS | 1264.38 MiB | 1291.00 MiB |
+| Median of last-30-second median combined PSS | 1209.96 MiB | 1234.48 MiB |
+| Mean minor page faults | 660,271 | 434,470 |
+
+Fifteen seconds reduces mean minor faults **34.2%**, with **0.26% lower CPU** and
+**0.03% higher elapsed time**. The timing differences are too small to establish
+a speedup. The difference of aggregate peak medians is **26.62 MiB higher (2.1%)**;
+late-window median PSS is 24.52 MiB higher. Memory is not consistently worse in
+every pair: peaks are 1264.38→1330.48, 1255.37→1291.00 and 1294.29→1285.34 MiB.
+All three pairs show fewer minor faults at fifteen seconds.
+
+Every five-second worker logs 22 trims, versus seven for every fifteen-second
+worker. Maximum logged trim operation duration is 10.906 versus 7.655 ms, which
+is not an end-to-end stall bound or a repeatable latency claim. All **1,806 paired
+PNG/UIA frames** and final SVG bytes match. Each worker uses 300 distinct loader
+identities, and metric cadence, affinity and unchanged font-cache hashes pass.
+
+This exposes a useful workload-specific choice: less frequent trimming reduces
+page churn at a modest aggregate residency cost in this experiment. It does not
+establish fifteen seconds as optimal, nor remove the need to investigate late
+memory growth. Neither interval becomes a production default.
+
 ## Decision and next validation
 
-Keep this as a measured opt-in launch-policy candidate. Five seconds was tested,
-not established as optimal. Another collector, another OS/libc, older JDK updates and lifetimes beyond
+Keep this as a measured opt-in launch-policy candidate. Five- and fifteen-second intervals were tested,
+neither established as optimal. Another collector, another OS/libc, older JDK updates and lifetimes beyond
 300 concurrent reloads remain untested. The 300-reload comparison above extends
 single-worker evidence without establishing unbounded lifetime stability. Do not infer the same saving on a server from a single-worker PSS endpoint.
 The longer concurrent run confirms a memory reduction but leaves lifetime growth
-unresolved. Compare less frequent trim intervals to quantify memory versus page
-faults, and use a separate longer retention diagnostic to attribute continued
-growth. Retain whole-process CPU, page faults, combined PSS and output checks.
+unresolved. The interval comparison quantifies one memory-versus-fault tradeoff.
+The separate [1,000-reload retention diagnostic](BOOT-TRIM-RETENTION-1000.md)
+finds two live application loaders at every checkpoint, slowing code-cache growth
+and substantial anonymous-residency fluctuations. It does not establish unbounded
+stability or a recycling age. Retain whole-process CPU, page faults, combined PSS
+and output checks in further policy comparisons.
 
 This is a HotSpot/glibc policy opportunity, not a Robolectric defect or a reason
 to add another Robolectric native-memory API. The existing metrics default, heap
@@ -231,3 +268,8 @@ python3 scripts/experiments/benchmark-allocator-concurrent.py \
 
 Repeat the concurrent command with `--renders 300` and a fresh output directory
 for the longer comparison.
+
+For the direct interval comparison, use the concurrent command with `--renders 300`,
+`--baseline-trim-ms 5000 --candidate-trim-ms 15000`, and a fresh output directory.
+The script defaults remain baseline 0 and candidate 5000 for reproducing the
+original disabled-versus-five-second study.
