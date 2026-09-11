@@ -1,0 +1,34 @@
+[
+  {
+    "name": "every1",
+    "classpath": "daemon/android/build/sampled-metrics-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-Xms32m",
+      "-XX:+UseSerialGC",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-Xlog:gc*=info",
+      "-XX:CICompilerCount=2",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true",
+      "-Dcomposeai.daemon.metrics.everyRenders=1"
+    ]
+  },
+  {
+    "name": "every5",
+    "classpath": "daemon/android/build/sampled-metrics-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-Xms32m",
+      "-XX:+UseSerialGC",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-Xlog:gc*=info",
+      "-XX:CICompilerCount=2",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true",
+      "-Dcomposeai.daemon.metrics.everyRenders=5"
+    ]
+  }
+]

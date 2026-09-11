@@ -1121,6 +1121,17 @@ class JsonRpcServerIntegrationTest {
     )
   }
 
+  @Test
+  fun renderFinished_timing_only_result_omits_metrics_but_keeps_duration() {
+    runRenderAndPollFinished(
+      host = FakeRenderHost(metricsToReturn = mapOf("tookMs" to 19L)),
+      assertOnFinished = { params ->
+        assertTrue(params["metrics"] == null || params["metrics"] is JsonNull)
+        assertEquals(19L, params["tookMs"]?.jsonPrimitive?.longOrNull)
+      },
+    )
+  }
+
   /**
    * B2.3 partial-map path — when the host populates *some* B2.3 keys but not all four, the wire
    * still emits `metrics: null` (no half-populated objects) and the daemon warn-logs the gap.

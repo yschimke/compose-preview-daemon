@@ -657,7 +657,10 @@ Emitted after every Tier-2 incremental discovery that changed the set.
 }
 ```
 
-`metrics` is present iff the client set `capabilities.metrics: true` in `initialize`.
+`metrics` is optional. With the opt-in
+[`composeai.daemon.metrics.everyRenders`](SAMPLED-METRICS.md) cadence above 1,
+unmeasured renders omit the populated block while preserving `tookMs`. The default
+still collects a fresh measurement on every render.
 
 `dataProducts` (phase D1, additive) carries per-kind structured payloads
 for the `(id, kind)` pairs the client subscribed to via `data/subscribe`,

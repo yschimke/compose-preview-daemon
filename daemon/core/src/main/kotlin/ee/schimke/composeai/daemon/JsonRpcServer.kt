@@ -1461,7 +1461,8 @@ public class JsonRpcServer(
    * observable, and we still emit `metrics: null` — half-populated objects are misleading because
    * callers cannot tell "field was zero" from "field was missing". Hosts that return `null` metrics
    * (the B1.5-era stub hosts that don't measure anything) keep the pre-B2.3 `metrics: null`
-   * behaviour.
+   * behaviour. Empty and timing-only maps likewise omit structured metrics, including renders
+   * skipped by the opt-in measurement cadence; they contain no partial measurement to warn about.
    */
 
   /** SHA-256 hex of [bytes] — the live lane's dedup key, and history's frame identity. */
@@ -1483,7 +1484,12 @@ public class JsonRpcServer(
   ): RenderFinishedParams {
     val pngPath = result.artifact.pathOrNull() ?: "$historyDir/daemon-stub-${result.id}.png"
     val metrics =
-      when (val outcome = RenderMetrics.fromFlatMap(result.metrics)) {
+      when (
+        val outcome =
+          RenderMetrics.fromFlatMap(
+            result.metrics?.takeUnless { it.keys.all { key -> key == "tookMs" } }
+          )
+      ) {
         is RenderMetrics.FromFlatMapResult.AbsentSource -> null
         is RenderMetrics.FromFlatMapResult.PartialMap -> {
           // Drift signal — host emitted some but not all of the B2.3 keys. Warn so the caller

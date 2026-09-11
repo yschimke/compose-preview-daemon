@@ -7,6 +7,28 @@ import org.junit.Test
 
 class SandboxLifecycleTest {
   @Test
+  fun `sampled metrics request GC only for fresh samples and reset restarts cadence`() {
+    val stats = SandboxLifecycleStats()
+    var collections = 0
+    val results = (1..7).map { SandboxMeasurement.collect(stats, it.toLong(), 3) { collections++ } }
+    assertEquals(3, collections)
+    assertEquals(7L, stats.renders())
+    for ((index, result) in results.withIndex()) {
+      assertEquals((index + 1).toLong(), result["tookMs"])
+      if (index % 3 == 0) {
+        assertEquals((index + 1).toLong(), result[RenderMetrics.KEY_SANDBOX_AGE_RENDERS])
+        assertTrue(RenderMetrics.fromFlatMap(result) is RenderMetrics.FromFlatMapResult.Populated)
+      } else {
+        assertEquals(setOf("tookMs"), result.keys)
+      }
+    }
+    stats.reset()
+    val next = SandboxMeasurement.collect(stats, 8L, 3) { collections++ }
+    assertEquals(4, collections)
+    assertEquals(1L, next[RenderMetrics.KEY_SANDBOX_AGE_RENDERS])
+  }
+
+  @Test
   fun `stats count renders and reset both counters`() {
     val stats = SandboxLifecycleStats(System.nanoTime() - 25_000_000L)
 
