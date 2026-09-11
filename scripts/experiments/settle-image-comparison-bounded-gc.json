@@ -1,0 +1,20 @@
+[
+  {
+    "name": "baseline",
+    "classpath": "daemon/android/build/settle-pixel-buffers-baseline-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xlog:gc*=info",
+      "-XX:ParallelGCThreads=2",
+      "-XX:ConcGCThreads=1"
+    ]
+  },
+  {
+    "name": "candidate",
+    "classpath": "daemon/android/build/settle-image-comparison-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xlog:gc*=info",
+      "-XX:ParallelGCThreads=2",
+      "-XX:ConcGCThreads=1"
+    ]
+  }
+]
