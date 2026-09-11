@@ -19,6 +19,8 @@ parser.add_argument('--user-jar', type=Path, required=True)
 parser.add_argument('--java', required=True)
 parser.add_argument('--cpus', required=True, help='Comma-separated logical CPUs shared by both workers')
 parser.add_argument('--renders', type=int, default=60)
+parser.add_argument('--fixture', default='ReloadDashboardPreview')
+parser.add_argument('--class-name', default='benchmark.screens.ReloadDashboardPreviewsKt')
 parser.add_argument('--policy', choices=['allocator', 'compiler', 'metrics', 'trim', 'classpath'], default='allocator')
 parser.add_argument('--font-cache', type=Path,
     help='Existing warmed font cache; enables offline mode, required for metrics/trim/classpath policies')
@@ -66,8 +68,8 @@ for trial in range(3):
                 command=['taskset','-c',args.cpus,sys.executable,
                     str(Path(__file__).resolve().parents[1]/'benchmark-worker-startup.py'),
                     '--classpath',str(classpath.resolve()),'--java',args.java,
-                    '--renders',str(args.renders),'--fixture','ReloadDashboardPreview',
-                    '--class-name','benchmark.screens.ReloadDashboardPreviewsKt',
+                    '--renders',str(args.renders),'--fixture',args.fixture,
+                    '--class-name',args.class_name,
                     '--user-class-dir',str(args.user_jar.resolve()),'--swap-every','1',
                     '--reuse-output','--width','480','--height','1200','--density','2',
                     '--memory','--output',str(output.resolve())]

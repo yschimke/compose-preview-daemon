@@ -1,0 +1,32 @@
+{
+  "parity": {
+    "baseline": "daemon/android/build/public-method-custom-smoke-baseline",
+    "candidate": "daemon/android/build/public-method-custom-smoke-candidate",
+    "checkedFrames": 4,
+    "checkedDataArtifacts": 44,
+    "artifacts": [
+      "layout-inspector.json",
+      "compose-semantics.json",
+      "compose-figma.svg",
+      "compose-semantics-wireframe.png",
+      "compose-semantics-wireframe.svg",
+      "compose-spatial-semantics.json",
+      "fonts-used.json",
+      "i18n-translations.json",
+      "navigation.json",
+      "resources-used.json",
+      "uia-hierarchy.json"
+    ],
+    "normalizedJvmLambdas": false,
+    "normalizedSemanticsDebugOrder": true,
+    "normalizedTypefaceIdentities": true,
+    "normalizedArtifactComparisons": 3,
+    "normalizedArtifactNames": {
+      "fonts-used.json": 3
+    },
+    "parity": true
+  },
+  "scope": "Red warmup and three actual reloads of app-owned public-getter and missing-getter shapes. Correctness smoke only, not timing or live-loader retention evidence.",
+  "customShapeTokensVerified": true,
+  "distinctApplicationLoadersPerWorker": 3
+}

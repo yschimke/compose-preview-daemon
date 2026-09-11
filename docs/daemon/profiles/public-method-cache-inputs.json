@@ -1,0 +1,27 @@
+{
+  "baselineRendererCommit": "eeb73cfe3e024900444134275501bb7000efccf9",
+  "orderedClasspathEntries": 252,
+  "changedEntries": [
+    {
+      "index": 21,
+      "baseline": {
+        "source": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/sampled-metrics-frozen/21-data-layoutinspector-connector-3.4.2-SNAPSHOT.jar",
+        "path": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/settle-buffer-reuse-frozen/21-21-data-layoutinspector-connector-3.4.2-SNAPSHOT.jar",
+        "copied": true,
+        "sha256": "f75f5f95a023eed7fbe6f2a3f15ad4ed5ba471caba17c2618b8d88b4880af0df"
+      },
+      "candidate": {
+        "source": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/data/layoutinspector/connector/build/libs/data-layoutinspector-connector-3.4.2-SNAPSHOT.jar",
+        "path": "/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/public-method-cache-frozen/21-data-layoutinspector-connector-3.4.2-SNAPSHOT.jar",
+        "copied": true,
+        "sha256": "02e3f050c77c01a202263d93ed8a72c8c98f312558b48e4614d79eacdaf29826"
+      }
+    }
+  ],
+  "fixture": {
+    "source": "daemon/android/build/intermediates/runtime_library_classes_jar/debugTestFixtures/bundleLibRuntimeToJarDebugTestFixtures/testFixtures-classes.jar",
+    "sha256": "e196423196537d7bac48ff905e33f0107ccb1d154d383457cd132b0c628ccbe5"
+  },
+  "incidentalHelper": "ModifierTokenResolver$supertypes$1 has identical javap -c -p output",
+  "focusedTests": 36
+}

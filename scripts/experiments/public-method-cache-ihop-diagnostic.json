@@ -1,0 +1,28 @@
+[
+  {
+    "name": "baseline",
+    "classpath": "daemon/android/build/settle-buffer-reuse-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx1g",
+      "-XX:+UseG1GC",
+      "-Dcomposeai.daemon.metrics.everyRenders=1",
+      "-XX:TrimNativeHeapInterval=0",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true",
+      "-Xlog:gc*=info,gc+ihop=debug,gc+ergo=debug"
+    ]
+  },
+  {
+    "name": "candidate",
+    "classpath": "daemon/android/build/public-method-cache-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx1g",
+      "-XX:+UseG1GC",
+      "-Dcomposeai.daemon.metrics.everyRenders=1",
+      "-XX:TrimNativeHeapInterval=0",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true",
+      "-Xlog:gc*=info,gc+ihop=debug,gc+ergo=debug"
+    ]
+  }
+]

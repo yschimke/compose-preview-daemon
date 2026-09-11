@@ -1,0 +1,417 @@
+{
+  "source": "daemon/android/build/public-method-cache-ihop-diagnostic",
+  "scope": "Three alternating single-worker pairs, G1/Xmx1g, default compiler count, every-render metrics, warmed offline font cache, no native trimming, red plus 60 dense frames. Checks public method lookup caching in the current renderer under the default-compiler G1 configuration; timings remain profile-specific. Equal additional IHOP/ergonomic debug logging; diagnostic comparison, not a replacement for the original clean timing results. No extra forced GC checkpoints, histograms or profiler.",
+  "rows": [
+    {
+      "trial": 0,
+      "variant": "baseline",
+      "readyWallMs": 4129,
+      "readyCpuMs": 14750.0,
+      "totalWallMs": 28593,
+      "totalCpuMs": 71210.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 371.5,
+      "last30MeanCpuMs": 674.3333333333334,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 982844,
+        "VmRSS": 982844,
+        "RssAnon": 924896,
+        "RssFile": 55868,
+        "RssShmem": 2080,
+        "Pss": 977210,
+        "Private": 976996
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-Xlog:gc*=info,gc+ihop=debug,gc+ergo=debug"
+      ]
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "readyWallMs": 4196,
+      "readyCpuMs": 15460.0,
+      "totalWallMs": 26593,
+      "totalCpuMs": 69130.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 338.0,
+      "last30MeanCpuMs": 634.6666666666666,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1020092,
+        "VmRSS": 1020092,
+        "RssAnon": 962588,
+        "RssFile": 55424,
+        "RssShmem": 2080,
+        "Pss": 1014433,
+        "Private": 1014220
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-Xlog:gc*=info,gc+ihop=debug,gc+ergo=debug"
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "readyWallMs": 4096,
+      "readyCpuMs": 14800.0,
+      "totalWallMs": 26486,
+      "totalCpuMs": 68980.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 337.0,
+      "last30MeanCpuMs": 639.3333333333334,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 975404,
+        "VmRSS": 975404,
+        "RssAnon": 917820,
+        "RssFile": 55504,
+        "RssShmem": 2080,
+        "Pss": 969768,
+        "Private": 969544
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-Xlog:gc*=info,gc+ihop=debug,gc+ergo=debug"
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "readyWallMs": 4139,
+      "readyCpuMs": 15120.0,
+      "totalWallMs": 28501,
+      "totalCpuMs": 71310.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 368.0,
+      "last30MeanCpuMs": 673.3333333333334,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1012528,
+        "VmRSS": 1012528,
+        "RssAnon": 955076,
+        "RssFile": 55372,
+        "RssShmem": 2080,
+        "Pss": 1006873,
+        "Private": 1006664
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-Xlog:gc*=info,gc+ihop=debug,gc+ergo=debug"
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "baseline",
+      "readyWallMs": 4169,
+      "readyCpuMs": 15540.0,
+      "totalWallMs": 28578,
+      "totalCpuMs": 71770.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 369.5,
+      "last30MeanCpuMs": 663.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 988632,
+        "VmRSS": 970636,
+        "RssAnon": 913028,
+        "RssFile": 55528,
+        "RssShmem": 2080,
+        "Pss": 965024,
+        "Private": 964820
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-Xlog:gc*=info,gc+ihop=debug,gc+ergo=debug"
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "readyWallMs": 4140,
+      "readyCpuMs": 14960.0,
+      "totalWallMs": 26695,
+      "totalCpuMs": 68750.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 339.0,
+      "last30MeanCpuMs": 636.3333333333334,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 986520,
+        "VmRSS": 986520,
+        "RssAnon": 928728,
+        "RssFile": 55712,
+        "RssShmem": 2080,
+        "Pss": 980884,
+        "Private": 980680
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-Xlog:gc*=info,gc+ihop=debug,gc+ergo=debug"
+      ]
+    }
+  ],
+  "parity": [
+    {
+      "baseline": "daemon/android/build/public-method-cache-ihop-diagnostic/0-baseline",
+      "candidate": "daemon/android/build/public-method-cache-ihop-diagnostic/0-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/public-method-cache-ihop-diagnostic/1-baseline",
+      "candidate": "daemon/android/build/public-method-cache-ihop-diagnostic/1-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 120,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 60,
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/public-method-cache-ihop-diagnostic/2-baseline",
+      "candidate": "daemon/android/build/public-method-cache-ihop-diagnostic/2-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 120,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 60,
+        "fonts-used.json": 60
+      },
+      "parity": true
+    }
+  ],
+  "aggregates": {
+    "baseline": {
+      "meanCpuMs": 71430.0,
+      "medianTotalWallMs": 28578,
+      "medianSteadyCpuMs": 673.3333333333334,
+      "medianSteadyWallMs": 369.5,
+      "medianEndPssMiB": 954.306640625
+    },
+    "candidate": {
+      "meanCpuMs": 68953.33333333333,
+      "medianTotalWallMs": 26593,
+      "medianSteadyCpuMs": 636.3333333333334,
+      "medianSteadyWallMs": 338.0,
+      "medianEndPssMiB": 957.89453125
+    }
+  },
+  "fontCacheSha256": {
+    "carrois-gothic-sc-400.ttf": "cde765545a44feea3bd1d1665de6aad01bbbbced1b619c3a462bc407febe8560",
+    "coming-soon-400.ttf": "c86be0372fad98e347efe9d38bb976a89b9f2eeda158d59a169a6981bdb56990",
+    "cutive-mono-400.ttf": "20c0220ef9ccb50de02353bd22e239da29a7837b3a1953abc354a10d94b290cc",
+    "dancing-script-400.ttf": "14e256280323ac39486a22d4a7cd6f5a737772ea4a7ec3052ee4ac463b71c4aa",
+    "google-sans-flex-400.ttf": "c16fda9ab98b0027caee4881acc07d57eddf9c1b2a68f91baa773c1c9ca7ba41",
+    "noto-sans-400.ttf": "61ea1e781b9d7b10db9b4a6aa2d855cf2215c316c7cb700aeb067a0440d031e0",
+    "noto-sans-mono-400.ttf": "f3e000b8a56b489f9cd3d1d531d2421fad3c67835acabd39cff8cd8299fa0dfc",
+    "noto-serif-400.ttf": "a6e0283968e506c67c3d4ff94093e3ff9f4d7ec3c704ff1cb51382f1e45b66b9",
+    "roboto-400.ttf": "66b9c6a9e7ab0d889f31775fc0fd71bf802d61068ab70f69d37e0cd536604617",
+    "roboto-400.woff2": "425c0713a8176f92273d378599c7eac57de7fafabd4bd0ed457b70eb8f80d371",
+    "roboto-500.woff2": "5bcc3aa180e7f26f643cd5b2621cd7c2de193d0661d913a94afd3d4881a7a34b",
+    "roboto-flex-400.ttf": "7a0aae29a147c35f86b7950556933ecd8daacf8c7080c6686246f46e1e27c3f8"
+  },
+  "ihopDiagnostics": [
+    {
+      "trial": 0,
+      "variant": "baseline",
+      "adaptiveDecisions": 20,
+      "activePredictions": 0,
+      "humongousConcurrentStarts": 9,
+      "firstActive": [],
+      "lastActive": [],
+      "lastDecision": [
+        "[6.141s][debug][gc,ihop        ] GC(36) Adaptive IHOP information (value update), threshold: 252916531B (47.37), internal target occupancy: 533934899B, occupancy: 135215904B, additional buffer size: 279969792B, predicted old gen allocation rate: 114544866.89B/s, predicted marking phase length: 0.00ms, prediction active: false"
+      ]
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "adaptiveDecisions": 22,
+      "activePredictions": 0,
+      "humongousConcurrentStarts": 10,
+      "firstActive": [],
+      "lastActive": [],
+      "lastDecision": [
+        "[10.920s][debug][gc,ihop        ] GC(51) Adaptive IHOP information (value update), threshold: 213752217B (47.37), internal target occupancy: 451254681B, occupancy: 145125216B, additional buffer size: 147849216B, predicted old gen allocation rate: 250756067.63B/s, predicted marking phase length: 985.87ms, prediction active: false"
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "adaptiveDecisions": 17,
+      "activePredictions": 0,
+      "humongousConcurrentStarts": 5,
+      "firstActive": [],
+      "lastActive": [],
+      "lastDecision": [
+        "[4.218s][debug][gc,ihop        ] GC(26) Adaptive IHOP information (value update), threshold: 258578841B (47.37), internal target occupancy: 545888665B, occupancy: 103878704B, additional buffer size: 343932928B, predicted old gen allocation rate: 86927076.72B/s, predicted marking phase length: 972.04ms, prediction active: false"
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "adaptiveDecisions": 24,
+      "activePredictions": 0,
+      "humongousConcurrentStarts": 11,
+      "firstActive": [],
+      "lastActive": [],
+      "lastDecision": [
+        "[9.360s][debug][gc,ihop        ] GC(48) Adaptive IHOP information (value update), threshold: 211864780B (47.37), internal target occupancy: 447270092B, occupancy: 144909272B, additional buffer size: 163577856B, predicted old gen allocation rate: 184760724.60B/s, predicted marking phase length: 971.26ms, prediction active: false"
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "baseline",
+      "adaptiveDecisions": 19,
+      "activePredictions": 0,
+      "humongousConcurrentStarts": 6,
+      "firstActive": [],
+      "lastActive": [],
+      "lastDecision": [
+        "[27.197s][debug][gc,ihop        ] GC(86) Adaptive IHOP information (value update), threshold: 148163788B (47.37), internal target occupancy: 312790220B, occupancy: 145319168B, additional buffer size: 104857600B, predicted old gen allocation rate: 212090053.06B/s, predicted marking phase length: 933.65ms, prediction active: false"
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "adaptiveDecisions": 21,
+      "activePredictions": 0,
+      "humongousConcurrentStarts": 10,
+      "firstActive": [],
+      "lastActive": [],
+      "lastDecision": [
+        "[26.109s][debug][gc,ihop        ] GC(94) Adaptive IHOP information (value update), threshold: 148163788B (47.37), internal target occupancy: 312790220B, occupancy: 145787944B, additional buffer size: 88080384B, predicted old gen allocation rate: 254819569.74B/s, predicted marking phase length: 1074.96ms, prediction active: false"
+      ]
+    }
+  ]
+}

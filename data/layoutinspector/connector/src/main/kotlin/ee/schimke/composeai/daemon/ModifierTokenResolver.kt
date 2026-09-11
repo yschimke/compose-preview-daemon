@@ -1773,8 +1773,10 @@ internal object ModifierTokenResolver {
   }
     .getOrNull()
 
+  private val publicZeroArgMethods = PublicZeroArgMethodCache()
+
   private fun Any.invokeNoArg(name: String): Any? = runCatching {
-    javaClass.getMethod(name).invoke(this)
+    publicZeroArgMethods.find(javaClass, name)?.invoke(this)
   }
     .getOrNull()
 

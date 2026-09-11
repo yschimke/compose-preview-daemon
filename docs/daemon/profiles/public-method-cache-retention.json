@@ -1,0 +1,425 @@
+{
+  "scope": "Two sequential 300-reload custom-shape diagnostics. Forced GC and live histograms every 50 reloads; timing is not performance evidence. PSS and heap snapshots precede the histogram additional GC. Native trimming remains active. Loader collection at checkpoints does not establish natural collection timing or indefinite stability.",
+  "variants": {
+    "baseline": {
+      "source": "daemon/android/build/public-method-cache-retention-baseline",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.daemon.metrics.everyRenders=5",
+        "-XX:TrimNativeHeapInterval=15000",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ],
+      "checkpoints": [
+        {
+          "renderIndex": 0,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 88689,
+          "checkpoint": {
+            "renderIndex": 0,
+            "elapsedMs": 5260,
+            "memoryKiB": {
+              "VmHWM": 462084,
+              "VmRSS": 444108,
+              "RssAnon": 388076,
+              "RssFile": 53888,
+              "RssShmem": 2144,
+              "Pss": 428895,
+              "Private": 419136
+            },
+            "gcOutput": "864142:\nCommand executed successfully\n",
+            "heapInfo": "864142:\n def new generation   total 43904K, used 930K [0x00000000f0000000, 0x00000000f2fa0000, 0x00000000f5550000)\n  eden space 39040K,   2% used [0x00000000f0000000, 0x00000000f00e8b80, 0x00000000f2620000)\n  from space 4864K,   0% used [0x00000000f2ae0000, 0x00000000f2ae0000, 0x00000000f2fa0000)\n  to   space 4864K,   0% used [0x00000000f2620000, 0x00000000f2620000, 0x00000000f2ae0000)\n tenured generation   total 97412K, used 87759K [0x00000000f5550000, 0x00000000fb471000, 0x0000000100000000)\n   the space 97412K,  90% used [0x00000000f5550000, 0x00000000fab03ef8, 0x00000000fab04000, 0x00000000fb471000)\n Metaspace       used 100309K, committed 107392K, reserved 1179648K\n  class space    used 10500K, committed 13760K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-0.txt",
+            "classloaderStatsFile": "classloader-stats-0.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f744ef10580       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f744da5b460       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 50,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 100174,
+          "checkpoint": {
+            "renderIndex": 50,
+            "elapsedMs": 26640,
+            "memoryKiB": {
+              "VmHWM": 669740,
+              "VmRSS": 669740,
+              "RssAnon": 613580,
+              "RssFile": 54016,
+              "RssShmem": 2144,
+              "Pss": 655045,
+              "Private": 645736
+            },
+            "gcOutput": "864142:\nCommand executed successfully\n",
+            "heapInfo": "864142:\n def new generation   total 57408K, used 1009K [0x00000000f0000000, 0x00000000f3e40000, 0x00000000f5550000)\n  eden space 51072K,   1% used [0x00000000f0000000, 0x00000000f00fc5b0, 0x00000000f31e0000)\n  from space 6336K,   0% used [0x00000000f3810000, 0x00000000f3810000, 0x00000000f3e40000)\n  to   space 6336K,   0% used [0x00000000f31e0000, 0x00000000f31e0000, 0x00000000f3810000)\n tenured generation   total 127360K, used 99165K [0x00000000f5550000, 0x00000000fd1b0000, 0x0000000100000000)\n   the space 127360K,  77% used [0x00000000f5550000, 0x00000000fb6274b0, 0x00000000fb627600, 0x00000000fd1b0000)\n Metaspace       used 111626K, committed 119296K, reserved 1179648K\n  class space    used 11083K, committed 14720K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-50.txt",
+            "classloaderStatsFile": "classloader-stats-50.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f744da5b460       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f744f94c380      11      7168      6918  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 100,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 101823,
+          "checkpoint": {
+            "renderIndex": 100,
+            "elapsedMs": 44558,
+            "memoryKiB": {
+              "VmHWM": 677056,
+              "VmRSS": 652016,
+              "RssAnon": 595856,
+              "RssFile": 54016,
+              "RssShmem": 2144,
+              "Pss": 637321,
+              "Private": 628012
+            },
+            "gcOutput": "864142:\nCommand executed successfully\n",
+            "heapInfo": "864142:\n def new generation   total 60672K, used 1063K [0x00000000f0000000, 0x00000000f41d0000, 0x00000000f5550000)\n  eden space 53952K,   1% used [0x00000000f0000000, 0x00000000f0109dd8, 0x00000000f34b0000)\n  from space 6720K,   0% used [0x00000000f34b0000, 0x00000000f34b0000, 0x00000000f3b40000)\n  to   space 6720K,   0% used [0x00000000f3b40000, 0x00000000f3b40000, 0x00000000f41d0000)\n tenured generation   total 134708K, used 100760K [0x00000000f5550000, 0x00000000fd8dd000, 0x0000000100000000)\n   the space 134708K,  74% used [0x00000000f5550000, 0x00000000fb7b6288, 0x00000000fb7b6400, 0x00000000fd8dd000)\n Metaspace       used 112906K, committed 120768K, reserved 1179648K\n  class space    used 11086K, committed 14720K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-100.txt",
+            "classloaderStatsFile": "classloader-stats-100.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f7421dbb960      11      8192      6935  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f744da5b460       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 150,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 102306,
+          "checkpoint": {
+            "renderIndex": 150,
+            "elapsedMs": 61869,
+            "memoryKiB": {
+              "VmHWM": 709188,
+              "VmRSS": 650404,
+              "RssAnon": 594244,
+              "RssFile": 54016,
+              "RssShmem": 2144,
+              "Pss": 635709,
+              "Private": 626400
+            },
+            "gcOutput": "864142:\nCommand executed successfully\n",
+            "heapInfo": "864142:\n def new generation   total 61312K, used 1074K [0x00000000f0000000, 0x00000000f4280000, 0x00000000f5550000)\n  eden space 54528K,   1% used [0x00000000f0000000, 0x00000000f010caa0, 0x00000000f3540000)\n  from space 6784K,   0% used [0x00000000f3be0000, 0x00000000f3be0000, 0x00000000f4280000)\n  to   space 6784K,   0% used [0x00000000f3540000, 0x00000000f3540000, 0x00000000f3be0000)\n tenured generation   total 136152K, used 101232K [0x00000000f5550000, 0x00000000fda46000, 0x0000000100000000)\n   the space 136152K,  74% used [0x00000000f5550000, 0x00000000fb82c108, 0x00000000fb82c200, 0x00000000fda46000)\n Metaspace       used 113896K, committed 121664K, reserved 1179648K\n  class space    used 11085K, committed 14720K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-150.txt",
+            "classloaderStatsFile": "classloader-stats-150.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f7421ed69c0      11      8320      6723  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f744da5b460       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 200,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 102898,
+          "checkpoint": {
+            "renderIndex": 200,
+            "elapsedMs": 78633,
+            "memoryKiB": {
+              "VmHWM": 709188,
+              "VmRSS": 670580,
+              "RssAnon": 614420,
+              "RssFile": 54016,
+              "RssShmem": 2144,
+              "Pss": 655885,
+              "Private": 646576
+            },
+            "gcOutput": "864142:\nCommand executed successfully\n",
+            "heapInfo": "864142:\n def new generation   total 62656K, used 1096K [0x00000000f0000000, 0x00000000f43f0000, 0x00000000f5550000)\n  eden space 55744K,   1% used [0x00000000f0000000, 0x00000000f01120f8, 0x00000000f3670000)\n  from space 6912K,   0% used [0x00000000f3d30000, 0x00000000f3d30000, 0x00000000f43f0000)\n  to   space 6912K,   0% used [0x00000000f3670000, 0x00000000f3670000, 0x00000000f3d30000)\n tenured generation   total 139080K, used 101802K [0x00000000f5550000, 0x00000000fdd22000, 0x0000000100000000)\n   the space 139080K,  73% used [0x00000000f5550000, 0x00000000fb8bab30, 0x00000000fb8bac00, 0x00000000fdd22000)\n Metaspace       used 114467K, committed 122240K, reserved 1179648K\n  class space    used 11085K, committed 14784K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-200.txt",
+            "classloaderStatsFile": "classloader-stats-200.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f744da5b460       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f7421fe5030      11      8704      6724  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 250,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 96399,
+          "checkpoint": {
+            "renderIndex": 250,
+            "elapsedMs": 95387,
+            "memoryKiB": {
+              "VmHWM": 728716,
+              "VmRSS": 723740,
+              "RssAnon": 667580,
+              "RssFile": 54016,
+              "RssShmem": 2144,
+              "Pss": 709045,
+              "Private": 699736
+            },
+            "gcOutput": "864142:\nCommand executed successfully\n",
+            "heapInfo": "864142:\n def new generation   total 62656K, used 1096K [0x00000000f0000000, 0x00000000f43f0000, 0x00000000f5550000)\n  eden space 55744K,   1% used [0x00000000f0000000, 0x00000000f0112290, 0x00000000f3670000)\n  from space 6912K,   0% used [0x00000000f3d30000, 0x00000000f3d30000, 0x00000000f43f0000)\n  to   space 6912K,   0% used [0x00000000f3670000, 0x00000000f3670000, 0x00000000f3d30000)\n tenured generation   total 139080K, used 95303K [0x00000000f5550000, 0x00000000fdd22000, 0x0000000100000000)\n   the space 139080K,  68% used [0x00000000f5550000, 0x00000000fb261d08, 0x00000000fb261e00, 0x00000000fdd22000)\n Metaspace       used 114787K, committed 122560K, reserved 1179648K\n  class space    used 11087K, committed 14720K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-250.txt",
+            "classloaderStatsFile": "classloader-stats-250.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f744f9f5460      11      8192      6935  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f744da5b460       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 300,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 103618,
+          "checkpoint": {
+            "renderIndex": 300,
+            "elapsedMs": 112118,
+            "memoryKiB": {
+              "VmHWM": 728716,
+              "VmRSS": 682468,
+              "RssAnon": 626308,
+              "RssFile": 54016,
+              "RssShmem": 2144,
+              "Pss": 667773,
+              "Private": 658464
+            },
+            "gcOutput": "864142:\nCommand executed successfully\n",
+            "heapInfo": "864142:\n def new generation   total 62528K, used 1094K [0x00000000f0000000, 0x00000000f43d0000, 0x00000000f5550000)\n  eden space 55616K,   1% used [0x00000000f0000000, 0x00000000f0111ad8, 0x00000000f3650000)\n  from space 6912K,   0% used [0x00000000f3650000, 0x00000000f3650000, 0x00000000f3d10000)\n  to   space 6912K,   0% used [0x00000000f3d10000, 0x00000000f3d10000, 0x00000000f43d0000)\n tenured generation   total 138788K, used 102524K [0x00000000f5550000, 0x00000000fdcd9000, 0x0000000100000000)\n   the space 138788K,  73% used [0x00000000f5550000, 0x00000000fb96f368, 0x00000000fb96f400, 0x00000000fdcd9000)\n Metaspace       used 115882K, committed 123520K, reserved 1179648K\n  class space    used 11087K, committed 14720K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-300.txt",
+            "classloaderStatsFile": "classloader-stats-300.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f744f89e980      11      8192      6935  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f748d5a4680  0x00007f748d0c3170  0x00007f744da5b460       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        }
+      ],
+      "distinctApplicationLoaders": 300
+    },
+    "candidate": {
+      "source": "daemon/android/build/public-method-cache-retention-candidate",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.daemon.metrics.everyRenders=5",
+        "-XX:TrimNativeHeapInterval=15000",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ],
+      "checkpoints": [
+        {
+          "renderIndex": 0,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 88694,
+          "checkpoint": {
+            "renderIndex": 0,
+            "elapsedMs": 5236,
+            "memoryKiB": {
+              "VmHWM": 479056,
+              "VmRSS": 472244,
+              "RssAnon": 416172,
+              "RssFile": 53928,
+              "RssShmem": 2144,
+              "Pss": 456982,
+              "Private": 447240
+            },
+            "gcOutput": "865297:\nCommand executed successfully\n",
+            "heapInfo": "865297:\n def new generation   total 43904K, used 929K [0x00000000f0000000, 0x00000000f2fa0000, 0x00000000f5550000)\n  eden space 39040K,   2% used [0x00000000f0000000, 0x00000000f00e8730, 0x00000000f2620000)\n  from space 4864K,   0% used [0x00000000f2ae0000, 0x00000000f2ae0000, 0x00000000f2fa0000)\n  to   space 4864K,   0% used [0x00000000f2620000, 0x00000000f2620000, 0x00000000f2ae0000)\n tenured generation   total 97404K, used 87765K [0x00000000f5550000, 0x00000000fb46f000, 0x0000000100000000)\n   the space 97404K,  90% used [0x00000000f5550000, 0x00000000fab056b0, 0x00000000fab05800, 0x00000000fb46f000)\n Metaspace       used 100324K, committed 107328K, reserved 1179648K\n  class space    used 10500K, committed 13696K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-0.txt",
+            "classloaderStatsFile": "classloader-stats-0.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85ff125610       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85fdb09610       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 50,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 100538,
+          "checkpoint": {
+            "renderIndex": 50,
+            "elapsedMs": 24495,
+            "memoryKiB": {
+              "VmHWM": 662300,
+              "VmRSS": 662300,
+              "RssAnon": 606100,
+              "RssFile": 54056,
+              "RssShmem": 2144,
+              "Pss": 647541,
+              "Private": 638228
+            },
+            "gcOutput": "865297:\nCommand executed successfully\n",
+            "heapInfo": "865297:\n def new generation   total 60992K, used 1083K [0x00000000f0000000, 0x00000000f4220000, 0x00000000f5550000)\n  eden space 54272K,   1% used [0x00000000f0000000, 0x00000000f010eef8, 0x00000000f3500000)\n  from space 6720K,   0% used [0x00000000f3500000, 0x00000000f3500000, 0x00000000f3b90000)\n  to   space 6720K,   0% used [0x00000000f3b90000, 0x00000000f3b90000, 0x00000000f4220000)\n tenured generation   total 135356K, used 99455K [0x00000000f5550000, 0x00000000fd97f000, 0x0000000100000000)\n   the space 135356K,  73% used [0x00000000f5550000, 0x00000000fb66ff40, 0x00000000fb670000, 0x00000000fd97f000)\n Metaspace       used 111709K, committed 119488K, reserved 1179648K\n  class space    used 11085K, committed 14656K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-50.txt",
+            "classloaderStatsFile": "classloader-stats-50.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85fdb09610       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85d5d266a0      11      7168      6917  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 100,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 100665,
+          "checkpoint": {
+            "renderIndex": 100,
+            "elapsedMs": 40443,
+            "memoryKiB": {
+              "VmHWM": 670332,
+              "VmRSS": 636836,
+              "RssAnon": 580636,
+              "RssFile": 54056,
+              "RssShmem": 2144,
+              "Pss": 622077,
+              "Private": 612764
+            },
+            "gcOutput": "865297:\nCommand executed successfully\n",
+            "heapInfo": "865297:\n def new generation   total 60992K, used 1083K [0x00000000f0000000, 0x00000000f4220000, 0x00000000f5550000)\n  eden space 54272K,   1% used [0x00000000f0000000, 0x00000000f010eed0, 0x00000000f3500000)\n  from space 6720K,   0% used [0x00000000f3500000, 0x00000000f3500000, 0x00000000f3b90000)\n  to   space 6720K,   0% used [0x00000000f3b90000, 0x00000000f3b90000, 0x00000000f4220000)\n tenured generation   total 135356K, used 99582K [0x00000000f5550000, 0x00000000fd97f000, 0x0000000100000000)\n   the space 135356K,  73% used [0x00000000f5550000, 0x00000000fb68fb30, 0x00000000fb68fc00, 0x00000000fd97f000)\n Metaspace       used 112898K, committed 120576K, reserved 1179648K\n  class space    used 11087K, committed 14720K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-100.txt",
+            "classloaderStatsFile": "classloader-stats-100.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85fdb09610       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85fe9f2c00      11      7168      6724  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 150,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 95402,
+          "checkpoint": {
+            "renderIndex": 150,
+            "elapsedMs": 55765,
+            "memoryKiB": {
+              "VmHWM": 690252,
+              "VmRSS": 690012,
+              "RssAnon": 633812,
+              "RssFile": 54056,
+              "RssShmem": 2144,
+              "Pss": 675253,
+              "Private": 665940
+            },
+            "gcOutput": "865297:\nCommand executed successfully\n",
+            "heapInfo": "865297:\n def new generation   total 60992K, used 1083K [0x00000000f0000000, 0x00000000f4220000, 0x00000000f5550000)\n  eden space 54272K,   1% used [0x00000000f0000000, 0x00000000f010ef08, 0x00000000f3500000)\n  from space 6720K,   0% used [0x00000000f3b90000, 0x00000000f3b90000, 0x00000000f4220000)\n  to   space 6720K,   0% used [0x00000000f3500000, 0x00000000f3500000, 0x00000000f3b90000)\n tenured generation   total 135356K, used 94319K [0x00000000f5550000, 0x00000000fd97f000, 0x0000000100000000)\n   the space 135356K,  69% used [0x00000000f5550000, 0x00000000fb16bd80, 0x00000000fb16be00, 0x00000000fd97f000)\n Metaspace       used 113923K, committed 121792K, reserved 1179648K\n  class space    used 11087K, committed 14720K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-150.txt",
+            "classloaderStatsFile": "classloader-stats-150.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85fdb09610       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85fc8eefb0      11      8192      6935  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 200,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 95795,
+          "checkpoint": {
+            "renderIndex": 200,
+            "elapsedMs": 71103,
+            "memoryKiB": {
+              "VmHWM": 696940,
+              "VmRSS": 659256,
+              "RssAnon": 603056,
+              "RssFile": 54056,
+              "RssShmem": 2144,
+              "Pss": 644497,
+              "Private": 635184
+            },
+            "gcOutput": "865297:\nCommand executed successfully\n",
+            "heapInfo": "865297:\n def new generation   total 60992K, used 1084K [0x00000000f0000000, 0x00000000f4220000, 0x00000000f5550000)\n  eden space 54272K,   1% used [0x00000000f0000000, 0x00000000f010f1d0, 0x00000000f3500000)\n  from space 6720K,   0% used [0x00000000f3b90000, 0x00000000f3b90000, 0x00000000f4220000)\n  to   space 6720K,   0% used [0x00000000f3500000, 0x00000000f3500000, 0x00000000f3b90000)\n tenured generation   total 135356K, used 94711K [0x00000000f5550000, 0x00000000fd97f000, 0x0000000100000000)\n   the space 135356K,  69% used [0x00000000f5550000, 0x00000000fb1cdf88, 0x00000000fb1ce000, 0x00000000fd97f000)\n Metaspace       used 114516K, committed 122304K, reserved 1179648K\n  class space    used 11088K, committed 14720K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-200.txt",
+            "classloaderStatsFile": "classloader-stats-200.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85fec19b90      11      8192      6935  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85fdb09610       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 250,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 101773,
+          "checkpoint": {
+            "renderIndex": 250,
+            "elapsedMs": 86721,
+            "memoryKiB": {
+              "VmHWM": 696940,
+              "VmRSS": 672852,
+              "RssAnon": 616652,
+              "RssFile": 54056,
+              "RssShmem": 2144,
+              "Pss": 658093,
+              "Private": 648780
+            },
+            "gcOutput": "865297:\nCommand executed successfully\n",
+            "heapInfo": "865297:\n def new generation   total 60992K, used 1086K [0x00000000f0000000, 0x00000000f4220000, 0x00000000f5550000)\n  eden space 54272K,   2% used [0x00000000f0000000, 0x00000000f010f978, 0x00000000f3500000)\n  from space 6720K,   0% used [0x00000000f3500000, 0x00000000f3500000, 0x00000000f3b90000)\n  to   space 6720K,   0% used [0x00000000f3b90000, 0x00000000f3b90000, 0x00000000f4220000)\n tenured generation   total 135356K, used 100687K [0x00000000f5550000, 0x00000000fd97f000, 0x0000000100000000)\n   the space 135356K,  74% used [0x00000000f5550000, 0x00000000fb7a3f28, 0x00000000fb7a4000, 0x00000000fd97f000)\n Metaspace       used 114751K, committed 122368K, reserved 1179648K\n  class space    used 11088K, committed 14720K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-250.txt",
+            "classloaderStatsFile": "classloader-stats-250.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85fdb09610       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85fc91e780      11      8192      6935  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        },
+        {
+          "renderIndex": 300,
+          "liveApplicationLoaders": 2,
+          "heapUsedKiB": 103348,
+          "checkpoint": {
+            "renderIndex": 300,
+            "elapsedMs": 102310,
+            "memoryKiB": {
+              "VmHWM": 739408,
+              "VmRSS": 722256,
+              "RssAnon": 666056,
+              "RssFile": 54056,
+              "RssShmem": 2144,
+              "Pss": 707497,
+              "Private": 698184
+            },
+            "gcOutput": "865297:\nCommand executed successfully\n",
+            "heapInfo": "865297:\n def new generation   total 60992K, used 1086K [0x00000000f0000000, 0x00000000f4220000, 0x00000000f5550000)\n  eden space 54272K,   2% used [0x00000000f0000000, 0x00000000f010f908, 0x00000000f3500000)\n  from space 6720K,   0% used [0x00000000f3b90000, 0x00000000f3b90000, 0x00000000f4220000)\n  to   space 6720K,   0% used [0x00000000f3500000, 0x00000000f3500000, 0x00000000f3b90000)\n tenured generation   total 135356K, used 102262K [0x00000000f5550000, 0x00000000fd97f000, 0x0000000100000000)\n   the space 135356K,  75% used [0x00000000f5550000, 0x00000000fb92d810, 0x00000000fb92da00, 0x00000000fd97f000)\n Metaspace       used 115903K, committed 123584K, reserved 1179648K\n  class space    used 11089K, committed 14720K, reserved 1048576K\n",
+            "histogramFile": "heap-histogram-300.txt",
+            "classloaderStatsFile": "classloader-stats-300.txt"
+          },
+          "applicationClassloaderStats": [
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85fdb09610       0         0         0  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader",
+            "0x00007f863d5b88b8  0x00007f863d103170  0x00007f85d4a0a820      11      8192      6935  ee.schimke.composeai.daemon.UserClassLoaderHolder$ChildFirstURLClassLoader"
+          ]
+        }
+      ],
+      "distinctApplicationLoaders": 300
+    }
+  },
+  "matchingPngUiaPairs": 301,
+  "matchingFinalSvgSha256": {
+    "compose-figma.svg": "79160e41810702ad2c9ac5da4396193f918da383a35b8a3ea43bc9828e263cba",
+    "compose-semantics-wireframe.svg": "c2eef9ab2e9e2677e9758a17f2b7b876e06d8f919110e9b4886e606de1f6c28c"
+  },
+  "finalCustomShapeTokensVerified": true,
+  "fontCacheSha256": {
+    "carrois-gothic-sc-400.ttf": "cde765545a44feea3bd1d1665de6aad01bbbbced1b619c3a462bc407febe8560",
+    "coming-soon-400.ttf": "c86be0372fad98e347efe9d38bb976a89b9f2eeda158d59a169a6981bdb56990",
+    "cutive-mono-400.ttf": "20c0220ef9ccb50de02353bd22e239da29a7837b3a1953abc354a10d94b290cc",
+    "dancing-script-400.ttf": "14e256280323ac39486a22d4a7cd6f5a737772ea4a7ec3052ee4ac463b71c4aa",
+    "google-sans-flex-400.ttf": "c16fda9ab98b0027caee4881acc07d57eddf9c1b2a68f91baa773c1c9ca7ba41",
+    "noto-sans-400.ttf": "61ea1e781b9d7b10db9b4a6aa2d855cf2215c316c7cb700aeb067a0440d031e0",
+    "noto-sans-mono-400.ttf": "f3e000b8a56b489f9cd3d1d531d2421fad3c67835acabd39cff8cd8299fa0dfc",
+    "noto-serif-400.ttf": "a6e0283968e506c67c3d4ff94093e3ff9f4d7ec3c704ff1cb51382f1e45b66b9",
+    "roboto-400.ttf": "66b9c6a9e7ab0d889f31775fc0fd71bf802d61068ab70f69d37e0cd536604617",
+    "roboto-400.woff2": "425c0713a8176f92273d378599c7eac57de7fafabd4bd0ed457b70eb8f80d371",
+    "roboto-500.woff2": "5bcc3aa180e7f26f643cd5b2621cd7c2de193d0661d913a94afd3d4881a7a34b",
+    "roboto-flex-400.ttf": "7a0aae29a147c35f86b7950556933ecd8daacf8c7080c6686246f46e1e27c3f8"
+  }
+}
