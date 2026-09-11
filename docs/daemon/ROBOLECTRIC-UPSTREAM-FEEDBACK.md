@@ -207,6 +207,20 @@ focus. Broader testing caught a missing cursor caused by our omitted focus event
 that was a prototype bug. A two-second wait came from our attachment ordering with
 Compose's root registry, not proof that Robolectric has a needless fixed timeout.
 
+**Additional hosting evidence (Roborazzi 1.74.0 / Robolectric 4.17):** the
+[PNG decoding investigation](BOOT-PNG-RESIZE-EXPERIMENT.md) observes 480×1088
+captures being extended to 480×1200 at density 2. The same worker logs Roborazzi's
+SDK-35+ ActionBar-overlap workaround and its warning about layout invalidation.
+This is a theme/hosting lead, not proof that the workaround causes the 56 dp
+shortfall or a Robolectric bug. Reproduce with and without the intended test
+manifest and no-action-bar theme before assigning ownership.
+
+**Applicability / priority:** potentially observable in ordinary unit or screenshot
+tests capturing ActionBar-hosted content through Roborazzi on the affected SDKs;
+it is not inherently daemon-only. Tests with a no-action-bar host may avoid this
+path. No ordinary-suite impact measurement exists, so R07 remains **P3**. Our
+repeated PNG decoding was our own pipeline overhead, and is addressed locally.
+
 **Request:** a documented supported offscreen window host with attach/focus/teardown
 semantics, usable with deterministic frame stepping. Roborazzi's Activity/Espresso
 capture assumptions belong in a separate conversation with that project. **Acceptance:**
