@@ -272,6 +272,7 @@ class RenderEngine(
 
     outputDir.mkdirs()
     val outputFile = File(outputDir, "${spec.outputBaseName}.png")
+    var decodedStillFrame: java.awt.image.BufferedImage? = null
     val startNs = System.nanoTime()
     val trace = PerfettoTraceDataProducer.recorder(spec.outputBaseName, backend = "android")
     val slotTableCapture = PreviewSlotTableCapture()
@@ -923,6 +924,9 @@ class RenderEngine(
                   ee.schimke.composeai.renderer.captureVisuallySettledFrame(
                     file = outputFile,
                     role = "daemon preview still",
+                    onFinalDecodedFrame = {
+                      if (!spec.wrapWidth && !spec.wrapHeight) decodedStillFrame = it
+                    },
                     advanceFrame = { rule.mainClock.advanceTimeByFrame() },
                     capture = ::capture,
                   )
@@ -971,6 +975,7 @@ class RenderEngine(
             // Null when this render didn't crop to a dialog window.
             var dialogBaseSize: android.util.Size? = null
             if (dialogWindow != null) {
+              decodedStillFrame = null
               // `start`/`end` are layout edges; this crop rect is in already-rendered pixels, where
               // an RTL capture has been mirrored — so the leading edge is on the right. Same swap
               // the content box makes in layout coordinates, and the same one the batch renderer's
@@ -1014,6 +1019,10 @@ class RenderEngine(
             // inside. Same arithmetic as the batch renderer's `resizeGutter` branch.
             resizeFixedAxesPng(
               file = outputFile,
+              decodedImage =
+                decodedStillFrame.takeIf {
+                  dialogWindow == null && !spec.wrapWidth && !spec.wrapHeight
+                },
               targetWidth =
                 if (spec.wrapWidth) null
                 else
@@ -1027,6 +1036,8 @@ class RenderEngine(
                     dialogBaseSize?.height,
                   ),
             )
+
+            decodedStillFrame = null
 
             // `@ScrollingPreview(END)` keeps the gutter on this lane. The contract excludes it —
             // and LONG / GIF, which run in `runScrollScenario` and never grow the window, honour
@@ -2267,10 +2278,16 @@ class RenderEngine(
     return Math.round(scaled).toInt().coerceAtLeast(1)
   }
 
-  private fun resizeFixedAxesPng(file: File, targetWidth: Int?, targetHeight: Int?) {
+  private fun resizeFixedAxesPng(
+    file: File,
+    targetWidth: Int?,
+    targetHeight: Int?,
+    decodedImage: java.awt.image.BufferedImage? = null,
+  ) {
     if (targetWidth == null && targetHeight == null) return
     if (!file.exists()) return
-    val original = runCatching { javax.imageio.ImageIO.read(file) }.getOrNull() ?: return
+    val original =
+      decodedImage ?: runCatching { javax.imageio.ImageIO.read(file) }.getOrNull() ?: return
     val newWidth = targetWidth ?: original.width
     val newHeight = targetHeight ?: original.height
     if (newWidth == original.width && newHeight == original.height) return

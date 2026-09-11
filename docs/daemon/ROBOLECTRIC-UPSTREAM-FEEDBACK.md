@@ -64,9 +64,10 @@ same benefit there. “Conditional” means the test must exercise the named pat
 | R09 | Our application-child-loader cache leak is not established in ordinary tests. Runner-owned sandboxes have different lifetimes. AWT/TCCL retention needs a separate reproducer. | AWT/image initialization could encounter related lifetime issues, but no conventional screenshot-test leak has been demonstrated. | Replacing application loaders within one long-lived sandbox is our distinguishing workload. Our growing leak is fixed; the remaining initial AWT root is bounded. Do not file an upstream leak without ownership evidence. |
 | R10 | Useful for diagnosing suite/fork setup, instrumentation and teardown; existing PerfStats facilities should be reused. | Useful to separate render cost from setup, JIT and GC, especially parallel CI. | Embedders need stable lifecycle access outside the runner. Demonstrate missing phase coverage in both a standard test report and simulator session before proposing new events. |
 
-For upstream prioritization, start with shared costs **R01/R06/R10**, evaluate
-**R02/R08** in representative test suites, and frame **R03/R04/R05** explicitly as
-embedding/simulator API feedback. **R07** needs cross-project API design; **R09**
+Follow the ranked table above: **R01 → R02** first; then **R10 → R08 → R06 →
+R04 → R05**; finally **R03 → R07 → R09**. Broad applicability raises priority,
+but does not substitute for demonstrated impact. Frame **R03/R04/R05** explicitly
+as embedding/simulator API feedback. **R07** needs cross-project API design; **R09**
 remains an ownership investigation. None of these assessments establishes a new
 correctness bug in ordinary Robolectric tests.
 
@@ -206,6 +207,20 @@ must install tree owners, attach a real window, drain attachment and deliver win
 focus. Broader testing caught a missing cursor caused by our omitted focus event;
 that was a prototype bug. A two-second wait came from our attachment ordering with
 Compose's root registry, not proof that Robolectric has a needless fixed timeout.
+
+**Additional hosting evidence (Roborazzi 1.74.0 / Robolectric 4.17):** the
+[PNG decoding investigation](BOOT-PNG-RESIZE-EXPERIMENT.md) observes 480×1088
+captures being extended to 480×1200 at density 2. The same worker logs Roborazzi's
+SDK-35+ ActionBar-overlap workaround and its warning about layout invalidation.
+This is a theme/hosting lead, not proof that the workaround causes the 56 dp
+shortfall or a Robolectric bug. Reproduce with and without the intended test
+manifest and no-action-bar theme before assigning ownership.
+
+**Applicability / priority:** potentially observable in ordinary unit or screenshot
+tests capturing ActionBar-hosted content through Roborazzi on the affected SDKs;
+it is not inherently daemon-only. Tests with a no-action-bar host may avoid this
+path. No ordinary-suite impact measurement exists, so R07 remains **P3**. Our
+repeated PNG decoding was our own pipeline overhead, and is addressed locally.
 
 **Request:** a documented supported offscreen window host with attach/focus/teardown
 semantics, usable with deterministic frame stepping. Roborazzi's Activity/Espresso

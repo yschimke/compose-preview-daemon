@@ -1,0 +1,27 @@
+{
+  "sampledBytes": {
+    "inspector-allocation-profile": {
+      "total": 6132411911,
+      "captureVisuallySettledFrame": 2067622213,
+      "ArrayList.iterator": 24117202,
+      "Class.getDeclaredFields": 1055914018,
+      "ModifierTokenResolver": 2420108792,
+      "modifierFieldEnumeration": 967833802
+    },
+    "inspector-field-allocation-profile": {
+      "total": 5205187764,
+      "Class.getDeclaredFields": 92274512,
+      "ArrayList.iterator": 67633023,
+      "captureVisuallySettledFrame": 2055604472,
+      "ModifierTokenResolver": 1463809304,
+      "UnmodifiableCollection": 36700090
+    },
+    "inspector-field-array-allocation-profile": {
+      "total": 5121360562,
+      "ArrayList.iterator": 26214350,
+      "Class.getDeclaredFields": 95420234,
+      "ModifierTokenResolver": 1427633501
+    }
+  },
+  "note": "Sampled allocation weights after readiness, not live heap or exact totals. Identical profiler settings and 37-frame workload. Inclusive categories overlap; do not sum them."
+}

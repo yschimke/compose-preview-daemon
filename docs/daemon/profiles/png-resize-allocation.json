@@ -1,0 +1,25 @@
+{
+  "sampledBytes": {
+    "inspector-allocation-profile": {
+      "total": 6132411911,
+      "resizeTotal": 317244940,
+      "resizeRead": 157524367,
+      "resizeNewImage": 159196286,
+      "resizeWrite": 524287
+    },
+    "png-resize-allocation-profile": {
+      "total": 6107518379,
+      "resizeTotal": 326872630,
+      "resizeNewImage": 163597450,
+      "resizeWrite": 3670009,
+      "resizeRead": 159605171
+    },
+    "png-decoded-frame-allocation-profile": {
+      "total": 5995623325,
+      "resizeTotal": 163589278,
+      "resizeNewImage": 162540704,
+      "resizeWrite": 1048574
+    }
+  },
+  "note": "After readiness. Inclusive resize total overlaps its partition. Sampled allocation weights, not live memory or exact totals."
+}

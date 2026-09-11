@@ -2126,6 +2126,7 @@ abstract class RobolectricRenderTestBase(
             // tall PNG with an optional Wear pill clip. See
             // [handleLongCapture].
             val outputFile = job.outputFile
+            var decodedStillFrame: BufferedImage? = null
             outputFile.parentFile?.mkdirs()
             // Clean any stale .error.json from this slot before
             // attempting a fresh render. Today's success must not
@@ -2459,6 +2460,7 @@ abstract class RobolectricRenderTestBase(
                   captureVisuallySettledFrame(
                     file = outputFile,
                     role = "preview still",
+                    onFinalDecodedFrame = { if (!wrapWidth && !wrapHeight) decodedStillFrame = it },
                     advanceFrame = {
                       rule.mainClock.advanceTimeByFrame()
                       currentTime += VISUAL_SETTLE_FRAME_MS
@@ -2510,6 +2512,7 @@ abstract class RobolectricRenderTestBase(
                 // var shared across jobs.
                 resolveCaptureRoot().semanticsRoot?.let { root ->
                   DialogWindowCapture.shownDialogWindow(root)?.also { window ->
+                    decodedStillFrame = null
                     DialogWindowCapture.cropPngToDialogWindow(
                       outputFile,
                       root,
@@ -2569,10 +2572,12 @@ abstract class RobolectricRenderTestBase(
               // `fixedAxisTarget`.
               resizeFixedAxesPng(
                 file = outputFile,
+                decodedImage = decodedStillFrame.takeIf { !wrapWidth && !wrapHeight },
                 targetWidth = fixedAxisTarget.widthPx,
                 targetHeight = fixedAxisTarget.heightPx,
               )
             }
+            decodedStillFrame = null
 
             // `@ScrollingPreview(END)` is deliberately NOT trimmed here, even though the contract
             // excludes it and CMP Desktop routes it through the gutterless `renderScrollPreview`.
@@ -2957,10 +2962,15 @@ private fun cropPngTopLeft(file: File, wrapWidth: Boolean, wrapHeight: Boolean, 
   javax.imageio.ImageIO.write(cropped, "PNG", file)
 }
 
-internal fun resizeFixedAxesPng(file: File, targetWidth: Int?, targetHeight: Int?) {
+internal fun resizeFixedAxesPng(
+  file: File,
+  targetWidth: Int?,
+  targetHeight: Int?,
+  decodedImage: BufferedImage? = null,
+) {
   if (targetWidth == null && targetHeight == null) return
   if (!file.exists()) return
-  val original = javax.imageio.ImageIO.read(file) ?: return
+  val original = decodedImage ?: javax.imageio.ImageIO.read(file) ?: return
   val newWidth = targetWidth ?: original.width
   val newHeight = targetHeight ?: original.height
   if (newWidth == original.width && newHeight == original.height) return
@@ -3750,6 +3760,20 @@ public fun captureVisuallySettledFrame(
   role: String,
   advanceFrame: () -> Unit,
   capture: (File) -> Unit,
+): VisualSettleOutcome =
+  captureVisuallySettledFrame(file, role, advanceFrame, onFinalDecodedFrame = {}, capture = capture)
+
+/**
+ * Same settling contract, with the final decoded image delivered once before returning. The
+ * callback runs only after all comparisons on that image. It is not called on capture or decode
+ * failure. Callers can reuse the image while the output file remains unchanged.
+ */
+public fun captureVisuallySettledFrame(
+  file: File,
+  role: String,
+  advanceFrame: () -> Unit,
+  onFinalDecodedFrame: (BufferedImage) -> Unit,
+  capture: (File) -> Unit,
 ): VisualSettleOutcome {
   var previousWidth = -1
   var previousHeight = -1
@@ -3770,12 +3794,14 @@ public fun captureVisuallySettledFrame(
     if (sample > 0 && !sameAsPrevious) sawMismatch = true
     identicalSamples = if (sameAsPrevious) identicalSamples + 1 else 1
     if (sawMismatch && identicalSamples >= VISUAL_SETTLE_SLOW_PATH_IDENTICAL_SAMPLES) {
+      onFinalDecodedFrame(image)
       return VisualSettleOutcome.SETTLED
     }
 
     previousWidth = image.width
     previousHeight = image.height
     previousPixels = pixels
+    if (sample == VISUAL_SETTLE_MAX_SAMPLES - 1) onFinalDecodedFrame(image)
   }
   return if (sawMismatch) VisualSettleOutcome.STILL_CHANGING else VisualSettleOutcome.NEVER_CHANGED
 }
