@@ -314,8 +314,9 @@ A [periodic native-trimming study](BOOT-PERIODIC-NATIVE-TRIM.md) uses an existin
 HotSpot/glibc option to recover most of the single-worker memory cost of sampled
 metrics. This is a local JVM-policy opportunity, not a missing Robolectric API or
 a confirmed leak. A 300-reload trio and three two-worker pairs now support the
-local opportunity: concurrent observed peak PSS falls 7.1%, with 25.0% more minor
-page faults. Longer lifetime stability and ordinary-test benefit remain unproven;
+local opportunity: the longer 300-reload concurrent comparison lowers observed
+peak PSS 9.8% with essentially unchanged CPU, but 145.6% more minor page faults.
+Some late RSS windows still rise. Lifetime stability and ordinary-test benefit remain unproven;
 R09 stays P3.
 
 **Next:** minimize the AWT initialization/TCCL case and determine whether our embedder

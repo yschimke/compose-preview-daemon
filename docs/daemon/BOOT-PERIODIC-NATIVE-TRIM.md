@@ -137,15 +137,56 @@ identities per worker. All 12 workers' sampled-metric cadence and unchanged font
 cache hashes are verified. Each trimmed worker logs six trims; maximum logged
 operation duration is 6.198 ms. No checkpoint GC, histograms or profiler were added.
 
+## Longer concurrent reload comparison
+
+The same three alternating pairs were repeated with **300 actual application
+reloads per worker**, retaining the four-CPU shared affinity and every-fifth
+measurement on both variants. No extra diagnostic GC, census or profiler was
+added. The [longer concurrent report](profiles/periodic-trim-concurrent-300.json)
+retains all six groups, per-worker 50-reload RSS/CPU windows, reported heap samples,
+20-second combined-PSS windows, faults and trim durations.
+
+| Metric | Every fifth | Every fifth + trim |
+| --- | ---: | ---: |
+| Mean combined CPU | 295.700 s | 296.760 s |
+| Median group elapsed | 114.565 s | 114.605 s |
+| Median observed peak combined PSS | 1408.05 MiB | 1270.23 MiB |
+| Median of last-30-second median combined PSS | 1387.65 MiB | 1210.12 MiB |
+| Mean minor page faults | 331,511 | 814,103 |
+
+The difference of aggregate peak medians is **137.82 MiB (9.8%)**. All three
+paired peaks fall: 1408.05→1270.23, 1420.53→1247.62 and 1394.31→1281.31 MiB.
+The late-window comparison also favors trimming in every pair. CPU rises **0.36%**
+and elapsed changes **0.03%**; neither establishes a meaningful timing difference.
+Minor faults rise **145.6%**, substantially more than the shorter-run increase.
+Returning and later reusing allocator pages has a measurable fault cost even
+when this workload's CPU and wall totals barely change.
+
+This is a reduction in residency, **not evidence of a universal plateau**. Across
+successive 50-reload windows, one trimmed worker's median RSS rises from 570.5 to
+599.3, 619.3, 623.4, 634.5 and 643.3 MiB. Other trimmed workers level off or fall
+in their final windows. Baselines rise more consistently, ending with median RSS
+between 716.6 and 734.0 MiB. Sampled heap readings alone cannot assign the remaining
+RSS to a particular native allocator, classloader, JIT or library. No live-loader
+census was performed in this timing experiment, and no recycling interval follows.
+
+All **1,806 paired PNG/UIA frames** match, with 300 distinct application-loader
+identities per worker. Final SVG bytes match across all 12 workers; historical
+other artifacts were overwritten and are not claimed. No frame exceeds two
+seconds. Metric cadence, CPU affinity and unchanged font-cache hashes pass.
+Every trimmed worker logs 22 actual trims; maximum logged operation duration is
+7.553 ms. The same sampling and endpoint limitations as the short comparison apply.
+
 ## Decision and next validation
 
 Keep this as a measured opt-in launch-policy candidate. Five seconds was tested,
-not established as optimal. Another collector, another OS/libc, older JDK updates and longer concurrent
-workloads remain untested. The 300-reload comparison above extends
+not established as optimal. Another collector, another OS/libc, older JDK updates and lifetimes beyond
+300 concurrent reloads remain untested. The 300-reload comparison above extends
 single-worker evidence without establishing unbounded lifetime stability. Do not infer the same saving on a server from a single-worker PSS endpoint.
-The next step is a longer concurrent reload run to test whether late residency
-continues growing, then compare trim intervals if this policy remains useful.
-Retain whole-process CPU, page faults, combined PSS and output checks.
+The longer concurrent run confirms a memory reduction but leaves lifetime growth
+unresolved. Compare less frequent trim intervals to quantify memory versus page
+faults, and use a separate longer retention diagnostic to attribute continued
+growth. Retain whole-process CPU, page faults, combined PSS and output checks.
 
 This is a HotSpot/glibc policy opportunity, not a Robolectric defect or a reason
 to add another Robolectric native-memory API. The existing metrics default, heap
@@ -187,3 +228,6 @@ python3 scripts/experiments/benchmark-allocator-concurrent.py \
   --cpus 0,1,2,3 --renders 60 --policy trim \
   --font-cache daemon/android/build/bulk-font-cache
 ```
+
+Repeat the concurrent command with `--renders 300` and a fresh output directory
+for the longer comparison.
