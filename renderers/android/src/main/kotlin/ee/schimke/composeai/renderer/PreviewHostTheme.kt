@@ -86,6 +86,10 @@ object PreviewHostTheme {
    * can't leak into the capture.
    */
   fun applyTo(activity: Activity): Int {
+    // Roborazzi hides the preview host's action bar at capture time. Do it before composition
+    // instead, so content that records its initial viewport (Remote Compose) sees the same
+    // available height as the final frame. This is host chrome, not part of the authored UI.
+    activity.actionBar?.hide()
     val themeResId = resolveThemeResId(activity)
     if (themeResId == 0) {
       // Once per JVM: a mistyped theme name would otherwise be silently inert, and the only

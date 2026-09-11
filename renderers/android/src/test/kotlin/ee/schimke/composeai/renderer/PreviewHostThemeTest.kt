@@ -28,6 +28,19 @@ import org.robolectric.annotation.Config
 @Config(sdk = [34])
 class PreviewHostThemeTest {
 
+  @Test
+  fun `host action bar is hidden before preview composition even without a configured theme`() {
+    app.applicationInfo.theme = 0
+    val controller = Robolectric.buildActivity(ComponentActivity::class.java)
+    controller.get().setTheme(android.R.style.Theme_Material_Light)
+    val activity = controller.create().start().resume().get()
+    val bar = requireNotNull(activity.actionBar)
+    bar.show()
+    org.junit.Assert.assertTrue(bar.isShowing)
+    PreviewHostTheme.applyTo(activity)
+    org.junit.Assert.assertFalse(bar.isShowing)
+  }
+
   private val app
     get() = ApplicationProvider.getApplicationContext<android.app.Application>()
 
