@@ -272,6 +272,44 @@ loader. Weak keys and values fixed it. The subsequent 60-reload run retained onl
 two loaders: the current child and the initial child held by AWT `AppContext`.
 The latter is a bounded observed root, not evidence of growth per reload.
 
+[Contemporaneous memory checkpoints](BOOT-NATIVE-MEMORY-CHECKPOINTS.md) now
+separate heap, JIT-code and anonymous-mapping residency during 300 real application
+reloads. Most PSS growth is outside the Java heap. Anonymous mappings outside NMT
+reservations include JVM malloc arenas, allocator-retained pages and JDK/third-party
+native allocations; they do not establish Robolectric ownership or a native leak.
+These JVM costs may also occur in long-lived unit/screenshot-test forks, but the
+measured workload is our application-reloading daemon. **Priority remains P3** until
+ownership and consequential retained growth are demonstrated.
+
+A [disposable-worker allocator probe](BOOT-ALLOCATOR-TRIM-EXPERIMENT.md) reclaimed
+182.90 MiB PSS after 300 renders (loader swaps every 50 renders) with `malloc_trim(0)`; 50 further renders matched
+PNG/UIA output and partially refilled residency. The original description
+incorrectly claimed a reload per render; the saved run used seven loaders total.
+Heap/code residency was unchanged.
+This establishes reclaimable allocator pages, not a Robolectric native leak or a
+production trim/recycling policy. The mechanism also applies to long-lived test
+JVMs, but its magnitude is unmeasured in ordinary unit/screenshot suites.
+
+A [three-pair allocator arena experiment](BOOT-ALLOCATOR-ARENAS-EXPERIMENT.md)
+reduced median end PSS by 127.70 MiB (16.5%) with `MALLOC_ARENA_MAX=2`, at a
+1.1% mean process-CPU increase. One candidate had more page faults and longer wall
+time. This is a local launch-policy tradeoff; no production default changes or
+ordinary test-suite benefit claims follow from these single-worker measurements.
+
+The [corrected per-render-reload pair](BOOT-ALLOCATOR-REAL-RELOADS.md) verifies
+350 distinct loaders per variant, two live loaders at every checkpoint, and
+351 matching PNG/UIA pairs. Default versus two arenas reaches 964.04 versus
+702.85 MiB PSS before trim at reload 300. Trimming reclaims 283.81 versus
+115.92 MiB, with partial rebound after 50 further reloads. This strengthens the
+local allocator-retention evidence; it does not establish a recycling interval,
+Robolectric ownership, or ordinary-test benefit. Priority remains P3 upstream.
+
+A [two-worker/two-CPU comparison](BOOT-ALLOCATOR-CONCURRENT-EXPERIMENT.md) finds
+no consistent substantial arena-limit benefit: median observed concurrent peak
+PSS changes by 0.8% and mean CPU by 0.15%, with one memory reversal. All 366
+paired PNG/UIA frames match. This limits any generalization of the single-worker
+saving; allocator tuning remains workload-specific and R09 remains P3 upstream.
+
 **Next:** minimize the AWT initialization/TCCL case and determine whether our embedder
 should initialize it under a stable loader or Robolectric should provide a lifecycle
 hook. Ask for a supported application-loader replacement/unloading recipe and

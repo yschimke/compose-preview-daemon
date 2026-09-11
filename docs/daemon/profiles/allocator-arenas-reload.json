@@ -1,0 +1,202 @@
+{
+  "source": "daemon/android/build/allocator-arenas-reload-matrix",
+  "java": "OpenJDK 17.0.19+10",
+  "glibc": "2.44",
+  "rendersPerWorker": 100,
+  "trials": 3,
+  "method": "Sequential fresh workers, alternating order, identical frozen classpaths and 256 MiB Serial heap with Xms32m, no NMT/profiler/forced checkpoint GC. PSS at workload end; faults are process totals before shutdown. No production defaults changed.",
+  "rows": [
+    {
+      "readyWallMs": 4821,
+      "totalWallMs": 60012,
+      "totalCpuMs": 92010.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 842252,
+        "VmRSS": 824564,
+        "RssAnon": 769436,
+        "RssFile": 52284,
+        "RssShmem": 2844,
+        "Pss": 816634,
+        "Private": 816208
+      },
+      "workloadEndFaults": {
+        "minor": 224019,
+        "major": 0
+      },
+      "allocatorEnvironment": {
+        "MALLOC_ARENA_MAX": null,
+        "GLIBC_TUNABLES": null,
+        "LD_PRELOAD": null
+      },
+      "trial": 0,
+      "variant": "default",
+      "parityFrames": 101,
+      "distinctApplicationLoaders": 100,
+      "last30MeanCpuMs": 582.3333333333334,
+      "last30MedianWallMs": 519.0
+    },
+    {
+      "readyWallMs": 4758,
+      "totalWallMs": 60328,
+      "totalCpuMs": 91110.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 670648,
+        "VmRSS": 670616,
+        "RssAnon": 615532,
+        "RssFile": 52240,
+        "RssShmem": 2844,
+        "Pss": 662717,
+        "Private": 662296
+      },
+      "workloadEndFaults": {
+        "minor": 134094,
+        "major": 0
+      },
+      "allocatorEnvironment": {
+        "MALLOC_ARENA_MAX": "2",
+        "GLIBC_TUNABLES": null,
+        "LD_PRELOAD": null
+      },
+      "trial": 0,
+      "variant": "arena2",
+      "parityFrames": 101,
+      "distinctApplicationLoaders": 100,
+      "last30MeanCpuMs": 585.6666666666666,
+      "last30MedianWallMs": 520.0
+    },
+    {
+      "readyWallMs": 4834,
+      "totalWallMs": 60105,
+      "totalCpuMs": 93210.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 689972,
+        "VmRSS": 689972,
+        "RssAnon": 634668,
+        "RssFile": 52460,
+        "RssShmem": 2844,
+        "Pss": 682085,
+        "Private": 681668
+      },
+      "workloadEndFaults": {
+        "minor": 144982,
+        "major": 0
+      },
+      "allocatorEnvironment": {
+        "MALLOC_ARENA_MAX": "2",
+        "GLIBC_TUNABLES": null,
+        "LD_PRELOAD": null
+      },
+      "trial": 1,
+      "variant": "arena2",
+      "parityFrames": 101,
+      "distinctApplicationLoaders": 100,
+      "last30MeanCpuMs": 563.3333333333334,
+      "last30MedianWallMs": 518.0
+    },
+    {
+      "readyWallMs": 4786,
+      "totalWallMs": 60173,
+      "totalCpuMs": 90790.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 816696,
+        "VmRSS": 801376,
+        "RssAnon": 746004,
+        "RssFile": 52528,
+        "RssShmem": 2844,
+        "Pss": 793479,
+        "Private": 793068
+      },
+      "workloadEndFaults": {
+        "minor": 213370,
+        "major": 0
+      },
+      "allocatorEnvironment": {
+        "MALLOC_ARENA_MAX": null,
+        "GLIBC_TUNABLES": null,
+        "LD_PRELOAD": null
+      },
+      "trial": 1,
+      "variant": "default",
+      "parityFrames": 101,
+      "distinctApplicationLoaders": 100,
+      "last30MeanCpuMs": 565.3333333333334,
+      "last30MedianWallMs": 519.5
+    },
+    {
+      "readyWallMs": 4775,
+      "totalWallMs": 59922,
+      "totalCpuMs": 91730.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 813204,
+        "VmRSS": 797908,
+        "RssAnon": 742692,
+        "RssFile": 52372,
+        "RssShmem": 2844,
+        "Pss": 790022,
+        "Private": 789604
+      },
+      "workloadEndFaults": {
+        "minor": 215199,
+        "major": 0
+      },
+      "allocatorEnvironment": {
+        "MALLOC_ARENA_MAX": null,
+        "GLIBC_TUNABLES": null,
+        "LD_PRELOAD": null
+      },
+      "trial": 2,
+      "variant": "default",
+      "parityFrames": 101,
+      "distinctApplicationLoaders": 100,
+      "last30MeanCpuMs": 580.3333333333334,
+      "last30MedianWallMs": 519.0
+    },
+    {
+      "readyWallMs": 4891,
+      "totalWallMs": 63116,
+      "totalCpuMs": 93250.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 678976,
+        "VmRSS": 665908,
+        "RssAnon": 610784,
+        "RssFile": 52280,
+        "RssShmem": 2844,
+        "Pss": 657951,
+        "Private": 657528
+      },
+      "workloadEndFaults": {
+        "minor": 278590,
+        "major": 0
+      },
+      "allocatorEnvironment": {
+        "MALLOC_ARENA_MAX": "2",
+        "GLIBC_TUNABLES": null,
+        "LD_PRELOAD": null
+      },
+      "trial": 2,
+      "variant": "arena2",
+      "parityFrames": 101,
+      "distinctApplicationLoaders": 100,
+      "last30MeanCpuMs": 564.3333333333334,
+      "last30MedianWallMs": 537.0
+    }
+  ],
+  "aggregates": {
+    "default": {
+      "meanCpuMs": 91510.0,
+      "medianWallMs": 60012,
+      "medianPssMiB": 774.8818359375,
+      "meanMinorFaults": 217529.33333333334,
+      "medianSteadyCpuMs": 580.3333333333334,
+      "medianSteadyWallMs": 519.0
+    },
+    "arena2": {
+      "meanCpuMs": 92523.33333333333,
+      "medianWallMs": 60328,
+      "medianPssMiB": 647.1845703125,
+      "meanMinorFaults": 185888.66666666666,
+      "medianSteadyCpuMs": 564.3333333333334,
+      "medianSteadyWallMs": 520.0
+    }
+  }
+}
