@@ -288,6 +288,12 @@ This establishes reclaimable allocator pages, not a Robolectric native leak or a
 production trim/recycling policy. The mechanism also applies to long-lived test
 JVMs, but its magnitude is unmeasured in ordinary unit/screenshot suites.
 
+A [three-pair allocator arena experiment](BOOT-ALLOCATOR-ARENAS-EXPERIMENT.md)
+reduced median end PSS by 127.70 MiB (16.5%) with `MALLOC_ARENA_MAX=2`, at a
+1.1% mean process-CPU increase. One candidate had more page faults and longer wall
+time. This is a local launch-policy tradeoff; no production default changes or
+ordinary test-suite benefit claims follow from these single-worker measurements.
+
 **Next:** minimize the AWT initialization/TCCL case and determine whether our embedder
 should initialize it under a stable loader or Robolectric should provide a lifecycle
 hook. Ask for a supported application-loader replacement/unloading recipe and

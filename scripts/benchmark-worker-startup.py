@@ -257,6 +257,9 @@ def main():
                         checkpoint["nativeMemoryKiB"] = memory_kib(process.pid, proportional=True)
                     summary["heapCheckpoints"].append(checkpoint)
                     (output / "heap-checkpoints.json").write_text(json.dumps(summary["heapCheckpoints"], indent=2) + "\n")
+            stat_fields = Path(f"/proc/{process.pid}/stat").read_text().rsplit(")", 1)[1].split()
+            summary["workloadEndFaults"] = {"minor": int(stat_fields[7]), "major": int(stat_fields[9])}
+            summary["allocatorEnvironment"] = {key: os.environ.get(key) for key in ["MALLOC_ARENA_MAX", "GLIBC_TUNABLES", "LD_PRELOAD"]}
             summary["totalCpuMs"] = cpu_ms(process.pid)
             summary["totalWallMs"] = round((time.monotonic() - started) * 1000)
             if args.memory:
