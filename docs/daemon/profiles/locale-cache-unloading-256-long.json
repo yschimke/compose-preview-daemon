@@ -1,0 +1,153 @@
+{
+  "baselineCommit": "e7802398",
+  "profile": "JDK17 unpatched Robolectric, default compilation tiers, Serial GC, Xmx256m, MinHeapFreeRatio10, MaxHeapFreeRatio30, no CDS",
+  "renders": 300,
+  "distinctApplicationLoaders": 300,
+  "swapEvery": 1,
+  "reuseOutput": true,
+  "dimensions": [
+    480,
+    1200
+  ],
+  "checkpoints": [
+    {
+      "renderIndex": 0,
+      "elapsedMs": 5610,
+      "memoryKiB": {
+        "VmHWM": 624956,
+        "VmRSS": 602812,
+        "RssAnon": 546200,
+        "RssFile": 53768,
+        "RssShmem": 2844,
+        "Pss": 581974,
+        "Private": 575412
+      },
+      "gcOutput": "570838:\nCommand executed successfully\n",
+      "heapInfo": "570838:\n def new generation   total 78656K, used 1484K [0x00000000f0000000, 0x00000000f5550000, 0x00000000f5550000)\n  eden space 69952K,   2% used [0x00000000f0000000, 0x00000000f0173288, 0x00000000f4450000)\n  from space 8704K,   0% used [0x00000000f4450000, 0x00000000f4450000, 0x00000000f4cd0000)\n  to   space 8704K,   0% used [0x00000000f4cd0000, 0x00000000f4cd0000, 0x00000000f5550000)\n tenured generation   total 174784K, used 88444K [0x00000000f5550000, 0x0000000100000000, 0x0000000100000000)\n   the space 174784K,  50% used [0x00000000f5550000, 0x00000000fabaf168, 0x00000000fabaf200, 0x0000000100000000)\n Metaspace       used 102531K, committed 109568K, reserved 1179648K\n  class space    used 10694K, committed 13952K, reserved 1048576K\n",
+      "histogramFile": "heap-histogram-0.txt",
+      "classloaderStatsFile": "classloader-stats-0.txt",
+      "liveChildLoaders": 2
+    },
+    {
+      "renderIndex": 50,
+      "elapsedMs": 84334,
+      "memoryKiB": {
+        "VmHWM": 795368,
+        "VmRSS": 761268,
+        "RssAnon": 704528,
+        "RssFile": 53896,
+        "RssShmem": 2844,
+        "Pss": 740450,
+        "Private": 733868
+      },
+      "gcOutput": "570838:\nCommand executed successfully\n",
+      "heapInfo": "570838:\n def new generation   total 78656K, used 1387K [0x00000000f0000000, 0x00000000f5550000, 0x00000000f5550000)\n  eden space 69952K,   1% used [0x00000000f0000000, 0x00000000f015af58, 0x00000000f4450000)\n  from space 8704K,   0% used [0x00000000f4cd0000, 0x00000000f4cd0000, 0x00000000f5550000)\n  to   space 8704K,   0% used [0x00000000f4450000, 0x00000000f4450000, 0x00000000f4cd0000)\n tenured generation   total 174784K, used 91445K [0x00000000f5550000, 0x0000000100000000, 0x0000000100000000)\n   the space 174784K,  52% used [0x00000000f5550000, 0x00000000fae9d438, 0x00000000fae9d600, 0x0000000100000000)\n Metaspace       used 114788K, committed 122240K, reserved 1179648K\n  class space    used 11249K, committed 14848K, reserved 1048576K\n",
+      "histogramFile": "heap-histogram-50.txt",
+      "classloaderStatsFile": "classloader-stats-50.txt",
+      "liveChildLoaders": 2
+    },
+    {
+      "renderIndex": 100,
+      "elapsedMs": 157574,
+      "memoryKiB": {
+        "VmHWM": 795368,
+        "VmRSS": 773888,
+        "RssAnon": 717148,
+        "RssFile": 53896,
+        "RssShmem": 2844,
+        "Pss": 753069,
+        "Private": 746488
+      },
+      "gcOutput": "570838:\nCommand executed successfully\n",
+      "heapInfo": "570838:\n def new generation   total 78656K, used 1387K [0x00000000f0000000, 0x00000000f5550000, 0x00000000f5550000)\n  eden space 69952K,   1% used [0x00000000f0000000, 0x00000000f015ad70, 0x00000000f4450000)\n  from space 8704K,   0% used [0x00000000f4cd0000, 0x00000000f4cd0000, 0x00000000f5550000)\n  to   space 8704K,   0% used [0x00000000f4450000, 0x00000000f4450000, 0x00000000f4cd0000)\n tenured generation   total 174784K, used 82775K [0x00000000f5550000, 0x0000000100000000, 0x0000000100000000)\n   the space 174784K,  47% used [0x00000000f5550000, 0x00000000fa625d70, 0x00000000fa625e00, 0x0000000100000000)\n Metaspace       used 115149K, committed 123392K, reserved 1179648K\n  class space    used 11037K, committed 14848K, reserved 1048576K\n",
+      "histogramFile": "heap-histogram-100.txt",
+      "classloaderStatsFile": "classloader-stats-100.txt",
+      "liveChildLoaders": 2
+    },
+    {
+      "renderIndex": 150,
+      "elapsedMs": 228551,
+      "memoryKiB": {
+        "VmHWM": 856840,
+        "VmRSS": 840396,
+        "RssAnon": 783656,
+        "RssFile": 53896,
+        "RssShmem": 2844,
+        "Pss": 819578,
+        "Private": 812996
+      },
+      "gcOutput": "570838:\nCommand executed successfully\n",
+      "heapInfo": "570838:\n def new generation   total 78656K, used 1388K [0x00000000f0000000, 0x00000000f5550000, 0x00000000f5550000)\n  eden space 69952K,   1% used [0x00000000f0000000, 0x00000000f015b048, 0x00000000f4450000)\n  from space 8704K,   0% used [0x00000000f4cd0000, 0x00000000f4cd0000, 0x00000000f5550000)\n  to   space 8704K,   0% used [0x00000000f4450000, 0x00000000f4450000, 0x00000000f4cd0000)\n tenured generation   total 174784K, used 79279K [0x00000000f5550000, 0x0000000100000000, 0x0000000100000000)\n   the space 174784K,  45% used [0x00000000f5550000, 0x00000000fa2bbd98, 0x00000000fa2bbe00, 0x0000000100000000)\n Metaspace       used 114572K, committed 123648K, reserved 1179648K\n  class space    used 10675K, committed 14848K, reserved 1048576K\n",
+      "histogramFile": "heap-histogram-150.txt",
+      "classloaderStatsFile": "classloader-stats-150.txt",
+      "liveChildLoaders": 2
+    },
+    {
+      "renderIndex": 200,
+      "elapsedMs": 287420,
+      "memoryKiB": {
+        "VmHWM": 864364,
+        "VmRSS": 847864,
+        "RssAnon": 791108,
+        "RssFile": 53912,
+        "RssShmem": 2844,
+        "Pss": 827038,
+        "Private": 820448
+      },
+      "gcOutput": "570838:\nCommand executed successfully\n",
+      "heapInfo": "570838:\n def new generation   total 78656K, used 1388K [0x00000000f0000000, 0x00000000f5550000, 0x00000000f5550000)\n  eden space 69952K,   1% used [0x00000000f0000000, 0x00000000f015b040, 0x00000000f4450000)\n  from space 8704K,   0% used [0x00000000f4cd0000, 0x00000000f4cd0000, 0x00000000f5550000)\n  to   space 8704K,   0% used [0x00000000f4450000, 0x00000000f4450000, 0x00000000f4cd0000)\n tenured generation   total 174784K, used 79748K [0x00000000f5550000, 0x0000000100000000, 0x0000000100000000)\n   the space 174784K,  45% used [0x00000000f5550000, 0x00000000fa331288, 0x00000000fa331400, 0x0000000100000000)\n Metaspace       used 115142K, committed 123968K, reserved 1179648K\n  class space    used 10675K, committed 14848K, reserved 1048576K\n",
+      "histogramFile": "heap-histogram-200.txt",
+      "classloaderStatsFile": "classloader-stats-200.txt",
+      "liveChildLoaders": 2
+    },
+    {
+      "renderIndex": 250,
+      "elapsedMs": 350839,
+      "memoryKiB": {
+        "VmHWM": 867332,
+        "VmRSS": 850680,
+        "RssAnon": 793924,
+        "RssFile": 53912,
+        "RssShmem": 2844,
+        "Pss": 829854,
+        "Private": 823264
+      },
+      "gcOutput": "570838:\nCommand executed successfully\n",
+      "heapInfo": "570838:\n def new generation   total 78656K, used 1388K [0x00000000f0000000, 0x00000000f5550000, 0x00000000f5550000)\n  eden space 69952K,   1% used [0x00000000f0000000, 0x00000000f015b028, 0x00000000f4450000)\n  from space 8704K,   0% used [0x00000000f4cd0000, 0x00000000f4cd0000, 0x00000000f5550000)\n  to   space 8704K,   0% used [0x00000000f4450000, 0x00000000f4450000, 0x00000000f4cd0000)\n tenured generation   total 174784K, used 80066K [0x00000000f5550000, 0x0000000100000000, 0x0000000100000000)\n   the space 174784K,  45% used [0x00000000f5550000, 0x00000000fa380a98, 0x00000000fa380c00, 0x0000000100000000)\n Metaspace       used 115346K, committed 124096K, reserved 1179648K\n  class space    used 10675K, committed 14848K, reserved 1048576K\n",
+      "histogramFile": "heap-histogram-250.txt",
+      "classloaderStatsFile": "classloader-stats-250.txt",
+      "liveChildLoaders": 2
+    },
+    {
+      "renderIndex": 300,
+      "elapsedMs": 413070,
+      "memoryKiB": {
+        "VmHWM": 911280,
+        "VmRSS": 855516,
+        "RssAnon": 798760,
+        "RssFile": 53912,
+        "RssShmem": 2844,
+        "Pss": 834690,
+        "Private": 828100
+      },
+      "gcOutput": "570838:\nCommand executed successfully\n",
+      "heapInfo": "570838:\n def new generation   total 78656K, used 1388K [0x00000000f0000000, 0x00000000f5550000, 0x00000000f5550000)\n  eden space 69952K,   1% used [0x00000000f0000000, 0x00000000f015b008, 0x00000000f4450000)\n  from space 8704K,   0% used [0x00000000f4cd0000, 0x00000000f4cd0000, 0x00000000f5550000)\n  to   space 8704K,   0% used [0x00000000f4450000, 0x00000000f4450000, 0x00000000f4cd0000)\n tenured generation   total 174784K, used 80595K [0x00000000f5550000, 0x0000000100000000, 0x0000000100000000)\n   the space 174784K,  46% used [0x00000000f5550000, 0x00000000fa404d50, 0x00000000fa404e00, 0x0000000100000000)\n Metaspace       used 116421K, committed 124672K, reserved 1179648K\n  class space    used 10675K, committed 14848K, reserved 1048576K\n",
+      "histogramFile": "heap-histogram-300.txt",
+      "classloaderStatsFile": "classloader-stats-300.txt",
+      "liveChildLoaders": 2
+    }
+  ],
+  "totalWallMs": 413422,
+  "totalCpuMs": 349100.0,
+  "endMemoryKiB": {
+    "VmHWM": 911280,
+    "VmRSS": 855516,
+    "RssAnon": 798760,
+    "RssFile": 53912,
+    "RssShmem": 2844,
+    "Pss": 834690,
+    "Private": 828100
+  },
+  "pngUiaParityWithPreviousRun": true,
+  "diagnosticNote": "Includes forced-GC checkpoints and histograms every50. Two additional jcmd queries for code cache/metaspace were issued during the run, so timings are diagnostic, not a clean performance comparison. Heap cap differs from physical memory budget."
+}
