@@ -1,0 +1,417 @@
+{
+  "source": "daemon/android/build/field-cache-revisit-g1-default-compiler",
+  "scope": "Three alternating single-worker pairs, G1/Xmx1g, default compiler count, every-render metrics, warmed offline font cache, no native trimming, red plus 60 dense frames. Explicitly checks the current configuration; does not erase the prior default-compiler/G1 regression or prove all configurations safe. No extra diagnostic GC, histograms or profiler.",
+  "rows": [
+    {
+      "trial": 0,
+      "variant": "baseline",
+      "readyWallMs": 4127,
+      "readyCpuMs": 15300.0,
+      "totalWallMs": 28924,
+      "totalCpuMs": 73940.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 377.0,
+      "last30MeanCpuMs": 717.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1119764,
+        "VmRSS": 1005536,
+        "RssAnon": 947736,
+        "RssFile": 55720,
+        "RssShmem": 2080,
+        "Pss": 999767,
+        "Private": 999528
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ],
+      "gcPauseCauses": {
+        "Pause Young (Normal) (G1 Evacuation Pause)": 26,
+        "Pause Young (Concurrent Start) (Metadata GC Threshold)": 3,
+        "Pause Remark": 7,
+        "Pause Cleanup": 7,
+        "Pause Young (Prepare Mixed) (G1 Evacuation Pause)": 1,
+        "Pause Young (Mixed) (G1 Evacuation Pause)": 2,
+        "Pause Young (Prepare Mixed) (G1 Preventive Collection)": 1,
+        "Pause Young (Concurrent Start) (G1 Evacuation Pause)": 1,
+        "Pause Young (Normal) (G1 Preventive Collection)": 1,
+        "Pause Full (System.gc())": 63,
+        "Pause Young (Concurrent Start) (G1 Humongous Allocation)": 42
+      },
+      "roundedLoggedGcCpuMs": 16770
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "readyWallMs": 4166,
+      "readyCpuMs": 15660.0,
+      "totalWallMs": 30120,
+      "totalCpuMs": 97540.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 398.0,
+      "last30MeanCpuMs": 1123.3333333333333,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1028956,
+        "VmRSS": 1017452,
+        "RssAnon": 959596,
+        "RssFile": 55776,
+        "RssShmem": 2080,
+        "Pss": 1011728,
+        "Private": 1011488
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ],
+      "gcPauseCauses": {
+        "Pause Young (Normal) (G1 Evacuation Pause)": 3,
+        "Pause Young (Concurrent Start) (Metadata GC Threshold)": 3,
+        "Pause Remark": 177,
+        "Pause Cleanup": 177,
+        "Pause Young (Prepare Mixed) (G1 Evacuation Pause)": 1,
+        "Pause Young (Mixed) (G1 Evacuation Pause)": 3,
+        "Pause Young (Prepare Mixed) (G1 Preventive Collection)": 2,
+        "Pause Young (Concurrent Start) (G1 Evacuation Pause)": 2,
+        "Pause Full (System.gc())": 63,
+        "Pause Young (Concurrent Start) (G1 Humongous Allocation)": 178
+      },
+      "roundedLoggedGcCpuMs": 22790
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "readyWallMs": 4171,
+      "readyCpuMs": 15860.0,
+      "totalWallMs": 28809,
+      "totalCpuMs": 74530.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 375.0,
+      "last30MeanCpuMs": 704.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1061720,
+        "VmRSS": 975804,
+        "RssAnon": 917980,
+        "RssFile": 55744,
+        "RssShmem": 2080,
+        "Pss": 970096,
+        "Private": 969864
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ],
+      "gcPauseCauses": {
+        "Pause Young (Normal) (G1 Evacuation Pause)": 10,
+        "Pause Young (Concurrent Start) (Metadata GC Threshold)": 2,
+        "Pause Remark": 16,
+        "Pause Cleanup": 16,
+        "Pause Young (Concurrent Start) (G1 Humongous Allocation)": 48,
+        "Pause Young (Concurrent Start) (G1 Evacuation Pause)": 6,
+        "Pause Young (Prepare Mixed) (G1 Evacuation Pause)": 1,
+        "Pause Young (Mixed) (G1 Evacuation Pause)": 1,
+        "Pause Full (System.gc())": 63
+      },
+      "roundedLoggedGcCpuMs": 16500
+    },
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "readyWallMs": 4133,
+      "readyCpuMs": 15000.0,
+      "totalWallMs": 28641,
+      "totalCpuMs": 72580.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 374.0,
+      "last30MeanCpuMs": 723.6666666666666,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1102176,
+        "VmRSS": 982732,
+        "RssAnon": 924972,
+        "RssFile": 55680,
+        "RssShmem": 2080,
+        "Pss": 976997,
+        "Private": 976788
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ],
+      "gcPauseCauses": {
+        "Pause Young (Normal) (G1 Evacuation Pause)": 16,
+        "Pause Young (Concurrent Start) (Metadata GC Threshold)": 4,
+        "Pause Remark": 4,
+        "Pause Cleanup": 4,
+        "Pause Young (Prepare Mixed) (G1 Evacuation Pause)": 1,
+        "Pause Young (Mixed) (G1 Evacuation Pause)": 2,
+        "Pause Young (Concurrent Start) (G1 Humongous Allocation)": 56,
+        "Pause Young (Prepare Mixed) (G1 Preventive Collection)": 1,
+        "Pause Full (System.gc())": 63
+      },
+      "roundedLoggedGcCpuMs": 16900
+    },
+    {
+      "trial": 2,
+      "variant": "baseline",
+      "readyWallMs": 4108,
+      "readyCpuMs": 14800.0,
+      "totalWallMs": 28591,
+      "totalCpuMs": 72290.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 374.5,
+      "last30MeanCpuMs": 710.3333333333334,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1103476,
+        "VmRSS": 1000448,
+        "RssAnon": 942840,
+        "RssFile": 55528,
+        "RssShmem": 2080,
+        "Pss": 994740,
+        "Private": 994512
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ],
+      "gcPauseCauses": {
+        "Pause Young (Normal) (G1 Evacuation Pause)": 17,
+        "Pause Young (Concurrent Start) (Metadata GC Threshold)": 3,
+        "Pause Remark": 5,
+        "Pause Cleanup": 5,
+        "Pause Young (Concurrent Start) (G1 Humongous Allocation)": 57,
+        "Pause Young (Concurrent Start) (G1 Evacuation Pause)": 1,
+        "Pause Full (System.gc())": 63
+      },
+      "roundedLoggedGcCpuMs": 16450
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "readyWallMs": 4128,
+      "readyCpuMs": 14840.0,
+      "totalWallMs": 28798,
+      "totalCpuMs": 73410.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 375.0,
+      "last30MeanCpuMs": 710.3333333333334,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1112596,
+        "VmRSS": 1022084,
+        "RssAnon": 964636,
+        "RssFile": 55368,
+        "RssShmem": 2080,
+        "Pss": 1016438,
+        "Private": 1016248
+      },
+      "jvmArgs": [
+        "-Xmx1g",
+        "-XX:+UseG1GC",
+        "-Dcomposeai.daemon.metrics.everyRenders=1",
+        "-XX:TrimNativeHeapInterval=0",
+        "-Xlog:gc*=info",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ],
+      "gcPauseCauses": {
+        "Pause Young (Normal) (G1 Evacuation Pause)": 4,
+        "Pause Young (Concurrent Start) (Metadata GC Threshold)": 4,
+        "Pause Remark": 4,
+        "Pause Cleanup": 4,
+        "Pause Young (Prepare Mixed) (G1 Evacuation Pause)": 1,
+        "Pause Young (Mixed) (G1 Evacuation Pause)": 1,
+        "Pause Young (Concurrent Start) (G1 Humongous Allocation)": 60,
+        "Pause Young (Normal) (G1 Preventive Collection)": 1,
+        "Pause Full (System.gc())": 63
+      },
+      "roundedLoggedGcCpuMs": 16660
+    }
+  ],
+  "parity": [
+    {
+      "baseline": "daemon/android/build/field-cache-revisit-g1-default-compiler/0-baseline",
+      "candidate": "daemon/android/build/field-cache-revisit-g1-default-compiler/0-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 120,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 60,
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/field-cache-revisit-g1-default-compiler/1-baseline",
+      "candidate": "daemon/android/build/field-cache-revisit-g1-default-compiler/1-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 120,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 60,
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/field-cache-revisit-g1-default-compiler/2-baseline",
+      "candidate": "daemon/android/build/field-cache-revisit-g1-default-compiler/2-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    }
+  ],
+  "aggregates": {
+    "baseline": {
+      "meanCpuMs": 72936.66666666667,
+      "medianTotalWallMs": 28641,
+      "medianSteadyCpuMs": 717.0,
+      "medianSteadyWallMs": 374.5,
+      "medianEndPssMiB": 971.42578125
+    },
+    "candidate": {
+      "meanCpuMs": 81826.66666666667,
+      "medianTotalWallMs": 28809,
+      "medianSteadyCpuMs": 710.3333333333334,
+      "medianSteadyWallMs": 375.0,
+      "medianEndPssMiB": 988.015625
+    }
+  },
+  "fontCacheSha256": {
+    "carrois-gothic-sc-400.ttf": "cde765545a44feea3bd1d1665de6aad01bbbbced1b619c3a462bc407febe8560",
+    "coming-soon-400.ttf": "c86be0372fad98e347efe9d38bb976a89b9f2eeda158d59a169a6981bdb56990",
+    "cutive-mono-400.ttf": "20c0220ef9ccb50de02353bd22e239da29a7837b3a1953abc354a10d94b290cc",
+    "dancing-script-400.ttf": "14e256280323ac39486a22d4a7cd6f5a737772ea4a7ec3052ee4ac463b71c4aa",
+    "google-sans-flex-400.ttf": "c16fda9ab98b0027caee4881acc07d57eddf9c1b2a68f91baa773c1c9ca7ba41",
+    "noto-sans-400.ttf": "61ea1e781b9d7b10db9b4a6aa2d855cf2215c316c7cb700aeb067a0440d031e0",
+    "noto-sans-mono-400.ttf": "f3e000b8a56b489f9cd3d1d531d2421fad3c67835acabd39cff8cd8299fa0dfc",
+    "noto-serif-400.ttf": "a6e0283968e506c67c3d4ff94093e3ff9f4d7ec3c704ff1cb51382f1e45b66b9",
+    "roboto-400.ttf": "66b9c6a9e7ab0d889f31775fc0fd71bf802d61068ab70f69d37e0cd536604617",
+    "roboto-400.woff2": "425c0713a8176f92273d378599c7eac57de7fafabd4bd0ed457b70eb8f80d371",
+    "roboto-500.woff2": "5bcc3aa180e7f26f643cd5b2621cd7c2de193d0661d913a94afd3d4881a7a34b",
+    "roboto-flex-400.ttf": "7a0aae29a147c35f86b7950556933ecd8daacf8c7080c6686246f46e1e27c3f8"
+  },
+  "gcNote": "Counts use completed pause lines only. Logged GC CPU is rounded and is not a complete attribution of total or concurrent GC CPU."
+}

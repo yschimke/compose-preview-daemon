@@ -13,19 +13,26 @@ import time
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output', type=Path, required=True)
 parser.add_argument('--classpath', type=Path, required=True)
+parser.add_argument('--candidate-classpath', type=Path,
+    help='Candidate frozen classpath for classpath policy; both variants use Serial256, metrics every 5 renders and trim every 15 seconds')
 parser.add_argument('--user-jar', type=Path, required=True)
 parser.add_argument('--java', required=True)
 parser.add_argument('--cpus', required=True, help='Comma-separated logical CPUs shared by both workers')
 parser.add_argument('--renders', type=int, default=60)
-parser.add_argument('--policy', choices=['allocator', 'compiler', 'metrics', 'trim'], default='allocator')
+parser.add_argument('--policy', choices=['allocator', 'compiler', 'metrics', 'trim', 'classpath'], default='allocator')
 parser.add_argument('--font-cache', type=Path,
-    help='Existing warmed font cache; enables offline mode, required for metrics/trim policies')
+    help='Existing warmed font cache; enables offline mode, required for metrics/trim/classpath policies')
 args = parser.parse_args()
-if args.policy in ('metrics', 'trim') and args.font_cache is None:
-    parser.error('metrics/trim policy requires a warmed --font-cache')
+if args.policy == 'classpath':
+    if args.candidate_classpath is None or not args.candidate_classpath.is_file():
+        parser.error('classpath policy requires an existing --candidate-classpath')
+elif args.candidate_classpath is not None:
+    parser.error('--candidate-classpath requires --policy classpath')
+if args.policy in ('metrics', 'trim', 'classpath') and args.font_cache is None:
+    parser.error('metrics/trim/classpath policy requires a warmed --font-cache')
 if args.font_cache is not None and not args.font_cache.is_dir():
     parser.error('--font-cache must be an existing directory')
-if args.policy in ('metrics', 'trim'):
+if args.policy in ('metrics', 'trim', 'classpath'):
     for face in ['roboto-400.woff2', 'roboto-500.woff2']:
         path = args.font_cache / face
         if not path.is_file() or path.read_bytes()[:4] != b'wOF2':
@@ -39,7 +46,7 @@ if any(os.environ.get(k) for k in ['GLIBC_TUNABLES','LD_PRELOAD','MALLOC_ARENA_M
 args.output.mkdir(parents=True, exist_ok=False)
 reference = None
 rows = []
-candidate = {'allocator':'arena2','compiler':'compiler2','metrics':'metrics5','trim':'metrics5trim'}[args.policy]
+candidate = {'allocator':'arena2','compiler':'compiler2','metrics':'metrics5','trim':'metrics5trim','classpath':'candidate'}[args.policy]
 for trial in range(3):
     for variant in (['default',candidate] if trial % 2 == 0 else [candidate,'default']):
         directory = args.output / f'{trial}-{variant}'
@@ -55,9 +62,10 @@ for trial in range(3):
             started=time.monotonic()
             for worker in range(2):
                 output=directory/str(worker)
+                classpath = args.candidate_classpath if variant == 'candidate' else args.classpath
                 command=['taskset','-c',args.cpus,sys.executable,
                     str(Path(__file__).resolve().parents[1]/'benchmark-worker-startup.py'),
-                    '--classpath',str(args.classpath.resolve()),'--java',args.java,
+                    '--classpath',str(classpath.resolve()),'--java',args.java,
                     '--renders',str(args.renders),'--fixture','ReloadDashboardPreview',
                     '--class-name','benchmark.screens.ReloadDashboardPreviewsKt',
                     '--user-class-dir',str(args.user_jar.resolve()),'--swap-every','1',
@@ -65,13 +73,13 @@ for trial in range(3):
                     '--memory','--output',str(output.resolve())]
                 command += ['--jvm-arg='+f for f in ['-Xmx256m','-Xms32m','-XX:+UseSerialGC',
                     '-XX:MinHeapFreeRatio=10','-XX:MaxHeapFreeRatio=30']]
-                if variant == 'compiler2' or args.policy in ('metrics', 'trim'):
+                if variant == 'compiler2' or args.policy in ('metrics', 'trim', 'classpath'):
                     command.append('--jvm-arg=-XX:CICompilerCount=2')
-                if args.policy in ('metrics', 'trim'):
-                    cadence = 5 if variant == 'metrics5' or args.policy == 'trim' else 1
+                if args.policy in ('metrics', 'trim', 'classpath'):
+                    cadence = 5 if variant == 'metrics5' or args.policy in ('trim', 'classpath') else 1
                     command.append(f'--jvm-arg=-Dcomposeai.daemon.metrics.everyRenders={cadence}')
-                if args.policy == 'trim':
-                    interval = 5000 if variant == 'metrics5trim' else 0
+                if args.policy in ('trim', 'classpath'):
+                    interval = 15000 if args.policy == 'classpath' else (5000 if variant == 'metrics5trim' else 0)
                     command += [f'--jvm-arg=-XX:TrimNativeHeapInterval={interval}',
                         '--jvm-arg=-Xlog:trimnative=debug', '--jvm-arg=-Xlog:gc*=info']
                 if args.font_cache is not None:
@@ -119,6 +127,9 @@ for trial in range(3):
             'majorFaults':sum(w['workloadEndFaults']['major'] for w in workers),
             'parityFramesPerWorker':len(reference),'distinctApplicationLoadersPerWorker':args.renders,
             'workers':workers,'concurrentPssSamples':samples}
+        if args.policy == 'classpath':
+            row['classpaths'] = {'baseline': str(args.classpath.resolve()),
+                'candidate': str(args.candidate_classpath.resolve())}
         rows.append(row)
         (args.output/'matrix-summary.json').write_text(json.dumps(rows,indent=2)+'\n')
         print(json.dumps({k:v for k,v in row.items() if k not in ['workers','concurrentPssSamples']}),flush=True)
