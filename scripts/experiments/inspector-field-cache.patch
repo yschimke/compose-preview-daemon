@@ -1,0 +1,185 @@
+diff --git a/data/layoutinspector/connector/src/main/kotlin/ee/schimke/composeai/daemon/ModifierTokenResolver.kt b/data/layoutinspector/connector/src/main/kotlin/ee/schimke/composeai/daemon/ModifierTokenResolver.kt
+index 8e4822e9..51a2c56d 100644
+--- a/data/layoutinspector/connector/src/main/kotlin/ee/schimke/composeai/daemon/ModifierTokenResolver.kt
++++ b/data/layoutinspector/connector/src/main/kotlin/ee/schimke/composeai/daemon/ModifierTokenResolver.kt
+@@ -38,6 +38,7 @@ import kotlin.math.roundToInt
+  * - [density] — the render density (dp = px / density), for percent-corner → dp.
+  */
+ internal object ModifierTokenResolver {
++  private val fieldMetadata = DeclaredFieldCache()
+
+   /**
+    * Resolves the design tokens declared by a node's modifiers + measure policy. Returns null when
+@@ -664,7 +665,7 @@ internal object ModifierTokenResolver {
+   @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+   private fun layerBlock(modifier: Any): Any? =
+     generateSequence(modifier.javaClass as Class<*>?) { it.superclass }
+-      .flatMap { it.declaredFields.asSequence() }
++      .flatMap { fieldMetadata.fieldsFor(it).asSequence() }
+       .firstOrNull { field ->
+         kotlin.jvm.functions.Function1::class.java.isAssignableFrom(field.type) &&
+           (field.name == "block" || field.name == "layerBlock")
+@@ -746,7 +747,7 @@ internal object ModifierTokenResolver {
+
+   private fun reflectedField(instance: Any, name: String): Any? =
+     generateSequence(instance.javaClass as Class<*>?) { it.superclass }
+-      .flatMap { it.declaredFields.asSequence() }
++      .flatMap { fieldMetadata.fieldsFor(it).asSequence() }
+       .firstOrNull { it.name == name }
+       ?.let { field ->
+         runCatching {
+@@ -828,7 +829,7 @@ internal object ModifierTokenResolver {
+     val policy = measurePolicy ?: return null
+     var cls: Class<*>? = policy.javaClass
+     while (cls != null && cls != Any::class.java) {
+-      for (field in cls.declaredFields) {
++      for (field in fieldMetadata.fieldsFor(cls)) {
+         val value =
+           runCatching { field.apply { isAccessible = true }.get(policy) }.getOrNull() ?: continue
+         if (!value.javaClass.name.startsWith("androidx.compose.foundation.layout.Arrangement"))
+@@ -945,7 +946,7 @@ internal object ModifierTokenResolver {
+   private fun ownFields(type: Class<*>): List<Field> =
+     generateSequence(type as Class<*>?) { it.superclass }
+       .takeWhile { it.name != "androidx.compose.ui.graphics.painter.Painter" }
+-      .flatMap { it.declaredFields.asSequence() }
++      .flatMap { fieldMetadata.fieldsFor(it).asSequence() }
+       .filterNot { Modifier.isStatic(it.modifiers) }
+       .toList()
+
+@@ -1326,7 +1327,7 @@ internal object ModifierTokenResolver {
+   }
+
+   private fun fieldValues(target: Any): List<Any> = runCatching {
+-    target.javaClass.declaredFields.mapNotNull { field ->
++    fieldMetadata.fieldsFor(target.javaClass).mapNotNull { field ->
+       // Encapsulated JDK fields are expected in captured values (String, boxed primitives).
+       // Preserve the unreadable-field fallback without allocating an exception for every probe.
+       runCatching { if (field.trySetAccessible()) field.get(target) else null }.getOrNull()
+@@ -1424,7 +1425,7 @@ internal object ModifierTokenResolver {
+   private fun colorFieldHex(target: Any): String? {
+     val anyLongIsAColor = PlaceholderModifiers.isPlaceholderOrigin(target.javaClass.name)
+     val fields =
+-      runCatching { target.javaClass.declaredFields }
++      runCatching { fieldMetadata.fieldsFor(target.javaClass) }
+         .getOrNull()
+         ?.filter {
+           it.type == Long::class.javaPrimitiveType &&
+@@ -1494,7 +1495,8 @@ internal object ModifierTokenResolver {
+   internal fun Shape.effectiveCornerShape(): Shape {
+     if (invokeNoArg("getTopStart") != null) return this
+     val morphed =
+-      javaClass.declaredFields
++      fieldMetadata
++        .fieldsFor(javaClass)
+         .asSequence()
+         .filter { it.name.endsWith("state", ignoreCase = true) }
+         .mapNotNull { field ->
+@@ -1539,7 +1541,7 @@ internal object ModifierTokenResolver {
+    */
+   internal fun Shape.restingCornerShape(): Shape? {
+     val candidates =
+-      javaClass.declaredFields.filter { field ->
++      fieldMetadata.fieldsFor(javaClass).filter { field ->
+         Shape::class.java.isAssignableFrom(field.type) && !field.name.contains("pressed", true)
+       }
+     // Prefer the conventionally-named resting field over whatever happens to be declared first.
+diff --git a/data/layoutinspector/connector/src/main/kotlin/ee/schimke/composeai/daemon/DeclaredFieldCache.kt b/data/layoutinspector/connector/src/main/kotlin/ee/schimke/composeai/daemon/DeclaredFieldCache.kt
+new file mode 100644
+index 00000000..144ed726
+--- /dev/null
++++ b/data/layoutinspector/connector/src/main/kotlin/ee/schimke/composeai/daemon/DeclaredFieldCache.kt
+@@ -0,0 +1,14 @@
++package ee.schimke.composeai.daemon
++
++import java.lang.reflect.Field
++
++/** Class-owned metadata only: neither receiver objects nor their field values are retained. */
++internal class DeclaredFieldCache {
++  private val fields =
++    object : ClassValue<Array<Field>>() {
++      override fun computeValue(type: Class<*>): Array<Field> = type.declaredFields
++    }
++
++  /** Shared metadata array; callers must not replace its entries. */
++  fun fieldsFor(type: Class<*>): Array<Field> = fields.get(type)
++}
+diff --git a/data/layoutinspector/connector/src/test/kotlin/ee/schimke/composeai/daemon/DeclaredFieldCacheTest.kt b/data/layoutinspector/connector/src/test/kotlin/ee/schimke/composeai/daemon/DeclaredFieldCacheTest.kt
+new file mode 100644
+index 00000000..73f0b1b0
+--- /dev/null
++++ b/data/layoutinspector/connector/src/test/kotlin/ee/schimke/composeai/daemon/DeclaredFieldCacheTest.kt
+@@ -0,0 +1,63 @@
++package ee.schimke.composeai.daemon
++
++import java.lang.ref.Reference
++import java.lang.ref.WeakReference
++import org.junit.Assert.*
++import org.junit.Test
++
++class DeclaredFieldCacheTest {
++  private val cache = DeclaredFieldCache()
++
++  private open class Parent(val inherited: Int)
++
++  private class Child(var number: Int) : Parent(42)
++
++  @Test
++  fun `metadata is shared but instance state is read afresh and parents remain separate`() {
++    val fields = cache.fieldsFor(Child::class.java)
++    assertSame(fields, cache.fieldsFor(Child::class.java))
++    assertEquals(listOf("number"), fields.map { it.name })
++    assertEquals(listOf("inherited"), cache.fieldsFor(Parent::class.java).map { it.name })
++    val field = fields.single().apply { isAccessible = true }
++    val first = Child(1)
++    val second = Child(2)
++    assertEquals(1, field.get(first))
++    assertEquals(2, field.get(second))
++    first.number = 3
++    assertEquals(3, field.get(first))
++  }
++
++  private fun disposableLoader(): WeakReference<ClassLoader> {
++    val name = "ee.schimke.composeai.daemon.FieldCacheFixture"
++    val bytes =
++      javaClass.getResourceAsStream("/" + name.replace('.', '/') + ".class")!!.use {
++        it.readBytes()
++      }
++    val loader =
++      object : ClassLoader(null) {
++        override fun findClass(requested: String): Class<*> {
++          if (requested != name) throw ClassNotFoundException(requested)
++          return defineClass(name, bytes, 0, bytes.size)
++        }
++      }
++    val type = loader.loadClass(name)
++    val field = cache.fieldsFor(type).single().apply { isAccessible = true }
++    assertEquals(1, field.get(type.getDeclaredConstructor().newInstance()))
++    return WeakReference(loader)
++  }
++
++  @Test
++  fun `cached accessible fields do not retain an application loader`() {
++    val loader = disposableLoader()
++    try {
++      repeat(100) {
++        System.gc()
++        if (loader.get() == null) return
++        Thread.sleep(20)
++      }
++      assertNull("Field cache retained the application loader", loader.get())
++    } finally {
++      Reference.reachabilityFence(cache)
++    }
++  }
++}
+diff --git a/data/layoutinspector/connector/src/test/java/ee/schimke/composeai/daemon/FieldCacheFixture.java b/data/layoutinspector/connector/src/test/java/ee/schimke/composeai/daemon/FieldCacheFixture.java
+new file mode 100644
+index 00000000..1c78551e
+--- /dev/null
++++ b/data/layoutinspector/connector/src/test/java/ee/schimke/composeai/daemon/FieldCacheFixture.java
+@@ -0,0 +1,5 @@
++package ee.schimke.composeai.daemon;
++
++public class FieldCacheFixture {
++  private int number = 1;
++}

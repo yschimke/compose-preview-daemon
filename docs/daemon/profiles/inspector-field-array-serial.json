@@ -1,0 +1,282 @@
+{
+  "rows": [
+    {
+      "trial": 0,
+      "variant": "baseline",
+      "readyWallMs": 4573,
+      "readyCpuMs": 13860.0,
+      "totalWallMs": 48622,
+      "totalCpuMs": 71010.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 615.0,
+      "last30MeanCpuMs": 696.6666666666666,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 798252,
+        "VmRSS": 794584,
+        "RssAnon": 738512,
+        "RssFile": 53228,
+        "RssShmem": 2844,
+        "Pss": 773593,
+        "Private": 767016
+      },
+      "concurrentMarkCycles": 0
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "readyWallMs": 4517,
+      "readyCpuMs": 14050.0,
+      "totalWallMs": 43682,
+      "totalCpuMs": 70420.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 608.5,
+      "last30MeanCpuMs": 685.6666666666666,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 781020,
+        "VmRSS": 729784,
+        "RssAnon": 673996,
+        "RssFile": 52944,
+        "RssShmem": 2844,
+        "Pss": 708935,
+        "Private": 702348
+      },
+      "concurrentMarkCycles": 0
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "readyWallMs": 4553,
+      "readyCpuMs": 13710.0,
+      "totalWallMs": 45282,
+      "totalCpuMs": 70050.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 613.0,
+      "last30MeanCpuMs": 685.3333333333334,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 823624,
+        "VmRSS": 786076,
+        "RssAnon": 730564,
+        "RssFile": 52668,
+        "RssShmem": 2844,
+        "Pss": 765213,
+        "Private": 758644
+      },
+      "concurrentMarkCycles": 0
+    },
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "readyWallMs": 4541,
+      "readyCpuMs": 13620.0,
+      "totalWallMs": 44172,
+      "totalCpuMs": 70550.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 614.5,
+      "last30MeanCpuMs": 689.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 860892,
+        "VmRSS": 832520,
+        "RssAnon": 776780,
+        "RssFile": 52896,
+        "RssShmem": 2844,
+        "Pss": 811647,
+        "Private": 805060
+      },
+      "concurrentMarkCycles": 0
+    },
+    {
+      "trial": 2,
+      "variant": "baseline",
+      "readyWallMs": 4599,
+      "readyCpuMs": 14700.0,
+      "totalWallMs": 43603,
+      "totalCpuMs": 71530.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 606.0,
+      "last30MeanCpuMs": 695.3333333333334,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 807536,
+        "VmRSS": 780152,
+        "RssAnon": 724092,
+        "RssFile": 53216,
+        "RssShmem": 2844,
+        "Pss": 759260,
+        "Private": 752676
+      },
+      "concurrentMarkCycles": 0
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "readyWallMs": 4535,
+      "readyCpuMs": 14030.0,
+      "totalWallMs": 43548,
+      "totalCpuMs": 71230.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 608.0,
+      "last30MeanCpuMs": 691.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 832264,
+        "VmRSS": 799132,
+        "RssAnon": 743916,
+        "RssFile": 52372,
+        "RssShmem": 2844,
+        "Pss": 778389,
+        "Private": 771840
+      },
+      "concurrentMarkCycles": 0
+    }
+  ],
+  "medians": {
+    "baseline": {
+      "totalCpuMs": 71010.0,
+      "totalWallMs": 44172,
+      "readyWallMs": 4573,
+      "readyCpuMs": 13860.0,
+      "last30MeanCpuMs": 695.3333333333334,
+      "last30MedianMs": 614.5,
+      "endPssMiB": 755.4619140625
+    },
+    "candidate": {
+      "totalCpuMs": 70420.0,
+      "totalWallMs": 43682,
+      "readyWallMs": 4535,
+      "readyCpuMs": 14030.0,
+      "last30MeanCpuMs": 685.6666666666666,
+      "last30MedianMs": 608.5,
+      "endPssMiB": 747.2783203125
+    }
+  },
+  "parity": [
+    {
+      "baseline": "daemon/android/build/inspector-field-array-serial/0-baseline",
+      "candidate": "daemon/android/build/inspector-field-array-serial/0-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/inspector-field-array-serial/1-baseline",
+      "candidate": "daemon/android/build/inspector-field-array-serial/1-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/inspector-field-array-serial/2-baseline",
+      "candidate": "daemon/android/build/inspector-field-array-serial/2-candidate",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    }
+  ],
+  "note": "All trials retained. Default JDK17 compilation, Serial GC, 256 MiB heap, free-heap ratios 10/30. Diagnostic profile; no launch-default change. Baseline includes the method cache; candidate adds the array-backed field cache. No general CPU or memory guarantee."
+}
