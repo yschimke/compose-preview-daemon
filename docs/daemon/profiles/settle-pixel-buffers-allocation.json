@@ -1,0 +1,40 @@
+{
+  "baseline": {
+    "sampledBytes": 5954679907,
+    "settleInclusiveBytes": 2071333082,
+    "settleDirectIntArrayBytes": 378104656
+  },
+  "candidate": {
+    "sampledBytes": 5725144590,
+    "settleInclusiveBytes": 1830470319,
+    "settleDirectIntArrayBytes": 154584224
+  },
+  "parity": {
+    "baseline": "daemon/android/build/settle-pixel-baseline-allocation",
+    "candidate": "daemon/android/build/settle-pixel-candidate-allocation",
+    "checkedFrames": 37,
+    "checkedDataArtifacts": 407,
+    "artifacts": [
+      "layout-inspector.json",
+      "compose-semantics.json",
+      "compose-figma.svg",
+      "compose-semantics-wireframe.png",
+      "compose-semantics-wireframe.svg",
+      "compose-spatial-semantics.json",
+      "fonts-used.json",
+      "i18n-translations.json",
+      "navigation.json",
+      "resources-used.json",
+      "uia-hierarchy.json"
+    ],
+    "normalizedJvmLambdas": false,
+    "normalizedSemanticsDebugOrder": true,
+    "normalizedTypefaceIdentities": true,
+    "normalizedArtifactComparisons": 36,
+    "normalizedArtifactNames": {
+      "fonts-used.json": 36
+    },
+    "parity": true
+  },
+  "note": "Instrumented allocation runs, excluded from timing evidence. Post-readiness sampled byte weights, not exact allocations or live memory. Inclusive attribution overlaps direct arrays."
+}
