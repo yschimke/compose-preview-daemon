@@ -1,5 +1,10 @@
 # Bulk ARGB settling snapshots
 
+**Benchmark correction:** the original runs below omitted the font cache supplied
+by normal daemon launch plans, causing repeated network font downloads. See
+[the wall-profile investigation and controlled follow-up](BOOT-FONT-CACHE-BENCHMARK-CORRECTION.md).
+Use `--uncached-fonts` to reproduce these historical runs with the updated harness.
+
 The post-snapshot CPU profile still attributes 4.1% of post-readiness samples to
 pixel reads. Settling needs an independent ARGB array for each sampled frame,
 but canonical non-premultiplied `TYPE_INT_ARGB` images already store these values.
@@ -39,7 +44,7 @@ python3 scripts/benchmark-worker-matrix.py \
   --java /usr/lib/jvm/java-17-openjdk/bin/java \
   --output daemon/android/build/bulk-argb-matrix \
   --trials 3 --renders 60 --fixture DenseDashboardPreview \
-  --width 480 --height 1200 --memory
+  --width 480 --height 1200 --memory --uncached-fonts
 ```
 
 ## Results
@@ -108,7 +113,7 @@ The CPU benefit persists in every 50-reload block:
 | 201–250 | 520.8 / 499.2 | 529.0 / 494.5 |
 | 251–300 | 492.0 / 471.4 | 529.0 / 490.5 |
 
-**The total-wall regression remains material and unexplained.** The worst candidate
+**The uncached total-wall regression was material and initially unexplained.** The worst candidate
 frame takes 5.987 s wall, 0.750 s process CPU, and reports 5.862 s within the worker.
 The largest logged GC pause is 151 ms (baseline 158 ms). Render-time sums account
 for almost all total wall after readiness, so the stalls are not simply gaps in
@@ -130,5 +135,8 @@ All **301 PNG/UIA pairs match**. Because output names are reused, other artifact
 are not retained for every reload, so the full historical artifact-parity claim
 from the short matrix does not apply here. One ordered pair is insufficient to
 establish a universal CPU saving, native-memory ownership, or a reaping interval.
-The longer run supports the CPU saving and confirms that this is not a memory
-improvement; it also makes tail-wait investigation the next priority.
+The uncached longer run supports the CPU saving and confirms that this is not a memory
+improvement. The subsequent [font-cache investigation](BOOT-FONT-CACHE-BENCHMARK-CORRECTION.md)
+identifies repeated network downloads in the benchmark: with the normal cache
+behavior restored, 300 reloads have no multi-second stalls, 3.9% lower CPU and
+4.8% lower total wall with bulk ARGB. End PSS is still 4.86 MiB higher.

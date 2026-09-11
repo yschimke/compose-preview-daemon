@@ -349,6 +349,14 @@ This supports separating JVM and
 application costs; it does not establish a Robolectric defect or ordinary-suite
 benefit, and R10 remains P2.
 
+A [wall-profile investigation](BOOT-FONT-CACHE-BENCHMARK-CORRECTION.md) attributes
+many long waits to repeated font-download socket reads in our low-level benchmark,
+which omitted the font cache already supplied by normal daemon launch plans.
+With a warmed cache and offline mode, both 300-reload variants have no multi-second
+frames and preserve embedded-font SVG output. This is benchmark setup, not a
+Robolectric wait bug; it reinforces R10's ownership/phase-attribution requirement
+without raising its P2 priority or claiming ordinary-test impact.
+
 The daemon's own forced per-render GC and its `nativeHeapMb` approximation are our
 telemetry decisions, not automatically Robolectric defects.
 

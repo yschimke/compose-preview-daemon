@@ -1,0 +1,75 @@
+{
+  "source": "daemon/android/build/bulk-argb-stall-profile",
+  "diagnostic": true,
+  "wallSampleIntervalMs": 1,
+  "samples": {
+    "sdkWallSamples": 210245,
+    "fontResolverSamples": 69887,
+    "fontSocketSamples": 69711
+  },
+  "largestFontStacks": [
+    {
+      "samples": 67705,
+      "stack": "ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver.woff2_[1];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver.downloadWithRetry_[0];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver.download_[0];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver$1.invoke_[1];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver$1.invoke_[i];ee.schimke.composeai.daemon.FigmaFontResolverKt.access$defaultFontHttpGet_[i];ee.schimke.composeai.daemon.FigmaFontResolverKt.defaultFontHttpGet_[1];sun.net.www.protocol.https.HttpsURLConnectionImpl.getInputStream_[0];sun.net.www.protocol.http.HttpURLConnection.getInputStream_[1];sun.net.www.protocol.http.HttpURLConnection.getInputStream0_[1];sun.net.www.http.HttpClient.parseHTTP_[0];sun.net.www.http.HttpClient.parseHTTPHeader_[0];java.io.BufferedInputStream.read_[j];java.io.BufferedInputStream.read1_[i];java.io.BufferedInputStream.fill_[i];org.conscrypt.ConscryptEngineSocket$SSLInputStream.read_[1];org.conscrypt.ConscryptEngineSocket$SSLInputStream.readUntilDataAvailable_[1];org.conscrypt.ConscryptEngineSocket$SSLInputStream.processDataFromSocket_[j];org.conscrypt.ConscryptEngineSocket$SSLInputStream.readFromSocket_[i];java.net.Socket$SocketInputStream.read_[j];sun.nio.ch.NioSocketImpl$1.read_[1];sun.nio.ch.NioSocketImpl.read_[1];sun.nio.ch.NioSocketImpl.implRead_[1];sun.nio.ch.NioSocketImpl.timedRead_[1];sun.nio.ch.NioSocketImpl.park_[1];sun.nio.ch.Net.poll_[j];Java_sun_nio_ch_Net_poll;poll;/usr/lib/libc.so.6"
+    },
+    {
+      "samples": 648,
+      "stack": "ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver.woff2_[1];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver.downloadWithRetry_[0];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver.download_[0];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver$1.invoke_[1];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver$1.invoke_[i];ee.schimke.composeai.daemon.FigmaFontResolverKt.access$defaultFontHttpGet_[i];ee.schimke.composeai.daemon.FigmaFontResolverKt.defaultFontHttpGet_[1];kotlin.io.ByteStreamsKt.readBytes_[0];kotlin.io.ByteStreamsKt.copyTo$default_[i];kotlin.io.ByteStreamsKt.copyTo_[1];sun.net.www.protocol.http.HttpURLConnection$HttpInputStream.read_[j];sun.net.www.protocol.http.HttpURLConnection$HttpInputStream.read_[i];java.io.FilterInputStream.read_[i];sun.net.www.http.ChunkedInputStream.read_[1];sun.net.www.http.ChunkedInputStream.readAhead_[1];sun.net.www.http.ChunkedInputStream.readAheadBlocking_[0];java.io.BufferedInputStream.read_[j];java.io.BufferedInputStream.read1_[i];java.io.BufferedInputStream.fill_[i];org.conscrypt.ConscryptEngineSocket$SSLInputStream.read_[1];org.conscrypt.ConscryptEngineSocket$SSLInputStream.readUntilDataAvailable_[1];org.conscrypt.ConscryptEngineSocket$SSLInputStream.processDataFromSocket_[1];org.conscrypt.ConscryptEngineSocket$SSLInputStream.readFromSocket_[i];java.net.Socket$SocketInputStream.read_[j];sun.nio.ch.NioSocketImpl$1.read_[1];sun.nio.ch.NioSocketImpl.read_[1];sun.nio.ch.NioSocketImpl.implRead_[1];sun.nio.ch.NioSocketImpl.timedRead_[1];sun.nio.ch.NioSocketImpl.park_[1];sun.nio.ch.Net.poll_[j];Java_sun_nio_ch_Net_poll;poll;/usr/lib/libc.so.6"
+    },
+    {
+      "samples": 573,
+      "stack": "ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver.woff2_[1];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver.downloadWithRetry_[0];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver.download_[0];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver$1.invoke_[1];ee.schimke.composeai.daemon.GoogleFontsWoff2Resolver$1.invoke_[i];ee.schimke.composeai.daemon.FigmaFontResolverKt.access$defaultFontHttpGet_[i];ee.schimke.composeai.daemon.FigmaFontResolverKt.defaultFontHttpGet_[1];kotlin.io.ByteStreamsKt.readBytes_[0];kotlin.io.ByteStreamsKt.copyTo$default_[i];kotlin.io.ByteStreamsKt.copyTo_[1];sun.net.www.protocol.http.HttpURLConnection$HttpInputStream.read_[j];sun.net.www.protocol.http.HttpURLConnection$HttpInputStream.read_[i];java.io.FilterInputStream.read_[i];sun.net.www.http.ChunkedInputStream.read_[1];sun.net.www.http.ChunkedInputStream.fastRead_[1];java.io.BufferedInputStream.read_[j];java.io.BufferedInputStream.read1_[i];java.io.BufferedInputStream.fill_[i];org.conscrypt.ConscryptEngineSocket$SSLInputStream.read_[1];org.conscrypt.ConscryptEngineSocket$SSLInputStream.readUntilDataAvailable_[1];org.conscrypt.ConscryptEngineSocket$SSLInputStream.processDataFromSocket_[j];org.conscrypt.ConscryptEngineSocket$SSLInputStream.readFromSocket_[i];java.net.Socket$SocketInputStream.read_[j];sun.nio.ch.NioSocketImpl$1.read_[1];sun.nio.ch.NioSocketImpl.read_[1];sun.nio.ch.NioSocketImpl.implRead_[i];sun.nio.ch.NioSocketImpl.timedRead_[i];sun.nio.ch.NioSocketImpl.park_[i];sun.nio.ch.Net.poll_[j];Java_sun_nio_ch_Net_poll;poll;/usr/lib/libc.so.6"
+    }
+  ],
+  "framesOverTwoSeconds": 13,
+  "slowestFrames": [
+    {
+      "index": 261,
+      "wallMs": 5307,
+      "cpuMs": 540.0,
+      "workerTookMs": 5172
+    },
+    {
+      "index": 36,
+      "wallMs": 5284,
+      "cpuMs": 760.0,
+      "workerTookMs": 5150
+    },
+    {
+      "index": 169,
+      "wallMs": 5134,
+      "cpuMs": 640.0,
+      "workerTookMs": 4989
+    },
+    {
+      "index": 16,
+      "wallMs": 4464,
+      "cpuMs": 1370.0,
+      "workerTookMs": 4341
+    },
+    {
+      "index": 125,
+      "wallMs": 4197,
+      "cpuMs": 580.0,
+      "workerTookMs": 4059
+    },
+    {
+      "index": 241,
+      "wallMs": 3500,
+      "cpuMs": 510.0,
+      "workerTookMs": 3365
+    },
+    {
+      "index": 175,
+      "wallMs": 3341,
+      "cpuMs": 530.0,
+      "workerTookMs": 3198
+    },
+    {
+      "index": 148,
+      "wallMs": 3198,
+      "cpuMs": 570.0,
+      "workerTookMs": 3059
+    }
+  ]
+}
