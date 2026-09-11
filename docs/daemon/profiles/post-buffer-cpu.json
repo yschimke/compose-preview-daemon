@@ -1,0 +1,240 @@
+{
+  "samplesByGroup": {
+    "other": 3973,
+    "application": 20823,
+    "compiler": 17545
+  },
+  "threads": [
+    [
+      "SDK 35 Main Thr",
+      21018
+    ],
+    [
+      "C2 CompilerThre",
+      12621
+    ],
+    [
+      "C1 CompilerThre",
+      4924
+    ],
+    [
+      "VM Thread",
+      3269
+    ],
+    [
+      "Sweeper thread",
+      353
+    ],
+    [
+      "compose-ai-sand",
+      72
+    ],
+    [
+      "Cleaner-0",
+      38
+    ],
+    [
+      "Finalizer",
+      23
+    ],
+    [
+      "Reference Handl",
+      13
+    ],
+    [
+      "VM Periodic Tas",
+      3
+    ],
+    [
+      "Java2D Disposer",
+      3
+    ],
+    [
+      "Native Heap Tri",
+      2
+    ],
+    [
+      "process reaper",
+      1
+    ],
+    [
+      "Service Thread",
+      1
+    ]
+  ],
+  "leaves": [
+    [
+      "/usr/lib/jvm/java-17-openjdk/lib/server/libjvm.so",
+      23782
+    ],
+    [
+      "/home/yuri/.cache/composeai/robolectric-native/sandbox-libraries/runtime-bf41586cbbc7152d-sdk35-linux-x86_64/jvm-d77dc992ef03419eb5031e77facb54b2/sandbox-12205212957658658803-libandroid_runtime.so",
+      6676
+    ],
+    [
+      "/usr/lib/libc.so.6",
+      1180
+    ],
+    [
+      "/usr/lib/jvm/java-17-openjdk/lib/libzip.so",
+      826
+    ],
+    [
+      "java.lang.invoke.MethodHandle.invokeBasic_[j]",
+      416
+    ],
+    [
+      "__tls_get_addr",
+      321
+    ],
+    [
+      "java.awt.image.ComponentColorModel.getRGBComponent_[i]",
+      229
+    ],
+    [
+      "IntArgbToIntArgbSrcOverMaskBlit",
+      228
+    ],
+    [
+      "java.lang.invoke.DirectMethodHandle$Holder.invokeVirtual_[i]",
+      217
+    ],
+    [
+      "com.sun.imageio.plugins.png.PNGImageWriter.encodePass_[j]",
+      161
+    ],
+    [
+      "java.awt.image.ComponentColorModel.extractComponent_[j]",
+      152
+    ],
+    [
+      "syscall",
+      143
+    ],
+    [
+      "java.awt.image.SinglePixelPackedSampleModel.getPixels_[i]",
+      131
+    ],
+    [
+      "itable stub",
+      129
+    ],
+    [
+      "sun.awt.image.ByteInterleavedRaster.getDataElements_[i]",
+      93
+    ],
+    [
+      "sun.awt.image.ByteInterleavedRaster.putByteData_[j]",
+      87
+    ],
+    [
+      "flush_icache_stub",
+      80
+    ],
+    [
+      "java.lang.reflect.Field.copy_[i]",
+      76
+    ],
+    [
+      "I2C/C2I adapters(0xb)",
+      73
+    ],
+    [
+      "java.lang.String.equals_[i]",
+      68
+    ]
+  ],
+  "totalCpuMs": 53350.0,
+  "workloadWindowUnixMs": [
+    1789145081084,
+    1789145105820
+  ],
+  "source": "daemon/android/build/post-buffer-cpu-profile",
+  "rendererCommit": "eeb73cfe3e024900444134275501bb7000efccf9",
+  "jvmArgs": [
+    "-Xmx256m",
+    "-Xms32m",
+    "-XX:+UseSerialGC",
+    "-XX:MinHeapFreeRatio=10",
+    "-XX:MaxHeapFreeRatio=30",
+    "-XX:CICompilerCount=2",
+    "-Dcomposeai.daemon.metrics.everyRenders=5",
+    "-XX:TrimNativeHeapInterval=15000",
+    "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+    "-Dcomposeai.fonts.offline=true"
+  ],
+  "totalCpuSamples": 42341,
+  "inclusiveScopes": {
+    "settling": 4139,
+    "snapshotArgb": 73,
+    "image writes": 1079,
+    "final capture decode": 1414,
+    "image reads": 332,
+    "pixel reads": 572,
+    "Roborazzi capture": 1840,
+    "modifier extraction": 4005
+  },
+  "scopePatterns": {
+    "settling": "sampleVisuallySettledFrames",
+    "snapshotArgb": "snapshotArgb",
+    "pixel reads": "getRGB",
+    "image reads": "ImageIO.read",
+    "image writes": "ImageIO.write",
+    "final capture decode": "captureDecodableFrame",
+    "modifier extraction": "ModifierTokenResolver",
+    "Roborazzi capture": "captureRoboImage"
+  },
+  "note": "Single profiled red warmup plus 60 dense frames, after readiness through workload end. Counts are sampled CPU, not elapsed time. Inclusive scopes overlap. Native JVM leaves are unresolved; VM Thread is not all attributed to GC. Profiled timings are not comparative performance evidence.",
+  "parity": {
+    "baseline": "daemon/android/build/settle-buffer-reuse-g1-compiler2/0-candidate",
+    "candidate": "daemon/android/build/post-buffer-cpu-profile",
+    "checkedFrames": 61,
+    "checkedDataArtifacts": 671,
+    "artifacts": [
+      "layout-inspector.json",
+      "compose-semantics.json",
+      "compose-figma.svg",
+      "compose-semantics-wireframe.png",
+      "compose-semantics-wireframe.svg",
+      "compose-spatial-semantics.json",
+      "fonts-used.json",
+      "i18n-translations.json",
+      "navigation.json",
+      "resources-used.json",
+      "uia-hierarchy.json"
+    ],
+    "normalizedJvmLambdas": false,
+    "normalizedSemanticsDebugOrder": true,
+    "normalizedTypefaceIdentities": true,
+    "normalizedArtifactComparisons": 120,
+    "normalizedArtifactNames": {
+      "layout-inspector.json": 60,
+      "fonts-used.json": 60
+    },
+    "parity": true
+  },
+  "fontCacheSha256": {
+    "carrois-gothic-sc-400.ttf": "cde765545a44feea3bd1d1665de6aad01bbbbced1b619c3a462bc407febe8560",
+    "coming-soon-400.ttf": "c86be0372fad98e347efe9d38bb976a89b9f2eeda158d59a169a6981bdb56990",
+    "cutive-mono-400.ttf": "20c0220ef9ccb50de02353bd22e239da29a7837b3a1953abc354a10d94b290cc",
+    "dancing-script-400.ttf": "14e256280323ac39486a22d4a7cd6f5a737772ea4a7ec3052ee4ac463b71c4aa",
+    "google-sans-flex-400.ttf": "c16fda9ab98b0027caee4881acc07d57eddf9c1b2a68f91baa773c1c9ca7ba41",
+    "noto-sans-400.ttf": "61ea1e781b9d7b10db9b4a6aa2d855cf2215c316c7cb700aeb067a0440d031e0",
+    "noto-sans-mono-400.ttf": "f3e000b8a56b489f9cd3d1d531d2421fad3c67835acabd39cff8cd8299fa0dfc",
+    "noto-serif-400.ttf": "a6e0283968e506c67c3d4ff94093e3ff9f4d7ec3c704ff1cb51382f1e45b66b9",
+    "roboto-400.ttf": "66b9c6a9e7ab0d889f31775fc0fd71bf802d61068ab70f69d37e0cd536604617",
+    "roboto-400.woff2": "425c0713a8176f92273d378599c7eac57de7fafabd4bd0ed457b70eb8f80d371",
+    "roboto-500.woff2": "5bcc3aa180e7f26f643cd5b2621cd7c2de193d0661d913a94afd3d4881a7a34b",
+    "roboto-flex-400.ttf": "7a0aae29a147c35f86b7950556933ecd8daacf8c7080c6686246f46e1e27c3f8"
+  },
+  "modifierGetterLookup": {
+    "samples": 2012,
+    "descendantScopes": {
+      "Class.getMethod": 1946,
+      "NoSuchMethodException": 1856,
+      "Throwable.fillInStackTrace": 1855,
+      "Method.invoke": 8
+    },
+    "scope": "Only descendants of ModifierTokenResolver.invokeNoArg, avoiding unrelated ancestor reflection calls."
+  }
+}
