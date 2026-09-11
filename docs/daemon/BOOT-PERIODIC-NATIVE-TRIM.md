@@ -219,7 +219,11 @@ neither established as optimal. Another collector, another OS/libc, older JDK up
 single-worker evidence without establishing unbounded lifetime stability. Do not infer the same saving on a server from a single-worker PSS endpoint.
 The longer concurrent run confirms a memory reduction but leaves lifetime growth
 unresolved. The interval comparison quantifies one memory-versus-fault tradeoff.
-Use a separate longer retention diagnostic to attribute continued growth. Retain whole-process CPU, page faults, combined PSS and output checks.
+The separate [1,000-reload retention diagnostic](BOOT-TRIM-RETENTION-1000.md)
+finds two live application loaders at every checkpoint, slowing code-cache growth
+and substantial anonymous-residency fluctuations. It does not establish unbounded
+stability or a recycling age. Retain whole-process CPU, page faults, combined PSS
+and output checks in further policy comparisons.
 
 This is a HotSpot/glibc policy opportunity, not a Robolectric defect or a reason
 to add another Robolectric native-memory API. The existing metrics default, heap
