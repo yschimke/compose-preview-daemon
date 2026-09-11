@@ -7,6 +7,7 @@
   two current consumers actually do today.
 - [`daemon/README.md`](daemon/README.md) — the render daemon: design, protocol, classloaders, the
   sandbox pool, startup profile and tunables.
+- [`daemon/ROBOLECTRIC-UPSTREAM-FEEDBACK.md`](daemon/ROBOLECTRIC-UPSTREAM-FEEDBACK.md) — maintained upstream feedback: friction, coupling, performance, bugs, APIs and simulator embedding.
 - [`daemon/BOOT-ROADMAP.md`](daemon/BOOT-ROADMAP.md) — the ranked plan for a 2-3 s sandbox boot.
 - [`DATA_PRODUCTS.md`](DATA_PRODUCTS.md) — the data products and the extractors under `data/`.
 - [`RENDERER_COMPATIBILITY.md`](RENDERER_COMPATIBILITY.md) — renderer / consumer AndroidX alignment.
