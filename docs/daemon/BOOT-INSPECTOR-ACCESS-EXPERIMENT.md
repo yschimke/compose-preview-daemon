@@ -31,3 +31,53 @@ It uses explicit density 2, default compilation and G1/1 GiB on JDK17 with GC
 logging enabled equally for all variants. This provides both a direct production
 comparison and an isolated field-access comparison, without adding percentages
 from unrelated JVM profiles.
+
+
+The first trial of the final matrix is excluded from timing conclusions because
+the required pre-commit `ktfmtCheckAll` hook overlapped its production worker.
+Retain its artifact checks, then run a clean replacement trial after the matrix
+finishes. Do not silently pool the contaminated row with the clean trials.
+
+
+## Follow-up memory attribution
+
+Before changing heap or recycling defaults, repeat the final candidate with
+actual application reloads under the 256 MiB Serial profile. Keep forced-GC live
+heap and loader counts separate from PSS/RSS. Enable JVM native-memory tracking
+only in a separate diagnostic run, using `-XX:NativeMemoryTracking=summary` and
+`jcmd VM.native_memory summary` (or exit statistics), to record code cache,
+metaspace, GC and thread allocations.
+
+[HotSpot NMT documentation](https://docs.oracle.com/en/java/javase/17/vm/native-memory-tracking.html)
+states that third-party native allocations and JDK-library native allocations
+are outside its coverage. Also, committed/reserved JVM bytes are not physical
+resident bytes. Therefore do not subtract NMT committed totals from PSS and label
+the residual “Skia”, or interpret stable classloader counts as proof of stable
+whole-process memory. Keep NMT-instrumented timings out of the uninstrumented
+performance comparison.
+
+
+## Clean combined results
+
+[Final measurements and all-artifact comparisons](profiles/inspector-final.json)
+use the clean replacement plus original trials 1 and 2. The nine clean workers
+render 549 frames. Each candidate is compared directly with production in every
+trial: 366 corresponding frame pairs and 4,026 data-artifact comparisons pass.
+The excluded trial is identified in the report and contributes no timing statistics.
+
+| Median measure | Production baseline | Semantics + regex | Full candidate |
+| --- | --- | --- | --- |
+| Whole-worker CPU | 108.35 s | 102.53 s | **90.00 s (−16.9%)** |
+| Last-30 mean CPU/request | 1270.3 ms | 1223.0 ms | **998.0 ms (−21.4%)** |
+| Last-30 median wall/request | 946.5 ms | 884.5 ms | **663.5 ms (−29.9%)** |
+| Whole-worker wall | 63.908 s | 59.469 s | 46.491 s |
+| Ready wall | 4363 ms | 4364 ms | 4329 ms |
+| End PSS | 1074.4 MiB | 1016.1 MiB | 1021.4 MiB |
+
+The field-access change alone saves 12.2% whole-worker CPU against semantics plus
+regex under this profile. The combined gain is measured directly, not a sum of
+isolated percentages. Startup readiness barely changes. End PSS is about 53 MiB
+lower than production in this matrix, but the earlier trials show substantial
+physical-memory variation; no general memory guarantee, heap reduction or recycling
+policy change follows from three workers. Repeated application reloads under the
+reduced heap remain the next validation step for the full candidate.

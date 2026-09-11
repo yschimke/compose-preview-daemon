@@ -1,0 +1,428 @@
+{
+  "dimensions": [
+    480,
+    1200
+  ],
+  "density": 2,
+  "rendersPerWorker": 61,
+  "cleanRenderedFrames": 549,
+  "rows": [
+    {
+      "totalCpuMs": 108020.0,
+      "totalWallMs": 63407,
+      "readyCpuMs": 15940.0,
+      "readyWallMs": 4363,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1175820,
+        "VmRSS": 1151544,
+        "RssAnon": 1093608,
+        "RssFile": 55092,
+        "RssShmem": 2844,
+        "Pss": 1129956,
+        "Private": 1122764
+      },
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "trial": 0,
+      "variant": "production",
+      "source": "daemon/android/build/inspector-final-replacement/0-production",
+      "last30MedianMs": 938.0,
+      "last30MeanCpuMs": 1270.3333333333333,
+      "concurrentMarkCycles": 4
+    },
+    {
+      "totalCpuMs": 99830.0,
+      "totalWallMs": 56257,
+      "readyCpuMs": 15770.0,
+      "readyWallMs": 4306,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1362568,
+        "VmRSS": 1049348,
+        "RssAnon": 991404,
+        "RssFile": 55100,
+        "RssShmem": 2844,
+        "Pss": 1027802,
+        "Private": 1020608
+      },
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "trial": 0,
+      "variant": "cached-patterns",
+      "source": "daemon/android/build/inspector-final-replacement/0-cached-patterns",
+      "last30MedianMs": 830.0,
+      "last30MeanCpuMs": 1151.3333333333333,
+      "concurrentMarkCycles": 6
+    },
+    {
+      "totalCpuMs": 126760.0,
+      "totalWallMs": 46580,
+      "readyCpuMs": 15460.0,
+      "readyWallMs": 4298,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1300212,
+        "VmRSS": 1197600,
+        "RssAnon": 1139760,
+        "RssFile": 54996,
+        "RssShmem": 2844,
+        "Pss": 1176128,
+        "Private": 1168952
+      },
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "trial": 0,
+      "variant": "nonthrowing-access",
+      "source": "daemon/android/build/inspector-final-replacement/0-nonthrowing-access",
+      "last30MedianMs": 673.0,
+      "last30MeanCpuMs": 1645.6666666666667,
+      "concurrentMarkCycles": 259
+    },
+    {
+      "totalCpuMs": 110990.0,
+      "totalWallMs": 66064,
+      "readyCpuMs": 15840.0,
+      "readyWallMs": 4317,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1090804,
+        "VmRSS": 1002972,
+        "RssAnon": 945032,
+        "RssFile": 55096,
+        "RssShmem": 2844,
+        "Pss": 981465,
+        "Private": 974272
+      },
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "trial": 1,
+      "variant": "production",
+      "source": "daemon/android/build/inspector-final-matrix/1-production",
+      "last30MedianMs": 982.5,
+      "last30MeanCpuMs": 1307.6666666666667,
+      "concurrentMarkCycles": 19
+    },
+    {
+      "totalCpuMs": 104500.0,
+      "totalWallMs": 59469,
+      "readyCpuMs": 16310.0,
+      "readyWallMs": 4364,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1361872,
+        "VmRSS": 1062112,
+        "RssAnon": 1004148,
+        "RssFile": 55120,
+        "RssShmem": 2844,
+        "Pss": 1040535,
+        "Private": 1033340
+      },
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "trial": 1,
+      "variant": "cached-patterns",
+      "source": "daemon/android/build/inspector-final-matrix/1-cached-patterns",
+      "last30MedianMs": 884.5,
+      "last30MeanCpuMs": 1240.0,
+      "concurrentMarkCycles": 4
+    },
+    {
+      "totalCpuMs": 89890.0,
+      "totalWallMs": 46491,
+      "readyCpuMs": 15470.0,
+      "readyWallMs": 4394,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1373880,
+        "VmRSS": 1067420,
+        "RssAnon": 1009452,
+        "RssFile": 55124,
+        "RssShmem": 2844,
+        "Pss": 1045908,
+        "Private": 1038728
+      },
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "trial": 1,
+      "variant": "nonthrowing-access",
+      "source": "daemon/android/build/inspector-final-matrix/1-nonthrowing-access",
+      "last30MedianMs": 660.5,
+      "last30MeanCpuMs": 998.0,
+      "concurrentMarkCycles": 4
+    },
+    {
+      "totalCpuMs": 108350.0,
+      "totalWallMs": 63908,
+      "readyCpuMs": 16060.0,
+      "readyWallMs": 4479,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1139592,
+        "VmRSS": 1121676,
+        "RssAnon": 1063760,
+        "RssFile": 55072,
+        "RssShmem": 2844,
+        "Pss": 1100174,
+        "Private": 1092992
+      },
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "trial": 2,
+      "variant": "production",
+      "source": "daemon/android/build/inspector-final-matrix/2-production",
+      "last30MedianMs": 946.5,
+      "last30MeanCpuMs": 1270.3333333333333,
+      "concurrentMarkCycles": 9
+    },
+    {
+      "totalCpuMs": 102530.0,
+      "totalWallMs": 60012,
+      "readyCpuMs": 15240.0,
+      "readyWallMs": 4438,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1371908,
+        "VmRSS": 1065440,
+        "RssAnon": 1007556,
+        "RssFile": 55040,
+        "RssShmem": 2844,
+        "Pss": 1043898,
+        "Private": 1036704
+      },
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "trial": 2,
+      "variant": "cached-patterns",
+      "source": "daemon/android/build/inspector-final-matrix/2-cached-patterns",
+      "last30MedianMs": 891.5,
+      "last30MeanCpuMs": 1223.0,
+      "concurrentMarkCycles": 4
+    },
+    {
+      "totalCpuMs": 90000.0,
+      "totalWallMs": 46174,
+      "readyCpuMs": 15940.0,
+      "readyWallMs": 4329,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1376380,
+        "VmRSS": 1042328,
+        "RssAnon": 984564,
+        "RssFile": 54920,
+        "RssShmem": 2844,
+        "Pss": 1020789,
+        "Private": 1013604
+      },
+      "jvmArgs": [
+        "-Xlog:gc*=info"
+      ],
+      "trial": 2,
+      "variant": "nonthrowing-access",
+      "source": "daemon/android/build/inspector-final-matrix/2-nonthrowing-access",
+      "last30MedianMs": 663.5,
+      "last30MeanCpuMs": 969.6666666666666,
+      "concurrentMarkCycles": 4
+    }
+  ],
+  "medians": {
+    "production": {
+      "totalCpuMs": 108350.0,
+      "totalWallMs": 63908,
+      "readyWallMs": 4363,
+      "readyCpuMs": 15940.0,
+      "last30MedianMs": 946.5,
+      "last30MeanCpuMs": 1270.3333333333333,
+      "endPssMiB": 1074.388671875
+    },
+    "cached-patterns": {
+      "totalCpuMs": 102530.0,
+      "totalWallMs": 59469,
+      "readyWallMs": 4364,
+      "readyCpuMs": 15770.0,
+      "last30MedianMs": 884.5,
+      "last30MeanCpuMs": 1223.0,
+      "endPssMiB": 1016.1474609375
+    },
+    "nonthrowing-access": {
+      "totalCpuMs": 90000.0,
+      "totalWallMs": 46491,
+      "readyWallMs": 4329,
+      "readyCpuMs": 15470.0,
+      "last30MedianMs": 663.5,
+      "last30MeanCpuMs": 998.0,
+      "endPssMiB": 1021.39453125
+    }
+  },
+  "parity": [
+    {
+      "baseline": "daemon/android/build/inspector-final-replacement/0-production",
+      "candidate": "daemon/android/build/inspector-final-replacement/0-cached-patterns",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/inspector-final-replacement/0-production",
+      "candidate": "daemon/android/build/inspector-final-replacement/0-nonthrowing-access",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/inspector-final-matrix/1-production",
+      "candidate": "daemon/android/build/inspector-final-matrix/1-cached-patterns",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 120,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 60,
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/inspector-final-matrix/1-production",
+      "candidate": "daemon/android/build/inspector-final-matrix/1-nonthrowing-access",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/inspector-final-matrix/2-production",
+      "candidate": "daemon/android/build/inspector-final-matrix/2-cached-patterns",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 120,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 60,
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/inspector-final-matrix/2-production",
+      "candidate": "daemon/android/build/inspector-final-matrix/2-nonthrowing-access",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    }
+  ],
+  "excluded": {
+    "source": "daemon/android/build/inspector-final-matrix",
+    "trial": 0,
+    "reason": "Required pre-commit formatter check overlapped production worker. Replaced with a clean complete three-worker trial."
+  },
+  "note": "Default JDK17 compilation and G1/1 GiB, unmodified Robolectric, no application CDS. GC logging enabled equally. No profiler or forced checkpoint diagnostics."
+}
