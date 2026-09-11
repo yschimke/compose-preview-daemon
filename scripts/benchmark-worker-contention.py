@@ -40,6 +40,7 @@ def main():
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     report = {'cpus': cpus, 'workersPerCohort': args.workers, 'trials': args.trials,
+        'java': args.java, 'fixtures': args.fixture or ['MaterialButtonInteractionState'],
         'rendersAfterRed': args.renders, 'variants': variants,
         'memoryNote': 'KiB. Summed worker HWM is not simultaneous physical-memory peak; PSS is per-worker snapshot.',
         'cohorts': []}
@@ -96,10 +97,13 @@ def main():
                     raise RuntimeError(f'Missing memory measurements: {cohort}')
             frames = args.workers * (args.renders + 1)
             latency = sorted(r['wallMs'] for s in summaries for r in s['renders'])
+            steady = [r for s in summaries for r in s['renders'][-min(30, args.renders):]]
             row = {'trial': trial, 'variant': variant['name'], 'frames': frames, 'parity': True,
                 'cohortWallMs': round(elapsed), 'framesPerSecondIncludingStartupAndShutdown': frames * 1000 / elapsed,
                 'totalWorkerCpuMs': sum(s['totalCpuMs'] for s in summaries),
                 'cpuMsPerFrameIncludingStartup': sum(s['totalCpuMs'] for s in summaries) / frames,
+                'last30MeanWorkerCpuMsPerFrame': statistics.mean(r['cpuMs'] for r in steady),
+                'last30RenderMedianMs': statistics.median(r['wallMs'] for r in steady),
                 'readyMedianMs': statistics.median(s['readyWallMs'] for s in summaries),
                 'readyMaxMs': max(s['readyWallMs'] for s in summaries),
                 'renderMedianMs': statistics.median(latency), 'renderP95Ms': latency[math.ceil(.95 * len(latency)) - 1],

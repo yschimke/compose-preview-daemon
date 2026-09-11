@@ -1066,8 +1066,18 @@ class RenderEngine(
                   .addSlotTables(slotTableCapture.snapshot())
                   .rootForTest(resolvedSemanticsRoot.root)
                   .build()
+              val artifactSlotTables = slotTableCapture.snapshot()
               val artifactContextData =
                 buildList<ExtensionContextValue<*>> {
+                  add(
+                    RenderArtifactContextKeys.LayoutSnapshot provides
+                      LayoutInspectorSnapshot(
+                        resolvedSemanticsRoot,
+                        artifactSlotTables,
+                        spec.density,
+                        spec.fontScale ?: 1.0f,
+                      )
+                  )
                   add(RenderDataArtifactContextKeys.RootDir provides dataDir)
                   add(RenderDataArtifactContextKeys.OutputBaseName provides spec.outputBaseName)
                   spec.previewId?.let { add(RenderDataArtifactContextKeys.PreviewId provides it) }
@@ -1076,7 +1086,7 @@ class RenderEngine(
                     ?.let { add(RenderDataArtifactContextKeys.RenderedLocale provides it) }
                   add(RenderDataArtifactContextKeys.SemanticsRoot provides resolvedSemanticsRoot)
                   add(RenderDataArtifactContextKeys.Density provides spec.density)
-                  add(RenderDataArtifactContextKeys.SlotTables provides slotTableCapture.snapshot())
+                  add(RenderDataArtifactContextKeys.SlotTables provides artifactSlotTables)
                   add(RenderDataArtifactContextKeys.FontScale provides (spec.fontScale ?: 1.0f))
                   add(RenderDataArtifactContextKeys.OutputPng provides outputFile)
                   add(RenderDataArtifactContextKeys.HeldActivity provides rule.activity)

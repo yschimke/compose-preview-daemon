@@ -1212,8 +1212,16 @@ object LayoutInspectorDataProducer {
     fileSystem: FileSystem,
   ) {
     val layoutRoot = ComposeLayoutInspector.inspect(capture, density, fontScale) ?: return
+    writePayload(rootDir, previewId, LayoutInspectorPayload(root = layoutRoot), fileSystem)
+  }
+
+  internal fun writePayload(
+    rootDir: File,
+    previewId: String,
+    payload: LayoutInspectorPayload,
+    fileSystem: FileSystem = SystemFileSystem,
+  ) {
     val previewDir = rootDir.resolve(previewId).also { it.mkdirs() }
-    val payload = LayoutInspectorPayload(root = layoutRoot)
     fileSystem.write(previewDir.resolve(FILE).path.toPath()) {
       writeUtf8(json.encodeToString(LayoutInspectorPayload.serializer(), payload))
     }

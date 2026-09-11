@@ -1,0 +1,32 @@
+[
+  {
+    "name": "baseline-default",
+    "classpath": "daemon/android/build/snapshot-baseline-frozen/unpatched-classpath.txt",
+    "jvmArgs": []
+  },
+  {
+    "name": "baseline-tuned",
+    "classpath": "daemon/android/build/snapshot-baseline-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-XX:+UseSerialGC",
+      "-XX:TieredStopAtLevel=1",
+      "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30"
+    ]
+  },
+  {
+    "name": "candidate-default",
+    "classpath": "daemon/android/build/snapshot-candidate-frozen/unpatched-classpath.txt",
+    "jvmArgs": []
+  },
+  {
+    "name": "candidate-tuned",
+    "classpath": "daemon/android/build/snapshot-candidate-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-XX:+UseSerialGC",
+      "-XX:TieredStopAtLevel=1",
+      "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30"
+    ]
+  }
+]

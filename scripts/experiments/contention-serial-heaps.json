@@ -1,0 +1,29 @@
+[
+  {
+    "name": "serial-512m",
+    "jvmArgs": [
+      "-XX:TieredStopAtLevel=1",
+      "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+      "-XX:+UseSerialGC",
+      "-Xmx512m"
+    ]
+  },
+  {
+    "name": "serial-384m",
+    "jvmArgs": [
+      "-XX:TieredStopAtLevel=1",
+      "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+      "-XX:+UseSerialGC",
+      "-Xmx384m"
+    ]
+  },
+  {
+    "name": "serial-256m",
+    "jvmArgs": [
+      "-XX:TieredStopAtLevel=1",
+      "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+      "-XX:+UseSerialGC",
+      "-Xmx256m"
+    ]
+  }
+]

@@ -33,20 +33,8 @@ class LayoutInspectorExtension : PostCaptureProcessor {
   override fun process(context: ExtensionPostCaptureContext) {
     val rootDir = context.require(RenderArtifactContextKeys.RootDir)
     val outputBaseName = context.require(RenderArtifactContextKeys.OutputBaseName)
-    val semanticsRoot = context.require(RenderArtifactContextKeys.SemanticsRoot)
-    val slotTables = context.get(RenderArtifactContextKeys.SlotTables).orEmpty()
-    // Density (dp = px / density) only matters for resolving percent-based corner radii into dp on
-    // the per-node `tokens` (#1903); 1f keeps px-equals-dp captures intact.
-    val density = context.get(RenderArtifactContextKeys.Density) ?: 1f
-    val fontScale = context.get(RenderArtifactContextKeys.FontScale) ?: 1f
-    LayoutInspectorDataProducer.writeArtifacts(
-      rootDir = rootDir,
-      previewId = outputBaseName,
-      root = semanticsRoot,
-      slotTables = slotTables,
-      density = density,
-      fontScale = fontScale,
-    )
+    val payload = context.layoutInspectorPayload() ?: return
+    LayoutInspectorDataProducer.writePayload(rootDir, outputBaseName, payload)
   }
 
   companion object {

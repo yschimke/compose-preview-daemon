@@ -956,9 +956,19 @@ class RenderEngine(
       val semanticsRoot = state.scene.semanticsOwners.firstOrNull()?.unmergedRootSemanticsNode
       if (semanticsRoot != null && dataArtifactExtensions.isNotEmpty()) {
         val previewId = state.spec.previewId ?: state.spec.outputBaseName
+        val artifactSlotTables = state.slotTableCapture?.snapshot().orEmpty()
         val contextData =
           ExtensionContextData.of(
             *buildList {
+              add(
+                RenderArtifactContextKeys.LayoutSnapshot provides
+                  LayoutInspectorSnapshot(
+                    semanticsRoot,
+                    artifactSlotTables,
+                    state.spec.density,
+                    state.spec.fontScale ?: 1.0f,
+                  )
+              )
               add(RenderArtifactContextKeys.RootDir provides dataDir)
               add(RenderArtifactContextKeys.OutputBaseName provides state.spec.outputBaseName)
               // Thread the protocol previewId when present so extensions that key their dir off
@@ -967,10 +977,7 @@ class RenderEngine(
               state.spec.previewId?.let { add(RenderArtifactContextKeys.PreviewId provides it) }
               add(RenderArtifactContextKeys.SemanticsRoot provides semanticsRoot)
               add(RenderArtifactContextKeys.Density provides state.spec.density)
-              add(
-                RenderArtifactContextKeys.SlotTables provides
-                  state.slotTableCapture?.snapshot().orEmpty()
-              )
+              add(RenderArtifactContextKeys.SlotTables provides artifactSlotTables)
               add(RenderArtifactContextKeys.FontScale provides (state.spec.fontScale ?: 1.0f))
               add(RenderArtifactContextKeys.OutputPng provides state.outputFile)
               add(RenderArtifactContextKeys.RoundClip provides state.spec.isRoundComposePreview())

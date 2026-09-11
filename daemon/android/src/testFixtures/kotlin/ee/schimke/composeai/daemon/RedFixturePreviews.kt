@@ -1319,3 +1319,64 @@ fun BouncyCastleProviderSquare() {
   check(cipher.doFinal(encrypted).contentEquals(message))
   Box(modifier = Modifier.fillMaxSize().background(Color(0xFF66BB6A)))
 }
+
+/** Dense, fully composed dashboard for long-lived worker memory experiments. */
+@Composable
+fun DenseDashboardPreview() {
+  MaterialTheme {
+    Surface(Modifier.fillMaxSize()) {
+      Column(
+        Modifier.fillMaxSize().padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+      ) {
+        Text("Service overview", style = MaterialTheme.typography.headlineSmall)
+        Text("24 services · regional health and request volume")
+        repeat(12) { row ->
+          Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            repeat(2) { column ->
+              val service = row * 2 + column
+              Surface(
+                modifier = Modifier.weight(1f).testTag("service-$service"),
+                shape = RoundedCornerShape(8.dp),
+                tonalElevation = 2.dp,
+              ) {
+                Column(Modifier.padding(6.dp)) {
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                      Icons.Outlined.AccountCircle,
+                      contentDescription = "Service avatar",
+                      modifier = Modifier.size(20.dp),
+                    )
+                    Text("Region $service", style = MaterialTheme.typography.titleSmall)
+                  }
+                  Text(
+                    buildAnnotatedString {
+                      append("Requests ")
+                      withStyle(SpanStyle(color = Color(0xff1565c0))) {
+                        append("${1200 + service * 37}")
+                      }
+                    },
+                    fontSize = 11.sp,
+                  )
+                  Row(
+                    Modifier.fillMaxWidth().height(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.Bottom,
+                  ) {
+                    repeat(12) { bar ->
+                      Box(
+                        Modifier.weight(1f)
+                          .height((3 + (bar * 7 + service) % 10).dp)
+                          .background(Brush.verticalGradient(listOf(Color.Cyan, Color.Blue)))
+                      )
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "runs": [
+    {
+      "source": "daemon/android/build/growth-dense-256/summary.json",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-XX:+UseSerialGC",
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30"
+      ],
+      "dimensions": [
+        480,
+        1200
+      ],
+      "checkedFrames": 1101,
+      "withinRunParity": true,
+      "fixtureHashes": {
+        "RedSquare": {
+          "pngSha256": "32c435fa3075bb5452cf5a67968fc9cec6c704c6fa87dcde9498ea816ed5df85",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        "DenseDashboardPreview": {
+          "pngSha256": "e990b4e59d823f573c3c48f59185316aaa7dbf504b0d6928d0974991d08c9b3b",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        }
+      },
+      "forcedGcCheckpointEvery": 100,
+      "checkpoints": [
+        {
+          "renderIndex": 0,
+          "postGcHeapUsedKiB": 85136,
+          "metaspaceUsedKiB": 92298,
+          "VmHWM": 436308,
+          "VmRSS": 427516,
+          "RssAnon": 373108,
+          "RssFile": 51564,
+          "RssShmem": 2844,
+          "Pss": 406533,
+          "Private": 402052
+        },
+        {
+          "renderIndex": 100,
+          "postGcHeapUsedKiB": 71970,
+          "metaspaceUsedKiB": 94984,
+          "VmHWM": 535328,
+          "VmRSS": 533972,
+          "RssAnon": 479436,
+          "RssFile": 51692,
+          "RssShmem": 2844,
+          "Pss": 513105,
+          "Private": 508508
+        },
+        {
+          "renderIndex": 200,
+          "postGcHeapUsedKiB": 76097,
+          "metaspaceUsedKiB": 94955,
+          "VmHWM": 558268,
+          "VmRSS": 558268,
+          "RssAnon": 503732,
+          "RssFile": 51692,
+          "RssShmem": 2844,
+          "Pss": 537401,
+          "Private": 532804
+        },
+        {
+          "renderIndex": 300,
+          "postGcHeapUsedKiB": 80855,
+          "metaspaceUsedKiB": 95220,
+          "VmHWM": 575492,
+          "VmRSS": 575492,
+          "RssAnon": 520956,
+          "RssFile": 51692,
+          "RssShmem": 2844,
+          "Pss": 554626,
+          "Private": 550028
+        },
+        {
+          "renderIndex": 400,
+          "postGcHeapUsedKiB": 83207,
+          "metaspaceUsedKiB": 95306,
+          "VmHWM": 579728,
+          "VmRSS": 579728,
+          "RssAnon": 525192,
+          "RssFile": 51692,
+          "RssShmem": 2844,
+          "Pss": 558861,
+          "Private": 554264
+        },
+        {
+          "renderIndex": 500,
+          "postGcHeapUsedKiB": 75083,
+          "metaspaceUsedKiB": 95423,
+          "VmHWM": 585920,
+          "VmRSS": 585920,
+          "RssAnon": 531384,
+          "RssFile": 51692,
+          "RssShmem": 2844,
+          "Pss": 565054,
+          "Private": 560456
+        },
+        {
+          "renderIndex": 600,
+          "postGcHeapUsedKiB": 79441,
+          "metaspaceUsedKiB": 95441,
+          "VmHWM": 589784,
+          "VmRSS": 589784,
+          "RssAnon": 535248,
+          "RssFile": 51692,
+          "RssShmem": 2844,
+          "Pss": 568911,
+          "Private": 564316
+        },
+        {
+          "renderIndex": 700,
+          "postGcHeapUsedKiB": 84011,
+          "metaspaceUsedKiB": 95442,
+          "VmHWM": 595740,
+          "VmRSS": 590288,
+          "RssAnon": 535752,
+          "RssFile": 51692,
+          "RssShmem": 2844,
+          "Pss": 569415,
+          "Private": 564820
+        },
+        {
+          "renderIndex": 800,
+          "postGcHeapUsedKiB": 86076,
+          "metaspaceUsedKiB": 95555,
+          "VmHWM": 595740,
+          "VmRSS": 593484,
+          "RssAnon": 538948,
+          "RssFile": 51692,
+          "RssShmem": 2844,
+          "Pss": 572614,
+          "Private": 568016
+        },
+        {
+          "renderIndex": 900,
+          "postGcHeapUsedKiB": 78636,
+          "metaspaceUsedKiB": 95613,
+          "VmHWM": 599196,
+          "VmRSS": 593704,
+          "RssAnon": 539168,
+          "RssFile": 51692,
+          "RssShmem": 2844,
+          "Pss": 584935,
+          "Private": 584480
+        },
+        {
+          "renderIndex": 1000,
+          "postGcHeapUsedKiB": 82533,
+          "metaspaceUsedKiB": 95613,
+          "VmHWM": 599196,
+          "VmRSS": 593704,
+          "RssAnon": 539168,
+          "RssFile": 51692,
+          "RssShmem": 2844,
+          "Pss": 584935,
+          "Private": 584480
+        },
+        {
+          "renderIndex": 1100,
+          "postGcHeapUsedKiB": 87092,
+          "metaspaceUsedKiB": 95613,
+          "VmHWM": 599748,
+          "VmRSS": 593644,
+          "RssAnon": 539108,
+          "RssFile": 51692,
+          "RssShmem": 2844,
+          "Pss": 584875,
+          "Private": 584420
+        }
+      ],
+      "requestWindows": {
+        "first": {
+          "count": 100,
+          "medianWallMs": 2108.0,
+          "meanCpuMs": 2089.2
+        },
+        "last": {
+          "count": 100,
+          "medianWallMs": 2089.5,
+          "meanCpuMs": 2042.3
+        }
+      }
+    }
+  ],
+  "crossRunParity": true,
+  "experiment": {
+    "baselineCommit": "761fa91e",
+    "branchAtLaunch": "agent/startup-provider-overlap",
+    "fixture": "DenseDashboardPreview",
+    "fixtureAddedAfterBaselineCommit": true,
+    "heapMiB": 256,
+    "rendersAfterRed": 1100,
+    "widthPx": 480,
+    "heightPx": 1200,
+    "forcedGcCheckpointEvery": 100,
+    "heapHistograms": false,
+    "reuseOutput": false,
+    "java": "/usr/lib/jvm/java-17-openjdk/bin/java",
+    "classpath": "daemon/android/build/frozen-current-provider/constant-classpath.txt",
+    "preservedBaselineClasspath": "daemon/android/build/growth-baseline-artifacts/classpath.txt",
+    "note": "Running process predates the branch update to main a1d85201. No production snapshot optimization is present in its jars.",
+    "fixtureSourceSha256": "27ab0a097a144a529c3d577ed9bbf6236a551dcdadbffc5b4274ac9c8f46d79b"
+  },
+  "completed": true,
+  "totalWallMs": 2359041,
+  "totalWorkerCpuMs": 2278390.0,
+  "workloadEndMemoryKiB": {
+    "VmHWM": 599748,
+    "VmRSS": 593644,
+    "RssAnon": 539108,
+    "RssFile": 51692,
+    "RssShmem": 2844,
+    "Pss": 584875,
+    "Private": 584420
+  },
+  "notes": [
+    "One worker/trial; not a population memory bound.",
+    "Explicit GC checkpoints add diagnostic overhead.",
+    "Direct worker uses default heap free ratios, unlike normal spare launcher.",
+    "All data extractors enabled; fixture composes 24 cards, with 12 visible at this density.",
+    "Heap values are post-GC checkpoints, not peak Java-heap usage."
+  ]
+}
