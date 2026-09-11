@@ -19,20 +19,20 @@ parser.add_argument('--user-jar', type=Path, required=True)
 parser.add_argument('--java', required=True)
 parser.add_argument('--cpus', required=True, help='Comma-separated logical CPUs shared by both workers')
 parser.add_argument('--renders', type=int, default=60)
-parser.add_argument('--policy', choices=['allocator', 'compiler', 'metrics', 'trim', 'classpath'], default='allocator')
+parser.add_argument('--policy', choices=['allocator', 'compiler', 'metrics', 'trim', 'classpath', 'c1'], default='allocator')
 parser.add_argument('--font-cache', type=Path,
-    help='Existing warmed font cache; enables offline mode, required for metrics/trim/classpath policies')
+    help='Existing warmed font cache; enables offline mode, required for metrics/trim/classpath/c1 policies')
 args = parser.parse_args()
 if args.policy == 'classpath':
     if args.candidate_classpath is None or not args.candidate_classpath.is_file():
         parser.error('classpath policy requires an existing --candidate-classpath')
 elif args.candidate_classpath is not None:
     parser.error('--candidate-classpath requires --policy classpath')
-if args.policy in ('metrics', 'trim', 'classpath') and args.font_cache is None:
-    parser.error('metrics/trim/classpath policy requires a warmed --font-cache')
+if args.policy in ('metrics', 'trim', 'classpath', 'c1') and args.font_cache is None:
+    parser.error('metrics/trim/classpath/c1 policy requires a warmed --font-cache')
 if args.font_cache is not None and not args.font_cache.is_dir():
     parser.error('--font-cache must be an existing directory')
-if args.policy in ('metrics', 'trim', 'classpath'):
+if args.policy in ('metrics', 'trim', 'classpath', 'c1'):
     for face in ['roboto-400.woff2', 'roboto-500.woff2']:
         path = args.font_cache / face
         if not path.is_file() or path.read_bytes()[:4] != b'wOF2':
@@ -46,7 +46,7 @@ if any(os.environ.get(k) for k in ['GLIBC_TUNABLES','LD_PRELOAD','MALLOC_ARENA_M
 args.output.mkdir(parents=True, exist_ok=False)
 reference = None
 rows = []
-candidate = {'allocator':'arena2','compiler':'compiler2','metrics':'metrics5','trim':'metrics5trim','classpath':'candidate'}[args.policy]
+candidate = {'allocator':'arena2','compiler':'compiler2','metrics':'metrics5','trim':'metrics5trim','classpath':'candidate','c1':'c1'}[args.policy]
 for trial in range(3):
     for variant in (['default',candidate] if trial % 2 == 0 else [candidate,'default']):
         directory = args.output / f'{trial}-{variant}'
@@ -73,13 +73,15 @@ for trial in range(3):
                     '--memory','--output',str(output.resolve())]
                 command += ['--jvm-arg='+f for f in ['-Xmx256m','-Xms32m','-XX:+UseSerialGC',
                     '-XX:MinHeapFreeRatio=10','-XX:MaxHeapFreeRatio=30']]
-                if variant == 'compiler2' or args.policy in ('metrics', 'trim', 'classpath'):
+                if variant == 'c1':
+                    command.append('--jvm-arg=-XX:TieredStopAtLevel=1')
+                if variant == 'compiler2' or args.policy in ('metrics', 'trim', 'classpath', 'c1'):
                     command.append('--jvm-arg=-XX:CICompilerCount=2')
-                if args.policy in ('metrics', 'trim', 'classpath'):
-                    cadence = 5 if variant == 'metrics5' or args.policy in ('trim', 'classpath') else 1
+                if args.policy in ('metrics', 'trim', 'classpath', 'c1'):
+                    cadence = 5 if variant == 'metrics5' or args.policy in ('trim', 'classpath', 'c1') else 1
                     command.append(f'--jvm-arg=-Dcomposeai.daemon.metrics.everyRenders={cadence}')
-                if args.policy in ('trim', 'classpath'):
-                    interval = 15000 if args.policy == 'classpath' else (5000 if variant == 'metrics5trim' else 0)
+                if args.policy in ('trim', 'classpath', 'c1'):
+                    interval = 15000 if args.policy in ('classpath', 'c1') else (5000 if variant == 'metrics5trim' else 0)
                     command += [f'--jvm-arg=-XX:TrimNativeHeapInterval={interval}',
                         '--jvm-arg=-Xlog:trimnative=debug', '--jvm-arg=-Xlog:gc*=info']
                 if args.font_cache is not None:
