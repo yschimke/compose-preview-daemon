@@ -154,6 +154,34 @@ class DaemonLaunchPlanGoldenTest {
     assertThat(plan.describe().mainClass).isEqualTo(DaemonLaunchPlan.DAEMON_MAIN_CLASS)
   }
 
+  @Test
+  fun `android compiler default reaches spares and explicit descriptors retain control`() {
+    val descriptor =
+      DaemonLaunchPlan(
+          backend = DaemonBackend.Android(androidJar = File("/sdk/android.jar")),
+          applicationClasspath = emptyList(),
+          runtime = fakeRuntime(),
+          workingDirectory = temp.newFolder("compiler-policy"),
+        )
+        .describe()
+    val flag = "-XX:CICompilerCount="
+    assertThat(descriptor.jvmArgs.filter { it.startsWith(flag) }).containsExactly("${flag}2")
+    assertThat(RobolectricLaunch.jvmArgs().any { it.startsWith(flag) }).isFalse()
+    SandboxSparePool(config = SandboxSparePool.Config(maxSpares = 0), log = {}).use { pool ->
+      assertThat(pool.spareCommand(descriptor, archiveSlot = 0).filter { it.startsWith(flag) })
+        .containsExactly("${flag}2")
+      val explicit =
+        descriptor.copy(jvmArgs = descriptor.jvmArgs.filterNot { it.startsWith(flag) } + "${flag}4")
+      assertThat(pool.spareCommand(explicit, archiveSlot = 0).filter { it.startsWith(flag) })
+        .containsExactly("${flag}4")
+      assertThat(pool.signatureOf(explicit)).isNotEqualTo(pool.signatureOf(descriptor))
+      val ergonomic =
+        descriptor.copy(jvmArgs = descriptor.jvmArgs.filterNot { it.startsWith(flag) })
+      assertThat(pool.spareCommand(ergonomic, archiveSlot = 0).any { it.startsWith(flag) })
+        .isFalse()
+    }
+  }
+
   private fun fakeRuntime(): DaemonRuntimeLocation = DaemonRuntimeLocation { artifact ->
     when (artifact) {
       DaemonRuntimeArtifact.DAEMON_DESKTOP -> listOf(File("/runtime/daemon-desktop.jar"))

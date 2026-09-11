@@ -357,6 +357,14 @@ type exists to remove:
   running) rather than why: EOF on a pipe does not carry a reason, and inventing one would be the
   library guessing on the application's behalf.
 
+### Android compiler budget
+
+Generated Android launch plans include a two-thread compiler default to reduce
+worker CPU and memory. This is an overridable descriptor policy, not a shared
+Robolectric requirement: desktop and standalone Robolectric launch arguments stay
+unchanged. See [the measurements and descriptor override examples](../daemon/ANDROID-COMPILER-DEFAULT.md)
+for the JDK-specific latency tradeoff and how to restore JVM ergonomics.
+
 ## Status
 
 | piece | state |

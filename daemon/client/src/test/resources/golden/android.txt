@@ -19,6 +19,7 @@ jvmArgs:
   --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
   --add-opens=java.base/java.nio=ALL-UNNAMED
   --add-opens=java.base/jdk.internal.access=ALL-UNNAMED
+  -XX:CICompilerCount=2
 systemProperties:
   composeai.daemon.userClassDirs=/app/classes
   composeai.fonts.cacheDir=<fontsCache>
