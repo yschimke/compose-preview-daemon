@@ -1327,7 +1327,9 @@ internal object ModifierTokenResolver {
 
   private fun fieldValues(target: Any): List<Any> = runCatching {
     target.javaClass.declaredFields.mapNotNull { field ->
-      runCatching { field.apply { isAccessible = true }.get(target) }.getOrNull()
+      // Encapsulated JDK fields are expected in captured values (String, boxed primitives).
+      // Preserve the unreadable-field fallback without allocating an exception for every probe.
+      runCatching { if (field.trySetAccessible()) field.get(target) else null }.getOrNull()
     }
   }
     .getOrDefault(emptyList())

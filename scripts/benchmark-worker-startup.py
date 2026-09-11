@@ -7,6 +7,7 @@ folder; compare unprofiled trials separately from instrumented diagnostics.
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import queue
@@ -52,6 +53,8 @@ def main():
         help="After timings, check configure/swap and recovery from a throwing composable")
     parser.add_argument("--width", type=int, default=320)
     parser.add_argument("--height", type=int, default=320)
+    parser.add_argument("--density", type=float, default=2.0,
+        help="Pixel density (default: 2, matching historical RenderSpec requests)")
     parser.add_argument("--gc-checkpoint-every", type=int, default=0,
         help="Diagnostic only: force GC and record heap/PSS every N renders; timings include checkpoint overhead")
     parser.add_argument("--heap-histograms", action="store_true",
@@ -72,6 +75,8 @@ def main():
         parser.error("user class paths must exist")
     if args.heap_histograms and not args.gc_checkpoint_every:
         parser.error("--heap-histograms requires --gc-checkpoint-every")
+    if not math.isfinite(args.density) or args.density <= 0:
+        parser.error("density must be finite and positive")
     if args.width < 1 or args.height < 1 or args.gc_checkpoint_every < 0:
         parser.error("dimensions must be positive and checkpoint interval nonnegative")
     fixtures = args.fixture or ["MaterialButtonInteractionState"]
@@ -100,7 +105,7 @@ def main():
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     (output / "worker.pid").write_text(str(process.pid) + "\n")
     summary = {"memoryMeasured": args.memory, "java": args.java, "jvmArgs": args.jvm_arg, "profiled": bool(args.profiler),
-        "dimensions": [args.width, args.height], "gcCheckpointEvery": args.gc_checkpoint_every, "heapHistograms": args.heap_histograms, "heapCheckpoints": [], "reuseOutput": args.reuse_output, "fixtureClass": args.class_name, "swapEvery": args.swap_every, "userClassDirs": [str(p.resolve()) for p in args.user_class_dir], "fixtures": fixtures, "startedUnixSeconds": time.time(),
+        "dimensions": [args.width, args.height], "density": args.density, "gcCheckpointEvery": args.gc_checkpoint_every, "heapHistograms": args.heap_histograms, "heapCheckpoints": [], "reuseOutput": args.reuse_output, "fixtureClass": args.class_name, "swapEvery": args.swap_every, "userClassDirs": [str(p.resolve()) for p in args.user_class_dir], "fixtures": fixtures, "startedUnixSeconds": time.time(),
         "hostLoadAverage": os.getloadavg(), "logicalCpus": os.cpu_count(), "renders": []}
 
     def pump():
@@ -189,7 +194,7 @@ def main():
                 reply = request({"type": "render", "id": index, "timeoutMs": 120000,
                     "target": {"type": "spec", "spec": {
                         "className": "ee.schimke.composeai.daemon.RedFixturePreviewsKt" if index == 0 else args.class_name,
-                        "functionName": function, "widthPx": args.width, "heightPx": args.height,
+                        "functionName": function, "widthPx": args.width, "heightPx": args.height, "density": args.density,
                         "outputBaseName": tag,
                     }}})
                 wall_ms = round((time.monotonic() - before) * 1000)
@@ -254,7 +259,7 @@ def main():
                     reply = request({"type": "render", "id": args.renders + 1 + offset,
                         "timeoutMs": 120000, "target": {"type": "spec", "spec": {
                             "className": "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
-                            "functionName": function, "widthPx": args.width, "heightPx": args.height,
+                            "functionName": function, "widthPx": args.width, "heightPx": args.height, "density": args.density,
                             "outputBaseName": tag,
                         }}})
                     if function == "BoomComposable":

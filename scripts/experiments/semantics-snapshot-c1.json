@@ -1,0 +1,16 @@
+[
+  {
+    "name": "baseline",
+    "classpath": "daemon/android/build/locale-weak-frozen/classpath.txt",
+    "jvmArgs": [
+      "-XX:TieredStopAtLevel=1"
+    ]
+  },
+  {
+    "name": "shared-semantics",
+    "classpath": "daemon/android/build/semantics-candidate-frozen/classpath.txt",
+    "jvmArgs": [
+      "-XX:TieredStopAtLevel=1"
+    ]
+  }
+]

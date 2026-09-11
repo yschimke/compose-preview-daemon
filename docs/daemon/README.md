@@ -100,3 +100,13 @@ the CI-canonical render path.
 - Tier-3 dependency-graph reachability index — v1 ships with
   conservative "module-changed = all previews stale, filtered by
   visibility."
+
+
+### Capture CPU experiments
+
+- [Shared semantics projections](BOOT-SEMANTICS-SNAPSHOT-EXPERIMENT.md): output parity,
+  JVM-profile sensitivity and application-loader lifetime checks.
+- [Inspector identity patterns](BOOT-INSPECTOR-IDENTITY-EXPERIMENT.md): exact pattern
+  reuse and fast rejection of values that cannot contain runtime identities.
+- [Inspector field access](BOOT-INSPECTOR-ACCESS-EXPERIMENT.md): avoid exceptions for
+  expected unreadable fields; follow the report for validation status.

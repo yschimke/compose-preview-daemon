@@ -46,16 +46,10 @@ class ComposeSemanticsWireframeExtension(
     // Key off the protocol previewId when present, falling back to the renderer output base name —
     // matching the file-backed registry lookup (`data/fetch` resolves `<rootDir>/<previewId>/`).
     val previewId = context.get(RenderArtifactContextKeys.PreviewId) ?: outputBaseName
-    val semanticsRoot = context.require(RenderArtifactContextKeys.SemanticsRoot)
     val payload =
-      if (densityAware) {
-        ComposeSemanticsDataProducer.buildPayload(
-          semanticsRoot,
-          context.get(RenderArtifactContextKeys.Density) ?: 1f,
-        )
-      } else {
-        ComposeSemanticsDataProducer.buildPayload(semanticsRoot)
-      }
+      context.semanticsPayload(
+        if (densityAware) context.get(RenderArtifactContextKeys.Density) ?: 1f else null
+      )
     ComposeSemanticsWireframeDataProducer.writeSvg(
       rootDir = rootDir,
       previewId = previewId,

@@ -31,7 +31,7 @@ def summarize(path):
             "metaspaceUsedKiB": int(metaspace[1]) if metaspace else None,
             **point["memoryKiB"]})
     result = {"source": str(path), "jvmArgs": report["jvmArgs"],
-        "dimensions": report.get("dimensions", [320, 320]),
+        "dimensions": report.get("dimensions", [320, 320]), "density": report.get("density", 2.0),
         "fixtureClass": report.get("fixtureClass", "ee.schimke.composeai.daemon.RedFixturePreviewsKt"),
         "checkedFrames": len(frames), "withinRunParity": True,
         "fixtureHashes": {name: {"pngSha256": hashes[0], "uiaSha256": hashes[1]}
@@ -58,7 +58,7 @@ def main():
     expected = {}
     for result in results:
         for fixture, hashes in result["fixtureHashes"].items():
-            key = (*result["dimensions"], result["fixtureClass"], fixture)
+            key = (*result["dimensions"], result["density"], result["fixtureClass"], fixture)
             if expected.setdefault(key, hashes) != hashes:
                 raise ValueError(f"cross-run output drift for {key}: {result['source']}")
     text = json.dumps({"runs": results, "crossRunParity": True}, indent=2) + "\n"

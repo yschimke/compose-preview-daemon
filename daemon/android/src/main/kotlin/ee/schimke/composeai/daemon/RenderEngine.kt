@@ -1070,6 +1070,10 @@ class RenderEngine(
               val artifactContextData =
                 buildList<ExtensionContextValue<*>> {
                   add(
+                    RenderArtifactContextKeys.SemanticsSnapshot provides
+                      ComposeSemanticsSnapshot(resolvedSemanticsRoot)
+                  )
+                  add(
                     RenderArtifactContextKeys.LayoutSnapshot provides
                       LayoutInspectorSnapshot(
                         resolvedSemanticsRoot,

@@ -1,0 +1,357 @@
+{
+  "baseline": {
+    "samplesByGroup": {
+      "application": 52203,
+      "compiler": 7938,
+      "gc": 7531,
+      "other": 1234
+    },
+    "threads": [
+      [
+        "SDK 35 Main Thr",
+        52334
+      ],
+      [
+        "C1 CompilerThre",
+        7938
+      ],
+      [
+        "GC Thread#0",
+        623
+      ],
+      [
+        "GC Thread#2",
+        617
+      ],
+      [
+        "GC Thread#1",
+        580
+      ],
+      [
+        "VM Thread",
+        530
+      ],
+      [
+        "GC Thread#3",
+        518
+      ],
+      [
+        "GC Thread#4",
+        490
+      ],
+      [
+        "GC Thread#6",
+        438
+      ],
+      [
+        "GC Thread#5",
+        438
+      ],
+      [
+        "GC Thread#17",
+        415
+      ],
+      [
+        "Sweeper thread",
+        390
+      ],
+      [
+        "GC Thread#16",
+        386
+      ],
+      [
+        "GC Thread#15",
+        366
+      ],
+      [
+        "GC Thread#7",
+        358
+      ],
+      [
+        "GC Thread#14",
+        354
+      ],
+      [
+        "GC Thread#8",
+        350
+      ],
+      [
+        "GC Thread#9",
+        330
+      ],
+      [
+        "GC Thread#10",
+        327
+      ],
+      [
+        "GC Thread#13",
+        299
+      ]
+    ],
+    "leaves": [
+      [
+        "/usr/lib/jvm/java-17-openjdk/lib/server/libjvm.so",
+        24980
+      ],
+      [
+        "/home/yuri/.cache/composeai/robolectric-native/sandbox-libraries/runtime-bf41586cbbc7152d-sdk35-linux-x86_64/jvm-13020baf6e634c868a5b6bdd118efc28/sandbox-8158902629737327266-libandroid_runtime.so",
+        3842
+      ],
+      [
+        "/usr/lib/jvm/java-17-openjdk/lib/libzip.so",
+        2614
+      ],
+      [
+        "g1_post_barrier_slow",
+        2436
+      ],
+      [
+        "/usr/lib/libc.so.6",
+        2413
+      ],
+      [
+        "java.util.regex.Pattern$Slice.match_[1]",
+        1779
+      ],
+      [
+        "java.lang.reflect.Method.copy_[1]",
+        1545
+      ],
+      [
+        "itable stub",
+        1363
+      ],
+      [
+        "WallClock::signalHandler",
+        1309
+      ],
+      [
+        "java.lang.Character.codePointBefore_[1]",
+        1242
+      ],
+      [
+        "java.awt.image.ComponentColorModel.getRGBComponent_[1]",
+        1105
+      ],
+      [
+        "java.lang.String.charAt_[1]",
+        1041
+      ],
+      [
+        "java.util.regex.Pattern$CharPropertyGreedy.match_[1]",
+        1038
+      ],
+      [
+        "java.lang.reflect.Method.<init>_[1]",
+        979
+      ],
+      [
+        "jbyte_disjoint_arraycopy",
+        875
+      ],
+      [
+        "java.lang.Character.codePointAt_[1]",
+        854
+      ],
+      [
+        "sun.awt.image.ByteInterleavedRaster.getDataElements_[1]",
+        847
+      ],
+      [
+        "java.awt.image.SinglePixelPackedSampleModel.getPixels_[1]",
+        742
+      ],
+      [
+        "com.sun.imageio.plugins.png.PNGImageWriter.encodePass_[1]",
+        700
+      ],
+      [
+        "VMMethod::id",
+        530
+      ]
+    ],
+    "totalCpuMs": 81440.0,
+    "workloadWindowUnixMs": [
+      1789115926999,
+      1789115984126
+    ]
+  },
+  "candidate": {
+    "samplesByGroup": {
+      "compiler": 7978,
+      "application": 49288,
+      "gc": 8240,
+      "other": 1299
+    },
+    "threads": [
+      [
+        "SDK 35 Main Thr",
+        49433
+      ],
+      [
+        "C1 CompilerThre",
+        7978
+      ],
+      [
+        "GC Thread#0",
+        556
+      ],
+      [
+        "GC Thread#1",
+        538
+      ],
+      [
+        "VM Thread",
+        538
+      ],
+      [
+        "GC Thread#2",
+        537
+      ],
+      [
+        "GC Thread#3",
+        478
+      ],
+      [
+        "Sweeper thread",
+        474
+      ],
+      [
+        "GC Thread#4",
+        462
+      ],
+      [
+        "GC Thread#5",
+        450
+      ],
+      [
+        "GC Thread#8",
+        439
+      ],
+      [
+        "GC Thread#9",
+        404
+      ],
+      [
+        "GC Thread#7",
+        393
+      ],
+      [
+        "GC Thread#6",
+        392
+      ],
+      [
+        "GC Thread#10",
+        392
+      ],
+      [
+        "GC Thread#12",
+        385
+      ],
+      [
+        "GC Thread#17",
+        359
+      ],
+      [
+        "GC Thread#11",
+        357
+      ],
+      [
+        "GC Thread#14",
+        353
+      ],
+      [
+        "GC Thread#13",
+        352
+      ]
+    ],
+    "leaves": [
+      [
+        "/usr/lib/jvm/java-17-openjdk/lib/server/libjvm.so",
+        24459
+      ],
+      [
+        "/home/yuri/.cache/composeai/robolectric-native/sandbox-libraries/runtime-bf41586cbbc7152d-sdk35-linux-x86_64/jvm-811fd161a07445beb29ba5abcd9ac692/sandbox-15595484290051254054-libandroid_runtime.so",
+        4059
+      ],
+      [
+        "/usr/lib/jvm/java-17-openjdk/lib/libzip.so",
+        2734
+      ],
+      [
+        "g1_post_barrier_slow",
+        2404
+      ],
+      [
+        "/usr/lib/libc.so.6",
+        2313
+      ],
+      [
+        "java.util.regex.Pattern$Slice.match_[1]",
+        1776
+      ],
+      [
+        "java.lang.reflect.Method.copy_[1]",
+        1357
+      ],
+      [
+        "itable stub",
+        1334
+      ],
+      [
+        "java.lang.Character.codePointBefore_[1]",
+        1329
+      ],
+      [
+        "java.awt.image.ComponentColorModel.getRGBComponent_[1]",
+        1092
+      ],
+      [
+        "java.lang.String.charAt_[1]",
+        1050
+      ],
+      [
+        "java.lang.reflect.Method.<init>_[1]",
+        1020
+      ],
+      [
+        "java.util.regex.Pattern$CharPropertyGreedy.match_[1]",
+        971
+      ],
+      [
+        "java.lang.Character.codePointAt_[1]",
+        882
+      ],
+      [
+        "jbyte_disjoint_arraycopy",
+        844
+      ],
+      [
+        "java.awt.image.SinglePixelPackedSampleModel.getPixels_[1]",
+        794
+      ],
+      [
+        "sun.awt.image.ByteInterleavedRaster.getDataElements_[1]",
+        760
+      ],
+      [
+        "com.sun.imageio.plugins.png.PNGImageWriter.encodePass_[1]",
+        664
+      ],
+      [
+        "WallClock::signalHandler",
+        663
+      ],
+      [
+        "java.lang.String.equals_[1]",
+        545
+      ]
+    ],
+    "totalCpuMs": 79650.0,
+    "workloadWindowUnixMs": [
+      1789116013924,
+      1789116068069
+    ]
+  },
+  "note": "Diagnostic runs: C1 only, G1 1 GiB, 36 dense renders after red, async-profiler 4.5 ctimer 1 ms and wall 1 ms, plus GC logs. Counts are CPU samples after ready; do not compare profiled wall time with unprofiled trials. This pair does not reproduce the high-CPU unprofiled outliers."
+}

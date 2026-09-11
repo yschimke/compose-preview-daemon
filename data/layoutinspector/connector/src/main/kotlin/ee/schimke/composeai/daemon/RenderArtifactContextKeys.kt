@@ -19,6 +19,13 @@ import java.io.File
  * by-value (name + type), so populating one and reading the other resolves regardless.
  */
 object RenderArtifactContextKeys {
+  /** Per-capture semantics projections; never retained between renders. */
+  val SemanticsSnapshot: ExtensionContextKey<ComposeSemanticsSnapshot> =
+    ExtensionContextKey(
+      name = "render-data-artifact.semanticsSnapshot",
+      type = ComposeSemanticsSnapshot::class.java,
+    )
+
   /**
    * Fresh for each capture; shares the layout walk across products without a cross-render cache.
    */

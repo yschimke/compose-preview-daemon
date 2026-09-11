@@ -39,7 +39,6 @@ class ComposeFigmaSvgExtension(private val fontResolver: () -> FigmaFontResolver
     // breakpoints can render the same previewId into several outputBaseName variants; reusing the
     // function-level previewId directory would replay one captured tree into every SVG path.
     val previewId = outputBaseName
-    val semanticsRoot = context.require(RenderArtifactContextKeys.SemanticsRoot)
     val density = context.get(RenderArtifactContextKeys.Density) ?: 1f
     val fontScale = context.get(RenderArtifactContextKeys.FontScale) ?: 1f
     val frameImage = context.get(RenderArtifactContextKeys.OutputPng)
@@ -55,7 +54,7 @@ class ComposeFigmaSvgExtension(private val fontResolver: () -> FigmaFontResolver
     // See [RenderArtifactContextKeys.SvgBackgroundMode].
     val backgroundMode = context.get(RenderArtifactContextKeys.SvgBackgroundMode)
     val layout = context.layoutInspectorPayload() ?: return
-    val semantics = ComposeSemanticsDataProducer.buildPayload(semanticsRoot, density)
+    val semantics = context.semanticsPayload(density)
     ComposeFigmaSvgDataProducer.writeSvg(
       rootDir = rootDir,
       previewId = previewId,

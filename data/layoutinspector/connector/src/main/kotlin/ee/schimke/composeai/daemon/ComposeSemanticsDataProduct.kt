@@ -193,8 +193,16 @@ object ComposeSemanticsDataProducer {
     fileSystem: FileSystem = SystemFileSystem,
     density: Float? = null,
   ) {
+    writePayload(rootDir, previewId, buildPayload(root, density), fileSystem)
+  }
+
+  internal fun writePayload(
+    rootDir: File,
+    previewId: String,
+    payload: ComposeSemanticsPayload,
+    fileSystem: FileSystem = SystemFileSystem,
+  ) {
     val previewDir = rootDir.resolve(previewId).also { it.mkdirs() }
-    val payload = buildPayload(root, density)
     fileSystem.write(previewDir.resolve(FILE).path.toPath()) {
       writeUtf8(json.encodeToString(ComposeSemanticsPayload.serializer(), payload))
     }
@@ -1875,23 +1883,36 @@ internal object ComposeLayoutInspector {
       .joinToString(prefix = "{", postfix = "}") { (key, value) -> "$key=$value" }
 
   private fun String.canonicalizeJvmRuntimeIdentity(wholeValueOnly: Boolean = false): String {
-    val anchor = if (wholeValueOnly) "^" to "\$" else "" to ""
-    return replace(
-        Regex(
-          """${anchor.first}(.+\${'$'}\${'$'}Lambda)/0x[0-9a-fA-F]+@[0-9a-fA-F]{1,16}${anchor.second}"""
-        ),
-        "${'$'}1/<address>@<identity>",
-      )
-      .replace(
-        Regex("""${anchor.first}(.+\${'$'}\${'$'}Lambda)/0x[0-9a-fA-F]+${anchor.second}"""),
-        "${'$'}1/<address>",
-      )
-      .replace(
-        Regex(
-          """${anchor.first}([A-Za-z_][\w$]*(?:\.[A-Za-z_][\w$]*)+)@[0-9a-fA-F]{1,16}${anchor.second}"""
-        ),
-        "${'$'}1@<identity>",
-      )
+    val hasLambdaAddress = contains("\$\$Lambda/0x")
+    if (!hasLambdaAddress && '@' !in this) return this
+    val patterns =
+      if (wholeValueOnly) RuntimeIdentityPatterns.whole else RuntimeIdentityPatterns.embedded
+    var result = this
+    if (hasLambdaAddress) {
+      result =
+        result
+          .replace(patterns.lambdaWithIdentity, "${'$'}1/<address>@<identity>")
+          .replace(patterns.lambdaAddress, "${'$'}1/<address>")
+    }
+    return if ('@' in result) result.replace(patterns.objectIdentity, "${'$'}1@<identity>")
+    else result
+  }
+
+  // Patterns contain no application objects/classes. Reuse compilation without retaining a
+  // rendered value or a reloadable classloader. Preserve the established matching rules exactly.
+  private class RuntimeIdentityPatternSet(wholeValueOnly: Boolean) {
+    private val start = if (wholeValueOnly) "^" else ""
+    private val end = if (wholeValueOnly) "\$" else ""
+    val lambdaWithIdentity =
+      Regex("""${start}(.+\${'$'}\${'$'}Lambda)/0x[0-9a-fA-F]+@[0-9a-fA-F]{1,16}${end}""")
+    val lambdaAddress = Regex("""${start}(.+\${'$'}\${'$'}Lambda)/0x[0-9a-fA-F]+${end}""")
+    val objectIdentity =
+      Regex("""${start}([A-Za-z_][\w$]*(?:\.[A-Za-z_][\w$]*)+)@[0-9a-fA-F]{1,16}${end}""")
+  }
+
+  private object RuntimeIdentityPatterns {
+    val whole = RuntimeIdentityPatternSet(wholeValueOnly = true)
+    val embedded = RuntimeIdentityPatternSet(wholeValueOnly = false)
   }
 
   /**

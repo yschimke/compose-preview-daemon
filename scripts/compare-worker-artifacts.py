@@ -12,11 +12,14 @@ import re
 from pathlib import Path
 
 
-def normalize_lambdas(value, path=(), lambda_ids=True, semantics_order=False):
+def normalize_lambdas(value, path=(), lambda_ids=True, semantics_order=False, typeface_ids=False):
     if isinstance(value, dict):
-        return {key: normalize_lambdas(item, (*path, key), lambda_ids, semantics_order) for key, item in value.items()}
+        return {key: normalize_lambdas(item, (*path, key), lambda_ids, semantics_order, typeface_ids) for key, item in value.items()}
     if isinstance(value, list):
-        return [normalize_lambdas(item, path, lambda_ids, semantics_order) for item in value]
+        return [normalize_lambdas(item, path, lambda_ids, semantics_order, typeface_ids) for item in value]
+    if (typeface_ids and path == ("fonts", "resolvedFamily") and isinstance(value, str)
+            and re.fullmatch(r"android\.graphics\.Typeface@[0-9a-f]+", value)):
+        return "android.graphics.Typeface@<process-identity>"
     if isinstance(value, str) and "modifiers" in path and "properties" in path:
         match = re.fullmatch(r"([\w.$]+)\$\$Lambda\$\d+/0x[0-9a-fA-F]+@[0-9a-fA-F]+", value)
         if match and lambda_ids:
@@ -30,7 +33,7 @@ def normalize_lambdas(value, path=(), lambda_ids=True, semantics_order=False):
     return value
 
 
-def compare(baseline, candidate, artifacts, normalize_jvm_lambdas=False, normalize_semantics_debug_order=False):
+def compare(baseline, candidate, artifacts, normalize_jvm_lambdas=False, normalize_semantics_debug_order=False, normalize_typeface_identities=False):
     reports = [json.loads((root / "summary.json").read_text()) for root in (baseline, candidate)]
     left, right = reports
     default_class = "ee.schimke.composeai.daemon.RedFixturePreviewsKt"
@@ -38,6 +41,8 @@ def compare(baseline, candidate, artifacts, normalize_jvm_lambdas=False, normali
         raise ValueError("fixture classes differ")
     if left.get("dimensions", [320, 320]) != right.get("dimensions", [320, 320]):
         raise ValueError("frame dimensions differ")
+    if left.get("density", 2.0) != right.get("density", 2.0):
+        raise ValueError("frame densities differ")
     if left.get("reuseOutput") or right.get("reuseOutput"):
         raise ValueError("per-frame data comparison requires distinct output names")
     frames = [report["renders"] for report in reports]
@@ -48,6 +53,7 @@ def compare(baseline, candidate, artifacts, normalize_jvm_lambdas=False, normali
         raise ValueError("repeated output names cannot prove per-frame artifact parity")
     checked = 0
     normalized_artifacts = 0
+    normalized_names = {}
     for first, second in zip(*frames):
         tag = first["tag"]
         for key in ("pngSha256", "uiaSha256"):
@@ -57,17 +63,18 @@ def compare(baseline, candidate, artifacts, normalize_jvm_lambdas=False, normali
             paths = [root / "data" / tag / name for root in (baseline, candidate)]
             hashes = [hashlib.sha256(path.read_bytes()).digest() for path in paths]
             if hashes[0] != hashes[1]:
-                equivalent = ((normalize_jvm_lambdas or normalize_semantics_debug_order) and name.endswith(".json") and
-                    normalize_lambdas(json.loads(paths[0].read_text()), lambda_ids=normalize_jvm_lambdas, semantics_order=normalize_semantics_debug_order) ==
-                    normalize_lambdas(json.loads(paths[1].read_text()), lambda_ids=normalize_jvm_lambdas, semantics_order=normalize_semantics_debug_order))
+                equivalent = ((normalize_jvm_lambdas or normalize_semantics_debug_order or normalize_typeface_identities) and name.endswith(".json") and
+                    normalize_lambdas(json.loads(paths[0].read_text()), lambda_ids=normalize_jvm_lambdas, semantics_order=normalize_semantics_debug_order, typeface_ids=normalize_typeface_identities and name == "fonts-used.json") ==
+                    normalize_lambdas(json.loads(paths[1].read_text()), lambda_ids=normalize_jvm_lambdas, semantics_order=normalize_semantics_debug_order, typeface_ids=normalize_typeface_identities and name == "fonts-used.json"))
                 if equivalent:
                     normalized_artifacts += 1
+                    normalized_names[name] = normalized_names.get(name, 0) + 1
                 if not equivalent:
                     raise ValueError(f"{tag}: {name} differs")
             checked += 1
     return {"baseline": str(baseline), "candidate": str(candidate),
         "checkedFrames": len(frames[0]), "checkedDataArtifacts": checked,
-        "artifacts": artifacts, "normalizedJvmLambdas": normalize_jvm_lambdas, "normalizedSemanticsDebugOrder": normalize_semantics_debug_order, "normalizedArtifactComparisons": normalized_artifacts, "parity": True}
+        "artifacts": artifacts, "normalizedJvmLambdas": normalize_jvm_lambdas, "normalizedSemanticsDebugOrder": normalize_semantics_debug_order, "normalizedTypefaceIdentities": normalize_typeface_identities, "normalizedArtifactComparisons": normalized_artifacts, "normalizedArtifactNames": normalized_names, "parity": True}
 
 
 def main():
@@ -80,12 +87,14 @@ def main():
         help="Ignore JVM-generated lambda class numbers and object addresses in JSON strings")
     parser.add_argument("--normalize-semantics-debug-order", action="store_true",
         help="Canonicalize only Role/ContentDescription order in diagnostic modifier strings")
+    parser.add_argument("--normalize-typeface-identities", action="store_true",
+        help="Ignore only Android Typeface object identities in fonts-used.json resolvedFamily fields")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     artifacts = args.artifact or ["layout-inspector.json", "compose-figma.svg", "compose-semantics.json"]
     if any(Path(name).name != name or name in (".", "..") for name in artifacts):
         parser.error("--artifact must be a filename")
-    text = json.dumps(compare(args.baseline, args.candidate, artifacts, args.normalize_jvm_lambdas, args.normalize_semantics_debug_order), indent=2) + "\n"
+    text = json.dumps(compare(args.baseline, args.candidate, artifacts, args.normalize_jvm_lambdas, args.normalize_semantics_debug_order, args.normalize_typeface_identities), indent=2) + "\n"
     if args.output:
         args.output.write_text(text)
     print(text, end="")
