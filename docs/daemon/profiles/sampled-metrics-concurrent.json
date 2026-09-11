@@ -1,0 +1,2588 @@
+{
+  "source": "daemon/android/build/sampled-metrics-concurrent",
+  "cpuAffinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "workersPerGroup": 2,
+  "rendersPerWorker": 60,
+  "fontCache": "daemon/android/build/bulk-font-cache",
+  "fontOffline": true,
+  "compilerThreads": 2,
+  "trials": 3,
+  "method": "Two concurrent workers sharing CPUs 0,1,2,3 (different physical cores), each with 60 actual reloads and 256 MiB Serial heap/Xms32m. All other local benchmarks/builds stopped. Cores are not exclusive; host load is uncontrolled. PSS is sampled sequentially across both live workers once per second. Max observed sum is not an exact peak. End-of-workload CPU excludes shutdown; group elapsed includes startup, shutdown and up to one sampling interval of polling delay. No NMT, forced checkpoint GC or profiler.",
+  "rows": [
+    {
+      "policy": "metrics",
+      "trial": 0,
+      "variant": "default",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 38480,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 118300.0,
+      "peakObservedConcurrentPssKiB": 1193845,
+      "minorFaults": 429254,
+      "majorFaults": 31,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 5398,
+          "totalWallMs": 37414,
+          "totalCpuMs": 58460.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 640040,
+            "VmRSS": 640040,
+            "RssAnon": 583824,
+            "RssFile": 54072,
+            "RssShmem": 2144,
+            "Pss": 611074,
+            "Private": 596724
+          },
+          "workloadEndFaults": {
+            "minor": 123535,
+            "major": 17
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=1",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5360,
+          "totalWallMs": 37420,
+          "totalCpuMs": 59840.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 611776,
+            "VmRSS": 588920,
+            "RssAnon": 532972,
+            "RssFile": 53804,
+            "RssShmem": 2144,
+            "Pss": 559923,
+            "Private": 545556
+          },
+          "workloadEndFaults": {
+            "minor": 305719,
+            "major": 14
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=1",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1016,
+          "pssKiB": [
+            108656,
+            115762
+          ]
+        },
+        {
+          "elapsedMs": 2022,
+          "pssKiB": [
+            176317,
+            183323
+          ]
+        },
+        {
+          "elapsedMs": 3029,
+          "pssKiB": [
+            261511,
+            269909
+          ]
+        },
+        {
+          "elapsedMs": 4038,
+          "pssKiB": [
+            313015,
+            329709
+          ]
+        },
+        {
+          "elapsedMs": 5049,
+          "pssKiB": [
+            391697,
+            380558
+          ]
+        },
+        {
+          "elapsedMs": 6059,
+          "pssKiB": [
+            419948,
+            411197
+          ]
+        },
+        {
+          "elapsedMs": 7071,
+          "pssKiB": [
+            458424,
+            450369
+          ]
+        },
+        {
+          "elapsedMs": 8082,
+          "pssKiB": [
+            483424,
+            446897
+          ]
+        },
+        {
+          "elapsedMs": 9094,
+          "pssKiB": [
+            490540,
+            478293
+          ]
+        },
+        {
+          "elapsedMs": 10106,
+          "pssKiB": [
+            497024,
+            459985
+          ]
+        },
+        {
+          "elapsedMs": 11119,
+          "pssKiB": [
+            504860,
+            493685
+          ]
+        },
+        {
+          "elapsedMs": 12130,
+          "pssKiB": [
+            508154,
+            497187
+          ]
+        },
+        {
+          "elapsedMs": 13142,
+          "pssKiB": [
+            511690,
+            500291
+          ]
+        },
+        {
+          "elapsedMs": 14154,
+          "pssKiB": [
+            513862,
+            493123
+          ]
+        },
+        {
+          "elapsedMs": 15167,
+          "pssKiB": [
+            517218,
+            495971
+          ]
+        },
+        {
+          "elapsedMs": 16182,
+          "pssKiB": [
+            562382,
+            539243
+          ]
+        },
+        {
+          "elapsedMs": 17196,
+          "pssKiB": [
+            566398,
+            547627
+          ]
+        },
+        {
+          "elapsedMs": 18211,
+          "pssKiB": [
+            567634,
+            554411
+          ]
+        },
+        {
+          "elapsedMs": 19224,
+          "pssKiB": [
+            569790,
+            556419
+          ]
+        },
+        {
+          "elapsedMs": 20238,
+          "pssKiB": [
+            571282,
+            564867
+          ]
+        },
+        {
+          "elapsedMs": 21251,
+          "pssKiB": [
+            573210,
+            568175
+          ]
+        },
+        {
+          "elapsedMs": 22265,
+          "pssKiB": [
+            573634,
+            568719
+          ]
+        },
+        {
+          "elapsedMs": 23278,
+          "pssKiB": [
+            574230,
+            570347
+          ]
+        },
+        {
+          "elapsedMs": 24292,
+          "pssKiB": [
+            575586,
+            571399
+          ]
+        },
+        {
+          "elapsedMs": 25306,
+          "pssKiB": [
+            577026,
+            572867
+          ]
+        },
+        {
+          "elapsedMs": 26320,
+          "pssKiB": [
+            578446,
+            574355
+          ]
+        },
+        {
+          "elapsedMs": 27336,
+          "pssKiB": [
+            579502,
+            575483
+          ]
+        },
+        {
+          "elapsedMs": 28351,
+          "pssKiB": [
+            581066,
+            552971
+          ]
+        },
+        {
+          "elapsedMs": 29367,
+          "pssKiB": [
+            604554,
+            557967
+          ]
+        },
+        {
+          "elapsedMs": 30381,
+          "pssKiB": [
+            604938,
+            567887
+          ]
+        },
+        {
+          "elapsedMs": 31395,
+          "pssKiB": [
+            605766,
+            568747
+          ]
+        },
+        {
+          "elapsedMs": 32408,
+          "pssKiB": [
+            607258,
+            579879
+          ]
+        },
+        {
+          "elapsedMs": 33422,
+          "pssKiB": [
+            608030,
+            580859
+          ]
+        },
+        {
+          "elapsedMs": 34437,
+          "pssKiB": [
+            608862,
+            581971
+          ]
+        },
+        {
+          "elapsedMs": 35451,
+          "pssKiB": [
+            610086,
+            582867
+          ]
+        },
+        {
+          "elapsedMs": 36465,
+          "pssKiB": [
+            610814,
+            583031
+          ]
+        },
+        {
+          "elapsedMs": 37480,
+          "pssKiB": [
+            611074,
+            559923
+          ]
+        }
+      ]
+    },
+    {
+      "policy": "metrics",
+      "trial": 0,
+      "variant": "metrics5",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 32411,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 105980.0,
+      "peakObservedConcurrentPssKiB": 1290440,
+      "minorFaults": 262261,
+      "majorFaults": 19,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 5359,
+          "totalWallMs": 31647,
+          "totalCpuMs": 52680.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 680988,
+            "VmRSS": 679096,
+            "RssAnon": 622676,
+            "RssFile": 54276,
+            "RssShmem": 2144,
+            "Pss": 650296,
+            "Private": 636160
+          },
+          "workloadEndFaults": {
+            "minor": 127800,
+            "major": 5
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5355,
+          "totalWallMs": 31432,
+          "totalCpuMs": 53300.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 679432,
+            "VmRSS": 666312,
+            "RssAnon": 610204,
+            "RssFile": 53964,
+            "RssShmem": 2144,
+            "Pss": 637544,
+            "Private": 623408
+          },
+          "workloadEndFaults": {
+            "minor": 134461,
+            "major": 14
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            107067,
+            109040
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            179948,
+            179891
+          ]
+        },
+        {
+          "elapsedMs": 3018,
+          "pssKiB": [
+            275100,
+            265563
+          ]
+        },
+        {
+          "elapsedMs": 4027,
+          "pssKiB": [
+            329552,
+            328047
+          ]
+        },
+        {
+          "elapsedMs": 5037,
+          "pssKiB": [
+            378179,
+            374984
+          ]
+        },
+        {
+          "elapsedMs": 6048,
+          "pssKiB": [
+            427170,
+            436171
+          ]
+        },
+        {
+          "elapsedMs": 7063,
+          "pssKiB": [
+            465578,
+            440207
+          ]
+        },
+        {
+          "elapsedMs": 8077,
+          "pssKiB": [
+            487462,
+            471831
+          ]
+        },
+        {
+          "elapsedMs": 9089,
+          "pssKiB": [
+            498238,
+            489447
+          ]
+        },
+        {
+          "elapsedMs": 10103,
+          "pssKiB": [
+            507906,
+            513887
+          ]
+        },
+        {
+          "elapsedMs": 11117,
+          "pssKiB": [
+            553328,
+            525920
+          ]
+        },
+        {
+          "elapsedMs": 12131,
+          "pssKiB": [
+            529724,
+            524788
+          ]
+        },
+        {
+          "elapsedMs": 13144,
+          "pssKiB": [
+            545228,
+            530484
+          ]
+        },
+        {
+          "elapsedMs": 14158,
+          "pssKiB": [
+            558636,
+            582588
+          ]
+        },
+        {
+          "elapsedMs": 15173,
+          "pssKiB": [
+            567716,
+            578180
+          ]
+        },
+        {
+          "elapsedMs": 16187,
+          "pssKiB": [
+            570580,
+            591056
+          ]
+        },
+        {
+          "elapsedMs": 17201,
+          "pssKiB": [
+            615432,
+            597844
+          ]
+        },
+        {
+          "elapsedMs": 18215,
+          "pssKiB": [
+            617496,
+            592188
+          ]
+        },
+        {
+          "elapsedMs": 19228,
+          "pssKiB": [
+            619720,
+            600736
+          ]
+        },
+        {
+          "elapsedMs": 20242,
+          "pssKiB": [
+            622836,
+            597612
+          ]
+        },
+        {
+          "elapsedMs": 21257,
+          "pssKiB": [
+            637892,
+            626684
+          ]
+        },
+        {
+          "elapsedMs": 22271,
+          "pssKiB": [
+            621920,
+            622976
+          ]
+        },
+        {
+          "elapsedMs": 23288,
+          "pssKiB": [
+            635288,
+            640164
+          ]
+        },
+        {
+          "elapsedMs": 24303,
+          "pssKiB": [
+            640816,
+            625540
+          ]
+        },
+        {
+          "elapsedMs": 25320,
+          "pssKiB": [
+            643020,
+            638096
+          ]
+        },
+        {
+          "elapsedMs": 26334,
+          "pssKiB": [
+            630048,
+            630348
+          ]
+        },
+        {
+          "elapsedMs": 27350,
+          "pssKiB": [
+            639188,
+            651252
+          ]
+        },
+        {
+          "elapsedMs": 28364,
+          "pssKiB": [
+            640668,
+            631908
+          ]
+        },
+        {
+          "elapsedMs": 29380,
+          "pssKiB": [
+            648304,
+            613460
+          ]
+        },
+        {
+          "elapsedMs": 30396,
+          "pssKiB": [
+            649648,
+            636304
+          ]
+        },
+        {
+          "elapsedMs": 31411,
+          "pssKiB": [
+            650280,
+            637508
+          ]
+        }
+      ]
+    },
+    {
+      "policy": "metrics",
+      "trial": 1,
+      "variant": "metrics5",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 32401,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 104650.0,
+      "peakObservedConcurrentPssKiB": 1244692,
+      "minorFaults": 256672,
+      "majorFaults": 10,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 5284,
+          "totalWallMs": 31405,
+          "totalCpuMs": 51980.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 673916,
+            "VmRSS": 667604,
+            "RssAnon": 611296,
+            "RssFile": 54164,
+            "RssShmem": 2144,
+            "Pss": 638708,
+            "Private": 624480
+          },
+          "workloadEndFaults": {
+            "minor": 130454,
+            "major": 6
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5299,
+          "totalWallMs": 31841,
+          "totalCpuMs": 52670.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 639608,
+            "VmRSS": 621948,
+            "RssAnon": 565908,
+            "RssFile": 53896,
+            "RssShmem": 2144,
+            "Pss": 594769,
+            "Private": 582264
+          },
+          "workloadEndFaults": {
+            "minor": 126218,
+            "major": 4
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            109553,
+            111180
+          ]
+        },
+        {
+          "elapsedMs": 2009,
+          "pssKiB": [
+            183820,
+            179645
+          ]
+        },
+        {
+          "elapsedMs": 3016,
+          "pssKiB": [
+            269066,
+            263599
+          ]
+        },
+        {
+          "elapsedMs": 4026,
+          "pssKiB": [
+            326690,
+            317391
+          ]
+        },
+        {
+          "elapsedMs": 5039,
+          "pssKiB": [
+            377969,
+            376091
+          ]
+        },
+        {
+          "elapsedMs": 6050,
+          "pssKiB": [
+            433908,
+            438429
+          ]
+        },
+        {
+          "elapsedMs": 7062,
+          "pssKiB": [
+            464976,
+            468077
+          ]
+        },
+        {
+          "elapsedMs": 8073,
+          "pssKiB": [
+            479180,
+            481285
+          ]
+        },
+        {
+          "elapsedMs": 9086,
+          "pssKiB": [
+            487121,
+            487613
+          ]
+        },
+        {
+          "elapsedMs": 10099,
+          "pssKiB": [
+            512577,
+            513221
+          ]
+        },
+        {
+          "elapsedMs": 11112,
+          "pssKiB": [
+            536085,
+            531153
+          ]
+        },
+        {
+          "elapsedMs": 12126,
+          "pssKiB": [
+            530632,
+            529124
+          ]
+        },
+        {
+          "elapsedMs": 13138,
+          "pssKiB": [
+            535064,
+            545620
+          ]
+        },
+        {
+          "elapsedMs": 14152,
+          "pssKiB": [
+            581844,
+            535920
+          ]
+        },
+        {
+          "elapsedMs": 15167,
+          "pssKiB": [
+            591368,
+            590580
+          ]
+        },
+        {
+          "elapsedMs": 16180,
+          "pssKiB": [
+            593620,
+            571488
+          ]
+        },
+        {
+          "elapsedMs": 17194,
+          "pssKiB": [
+            607300,
+            572596
+          ]
+        },
+        {
+          "elapsedMs": 18209,
+          "pssKiB": [
+            594540,
+            554544
+          ]
+        },
+        {
+          "elapsedMs": 19224,
+          "pssKiB": [
+            609156,
+            576492
+          ]
+        },
+        {
+          "elapsedMs": 20237,
+          "pssKiB": [
+            610940,
+            571752
+          ]
+        },
+        {
+          "elapsedMs": 21252,
+          "pssKiB": [
+            622508,
+            580904
+          ]
+        },
+        {
+          "elapsedMs": 22269,
+          "pssKiB": [
+            626776,
+            567444
+          ]
+        },
+        {
+          "elapsedMs": 23283,
+          "pssKiB": [
+            633948,
+            587464
+          ]
+        },
+        {
+          "elapsedMs": 24296,
+          "pssKiB": [
+            626224,
+            582736
+          ]
+        },
+        {
+          "elapsedMs": 25312,
+          "pssKiB": [
+            608652,
+            585616
+          ]
+        },
+        {
+          "elapsedMs": 26328,
+          "pssKiB": [
+            629124,
+            584768
+          ]
+        },
+        {
+          "elapsedMs": 27344,
+          "pssKiB": [
+            645744,
+            598948
+          ]
+        },
+        {
+          "elapsedMs": 28357,
+          "pssKiB": [
+            633976,
+            587944
+          ]
+        },
+        {
+          "elapsedMs": 29372,
+          "pssKiB": [
+            616808,
+            611192
+          ]
+        },
+        {
+          "elapsedMs": 30387,
+          "pssKiB": [
+            629760,
+            593740
+          ]
+        },
+        {
+          "elapsedMs": 31401,
+          "pssKiB": [
+            638704,
+            598420
+          ]
+        }
+      ]
+    },
+    {
+      "policy": "metrics",
+      "trial": 1,
+      "variant": "default",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 37458,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 116210.0,
+      "peakObservedConcurrentPssKiB": 1217824,
+      "minorFaults": 291050,
+      "majorFaults": 9,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 5456,
+          "totalWallMs": 36862,
+          "totalCpuMs": 58470.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 630432,
+            "VmRSS": 630432,
+            "RssAnon": 574420,
+            "RssFile": 53868,
+            "RssShmem": 2144,
+            "Pss": 612671,
+            "Private": 606372
+          },
+          "workloadEndFaults": {
+            "minor": 128234,
+            "major": 4
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=1",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5313,
+          "totalWallMs": 36376,
+          "totalCpuMs": 57740.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 644868,
+            "VmRSS": 624588,
+            "RssAnon": 568636,
+            "RssFile": 53808,
+            "RssShmem": 2144,
+            "Pss": 595690,
+            "Private": 581412
+          },
+          "workloadEndFaults": {
+            "minor": 162816,
+            "major": 5
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=1",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            108760,
+            115139
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            174096,
+            183077
+          ]
+        },
+        {
+          "elapsedMs": 3017,
+          "pssKiB": [
+            264124,
+            270489
+          ]
+        },
+        {
+          "elapsedMs": 4026,
+          "pssKiB": [
+            313426,
+            330815
+          ]
+        },
+        {
+          "elapsedMs": 5040,
+          "pssKiB": [
+            379504,
+            385189
+          ]
+        },
+        {
+          "elapsedMs": 6051,
+          "pssKiB": [
+            415673,
+            415082
+          ]
+        },
+        {
+          "elapsedMs": 7062,
+          "pssKiB": [
+            453877,
+            431534
+          ]
+        },
+        {
+          "elapsedMs": 8073,
+          "pssKiB": [
+            450977,
+            461786
+          ]
+        },
+        {
+          "elapsedMs": 9084,
+          "pssKiB": [
+            476797,
+            454854
+          ]
+        },
+        {
+          "elapsedMs": 10096,
+          "pssKiB": [
+            482717,
+            488490
+          ]
+        },
+        {
+          "elapsedMs": 11108,
+          "pssKiB": [
+            487150,
+            492050
+          ]
+        },
+        {
+          "elapsedMs": 12121,
+          "pssKiB": [
+            493458,
+            484166
+          ]
+        },
+        {
+          "elapsedMs": 13134,
+          "pssKiB": [
+            496654,
+            480550
+          ]
+        },
+        {
+          "elapsedMs": 14146,
+          "pssKiB": [
+            500090,
+            482686
+          ]
+        },
+        {
+          "elapsedMs": 15158,
+          "pssKiB": [
+            503062,
+            485310
+          ]
+        },
+        {
+          "elapsedMs": 16172,
+          "pssKiB": [
+            551274,
+            562670
+          ]
+        },
+        {
+          "elapsedMs": 17186,
+          "pssKiB": [
+            554098,
+            542382
+          ]
+        },
+        {
+          "elapsedMs": 18199,
+          "pssKiB": [
+            556270,
+            543750
+          ]
+        },
+        {
+          "elapsedMs": 19213,
+          "pssKiB": [
+            559390,
+            557402
+          ]
+        },
+        {
+          "elapsedMs": 20226,
+          "pssKiB": [
+            560802,
+            559414
+          ]
+        },
+        {
+          "elapsedMs": 21239,
+          "pssKiB": [
+            561818,
+            570194
+          ]
+        },
+        {
+          "elapsedMs": 22253,
+          "pssKiB": [
+            562374,
+            571578
+          ]
+        },
+        {
+          "elapsedMs": 23267,
+          "pssKiB": [
+            563462,
+            572322
+          ]
+        },
+        {
+          "elapsedMs": 24281,
+          "pssKiB": [
+            589062,
+            572630
+          ]
+        },
+        {
+          "elapsedMs": 25297,
+          "pssKiB": [
+            590698,
+            573498
+          ]
+        },
+        {
+          "elapsedMs": 26311,
+          "pssKiB": [
+            592398,
+            554182
+          ]
+        },
+        {
+          "elapsedMs": 27325,
+          "pssKiB": [
+            593274,
+            599962
+          ]
+        },
+        {
+          "elapsedMs": 28338,
+          "pssKiB": [
+            594314,
+            610606
+          ]
+        },
+        {
+          "elapsedMs": 29352,
+          "pssKiB": [
+            594806,
+            611450
+          ]
+        },
+        {
+          "elapsedMs": 30367,
+          "pssKiB": [
+            595426,
+            611990
+          ]
+        },
+        {
+          "elapsedMs": 31382,
+          "pssKiB": [
+            596710,
+            591222
+          ]
+        },
+        {
+          "elapsedMs": 32398,
+          "pssKiB": [
+            598506,
+            604654
+          ]
+        },
+        {
+          "elapsedMs": 33413,
+          "pssKiB": [
+            600142,
+            614578
+          ]
+        },
+        {
+          "elapsedMs": 34427,
+          "pssKiB": [
+            601206,
+            615786
+          ]
+        },
+        {
+          "elapsedMs": 35441,
+          "pssKiB": [
+            601382,
+            616442
+          ]
+        },
+        {
+          "elapsedMs": 36457,
+          "pssKiB": [
+            601542,
+            596274
+          ]
+        }
+      ]
+    },
+    {
+      "policy": "metrics",
+      "trial": 2,
+      "variant": "default",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 38460,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 117050.0,
+      "peakObservedConcurrentPssKiB": 1151279,
+      "minorFaults": 419251,
+      "majorFaults": 15,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 5433,
+          "totalWallMs": 37078,
+          "totalCpuMs": 58110.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 607508,
+            "VmRSS": 586904,
+            "RssAnon": 530768,
+            "RssFile": 53992,
+            "RssShmem": 2144,
+            "Pss": 569083,
+            "Private": 562772
+          },
+          "workloadEndFaults": {
+            "minor": 148784,
+            "major": 7
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=1",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5279,
+          "totalWallMs": 36583,
+          "totalCpuMs": 58940.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 600380,
+            "VmRSS": 580028,
+            "RssAnon": 523848,
+            "RssFile": 54036,
+            "RssShmem": 2144,
+            "Pss": 551218,
+            "Private": 537032
+          },
+          "workloadEndFaults": {
+            "minor": 270467,
+            "major": 8
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=1",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            106688,
+            109943
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            178775,
+            177689
+          ]
+        },
+        {
+          "elapsedMs": 3018,
+          "pssKiB": [
+            263707,
+            266429
+          ]
+        },
+        {
+          "elapsedMs": 4027,
+          "pssKiB": [
+            316731,
+            330297
+          ]
+        },
+        {
+          "elapsedMs": 5038,
+          "pssKiB": [
+            371025,
+            382033
+          ]
+        },
+        {
+          "elapsedMs": 6049,
+          "pssKiB": [
+            426114,
+            413274
+          ]
+        },
+        {
+          "elapsedMs": 7061,
+          "pssKiB": [
+            451642,
+            437074
+          ]
+        },
+        {
+          "elapsedMs": 8072,
+          "pssKiB": [
+            450986,
+            481974
+          ]
+        },
+        {
+          "elapsedMs": 9084,
+          "pssKiB": [
+            476210,
+            469234
+          ]
+        },
+        {
+          "elapsedMs": 10098,
+          "pssKiB": [
+            472250,
+            489622
+          ]
+        },
+        {
+          "elapsedMs": 11109,
+          "pssKiB": [
+            497461,
+            493734
+          ]
+        },
+        {
+          "elapsedMs": 12121,
+          "pssKiB": [
+            499181,
+            490358
+          ]
+        },
+        {
+          "elapsedMs": 13133,
+          "pssKiB": [
+            501409,
+            493082
+          ]
+        },
+        {
+          "elapsedMs": 14147,
+          "pssKiB": [
+            494241,
+            496510
+          ]
+        },
+        {
+          "elapsedMs": 15161,
+          "pssKiB": [
+            490741,
+            488338
+          ]
+        },
+        {
+          "elapsedMs": 16175,
+          "pssKiB": [
+            532717,
+            530014
+          ]
+        },
+        {
+          "elapsedMs": 17189,
+          "pssKiB": [
+            536413,
+            530802
+          ]
+        },
+        {
+          "elapsedMs": 18203,
+          "pssKiB": [
+            558177,
+            532794
+          ]
+        },
+        {
+          "elapsedMs": 19218,
+          "pssKiB": [
+            559745,
+            543962
+          ]
+        },
+        {
+          "elapsedMs": 20231,
+          "pssKiB": [
+            540093,
+            548182
+          ]
+        },
+        {
+          "elapsedMs": 21245,
+          "pssKiB": [
+            541613,
+            548998
+          ]
+        },
+        {
+          "elapsedMs": 22259,
+          "pssKiB": [
+            543801,
+            549618
+          ]
+        },
+        {
+          "elapsedMs": 23272,
+          "pssKiB": [
+            557365,
+            560246
+          ]
+        },
+        {
+          "elapsedMs": 24286,
+          "pssKiB": [
+            566633,
+            561342
+          ]
+        },
+        {
+          "elapsedMs": 25300,
+          "pssKiB": [
+            567133,
+            562710
+          ]
+        },
+        {
+          "elapsedMs": 26314,
+          "pssKiB": [
+            567633,
+            564014
+          ]
+        },
+        {
+          "elapsedMs": 27328,
+          "pssKiB": [
+            568689,
+            543870
+          ]
+        },
+        {
+          "elapsedMs": 28344,
+          "pssKiB": [
+            549461,
+            555802
+          ]
+        },
+        {
+          "elapsedMs": 29357,
+          "pssKiB": [
+            563337,
+            566238
+          ]
+        },
+        {
+          "elapsedMs": 30370,
+          "pssKiB": [
+            573521,
+            567530
+          ]
+        },
+        {
+          "elapsedMs": 31384,
+          "pssKiB": [
+            573693,
+            568354
+          ]
+        },
+        {
+          "elapsedMs": 32399,
+          "pssKiB": [
+            574073,
+            569634
+          ]
+        },
+        {
+          "elapsedMs": 33414,
+          "pssKiB": [
+            574813,
+            550090
+          ]
+        },
+        {
+          "elapsedMs": 34427,
+          "pssKiB": [
+            556297,
+            561898
+          ]
+        },
+        {
+          "elapsedMs": 35440,
+          "pssKiB": [
+            569585,
+            572078
+          ]
+        },
+        {
+          "elapsedMs": 36454,
+          "pssKiB": [
+            578957,
+            572322
+          ]
+        }
+      ]
+    },
+    {
+      "policy": "metrics",
+      "trial": 2,
+      "variant": "metrics5",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 33394,
+      "workerAffinities": {
+        "0": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "1": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "totalCpuMs": 107060.0,
+      "peakObservedConcurrentPssKiB": 1244546,
+      "minorFaults": 254415,
+      "majorFaults": 20,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 5355,
+          "totalWallMs": 31646,
+          "totalCpuMs": 52990.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 675664,
+            "VmRSS": 662716,
+            "RssAnon": 606504,
+            "RssFile": 54068,
+            "RssShmem": 2144,
+            "Pss": 633740,
+            "Private": 619432
+          },
+          "workloadEndFaults": {
+            "minor": 128750,
+            "major": 11
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        },
+        {
+          "readyWallMs": 5339,
+          "totalWallMs": 32166,
+          "totalCpuMs": 54070.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 643460,
+            "VmRSS": 638424,
+            "RssAnon": 582376,
+            "RssFile": 53904,
+            "RssShmem": 2144,
+            "Pss": 620606,
+            "Private": 614260
+          },
+          "workloadEndFaults": {
+            "minor": 125665,
+            "major": 9
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2",
+            "-Dcomposeai.daemon.metrics.everyRenders=5",
+            "-Dcomposeai.fonts.cacheDir=/home/yuri/.codex/worktrees/3221/compose-preview-daemon/daemon/android/build/bulk-font-cache",
+            "-Dcomposeai.fonts.offline=true"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1005,
+          "pssKiB": [
+            114495,
+            115625
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            180572,
+            177401
+          ]
+        },
+        {
+          "elapsedMs": 3017,
+          "pssKiB": [
+            265756,
+            269093
+          ]
+        },
+        {
+          "elapsedMs": 4027,
+          "pssKiB": [
+            320774,
+            330755
+          ]
+        },
+        {
+          "elapsedMs": 5037,
+          "pssKiB": [
+            369556,
+            380856
+          ]
+        },
+        {
+          "elapsedMs": 6048,
+          "pssKiB": [
+            423299,
+            432575
+          ]
+        },
+        {
+          "elapsedMs": 7060,
+          "pssKiB": [
+            461139,
+            471623
+          ]
+        },
+        {
+          "elapsedMs": 8072,
+          "pssKiB": [
+            487899,
+            489151
+          ]
+        },
+        {
+          "elapsedMs": 9085,
+          "pssKiB": [
+            494728,
+            493082
+          ]
+        },
+        {
+          "elapsedMs": 10098,
+          "pssKiB": [
+            518164,
+            511402
+          ]
+        },
+        {
+          "elapsedMs": 11111,
+          "pssKiB": [
+            528164,
+            527630
+          ]
+        },
+        {
+          "elapsedMs": 12124,
+          "pssKiB": [
+            525020,
+            520338
+          ]
+        },
+        {
+          "elapsedMs": 13136,
+          "pssKiB": [
+            544068,
+            529078
+          ]
+        },
+        {
+          "elapsedMs": 14149,
+          "pssKiB": [
+            547380,
+            527838
+          ]
+        },
+        {
+          "elapsedMs": 15162,
+          "pssKiB": [
+            560480,
+            596998
+          ]
+        },
+        {
+          "elapsedMs": 16177,
+          "pssKiB": [
+            605032,
+            570842
+          ]
+        },
+        {
+          "elapsedMs": 17193,
+          "pssKiB": [
+            606660,
+            571954
+          ]
+        },
+        {
+          "elapsedMs": 18207,
+          "pssKiB": [
+            589532,
+            557078
+          ]
+        },
+        {
+          "elapsedMs": 19221,
+          "pssKiB": [
+            611580,
+            574686
+          ]
+        },
+        {
+          "elapsedMs": 20235,
+          "pssKiB": [
+            604296,
+            581854
+          ]
+        },
+        {
+          "elapsedMs": 21248,
+          "pssKiB": [
+            626020,
+            583954
+          ]
+        },
+        {
+          "elapsedMs": 22262,
+          "pssKiB": [
+            627336,
+            584510
+          ]
+        },
+        {
+          "elapsedMs": 23275,
+          "pssKiB": [
+            629384,
+            588530
+          ]
+        },
+        {
+          "elapsedMs": 24291,
+          "pssKiB": [
+            621668,
+            579806
+          ]
+        },
+        {
+          "elapsedMs": 25307,
+          "pssKiB": [
+            636520,
+            592798
+          ]
+        },
+        {
+          "elapsedMs": 26322,
+          "pssKiB": [
+            632924,
+            598670
+          ]
+        },
+        {
+          "elapsedMs": 27338,
+          "pssKiB": [
+            638116,
+            599030
+          ]
+        },
+        {
+          "elapsedMs": 28351,
+          "pssKiB": [
+            633232,
+            595006
+          ]
+        },
+        {
+          "elapsedMs": 29365,
+          "pssKiB": [
+            641492,
+            602602
+          ]
+        },
+        {
+          "elapsedMs": 30379,
+          "pssKiB": [
+            644880,
+            599666
+          ]
+        },
+        {
+          "elapsedMs": 31394,
+          "pssKiB": [
+            626372,
+            609318
+          ]
+        }
+      ]
+    }
+  ],
+  "aggregates": {
+    "default": {
+      "meanCpuMs": 117186.66666666667,
+      "medianGroupElapsedMs": 38460,
+      "medianPeakObservedConcurrentPssMiB": 1165.8642578125,
+      "meanMinorFaults": 379851.6666666667
+    },
+    "metrics5": {
+      "meanCpuMs": 105896.66666666667,
+      "medianGroupElapsedMs": 32411,
+      "medianPeakObservedConcurrentPssMiB": 1215.51953125,
+      "meanMinorFaults": 257782.66666666666
+    }
+  },
+  "samplingChecks": [
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/0-default/0",
+      "measuredCounts": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62
+      ],
+      "skipped": 0
+    },
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/0-default/1",
+      "measuredCounts": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62
+      ],
+      "skipped": 0
+    },
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/0-metrics5/0",
+      "measuredCounts": [
+        6,
+        11,
+        16,
+        21,
+        26,
+        31,
+        36,
+        41,
+        46,
+        51,
+        56,
+        61
+      ],
+      "skipped": 49
+    },
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/0-metrics5/1",
+      "measuredCounts": [
+        6,
+        11,
+        16,
+        21,
+        26,
+        31,
+        36,
+        41,
+        46,
+        51,
+        56,
+        61
+      ],
+      "skipped": 49
+    },
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/1-metrics5/0",
+      "measuredCounts": [
+        6,
+        11,
+        16,
+        21,
+        26,
+        31,
+        36,
+        41,
+        46,
+        51,
+        56,
+        61
+      ],
+      "skipped": 49
+    },
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/1-metrics5/1",
+      "measuredCounts": [
+        6,
+        11,
+        16,
+        21,
+        26,
+        31,
+        36,
+        41,
+        46,
+        51,
+        56,
+        61
+      ],
+      "skipped": 49
+    },
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/1-default/0",
+      "measuredCounts": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62
+      ],
+      "skipped": 0
+    },
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/1-default/1",
+      "measuredCounts": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62
+      ],
+      "skipped": 0
+    },
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/2-default/0",
+      "measuredCounts": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62
+      ],
+      "skipped": 0
+    },
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/2-default/1",
+      "measuredCounts": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62
+      ],
+      "skipped": 0
+    },
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/2-metrics5/0",
+      "measuredCounts": [
+        6,
+        11,
+        16,
+        21,
+        26,
+        31,
+        36,
+        41,
+        46,
+        51,
+        56,
+        61
+      ],
+      "skipped": 49
+    },
+    {
+      "source": "daemon/android/build/sampled-metrics-concurrent/2-metrics5/1",
+      "measuredCounts": [
+        6,
+        11,
+        16,
+        21,
+        26,
+        31,
+        36,
+        41,
+        46,
+        51,
+        56,
+        61
+      ],
+      "skipped": 49
+    }
+  ],
+  "topology": [
+    {
+      "logicalCpu": 0,
+      "packageId": 0,
+      "coreId": 0
+    },
+    {
+      "logicalCpu": 1,
+      "packageId": 0,
+      "coreId": 1
+    },
+    {
+      "logicalCpu": 2,
+      "packageId": 0,
+      "coreId": 2
+    },
+    {
+      "logicalCpu": 3,
+      "packageId": 0,
+      "coreId": 4
+    }
+  ],
+  "fontCacheSha256": {
+    "carrois-gothic-sc-400.ttf": "cde765545a44feea3bd1d1665de6aad01bbbbced1b619c3a462bc407febe8560",
+    "coming-soon-400.ttf": "c86be0372fad98e347efe9d38bb976a89b9f2eeda158d59a169a6981bdb56990",
+    "cutive-mono-400.ttf": "20c0220ef9ccb50de02353bd22e239da29a7837b3a1953abc354a10d94b290cc",
+    "dancing-script-400.ttf": "14e256280323ac39486a22d4a7cd6f5a737772ea4a7ec3052ee4ac463b71c4aa",
+    "google-sans-flex-400.ttf": "c16fda9ab98b0027caee4881acc07d57eddf9c1b2a68f91baa773c1c9ca7ba41",
+    "noto-sans-400.ttf": "61ea1e781b9d7b10db9b4a6aa2d855cf2215c316c7cb700aeb067a0440d031e0",
+    "noto-sans-mono-400.ttf": "f3e000b8a56b489f9cd3d1d531d2421fad3c67835acabd39cff8cd8299fa0dfc",
+    "noto-serif-400.ttf": "a6e0283968e506c67c3d4ff94093e3ff9f4d7ec3c704ff1cb51382f1e45b66b9",
+    "roboto-400.ttf": "66b9c6a9e7ab0d889f31775fc0fd71bf802d61068ab70f69d37e0cd536604617",
+    "roboto-400.woff2": "425c0713a8176f92273d378599c7eac57de7fafabd4bd0ed457b70eb8f80d371",
+    "roboto-500.woff2": "5bcc3aa180e7f26f643cd5b2621cd7c2de193d0661d913a94afd3d4881a7a34b",
+    "roboto-flex-400.ttf": "7a0aae29a147c35f86b7950556933ecd8daacf8c7080c6686246f46e1e27c3f8"
+  }
+}
