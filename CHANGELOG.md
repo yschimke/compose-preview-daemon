@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.4.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.1...v3.4.2) (2026-09-11)
+
+
+### Performance
+
+* bound compiler work in Android daemon launch plans ([#79](https://github.com/yschimke/compose-preview-daemon/issues/79)) ([d48dee4](https://github.com/yschimke/compose-preview-daemon/commit/d48dee41a0deec9bf5be7287a114f71bd8a0e837))
+* bulk copy canonical ARGB settling snapshots ([#80](https://github.com/yschimke/compose-preview-daemon/issues/80)) ([0ded8ce](https://github.com/yschimke/compose-preview-daemon/commit/0ded8ce684705fc3d4b8b9560df4ee9b8df30f53))
+* reuse owned pixel buffers during visual settling ([#88](https://github.com/yschimke/compose-preview-daemon/issues/88)) ([5d3a2e3](https://github.com/yschimke/compose-preview-daemon/commit/5d3a2e309dc930b6ca00a921816ec86ad0355da4))
+* reuse the final settling pixel snapshot ([#76](https://github.com/yschimke/compose-preview-daemon/issues/76)) ([d8c4bbb](https://github.com/yschimke/compose-preview-daemon/commit/d8c4bbba35a45b4d91bc7275b1acada58a10fc63))
+* support sampled post-GC render metrics ([#82](https://github.com/yschimke/compose-preview-daemon/issues/82)) ([f8ee665](https://github.com/yschimke/compose-preview-daemon/commit/f8ee665b6739e3bcbc66609ae4018d16c522abe9))
+
+
+### Documentation
+
+* measure C1 compilation across long reload sessions ([#89](https://github.com/yschimke/compose-preview-daemon/issues/89)) ([7897bc3](https://github.com/yschimke/compose-preview-daemon/commit/7897bc38bdb7913f4cbe7be81dc1e7dd68e09dfc))
+* measure explicit GC under bounded Serial heaps ([#81](https://github.com/yschimke/compose-preview-daemon/issues/81)) ([7c98850](https://github.com/yschimke/compose-preview-daemon/commit/7c98850d6a3658cfe699880c9114a0dafe086c1b))
+* measure periodic native trimming with sampled metrics ([#85](https://github.com/yschimke/compose-preview-daemon/issues/85)) ([e9ef8a0](https://github.com/yschimke/compose-preview-daemon/commit/e9ef8a0e3fe9906df32525963ac58c912104c496))
+* recheck field caching under current worker profiles ([#87](https://github.com/yschimke/compose-preview-daemon/issues/87)) ([081eac9](https://github.com/yschimke/compose-preview-daemon/commit/081eac9946162bf05fda4c7b6d07dc1097edec47))
+* validate compiler limits across reloads and concurrent workers ([#78](https://github.com/yschimke/compose-preview-daemon/issues/78)) ([5d14855](https://github.com/yschimke/compose-preview-daemon/commit/5d14855b6f51c29b348cbeb7e1ff6507607579e7))
+* validate sampled metrics with concurrent workers ([#83](https://github.com/yschimke/compose-preview-daemon/issues/83)) ([d0db011](https://github.com/yschimke/compose-preview-daemon/commit/d0db011c4dea964281242af568ee9c59103a6409))
+
 ## [3.4.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.0...v3.4.1) (2026-09-11)
 
 
