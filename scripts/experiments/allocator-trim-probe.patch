@@ -1,0 +1,21 @@
+--- a/scripts/benchmark-worker-startup.py
++++ b/scripts/benchmark-worker-startup.py
+@@ -255,6 +255,18 @@
+                         checkpoint["smapsFile"] = smaps_path.name
+                         checkpoint["nativeMemoryElapsedMs"] = round((time.monotonic() - started) * 1000)
+                         checkpoint["nativeMemoryKiB"] = memory_kib(process.pid, proportional=True)
++                    if index == int(os.environ["TRIM_CHECKPOINT"]):
++                        help_result = subprocess.run([jcmd, str(process.pid), "help", "JVMTI.agent_load"], check=True, capture_output=True, text=True, timeout=30)
++                        (output / "agent-load-help.txt").write_text(help_result.stdout)
++                        (output / "smaps-before-trim.txt").write_text(Path(f"/proc/{process.pid}/smaps").read_text())
++                        attached = subprocess.run([jcmd, str(process.pid), "JVMTI.agent_load", str(Path(os.environ["ALLOCATOR_PROBE_LIBRARY"]).resolve()), str(output / "allocator")], check=True, capture_output=True, text=True, timeout=60)
++                        (output / "agent-load-result.txt").write_text(attached.stdout + attached.stderr)
++                        if not (output / "allocator-result.txt").exists():
++                            raise RuntimeError("Allocator probe failed: " + attached.stdout)
++                        (output / "smaps-after-trim.txt").write_text(Path(f"/proc/{process.pid}/smaps").read_text())
++                        native_after = subprocess.run([jcmd, str(process.pid), "VM.native_memory", "detail", "scale=KB"], check=True, capture_output=True, text=True, timeout=60)
++                        (output / "native-memory-after-trim.txt").write_text(native_after.stdout)
++                        print("Allocator probe completed at", index, flush=True)
+                     summary["heapCheckpoints"].append(checkpoint)
+                     (output / "heap-checkpoints.json").write_text(json.dumps(summary["heapCheckpoints"], indent=2) + "\n")
+             summary["totalCpuMs"] = cpu_ms(process.pid)

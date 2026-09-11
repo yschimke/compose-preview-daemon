@@ -281,6 +281,13 @@ These JVM costs may also occur in long-lived unit/screenshot-test forks, but the
 measured workload is our application-reloading daemon. **Priority remains P3** until
 ownership and consequential retained growth are demonstrated.
 
+A [disposable-worker allocator probe](BOOT-ALLOCATOR-TRIM-EXPERIMENT.md) reclaimed
+182.90 MiB PSS after 300 reloads with `malloc_trim(0)`; 50 further renders matched
+PNG/UIA output and partially refilled residency. Heap/code residency was unchanged.
+This establishes reclaimable allocator pages, not a Robolectric native leak or a
+production trim/recycling policy. The mechanism also applies to long-lived test
+JVMs, but its magnitude is unmeasured in ordinary unit/screenshot suites.
+
 **Next:** minimize the AWT initialization/TCCL case and determine whether our embedder
 should initialize it under a stable loader or Robolectric should provide a lifecycle
 hook. Ask for a supported application-loader replacement/unloading recipe and
