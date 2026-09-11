@@ -19,8 +19,7 @@ keeps ordinary captured strings from being mistaken for placeholder chrome.
 The formatter, 240 connector tests and 23 desktop integration tests pass.
 The [smoke comparison](profiles/inspector-access-smoke-parity.json) matches all
 three PNG/UIA frames and 33 data artifacts across eleven products, allowing only
-two process-specific Typeface identities. Reload checks and measurements remain
-pending. Compare against the frozen regex candidate to isolate the effect; do not
+two process-specific Typeface identities. Reload checks and measurements are recorded below. Compare against the frozen regex candidate to isolate the effect; do not
 rebuild during the running regex benchmark. This is our inspector overhead, not
 an upstream Robolectric bug.
 
@@ -79,5 +78,30 @@ regex under this profile. The combined gain is measured directly, not a sum of
 isolated percentages. Startup readiness barely changes. End PSS is about 53 MiB
 lower than production in this matrix, but the earlier trials show substantial
 physical-memory variation; no general memory guarantee, heap reduction or recycling
-policy change follows from three workers. Repeated application reloads under the
-reduced heap remain the next validation step for the full candidate.
+policy change follows from three workers. The full-candidate reduced-heap validation is recorded below.
+
+
+## Full-candidate 256 MiB reload check
+
+The [300-reload diagnostic run](profiles/inspector-final-reload-256.json) uses the
+full candidate, Serial GC with a 256 MiB cap, the spare-launcher 10/30 heap-free
+ratios, density 2, reused output names and the actual child-loaded dashboard fixture.
+Forced GC and live histograms run every 50 renders; JVM native-memory tracking is
+enabled. These diagnostic timings are excluded from the performance results above.
+
+All 301 PNG/UIA pairs match the historical density-2 reload baseline. There are
+300 distinct application loader identities and exactly two live child loaders at
+all seven checkpoints. Post-GC heap MiB at 0/50/100/150/200/250/300 renders is
+87.84/90.69/91.09/91.47/88.02/79.54/79.85. PSS MiB is
+572.51/780.80/822.76/867.32/873.54/879.77/885.42.
+
+At JVM exit, NMT reports committed code memory of 128.1 MiB, metaspace 111.6 MiB,
+class metadata 20.7 MiB, symbols 28.4 MiB and tracking overhead/category 14.8 MiB.
+These are JVM accounting categories, not resident-memory components to add or
+subtract from PSS. Third-party native allocations remain outside NMT coverage.
+
+This demonstrates unloading through 300 real application replacements and no
+monotonic live-heap growth in this fixture. It does not establish a whole-process
+plateau or an indefinite memory bound: PSS still increases slightly at the end.
+Keep heap defaults and worker recycling policy unchanged; broader/image-heavy
+workloads and native-memory attribution are needed before a general recommendation.
