@@ -31,7 +31,7 @@ class I18nTranslationsDataProductRegistryTest {
     val registry = I18nTranslationsDataProductRegistry(rootDir)
     val cap = registry.capabilities.single()
     assertEquals("i18n/translations", cap.kind)
-    assertEquals(1, cap.schemaVersion)
+    assertEquals(2, cap.schemaVersion)
     assertTrue(cap.attachable)
     assertTrue(cap.fetchable)
     assertTrue(!cap.requiresRerender)

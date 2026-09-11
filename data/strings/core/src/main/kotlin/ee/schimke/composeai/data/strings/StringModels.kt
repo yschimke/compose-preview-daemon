@@ -3,17 +3,18 @@ package ee.schimke.composeai.data.strings
 import java.io.File
 import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.Serializable
 import org.w3c.dom.Element
 
 object TextStringsProduct {
   const val KIND: String = "text/strings"
-  const val SCHEMA_VERSION: Int = 2
+  const val SCHEMA_VERSION: Int = 3
 }
 
 object I18nTranslationsProduct {
   const val KIND: String = "i18n/translations"
-  const val SCHEMA_VERSION: Int = 1
+  const val SCHEMA_VERSION: Int = 2
   const val FILE: String = "i18n-translations.json"
 }
 
@@ -31,7 +32,9 @@ data class TextStringEntry(
   val editableText: String? = null,
   val inputText: String? = null,
   val nodeId: String,
+  @Deprecated("Use boundsInRoot; this field has never contained screen coordinates")
   val boundsInScreen: String,
+  @EncodeDefault(EncodeDefault.Mode.ALWAYS) val boundsInRoot: String = boundsInScreen,
   val localeTag: String,
   val fontScale: Float,
   val truncated: Boolean? = null,
@@ -53,7 +56,9 @@ data class I18nTranslationsPayload(
 @Serializable
 data class I18nVisibleString(
   val nodeId: String? = null,
+  @Deprecated("Use boundsInRoot; this field has never contained screen coordinates")
   val boundsInScreen: String,
+  @EncodeDefault(EncodeDefault.Mode.ALWAYS) val boundsInRoot: String = boundsInScreen,
   val resourceName: String? = null,
   val sourceFile: String? = null,
   val rendered: String,

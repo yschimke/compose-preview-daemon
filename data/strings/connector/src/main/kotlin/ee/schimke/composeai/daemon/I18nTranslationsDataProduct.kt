@@ -50,7 +50,8 @@ object I18nTranslationsDataProducer {
             val resolved = catalog.match(visible.rendered, renderedLocale)
             I18nVisibleString(
               nodeId = visible.nodeId,
-              boundsInScreen = visible.boundsInScreen,
+              boundsInScreen = visible.boundsInRoot,
+              boundsInRoot = visible.boundsInRoot,
               resourceName = resolved?.resourceName,
               sourceFile = resolved?.sourceFile,
               rendered = visible.rendered,
@@ -88,7 +89,7 @@ object I18nTranslationsDataProducer {
         listOf(
           VisibleString(
             nodeId = id.toString(),
-            boundsInScreen = boundsInRoot.toWireBounds(),
+            boundsInRoot = boundsInRoot.toWireBounds(),
             rendered = it,
           )
         )
@@ -101,7 +102,7 @@ object I18nTranslationsDataProducer {
 
   private data class VisibleString(
     val nodeId: String,
-    val boundsInScreen: String,
+    val boundsInRoot: String,
     val rendered: String,
   )
 }

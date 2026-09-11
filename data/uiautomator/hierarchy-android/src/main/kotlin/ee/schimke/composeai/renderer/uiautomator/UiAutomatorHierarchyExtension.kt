@@ -105,7 +105,10 @@ object UiAutomatorHierarchyExtractor {
       testTagAncestors = ancestorTags,
       role = role,
       actions = actions,
+      // Keep the schema-v1 misnamed field as a compatibility alias while schema v2 gives the
+      // root-relative coordinate space its truthful name.
       boundsInScreen = boundsString,
+      boundsInRoot = boundsString,
       merged = merged,
     )
   }

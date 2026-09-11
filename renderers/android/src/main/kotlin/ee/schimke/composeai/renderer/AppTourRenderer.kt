@@ -10,6 +10,7 @@ import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
@@ -18,6 +19,14 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.savedstate.SavedStateRegistry
+import androidx.savedstate.SavedStateRegistryController
+import androidx.savedstate.SavedStateRegistryOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import androidx.test.core.app.ApplicationProvider
 import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -89,7 +98,12 @@ internal object AppTourRenderer {
               session.settle()
               val leafName =
                 capture.renderOutput.substringAfterLast('/').ifEmpty { "${preview.id}.png" }
-              session.capture(File(outputDir, leafName), roborazziOptions)
+              session.capture(
+                file = File(outputDir, leafName),
+                roborazziOptions = roborazziOptions,
+                showSystemUi = preview.params.showSystemUi,
+                uiMode = preview.params.uiMode,
+              )
             }
           } finally {
             session.close()
@@ -140,8 +154,31 @@ internal object AppTourRenderer {
       Shadows.shadowOf(Looper.getMainLooper()).idle()
     }
 
-    fun capture(file: File, roborazziOptions: RoborazziOptions) {
-      topActivity.window.decorView.captureRoboImage(file, roborazziOptions = roborazziOptions)
+    fun capture(
+      file: File,
+      roborazziOptions: RoborazziOptions,
+      showSystemUi: Boolean,
+      uiMode: Int,
+    ) {
+      val decor = topActivity.window.decorView
+      if (!showSystemUi) {
+        decor.captureRoboImage(file, roborazziOptions = roborazziOptions)
+        return
+      }
+
+      // Robolectric does not run Android's SystemUI process, so a real Activity decor view has no
+      // status or navigation chrome. Put the same Compose frame used by ordinary showSystemUi
+      // previews above the decor for the duration of the capture. Keeping it as an overlay (rather
+      // than re-parenting the Activity content into another composition) preserves the real
+      // Activity lifecycle, view owners, and edge-to-edge layout underneath the translucent bars.
+      val overlay = addSystemBarsOverlay(topActivity, uiMode)
+      try {
+        Shadows.shadowOf(Looper.getMainLooper()).idle()
+        decor.captureRoboImage(file, roborazziOptions = roborazziOptions)
+      } finally {
+        (overlay.parent as? ViewGroup)?.removeView(overlay)
+        overlay.disposeComposition()
+      }
     }
 
     fun close() {
@@ -288,6 +325,45 @@ internal object AppTourRenderer {
         }
       }
       return null
+    }
+  }
+
+  internal fun addSystemBarsOverlay(activity: Activity, uiMode: Int): ComposeView {
+    val decor =
+      activity.window.decorView as? ViewGroup
+        ?: error("Activity decor view cannot host the synthetic system-bars overlay")
+    return ComposeView(activity).also { overlay ->
+      if (activity !is LifecycleOwner) {
+        // ComponentActivity installs this owner on its decor; a classic Activity does not. App
+        // tours support both, and ComposeView needs an owner to create its window recomposer.
+        val owner = AppTourOverlayOwner()
+        decor.setViewTreeLifecycleOwner(owner)
+        decor.setViewTreeSavedStateRegistryOwner(owner)
+      }
+      overlay.isClickable = false
+      overlay.isFocusable = false
+      overlay.setContent { SystemBarsFrame(uiMode = uiMode) {} }
+      decor.addView(
+        overlay,
+        ViewGroup.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT,
+          ViewGroup.LayoutParams.MATCH_PARENT,
+        ),
+      )
+    }
+  }
+
+  private class AppTourOverlayOwner : SavedStateRegistryOwner {
+    private val registry = LifecycleRegistry(this)
+    override val lifecycle: Lifecycle = registry
+    private val controller = SavedStateRegistryController.create(this)
+    override val savedStateRegistry: SavedStateRegistry
+      get() = controller.savedStateRegistry
+
+    init {
+      controller.performAttach()
+      controller.performRestore(null)
+      registry.currentState = Lifecycle.State.RESUMED
     }
   }
 }
