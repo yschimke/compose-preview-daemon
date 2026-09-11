@@ -59,6 +59,8 @@ def main():
         help="Diagnostic only: force GC and record heap/PSS every N renders; timings include checkpoint overhead")
     parser.add_argument("--heap-histograms", action="store_true",
         help="Write a live-object histogram at each GC checkpoint (adds another diagnostic GC)")
+    parser.add_argument("--native-memory-checkpoints", action="store_true",
+        help="Diagnostic only: capture NMT detail and Linux smaps at GC checkpoints; requires -XX:NativeMemoryTracking=detail")
     parser.add_argument("--heap-dump", action="store_true",
         help="Write a live heap dump after workload measurements (diagnostic overhead excluded from totals)")
     parser.add_argument("--reuse-output", action="store_true",
@@ -75,6 +77,8 @@ def main():
         parser.error("user class paths must exist")
     if args.heap_histograms and not args.gc_checkpoint_every:
         parser.error("--heap-histograms requires --gc-checkpoint-every")
+    if args.native_memory_checkpoints and not args.gc_checkpoint_every:
+        parser.error("--native-memory-checkpoints requires --gc-checkpoint-every")
     if not math.isfinite(args.density) or args.density <= 0:
         parser.error("density must be finite and positive")
     if args.width < 1 or args.height < 1 or args.gc_checkpoint_every < 0:
@@ -105,7 +109,7 @@ def main():
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     (output / "worker.pid").write_text(str(process.pid) + "\n")
     summary = {"memoryMeasured": args.memory, "java": args.java, "jvmArgs": args.jvm_arg, "profiled": bool(args.profiler),
-        "dimensions": [args.width, args.height], "density": args.density, "gcCheckpointEvery": args.gc_checkpoint_every, "heapHistograms": args.heap_histograms, "heapCheckpoints": [], "reuseOutput": args.reuse_output, "fixtureClass": args.class_name, "swapEvery": args.swap_every, "userClassDirs": [str(p.resolve()) for p in args.user_class_dir], "fixtures": fixtures, "startedUnixSeconds": time.time(),
+        "dimensions": [args.width, args.height], "density": args.density, "gcCheckpointEvery": args.gc_checkpoint_every, "heapHistograms": args.heap_histograms, "nativeMemoryCheckpoints": args.native_memory_checkpoints, "heapCheckpoints": [], "reuseOutput": args.reuse_output, "fixtureClass": args.class_name, "swapEvery": args.swap_every, "userClassDirs": [str(p.resolve()) for p in args.user_class_dir], "fixtures": fixtures, "startedUnixSeconds": time.time(),
         "hostLoadAverage": os.getloadavg(), "logicalCpus": os.cpu_count(), "renders": []}
 
     def pump():
@@ -235,6 +239,22 @@ def main():
                         loaders_path = output / f"classloader-stats-{index}.txt"
                         loaders_path.write_text(loaders.stdout)
                         checkpoint["classloaderStatsFile"] = loaders_path.name
+                    if args.native_memory_checkpoints:
+                        native = subprocess.run([jcmd, str(process.pid), "VM.native_memory", "detail", "scale=KB"],
+                            check=True, capture_output=True, text=True, timeout=60)
+                        if "Virtual memory map:" not in native.stdout:
+                            raise RuntimeError("native-memory checkpoints require enabled NMT detail: " + native.stdout[:300])
+                        native_path = output / f"native-memory-{index}.txt"
+                        native_path.write_text(native.stdout)
+                        smaps_path = output / f"smaps-{index}.txt"
+                        smaps_path.write_text(Path(f"/proc/{process.pid}/smaps").read_text())
+                        flags = subprocess.run([jcmd, str(process.pid), "VM.flags"],
+                            check=True, capture_output=True, text=True, timeout=30)
+                        checkpoint["jvmFlags"] = flags.stdout
+                        checkpoint["nativeMemoryFile"] = native_path.name
+                        checkpoint["smapsFile"] = smaps_path.name
+                        checkpoint["nativeMemoryElapsedMs"] = round((time.monotonic() - started) * 1000)
+                        checkpoint["nativeMemoryKiB"] = memory_kib(process.pid, proportional=True)
                     summary["heapCheckpoints"].append(checkpoint)
                     (output / "heap-checkpoints.json").write_text(json.dumps(summary["heapCheckpoints"], indent=2) + "\n")
             summary["totalCpuMs"] = cpu_ms(process.pid)

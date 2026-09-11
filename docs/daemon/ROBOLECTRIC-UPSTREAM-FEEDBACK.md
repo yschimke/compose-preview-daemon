@@ -272,6 +272,15 @@ loader. Weak keys and values fixed it. The subsequent 60-reload run retained onl
 two loaders: the current child and the initial child held by AWT `AppContext`.
 The latter is a bounded observed root, not evidence of growth per reload.
 
+[Contemporaneous memory checkpoints](BOOT-NATIVE-MEMORY-CHECKPOINTS.md) now
+separate heap, JIT-code and anonymous-mapping residency during 300 real application
+reloads. Most PSS growth is outside the Java heap. Anonymous mappings outside NMT
+reservations include JVM malloc arenas, allocator-retained pages and JDK/third-party
+native allocations; they do not establish Robolectric ownership or a native leak.
+These JVM costs may also occur in long-lived unit/screenshot-test forks, but the
+measured workload is our application-reloading daemon. **Priority remains P3** until
+ownership and consequential retained growth are demonstrated.
+
 **Next:** minimize the AWT initialization/TCCL case and determine whether our embedder
 should initialize it under a stable loader or Robolectric should provide a lifecycle
 hook. Ask for a supported application-loader replacement/unloading recipe and
