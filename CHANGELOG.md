@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.4.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.0...v3.4.1) (2026-09-11)
+
+
+### Bug Fixes
+
+* **renderer:** hide host action bar before composition ([#74](https://github.com/yschimke/compose-preview-daemon/issues/74)) ([b12bbec](https://github.com/yschimke/compose-preview-daemon/commit/b12bbecc28187fa8f780c127ad48c5691124fd57))
+
+
+### Performance
+
+* settle still frames before PNG encoding ([#72](https://github.com/yschimke/compose-preview-daemon/issues/72)) ([271a8e7](https://github.com/yschimke/compose-preview-daemon/commit/271a8e7256159f0973a5e00d03377fbbc878f5e5))
+
+
+### Documentation
+
+* attribute reload memory and measure initial heap sizing ([#73](https://github.com/yschimke/compose-preview-daemon/issues/73)) ([26e6722](https://github.com/yschimke/compose-preview-daemon/commit/26e672264abdd9a7b8d2e4cc363a3bc39895f04b))
+
 ## [3.4.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.3.0...v3.4.0) (2026-09-11)
 
 
