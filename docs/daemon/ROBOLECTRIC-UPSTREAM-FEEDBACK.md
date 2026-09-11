@@ -338,7 +338,14 @@ A [fresh dense-screen profile](BOOT-DENSE-COMPILER-PROFILE.md) attributes 39.1%
 of post-readiness CPU samples to compiler threads. A two-thread compiler limit
 reduces process CPU 13.2% and median PSS 154 MiB in three short-session pairs,
 while steady-frame cost is essentially unchanged. VM Thread native stacks remain
-unresolved and are not labelled entirely GC. This supports separating JVM and
+unresolved and are not labelled entirely GC. A subsequent 300-reload pair
+retains 5.4% lower total CPU and 208 MiB lower end PSS, with no slower 50-render
+window; all 301 PNG/UIA pairs and 300 loader identities per worker are verified.
+A three-pair concurrent test with two workers sharing four CPUs subsequently
+reduces CPU 6.9% and observed peak combined PSS 77 MiB, with 366 matching
+PNG/UIA pairs. A two-CPU JVM already chooses two compiler threads in preflight.
+These results remain scoped to the measured JDK-17 worker configuration.
+This supports separating JVM and
 application costs; it does not establish a Robolectric defect or ordinary-suite
 benefit, and R10 remains P2.
 

@@ -1,0 +1,2272 @@
+{
+  "source": "daemon/android/build/compiler-concurrent-four-cpu",
+  "cpuAffinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "workersPerGroup": 2,
+  "rendersPerWorker": 60,
+  "trials": 3,
+  "method": "Two concurrent workers sharing CPUs 0,1,2,3 (different physical cores), each with 60 actual reloads and 256 MiB Serial heap/Xms32m. All other local benchmarks/builds stopped. Cores are not exclusive; host load is uncontrolled. PSS is sampled sequentially across both live workers once per second. Max observed sum is not an exact peak. End-of-workload CPU excludes shutdown; group elapsed includes startup, shutdown and up to one sampling interval of polling delay. No NMT, forced checkpoint GC or profiler.",
+  "rows": [
+    {
+      "policy": "compiler",
+      "trial": 0,
+      "variant": "default",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 44586,
+      "totalCpuMs": 129300.0,
+      "peakObservedConcurrentPssKiB": 1299964,
+      "minorFaults": 528363,
+      "majorFaults": 59,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 6863,
+          "totalWallMs": 44022,
+          "totalCpuMs": 64630.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 683128,
+            "VmRSS": 663080,
+            "RssAnon": 608032,
+            "RssFile": 52204,
+            "RssShmem": 2844,
+            "Pss": 642943,
+            "Private": 636224
+          },
+          "workloadEndFaults": {
+            "minor": 169212,
+            "major": 32
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30"
+          ]
+        },
+        {
+          "readyWallMs": 6652,
+          "totalWallMs": 42819,
+          "totalCpuMs": 64670.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 679204,
+            "VmRSS": 654072,
+            "RssAnon": 599288,
+            "RssFile": 51940,
+            "RssShmem": 2844,
+            "Pss": 624788,
+            "Private": 612244
+          },
+          "workloadEndFaults": {
+            "minor": 359151,
+            "major": 27
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            106227,
+            104238
+          ]
+        },
+        {
+          "elapsedMs": 2008,
+          "pssKiB": [
+            152270,
+            155170
+          ]
+        },
+        {
+          "elapsedMs": 3015,
+          "pssKiB": [
+            229081,
+            234909
+          ]
+        },
+        {
+          "elapsedMs": 4024,
+          "pssKiB": [
+            304240,
+            320836
+          ]
+        },
+        {
+          "elapsedMs": 5033,
+          "pssKiB": [
+            353964,
+            363352
+          ]
+        },
+        {
+          "elapsedMs": 6044,
+          "pssKiB": [
+            419930,
+            414740
+          ]
+        },
+        {
+          "elapsedMs": 7056,
+          "pssKiB": [
+            462076,
+            470352
+          ]
+        },
+        {
+          "elapsedMs": 8068,
+          "pssKiB": [
+            490652,
+            491984
+          ]
+        },
+        {
+          "elapsedMs": 9081,
+          "pssKiB": [
+            507752,
+            513568
+          ]
+        },
+        {
+          "elapsedMs": 10093,
+          "pssKiB": [
+            521504,
+            520436
+          ]
+        },
+        {
+          "elapsedMs": 11106,
+          "pssKiB": [
+            537621,
+            518365
+          ]
+        },
+        {
+          "elapsedMs": 12119,
+          "pssKiB": [
+            542429,
+            537005
+          ]
+        },
+        {
+          "elapsedMs": 13136,
+          "pssKiB": [
+            525889,
+            551217
+          ]
+        },
+        {
+          "elapsedMs": 14149,
+          "pssKiB": [
+            549201,
+            565209
+          ]
+        },
+        {
+          "elapsedMs": 15163,
+          "pssKiB": [
+            529753,
+            600901
+          ]
+        },
+        {
+          "elapsedMs": 16178,
+          "pssKiB": [
+            605297,
+            613761
+          ]
+        },
+        {
+          "elapsedMs": 17192,
+          "pssKiB": [
+            587252,
+            617392
+          ]
+        },
+        {
+          "elapsedMs": 18207,
+          "pssKiB": [
+            611428,
+            601340
+          ]
+        },
+        {
+          "elapsedMs": 19223,
+          "pssKiB": [
+            613164,
+            620616
+          ]
+        },
+        {
+          "elapsedMs": 20239,
+          "pssKiB": [
+            615968,
+            621852
+          ]
+        },
+        {
+          "elapsedMs": 21255,
+          "pssKiB": [
+            616512,
+            602128
+          ]
+        },
+        {
+          "elapsedMs": 22270,
+          "pssKiB": [
+            618140,
+            630344
+          ]
+        },
+        {
+          "elapsedMs": 23286,
+          "pssKiB": [
+            610672,
+            633968
+          ]
+        },
+        {
+          "elapsedMs": 24303,
+          "pssKiB": [
+            622515,
+            625771
+          ]
+        },
+        {
+          "elapsedMs": 25317,
+          "pssKiB": [
+            624508,
+            611436
+          ]
+        },
+        {
+          "elapsedMs": 26333,
+          "pssKiB": [
+            626124,
+            637864
+          ]
+        },
+        {
+          "elapsedMs": 27348,
+          "pssKiB": [
+            617904,
+            638668
+          ]
+        },
+        {
+          "elapsedMs": 28364,
+          "pssKiB": [
+            611984,
+            639160
+          ]
+        },
+        {
+          "elapsedMs": 29379,
+          "pssKiB": [
+            623296,
+            639644
+          ]
+        },
+        {
+          "elapsedMs": 30394,
+          "pssKiB": [
+            644552,
+            640956
+          ]
+        },
+        {
+          "elapsedMs": 31409,
+          "pssKiB": [
+            645228,
+            632332
+          ]
+        },
+        {
+          "elapsedMs": 32423,
+          "pssKiB": [
+            646796,
+            633600
+          ]
+        },
+        {
+          "elapsedMs": 33439,
+          "pssKiB": [
+            647676,
+            627784
+          ]
+        },
+        {
+          "elapsedMs": 34456,
+          "pssKiB": [
+            648960,
+            619528
+          ]
+        },
+        {
+          "elapsedMs": 35472,
+          "pssKiB": [
+            649696,
+            646232
+          ]
+        },
+        {
+          "elapsedMs": 36487,
+          "pssKiB": [
+            650832,
+            646992
+          ]
+        },
+        {
+          "elapsedMs": 37503,
+          "pssKiB": [
+            651448,
+            648516
+          ]
+        },
+        {
+          "elapsedMs": 38517,
+          "pssKiB": [
+            643256,
+            648688
+          ]
+        },
+        {
+          "elapsedMs": 39532,
+          "pssKiB": [
+            643664,
+            649376
+          ]
+        },
+        {
+          "elapsedMs": 40548,
+          "pssKiB": [
+            639968,
+            649912
+          ]
+        },
+        {
+          "elapsedMs": 41562,
+          "pssKiB": [
+            633076,
+            650120
+          ]
+        },
+        {
+          "elapsedMs": 42578,
+          "pssKiB": [
+            633332,
+            650400
+          ]
+        }
+      ]
+    },
+    {
+      "policy": "compiler",
+      "trial": 0,
+      "variant": "compiler2",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 42531,
+      "totalCpuMs": 120880.0,
+      "peakObservedConcurrentPssKiB": 1193741,
+      "minorFaults": 588723,
+      "majorFaults": 30,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 5519,
+          "totalWallMs": 41065,
+          "totalCpuMs": 60320.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 611628,
+            "VmRSS": 588988,
+            "RssAnon": 534324,
+            "RssFile": 51820,
+            "RssShmem": 2844,
+            "Pss": 559979,
+            "Private": 547612
+          },
+          "workloadEndFaults": {
+            "minor": 306617,
+            "major": 14
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2"
+          ]
+        },
+        {
+          "readyWallMs": 5512,
+          "totalWallMs": 41366,
+          "totalCpuMs": 60560.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 639940,
+            "VmRSS": 619984,
+            "RssAnon": 565408,
+            "RssFile": 51732,
+            "RssShmem": 2844,
+            "Pss": 590973,
+            "Private": 578620
+          },
+          "workloadEndFaults": {
+            "minor": 282106,
+            "major": 16
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            109525,
+            109668
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            183408,
+            178812
+          ]
+        },
+        {
+          "elapsedMs": 3017,
+          "pssKiB": [
+            278312,
+            269090
+          ]
+        },
+        {
+          "elapsedMs": 4026,
+          "pssKiB": [
+            334176,
+            320722
+          ]
+        },
+        {
+          "elapsedMs": 5036,
+          "pssKiB": [
+            382159,
+            381809
+          ]
+        },
+        {
+          "elapsedMs": 6049,
+          "pssKiB": [
+            449765,
+            414822
+          ]
+        },
+        {
+          "elapsedMs": 7060,
+          "pssKiB": [
+            468773,
+            451542
+          ]
+        },
+        {
+          "elapsedMs": 8071,
+          "pssKiB": [
+            491345,
+            490154
+          ]
+        },
+        {
+          "elapsedMs": 9084,
+          "pssKiB": [
+            480597,
+            475062
+          ]
+        },
+        {
+          "elapsedMs": 10096,
+          "pssKiB": [
+            502573,
+            500222
+          ]
+        },
+        {
+          "elapsedMs": 11108,
+          "pssKiB": [
+            489421,
+            484212
+          ]
+        },
+        {
+          "elapsedMs": 12120,
+          "pssKiB": [
+            514145,
+            506672
+          ]
+        },
+        {
+          "elapsedMs": 13134,
+          "pssKiB": [
+            495869,
+            487668
+          ]
+        },
+        {
+          "elapsedMs": 14147,
+          "pssKiB": [
+            521973,
+            511904
+          ]
+        },
+        {
+          "elapsedMs": 15160,
+          "pssKiB": [
+            514733,
+            502724
+          ]
+        },
+        {
+          "elapsedMs": 16174,
+          "pssKiB": [
+            527321,
+            546964
+          ]
+        },
+        {
+          "elapsedMs": 17186,
+          "pssKiB": [
+            528317,
+            567592
+          ]
+        },
+        {
+          "elapsedMs": 18200,
+          "pssKiB": [
+            548253,
+            547976
+          ]
+        },
+        {
+          "elapsedMs": 19215,
+          "pssKiB": [
+            536861,
+            570024
+          ]
+        },
+        {
+          "elapsedMs": 20228,
+          "pssKiB": [
+            564101,
+            572516
+          ]
+        },
+        {
+          "elapsedMs": 21242,
+          "pssKiB": [
+            566181,
+            553972
+          ]
+        },
+        {
+          "elapsedMs": 22256,
+          "pssKiB": [
+            567509,
+            576228
+          ]
+        },
+        {
+          "elapsedMs": 23269,
+          "pssKiB": [
+            558085,
+            577592
+          ]
+        },
+        {
+          "elapsedMs": 24283,
+          "pssKiB": [
+            547797,
+            578624
+          ]
+        },
+        {
+          "elapsedMs": 25296,
+          "pssKiB": [
+            569681,
+            578944
+          ]
+        },
+        {
+          "elapsedMs": 26311,
+          "pssKiB": [
+            571605,
+            589392
+          ]
+        },
+        {
+          "elapsedMs": 27326,
+          "pssKiB": [
+            572917,
+            588596
+          ]
+        },
+        {
+          "elapsedMs": 28341,
+          "pssKiB": [
+            574089,
+            580760
+          ]
+        },
+        {
+          "elapsedMs": 29355,
+          "pssKiB": [
+            575737,
+            602896
+          ]
+        },
+        {
+          "elapsedMs": 30370,
+          "pssKiB": [
+            576489,
+            603944
+          ]
+        },
+        {
+          "elapsedMs": 31384,
+          "pssKiB": [
+            577181,
+            605516
+          ]
+        },
+        {
+          "elapsedMs": 32398,
+          "pssKiB": [
+            577585,
+            606004
+          ]
+        },
+        {
+          "elapsedMs": 33412,
+          "pssKiB": [
+            568533,
+            606188
+          ]
+        },
+        {
+          "elapsedMs": 34428,
+          "pssKiB": [
+            569169,
+            606752
+          ]
+        },
+        {
+          "elapsedMs": 35445,
+          "pssKiB": [
+            565925,
+            607200
+          ]
+        },
+        {
+          "elapsedMs": 36460,
+          "pssKiB": [
+            560013,
+            608336
+          ]
+        },
+        {
+          "elapsedMs": 37475,
+          "pssKiB": [
+            578261,
+            609752
+          ]
+        },
+        {
+          "elapsedMs": 38489,
+          "pssKiB": [
+            583029,
+            610712
+          ]
+        },
+        {
+          "elapsedMs": 39504,
+          "pssKiB": [
+            583189,
+            601556
+          ]
+        },
+        {
+          "elapsedMs": 40517,
+          "pssKiB": [
+            583291,
+            602014
+          ]
+        },
+        {
+          "elapsedMs": 41531,
+          "pssKiB": [
+            563015,
+            593905
+          ]
+        }
+      ]
+    },
+    {
+      "policy": "compiler",
+      "trial": 1,
+      "variant": "compiler2",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 41510,
+      "totalCpuMs": 122540.0,
+      "peakObservedConcurrentPssKiB": 1222607,
+      "minorFaults": 285374,
+      "majorFaults": 2,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 5576,
+          "totalWallMs": 40909,
+          "totalCpuMs": 61410.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 632732,
+            "VmRSS": 632732,
+            "RssAnon": 577980,
+            "RssFile": 51908,
+            "RssShmem": 2844,
+            "Pss": 603593,
+            "Private": 591112
+          },
+          "workloadEndFaults": {
+            "minor": 122949,
+            "major": 0
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2"
+          ]
+        },
+        {
+          "readyWallMs": 5476,
+          "totalWallMs": 40722,
+          "totalCpuMs": 61130.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 647468,
+            "VmRSS": 627308,
+            "RssAnon": 572384,
+            "RssFile": 52080,
+            "RssShmem": 2844,
+            "Pss": 598062,
+            "Private": 585536
+          },
+          "workloadEndFaults": {
+            "minor": 162425,
+            "major": 2
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            109374,
+            108947
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            176795,
+            176490
+          ]
+        },
+        {
+          "elapsedMs": 3017,
+          "pssKiB": [
+            272932,
+            262402
+          ]
+        },
+        {
+          "elapsedMs": 4027,
+          "pssKiB": [
+            328068,
+            330210
+          ]
+        },
+        {
+          "elapsedMs": 5037,
+          "pssKiB": [
+            377786,
+            377582
+          ]
+        },
+        {
+          "elapsedMs": 6048,
+          "pssKiB": [
+            436434,
+            409674
+          ]
+        },
+        {
+          "elapsedMs": 7059,
+          "pssKiB": [
+            454514,
+            451794
+          ]
+        },
+        {
+          "elapsedMs": 8070,
+          "pssKiB": [
+            474110,
+            478434
+          ]
+        },
+        {
+          "elapsedMs": 9082,
+          "pssKiB": [
+            480250,
+            477834
+          ]
+        },
+        {
+          "elapsedMs": 10094,
+          "pssKiB": [
+            485066,
+            491922
+          ]
+        },
+        {
+          "elapsedMs": 11105,
+          "pssKiB": [
+            495153,
+            496282
+          ]
+        },
+        {
+          "elapsedMs": 12118,
+          "pssKiB": [
+            496613,
+            480142
+          ]
+        },
+        {
+          "elapsedMs": 13130,
+          "pssKiB": [
+            499545,
+            505934
+          ]
+        },
+        {
+          "elapsedMs": 14144,
+          "pssKiB": [
+            502061,
+            499278
+          ]
+        },
+        {
+          "elapsedMs": 15156,
+          "pssKiB": [
+            504725,
+            489754
+          ]
+        },
+        {
+          "elapsedMs": 16169,
+          "pssKiB": [
+            506505,
+            512982
+          ]
+        },
+        {
+          "elapsedMs": 17181,
+          "pssKiB": [
+            507225,
+            521494
+          ]
+        },
+        {
+          "elapsedMs": 18196,
+          "pssKiB": [
+            550785,
+            548170
+          ]
+        },
+        {
+          "elapsedMs": 19210,
+          "pssKiB": [
+            552639,
+            561779
+          ]
+        },
+        {
+          "elapsedMs": 20223,
+          "pssKiB": [
+            556385,
+            564382
+          ]
+        },
+        {
+          "elapsedMs": 21237,
+          "pssKiB": [
+            557721,
+            556714
+          ]
+        },
+        {
+          "elapsedMs": 22251,
+          "pssKiB": [
+            558853,
+            554334
+          ]
+        },
+        {
+          "elapsedMs": 23264,
+          "pssKiB": [
+            559233,
+            547762
+          ]
+        },
+        {
+          "elapsedMs": 24277,
+          "pssKiB": [
+            560149,
+            569098
+          ]
+        },
+        {
+          "elapsedMs": 25291,
+          "pssKiB": [
+            561705,
+            570322
+          ]
+        },
+        {
+          "elapsedMs": 26305,
+          "pssKiB": [
+            592273,
+            571558
+          ]
+        },
+        {
+          "elapsedMs": 27319,
+          "pssKiB": [
+            593273,
+            572566
+          ]
+        },
+        {
+          "elapsedMs": 28333,
+          "pssKiB": [
+            594429,
+            564930
+          ]
+        },
+        {
+          "elapsedMs": 29347,
+          "pssKiB": [
+            595537,
+            559922
+          ]
+        },
+        {
+          "elapsedMs": 30361,
+          "pssKiB": [
+            595741,
+            555354
+          ]
+        },
+        {
+          "elapsedMs": 31375,
+          "pssKiB": [
+            596921,
+            577518
+          ]
+        },
+        {
+          "elapsedMs": 32391,
+          "pssKiB": [
+            597693,
+            613606
+          ]
+        },
+        {
+          "elapsedMs": 33405,
+          "pssKiB": [
+            598945,
+            613994
+          ]
+        },
+        {
+          "elapsedMs": 34419,
+          "pssKiB": [
+            599881,
+            614294
+          ]
+        },
+        {
+          "elapsedMs": 35434,
+          "pssKiB": [
+            601549,
+            615310
+          ]
+        },
+        {
+          "elapsedMs": 36449,
+          "pssKiB": [
+            602341,
+            615862
+          ]
+        },
+        {
+          "elapsedMs": 37463,
+          "pssKiB": [
+            603113,
+            616990
+          ]
+        },
+        {
+          "elapsedMs": 38479,
+          "pssKiB": [
+            603321,
+            618054
+          ]
+        },
+        {
+          "elapsedMs": 39495,
+          "pssKiB": [
+            603449,
+            618874
+          ]
+        },
+        {
+          "elapsedMs": 40510,
+          "pssKiB": [
+            603577,
+            619030
+          ]
+        }
+      ]
+    },
+    {
+      "policy": "compiler",
+      "trial": 1,
+      "variant": "default",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 45598,
+      "totalCpuMs": 129330.0,
+      "peakObservedConcurrentPssKiB": 1290917,
+      "minorFaults": 335239,
+      "majorFaults": 67,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 7513,
+          "totalWallMs": 44457,
+          "totalCpuMs": 63950.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 670124,
+            "VmRSS": 646468,
+            "RssAnon": 591504,
+            "RssFile": 52120,
+            "RssShmem": 2844,
+            "Pss": 626415,
+            "Private": 619696
+          },
+          "workloadEndFaults": {
+            "minor": 166253,
+            "major": 33
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30"
+          ]
+        },
+        {
+          "readyWallMs": 6370,
+          "totalWallMs": 42122,
+          "totalCpuMs": 65380.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 677924,
+            "VmRSS": 657844,
+            "RssAnon": 603108,
+            "RssFile": 51892,
+            "RssShmem": 2844,
+            "Pss": 628627,
+            "Private": 616104
+          },
+          "workloadEndFaults": {
+            "minor": 168986,
+            "major": 34
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            105184,
+            105539
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            152964,
+            163211
+          ]
+        },
+        {
+          "elapsedMs": 3017,
+          "pssKiB": [
+            228001,
+            256803
+          ]
+        },
+        {
+          "elapsedMs": 4026,
+          "pssKiB": [
+            301113,
+            342091
+          ]
+        },
+        {
+          "elapsedMs": 5040,
+          "pssKiB": [
+            356835,
+            389065
+          ]
+        },
+        {
+          "elapsedMs": 6055,
+          "pssKiB": [
+            389869,
+            429397
+          ]
+        },
+        {
+          "elapsedMs": 7066,
+          "pssKiB": [
+            423449,
+            468215
+          ]
+        },
+        {
+          "elapsedMs": 8079,
+          "pssKiB": [
+            478464,
+            493383
+          ]
+        },
+        {
+          "elapsedMs": 9092,
+          "pssKiB": [
+            491480,
+            495479
+          ]
+        },
+        {
+          "elapsedMs": 10105,
+          "pssKiB": [
+            512948,
+            512519
+          ]
+        },
+        {
+          "elapsedMs": 11118,
+          "pssKiB": [
+            520866,
+            529987
+          ]
+        },
+        {
+          "elapsedMs": 12133,
+          "pssKiB": [
+            525382,
+            521071
+          ]
+        },
+        {
+          "elapsedMs": 13147,
+          "pssKiB": [
+            523446,
+            539379
+          ]
+        },
+        {
+          "elapsedMs": 14161,
+          "pssKiB": [
+            536002,
+            562087
+          ]
+        },
+        {
+          "elapsedMs": 15176,
+          "pssKiB": [
+            527294,
+            581979
+          ]
+        },
+        {
+          "elapsedMs": 16192,
+          "pssKiB": [
+            583270,
+            574995
+          ]
+        },
+        {
+          "elapsedMs": 17207,
+          "pssKiB": [
+            573702,
+            566211
+          ]
+        },
+        {
+          "elapsedMs": 18221,
+          "pssKiB": [
+            588846,
+            589671
+          ]
+        },
+        {
+          "elapsedMs": 19234,
+          "pssKiB": [
+            583346,
+            592295
+          ]
+        },
+        {
+          "elapsedMs": 20249,
+          "pssKiB": [
+            594310,
+            579183
+          ]
+        },
+        {
+          "elapsedMs": 21264,
+          "pssKiB": [
+            585786,
+            596223
+          ]
+        },
+        {
+          "elapsedMs": 22279,
+          "pssKiB": [
+            574722,
+            598423
+          ]
+        },
+        {
+          "elapsedMs": 23292,
+          "pssKiB": [
+            597546,
+            599919
+          ]
+        },
+        {
+          "elapsedMs": 24307,
+          "pssKiB": [
+            590474,
+            596355
+          ]
+        },
+        {
+          "elapsedMs": 25322,
+          "pssKiB": [
+            587786,
+            586087
+          ]
+        },
+        {
+          "elapsedMs": 26337,
+          "pssKiB": [
+            602018,
+            608475
+          ]
+        },
+        {
+          "elapsedMs": 27351,
+          "pssKiB": [
+            603598,
+            639783
+          ]
+        },
+        {
+          "elapsedMs": 28366,
+          "pssKiB": [
+            605306,
+            639859
+          ]
+        },
+        {
+          "elapsedMs": 29381,
+          "pssKiB": [
+            628418,
+            640087
+          ]
+        },
+        {
+          "elapsedMs": 30396,
+          "pssKiB": [
+            622546,
+            641207
+          ]
+        },
+        {
+          "elapsedMs": 31410,
+          "pssKiB": [
+            613130,
+            641903
+          ]
+        },
+        {
+          "elapsedMs": 32425,
+          "pssKiB": [
+            634742,
+            633699
+          ]
+        },
+        {
+          "elapsedMs": 33441,
+          "pssKiB": [
+            635706,
+            634535
+          ]
+        },
+        {
+          "elapsedMs": 34455,
+          "pssKiB": [
+            636822,
+            635867
+          ]
+        },
+        {
+          "elapsedMs": 35470,
+          "pssKiB": [
+            637814,
+            636579
+          ]
+        },
+        {
+          "elapsedMs": 36486,
+          "pssKiB": [
+            638514,
+            633567
+          ]
+        },
+        {
+          "elapsedMs": 37501,
+          "pssKiB": [
+            639618,
+            632607
+          ]
+        },
+        {
+          "elapsedMs": 38517,
+          "pssKiB": [
+            640498,
+            627815
+          ]
+        },
+        {
+          "elapsedMs": 39533,
+          "pssKiB": [
+            641698,
+            649219
+          ]
+        },
+        {
+          "elapsedMs": 40551,
+          "pssKiB": [
+            628282,
+            649399
+          ]
+        },
+        {
+          "elapsedMs": 41567,
+          "pssKiB": [
+            628630,
+            649575
+          ]
+        },
+        {
+          "elapsedMs": 42582,
+          "pssKiB": [
+            628842,
+            631683
+          ]
+        }
+      ]
+    },
+    {
+      "policy": "compiler",
+      "trial": 2,
+      "variant": "default",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 46575,
+      "totalCpuMs": 132290.0,
+      "peakObservedConcurrentPssKiB": 1272317,
+      "minorFaults": 491297,
+      "majorFaults": 40,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 6718,
+          "totalWallMs": 42634,
+          "totalCpuMs": 65600.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 663380,
+            "VmRSS": 636068,
+            "RssAnon": 581244,
+            "RssFile": 51980,
+            "RssShmem": 2844,
+            "Pss": 606875,
+            "Private": 594372
+          },
+          "workloadEndFaults": {
+            "minor": 168598,
+            "major": 22
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30"
+          ]
+        },
+        {
+          "readyWallMs": 7691,
+          "totalWallMs": 45498,
+          "totalCpuMs": 66690.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 675496,
+            "VmRSS": 653060,
+            "RssAnon": 598188,
+            "RssFile": 52028,
+            "RssShmem": 2844,
+            "Pss": 632936,
+            "Private": 626204
+          },
+          "workloadEndFaults": {
+            "minor": 322699,
+            "major": 18
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            121453,
+            104777
+          ]
+        },
+        {
+          "elapsedMs": 2009,
+          "pssKiB": [
+            179624,
+            142145
+          ]
+        },
+        {
+          "elapsedMs": 3016,
+          "pssKiB": [
+            251722,
+            188993
+          ]
+        },
+        {
+          "elapsedMs": 4025,
+          "pssKiB": [
+            338162,
+            282433
+          ]
+        },
+        {
+          "elapsedMs": 5034,
+          "pssKiB": [
+            377462,
+            337289
+          ]
+        },
+        {
+          "elapsedMs": 6045,
+          "pssKiB": [
+            421291,
+            373235
+          ]
+        },
+        {
+          "elapsedMs": 7056,
+          "pssKiB": [
+            469947,
+            415021
+          ]
+        },
+        {
+          "elapsedMs": 8068,
+          "pssKiB": [
+            495119,
+            465393
+          ]
+        },
+        {
+          "elapsedMs": 9080,
+          "pssKiB": [
+            520319,
+            479493
+          ]
+        },
+        {
+          "elapsedMs": 10094,
+          "pssKiB": [
+            526236,
+            486165
+          ]
+        },
+        {
+          "elapsedMs": 11107,
+          "pssKiB": [
+            509244,
+            521477
+          ]
+        },
+        {
+          "elapsedMs": 12120,
+          "pssKiB": [
+            534775,
+            535730
+          ]
+        },
+        {
+          "elapsedMs": 13133,
+          "pssKiB": [
+            539867,
+            539746
+          ]
+        },
+        {
+          "elapsedMs": 14146,
+          "pssKiB": [
+            533363,
+            542642
+          ]
+        },
+        {
+          "elapsedMs": 15160,
+          "pssKiB": [
+            547735,
+            534946
+          ]
+        },
+        {
+          "elapsedMs": 16175,
+          "pssKiB": [
+            582755,
+            546650
+          ]
+        },
+        {
+          "elapsedMs": 17189,
+          "pssKiB": [
+            578467,
+            613442
+          ]
+        },
+        {
+          "elapsedMs": 18204,
+          "pssKiB": [
+            574571,
+            616474
+          ]
+        },
+        {
+          "elapsedMs": 19219,
+          "pssKiB": [
+            598815,
+            619890
+          ]
+        },
+        {
+          "elapsedMs": 20233,
+          "pssKiB": [
+            590071,
+            609146
+          ]
+        },
+        {
+          "elapsedMs": 21248,
+          "pssKiB": [
+            585811,
+            622746
+          ]
+        },
+        {
+          "elapsedMs": 22264,
+          "pssKiB": [
+            630403,
+            623606
+          ]
+        },
+        {
+          "elapsedMs": 23280,
+          "pssKiB": [
+            632419,
+            603826
+          ]
+        },
+        {
+          "elapsedMs": 24295,
+          "pssKiB": [
+            625051,
+            626362
+          ]
+        },
+        {
+          "elapsedMs": 25311,
+          "pssKiB": [
+            603831,
+            628670
+          ]
+        },
+        {
+          "elapsedMs": 26328,
+          "pssKiB": [
+            594795,
+            630514
+          ]
+        },
+        {
+          "elapsedMs": 27344,
+          "pssKiB": [
+            617163,
+            622342
+          ]
+        },
+        {
+          "elapsedMs": 28359,
+          "pssKiB": [
+            618379,
+            622578
+          ]
+        },
+        {
+          "elapsedMs": 29375,
+          "pssKiB": [
+            618591,
+            609286
+          ]
+        },
+        {
+          "elapsedMs": 30389,
+          "pssKiB": [
+            618795,
+            636086
+          ]
+        },
+        {
+          "elapsedMs": 31405,
+          "pssKiB": [
+            619323,
+            636614
+          ]
+        },
+        {
+          "elapsedMs": 32419,
+          "pssKiB": [
+            620279,
+            638022
+          ]
+        },
+        {
+          "elapsedMs": 33434,
+          "pssKiB": [
+            621311,
+            639538
+          ]
+        },
+        {
+          "elapsedMs": 34449,
+          "pssKiB": [
+            612967,
+            630494
+          ]
+        },
+        {
+          "elapsedMs": 35464,
+          "pssKiB": [
+            614147,
+            620558
+          ]
+        },
+        {
+          "elapsedMs": 36482,
+          "pssKiB": [
+            603079,
+            642294
+          ]
+        },
+        {
+          "elapsedMs": 37497,
+          "pssKiB": [
+            604395,
+            643046
+          ]
+        },
+        {
+          "elapsedMs": 38512,
+          "pssKiB": [
+            626087,
+            644262
+          ]
+        },
+        {
+          "elapsedMs": 39527,
+          "pssKiB": [
+            627019,
+            644470
+          ]
+        },
+        {
+          "elapsedMs": 40542,
+          "pssKiB": [
+            627595,
+            644722
+          ]
+        },
+        {
+          "elapsedMs": 41558,
+          "pssKiB": [
+            627743,
+            635434
+          ]
+        },
+        {
+          "elapsedMs": 42574,
+          "pssKiB": [
+            627851,
+            636218
+          ]
+        }
+      ]
+    },
+    {
+      "policy": "compiler",
+      "trial": 2,
+      "variant": "compiler2",
+      "cpus": "0,1,2,3",
+      "groupElapsedMs": 43541,
+      "totalCpuMs": 120680.0,
+      "peakObservedConcurrentPssKiB": 1212134,
+      "minorFaults": 473693,
+      "majorFaults": 45,
+      "parityFramesPerWorker": 61,
+      "distinctApplicationLoadersPerWorker": 60,
+      "workers": [
+        {
+          "readyWallMs": 5512,
+          "totalWallMs": 42802,
+          "totalCpuMs": 60350.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 636524,
+            "VmRSS": 616304,
+            "RssAnon": 561384,
+            "RssFile": 52076,
+            "RssShmem": 2844,
+            "Pss": 596168,
+            "Private": 589420
+          },
+          "workloadEndFaults": {
+            "minor": 158654,
+            "major": 29
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2"
+          ]
+        },
+        {
+          "readyWallMs": 5499,
+          "totalWallMs": 41919,
+          "totalCpuMs": 60330.0,
+          "workloadEndMemoryKiB": {
+            "VmHWM": 640496,
+            "VmRSS": 624280,
+            "RssAnon": 569396,
+            "RssFile": 52040,
+            "RssShmem": 2844,
+            "Pss": 595102,
+            "Private": 582644
+          },
+          "workloadEndFaults": {
+            "minor": 315039,
+            "major": 16
+          },
+          "allocatorEnvironment": {
+            "MALLOC_ARENA_MAX": null,
+            "GLIBC_TUNABLES": null,
+            "LD_PRELOAD": null
+          },
+          "jvmArgs": [
+            "-Xmx256m",
+            "-Xms32m",
+            "-XX:+UseSerialGC",
+            "-XX:MinHeapFreeRatio=10",
+            "-XX:MaxHeapFreeRatio=30",
+            "-XX:CICompilerCount=2"
+          ]
+        }
+      ],
+      "concurrentPssSamples": [
+        {
+          "elapsedMs": 1004,
+          "pssKiB": [
+            107934,
+            115596
+          ]
+        },
+        {
+          "elapsedMs": 2010,
+          "pssKiB": [
+            179138,
+            182388
+          ]
+        },
+        {
+          "elapsedMs": 3017,
+          "pssKiB": [
+            264970,
+            267536
+          ]
+        },
+        {
+          "elapsedMs": 4029,
+          "pssKiB": [
+            320084,
+            318810
+          ]
+        },
+        {
+          "elapsedMs": 5038,
+          "pssKiB": [
+            368827,
+            379365
+          ]
+        },
+        {
+          "elapsedMs": 6050,
+          "pssKiB": [
+            436062,
+            415123
+          ]
+        },
+        {
+          "elapsedMs": 7061,
+          "pssKiB": [
+            450538,
+            454415
+          ]
+        },
+        {
+          "elapsedMs": 8073,
+          "pssKiB": [
+            473570,
+            471735
+          ]
+        },
+        {
+          "elapsedMs": 9086,
+          "pssKiB": [
+            458254,
+            465591
+          ]
+        },
+        {
+          "elapsedMs": 10098,
+          "pssKiB": [
+            483442,
+            483663
+          ]
+        },
+        {
+          "elapsedMs": 11111,
+          "pssKiB": [
+            495316,
+            480066
+          ]
+        },
+        {
+          "elapsedMs": 12123,
+          "pssKiB": [
+            496564,
+            505438
+          ]
+        },
+        {
+          "elapsedMs": 13135,
+          "pssKiB": [
+            499464,
+            484158
+          ]
+        },
+        {
+          "elapsedMs": 14148,
+          "pssKiB": [
+            480576,
+            509906
+          ]
+        },
+        {
+          "elapsedMs": 15159,
+          "pssKiB": [
+            504520,
+            502950
+          ]
+        },
+        {
+          "elapsedMs": 16174,
+          "pssKiB": [
+            498824,
+            565742
+          ]
+        },
+        {
+          "elapsedMs": 17187,
+          "pssKiB": [
+            554600,
+            571738
+          ]
+        },
+        {
+          "elapsedMs": 18201,
+          "pssKiB": [
+            556304,
+            560202
+          ]
+        },
+        {
+          "elapsedMs": 19215,
+          "pssKiB": [
+            548112,
+            573014
+          ]
+        },
+        {
+          "elapsedMs": 20229,
+          "pssKiB": [
+            558408,
+            574930
+          ]
+        },
+        {
+          "elapsedMs": 21243,
+          "pssKiB": [
+            560708,
+            577222
+          ]
+        },
+        {
+          "elapsedMs": 22257,
+          "pssKiB": [
+            541500,
+            569182
+          ]
+        },
+        {
+          "elapsedMs": 23273,
+          "pssKiB": [
+            563708,
+            556706
+          ]
+        },
+        {
+          "elapsedMs": 24286,
+          "pssKiB": [
+            565704,
+            581686
+          ]
+        },
+        {
+          "elapsedMs": 25300,
+          "pssKiB": [
+            545004,
+            581962
+          ]
+        },
+        {
+          "elapsedMs": 26314,
+          "pssKiB": [
+            566388,
+            603670
+          ]
+        },
+        {
+          "elapsedMs": 27329,
+          "pssKiB": [
+            595512,
+            592490
+          ]
+        },
+        {
+          "elapsedMs": 28343,
+          "pssKiB": [
+            596388,
+            582258
+          ]
+        },
+        {
+          "elapsedMs": 29358,
+          "pssKiB": [
+            588676,
+            606786
+          ]
+        },
+        {
+          "elapsedMs": 30371,
+          "pssKiB": [
+            590076,
+            608026
+          ]
+        },
+        {
+          "elapsedMs": 31389,
+          "pssKiB": [
+            578872,
+            609454
+          ]
+        },
+        {
+          "elapsedMs": 32403,
+          "pssKiB": [
+            601276,
+            610858
+          ]
+        },
+        {
+          "elapsedMs": 33417,
+          "pssKiB": [
+            602412,
+            601526
+          ]
+        },
+        {
+          "elapsedMs": 34432,
+          "pssKiB": [
+            602608,
+            595274
+          ]
+        },
+        {
+          "elapsedMs": 35446,
+          "pssKiB": [
+            603156,
+            590414
+          ]
+        },
+        {
+          "elapsedMs": 36461,
+          "pssKiB": [
+            594752,
+            591258
+          ]
+        },
+        {
+          "elapsedMs": 37475,
+          "pssKiB": [
+            589936,
+            591822
+          ]
+        },
+        {
+          "elapsedMs": 38490,
+          "pssKiB": [
+            584520,
+            593122
+          ]
+        },
+        {
+          "elapsedMs": 39505,
+          "pssKiB": [
+            606384,
+            594078
+          ]
+        },
+        {
+          "elapsedMs": 40520,
+          "pssKiB": [
+            607428,
+            594702
+          ]
+        },
+        {
+          "elapsedMs": 41534,
+          "pssKiB": [
+            607972,
+            585206
+          ]
+        }
+      ]
+    }
+  ],
+  "aggregates": {
+    "default": {
+      "meanCpuMs": 130306.66666666667,
+      "medianGroupElapsedMs": 45598,
+      "medianPeakObservedConcurrentPssMiB": 1260.6611328125,
+      "meanMinorFaults": 451633
+    },
+    "compiler2": {
+      "meanCpuMs": 121366.66666666667,
+      "medianGroupElapsedMs": 42531,
+      "medianPeakObservedConcurrentPssMiB": 1183.724609375,
+      "meanMinorFaults": 449263.3333333333
+    }
+  },
+  "compilerPreflight": {
+    "java": "/usr/lib/jvm/java-17-openjdk/bin/java",
+    "command": "taskset -c <cpus> java -Xmx256m -Xms32m -XX:+UseSerialGC [ -XX:CICompilerCount=2 ] -XX:+PrintFlagsFinal -version",
+    "observations": [
+      {
+        "cpus": [
+          0,
+          1
+        ],
+        "defaultCICompilerCount": 2,
+        "explicitCICompilerCount": 2
+      },
+      {
+        "cpus": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "defaultCICompilerCount": 3,
+        "explicitCICompilerCount": 2
+      },
+      {
+        "cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "defaultCICompilerCount": 4,
+        "explicitCICompilerCount": 2
+      }
+    ],
+    "note": "Preflight launch observations, not live-worker instrumentation. CICompilerCountPerCPU is true for ergonomic defaults and false with the explicit count. Both live worker affinities were checked as [0,1,2,3]."
+  }
+}

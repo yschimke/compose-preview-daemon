@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare allocator policies with two workers sharing an explicit CPU affinity."""
+"""Compare allocator or compiler policies with two workers sharing an explicit CPU affinity."""
 import argparse
 from contextlib import ExitStack
 import json
@@ -17,6 +17,7 @@ parser.add_argument('--user-jar', type=Path, required=True)
 parser.add_argument('--java', required=True)
 parser.add_argument('--cpus', required=True, help='Comma-separated logical CPUs shared by both workers')
 parser.add_argument('--renders', type=int, default=60)
+parser.add_argument('--policy', choices=['allocator', 'compiler'], default='allocator')
 args = parser.parse_args()
 if args.renders < 1 or not re.fullmatch(r'\d+(,\d+)*', args.cpus):
     parser.error('Positive renders and comma-separated CPU numbers required')
@@ -27,8 +28,9 @@ if any(os.environ.get(k) for k in ['GLIBC_TUNABLES','LD_PRELOAD','MALLOC_ARENA_M
 args.output.mkdir(parents=True, exist_ok=False)
 reference = None
 rows = []
+candidate = 'arena2' if args.policy == 'allocator' else 'compiler2'
 for trial in range(3):
-    for variant in (['default','arena2'] if trial % 2 == 0 else ['arena2','default']):
+    for variant in (['default',candidate] if trial % 2 == 0 else [candidate,'default']):
         directory = args.output / f'{trial}-{variant}'
         directory.mkdir()
         env = os.environ.copy()
@@ -51,6 +53,8 @@ for trial in range(3):
                     '--memory','--output',str(output.resolve())]
                 command += ['--jvm-arg='+f for f in ['-Xmx256m','-Xms32m','-XX:+UseSerialGC',
                     '-XX:MinHeapFreeRatio=10','-XX:MaxHeapFreeRatio=30']]
+                if variant == 'compiler2':
+                    command.append('--jvm-arg=-XX:CICompilerCount=2')
                 log=stack.enter_context((directory/f'{worker}.log').open('w'))
                 processes.append(subprocess.Popen(command,env=env,stdout=log,stderr=subprocess.STDOUT))
             # Let each harness own bounded worker cleanup, including if its peer fails.
@@ -79,9 +83,9 @@ for trial in range(3):
             assert s['swapEvery']==1 and len(s['renders'])==args.renders+1
             assert len({r['classLoaderHashCode'] for r in s['renders'][1:]})==args.renders
             workers.append({k:s[k] for k in ['readyWallMs','totalWallMs','totalCpuMs',
-                'workloadEndMemoryKiB','workloadEndFaults','allocatorEnvironment']})
+                'workloadEndMemoryKiB','workloadEndFaults','allocatorEnvironment','jvmArgs']})
         assert samples, 'No overlapping-worker memory observations'
-        row={'trial':trial,'variant':variant,'cpus':args.cpus,'groupElapsedMs':elapsed,
+        row={'policy':args.policy,'trial':trial,'variant':variant,'cpus':args.cpus,'groupElapsedMs':elapsed,
             'totalCpuMs':sum(w['totalCpuMs'] for w in workers),
             'peakObservedConcurrentPssKiB':max(sum(x['pssKiB']) for x in samples),
             'minorFaults':sum(w['workloadEndFaults']['minor'] for w in workers),
