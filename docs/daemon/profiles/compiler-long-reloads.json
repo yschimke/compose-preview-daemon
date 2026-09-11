@@ -1,0 +1,154 @@
+{
+  "rows": [
+    {
+      "variant": "default",
+      "source": "daemon/android/build/compiler-long-reloads-default",
+      "totalCpuMs": 192790.0,
+      "totalWallMs": 268240,
+      "endPssKiB": 881285,
+      "parityFrames": 301,
+      "distinctApplicationLoaders": 300,
+      "windows": [
+        {
+          "from": 1,
+          "through": 50,
+          "meanCpuMs": 889.6,
+          "medianWallMs": 566.5
+        },
+        {
+          "from": 51,
+          "through": 100,
+          "meanCpuMs": 567.4,
+          "medianWallMs": 534.5
+        },
+        {
+          "from": 101,
+          "through": 150,
+          "meanCpuMs": 536.6,
+          "medianWallMs": 527.0
+        },
+        {
+          "from": 151,
+          "through": 200,
+          "meanCpuMs": 510.0,
+          "medianWallMs": 513.5
+        },
+        {
+          "from": 201,
+          "through": 250,
+          "meanCpuMs": 513.6,
+          "medianWallMs": 507.5
+        },
+        {
+          "from": 251,
+          "through": 300,
+          "meanCpuMs": 516.8,
+          "medianWallMs": 514.0
+        }
+      ],
+      "swapEvery": 1,
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info"
+      ],
+      "readyCpuMs": 15010.0,
+      "readyWallMs": 4831,
+      "hostLoadAverage": [
+        0.35888671875,
+        1.7333984375,
+        3.98974609375
+      ],
+      "workloadEndFaults": {
+        "minor": 401422,
+        "major": 0
+      },
+      "finalWorkerMetrics": {
+        "tookMs": 353,
+        "heapAfterGcMb": 82,
+        "nativeHeapMb": 3524,
+        "sandboxAgeRenders": 302,
+        "sandboxAgeMs": 266009
+      }
+    },
+    {
+      "variant": "compiler2",
+      "source": "daemon/android/build/compiler-long-reloads-compiler2",
+      "totalCpuMs": 182320.0,
+      "totalWallMs": 261286,
+      "endPssKiB": 668185,
+      "parityFrames": 301,
+      "distinctApplicationLoaders": 300,
+      "windows": [
+        {
+          "from": 1,
+          "through": 50,
+          "meanCpuMs": 844.0,
+          "medianWallMs": 534.0
+        },
+        {
+          "from": 51,
+          "through": 100,
+          "meanCpuMs": 563.4,
+          "medianWallMs": 512.0
+        },
+        {
+          "from": 101,
+          "through": 150,
+          "meanCpuMs": 527.8,
+          "medianWallMs": 511.0
+        },
+        {
+          "from": 151,
+          "through": 200,
+          "meanCpuMs": 504.4,
+          "medianWallMs": 512.0
+        },
+        {
+          "from": 201,
+          "through": 250,
+          "meanCpuMs": 507.6,
+          "medianWallMs": 502.0
+        },
+        {
+          "from": 251,
+          "through": 300,
+          "meanCpuMs": 493.4,
+          "medianWallMs": 498.0
+        }
+      ],
+      "swapEvery": 1,
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2"
+      ],
+      "readyCpuMs": 9360.0,
+      "readyWallMs": 4758,
+      "hostLoadAverage": [
+        0.78564453125,
+        1.20263671875,
+        3.19921875
+      ],
+      "workloadEndFaults": {
+        "minor": 329217,
+        "major": 0
+      },
+      "finalWorkerMetrics": {
+        "tookMs": 346,
+        "heapAfterGcMb": 81,
+        "nativeHeapMb": 3491,
+        "sandboxAgeRenders": 302,
+        "sandboxAgeMs": 259131
+      }
+    }
+  ],
+  "method": "One sequential pair (default then compiler2), 300 real application reloads each. Same frozen jars, JDK17/Serial256/Xms32m/free10-30 and equal GC logging. No profiler or forced diagnostic checkpoints. PNG/UIA hashes checked on every frame before reuse. Loader hashes checked for 300 distinct identities; this does not establish live-loader retention. Host background load uncontrolled; full artifact history not retained."
+}

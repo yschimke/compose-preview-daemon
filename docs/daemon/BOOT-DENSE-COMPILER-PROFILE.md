@@ -58,6 +58,48 @@ All **183 frame pairs and 2,013 exported artifacts match**. Narrow existing
 normalizations cover semantics debug ordering and Typeface identities only.
 [Comparison data](profiles/post-snapshot-compiler.json).
 
+## Extension: 300 actual application reloads
+
+A separate longer pair uses the same frozen renderer/heap settings and compiler
+variants, but renders child-loaded `ReloadDashboardPreview` with `--swap-every 1`
+for 300 application renders per worker. Both workers verify **300 distinct loader
+identities**, and all **301 paired PNG/UIA hashes match**. Output files are reused,
+so this run does not claim full-history parity for the other exported artifacts.
+
+| Render window | Default mean CPU ms | Compiler2 mean CPU ms | Default median wall ms | Compiler2 median wall ms |
+| --- | ---: | ---: | ---: | ---: |
+| 1–50 | 889.6 | 844.0 | 566.5 | 534.0 |
+| 51–100 | 567.4 | 563.4 | 534.5 | 512.0 |
+| 101–150 | 536.6 | 527.8 | 527.0 | 511.0 |
+| 151–200 | 510.0 | 504.4 | 513.5 | 512.0 |
+| 201–250 | 513.6 | 507.6 | 507.5 | 502.0 |
+| 251–300 | 516.8 | 493.4 | 514.0 | 498.0 |
+
+Whole-process CPU is **192.790 → 182.320 s** (**5.4% lower**), and end PSS
+**860.63 → 652.52 MiB** (**208.11 MiB / 24.2% lower**). CPU through readiness
+is 15.010 → 9.360 s. Startup savings amortize, so the smaller overall CPU
+improvement than the 60-render matrix is expected. None of the 50-render windows
+regresses, although one ordered pair is insufficient to establish a general
+long-run percentage. Whole-workload wall time is 268.240 → 261.286 s; unexplained
+long waits still affect this metric.
+
+The final worker-reported `heapAfterGcMb` is 82 versus 81. This run has no NMT,
+heap histograms or diagnostic forced-GC checkpoints; it does not establish native
+ownership, live-loader counts or an indefinite retention bound. Distinct loader
+identities demonstrate the reload workload, not garbage collection of old loaders.
+[Long-run data](profiles/compiler-long-reloads.json) retains per-window results,
+flags, load, faults and final worker metrics. Default ran first, then compiler2;
+no local builds/profilers/other benchmarks overlapped, but host load is uncontrolled.
+
+To reproduce, invoke `scripts/benchmark-worker-startup.py` separately for the two
+flag sets in `scripts/experiments/post-snapshot-compiler.json`, using the same
+classpath, Java and heap flags as the short matrix. Set `--renders 300 --fixture
+ReloadDashboardPreview --class-name benchmark.screens.ReloadDashboardPreviewsKt
+--user-class-dir daemon/android/build/locale-weak-frozen/1-testFixtures-classes.jar
+--swap-every 1 --reuse-output --width 480 --height 1200 --density 2 --memory` and
+fresh `--output` directories. Validate the saved `swapEvery`, 301 frame hashes and
+300 distinct application loader identities before accepting the result.
+
 ## Reproduction and decision
 
 ```sh
@@ -81,8 +123,8 @@ unchanged until testing sustained sessions and CPU-constrained concurrent worker
 Long-lived workers may amortize extra compilation, and CPU affinity/container
 limits may already reduce compiler concurrency. Static dense previews do not
 cover arbitrary compute-heavy composables, large consumer apps or native images.
-The next check is whether CPU/PSS savings persist across hundreds of renders and
-actual application reloads without sacrificing warmed throughput.
+The 300-reload pair supports extending validation to longer sessions and
+CPU-constrained concurrent workers before changing the production default.
 
 This reinforces R10's need to separate application, compiler and VM costs. It is
 JVM launch tuning, not a Robolectric bug; applicability and impact in ordinary
