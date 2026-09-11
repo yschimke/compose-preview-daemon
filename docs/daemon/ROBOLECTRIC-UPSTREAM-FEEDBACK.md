@@ -296,6 +296,14 @@ reduced median end PSS by 127.70 MiB (16.5%) with `MALLOC_ARENA_MAX=2`, at a
 time. This is a local launch-policy tradeoff; no production default changes or
 ordinary test-suite benefit claims follow from these single-worker measurements.
 
+The [corrected per-render-reload pair](BOOT-ALLOCATOR-REAL-RELOADS.md) verifies
+350 distinct loaders per variant, two live loaders at every checkpoint, and
+351 matching PNG/UIA pairs. Default versus two arenas reaches 964.04 versus
+702.85 MiB PSS before trim at reload 300. Trimming reclaims 283.81 versus
+115.92 MiB, with partial rebound after 50 further reloads. This strengthens the
+local allocator-retention evidence; it does not establish a recycling interval,
+Robolectric ownership, or ordinary-test benefit. Priority remains P3 upstream.
+
 **Next:** minimize the AWT initialization/TCCL case and determine whether our embedder
 should initialize it under a stable loader or Robolectric should provide a lifecycle
 hook. Ask for a supported application-loader replacement/unloading recipe and

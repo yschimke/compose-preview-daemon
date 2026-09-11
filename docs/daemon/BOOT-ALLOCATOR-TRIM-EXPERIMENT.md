@@ -13,7 +13,8 @@ saved run has `swapEvery=50` and seven application loader identities. A temporar
 script changed both the checkpoint interval and swap interval together. The
 reclamation measurement remains valid for this workload; it does not validate
 350 actual reloads. The reproduction command below now matches the measured
-cadence. A fresh per-render-swap comparison is being run separately.
+cadence. A [corrected per-render-swap comparison](BOOT-ALLOCATOR-REAL-RELOADS.md) now
+verifies 350 distinct loaders in each variant.
 
 ## Evidence
 
