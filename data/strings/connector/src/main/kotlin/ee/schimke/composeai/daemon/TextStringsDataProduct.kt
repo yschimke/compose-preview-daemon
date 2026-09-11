@@ -156,7 +156,9 @@ class TextStringsDataProductRegistry(
           editableText = node.editableText?.takeIf { it.isNotBlank() },
           inputText = node.inputText?.takeIf { it.isNotBlank() },
           nodeId = node.nodeId,
+          // Keep the pre-v3 misnamed field as a compatibility alias.
           boundsInScreen = node.boundsInRoot,
+          boundsInRoot = node.boundsInRoot,
           localeTag = localeTag,
           fontScale = fontScale,
           truncated = node.textOverflow?.truncated,

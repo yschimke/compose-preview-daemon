@@ -91,6 +91,7 @@ class TextStringsDataProductRegistryTest {
       (outcome as DataProductRegistry.Outcome.Ok).result.payload!!.jsonObject["texts"]!!.jsonArray
     assertEquals(1, texts.size)
     assertEquals("10,20,90,40", texts[0].jsonObject["boundsInScreen"]!!.jsonPrimitive.content)
+    assertEquals("10,20,90,40", texts[0].jsonObject["boundsInRoot"]!!.jsonPrimitive.content)
   }
 
   @Test
@@ -166,6 +167,7 @@ class TextStringsDataProductRegistryTest {
     assertEquals("#FFE0E0E0", first["backgroundColor"]!!.jsonPrimitive.content)
     assertEquals("2", first["nodeId"]!!.jsonPrimitive.content)
     assertEquals("10,20,90,40", first["boundsInScreen"]!!.jsonPrimitive.content)
+    assertEquals("10,20,90,40", first["boundsInRoot"]!!.jsonPrimitive.content)
     assertEquals("fr-FR", first["localeTag"]!!.jsonPrimitive.content)
     assertEquals("1.3", first["fontScale"]!!.jsonPrimitive.content)
 
@@ -303,7 +305,7 @@ class TextStringsDataProductRegistryTest {
       registry.attachmentsFor(previewId, setOf(TextStringsDataProductRegistry.KIND)).single()
 
     assertEquals(TextStringsDataProductRegistry.KIND, attachment.kind)
-    assertEquals(2, attachment.schemaVersion)
+    assertEquals(3, attachment.schemaVersion)
     assertNull(attachment.path)
     assertNotNull(attachment.payload)
     val entry = attachment.payload!!.jsonObject["texts"]!!.jsonArray.single().jsonObject

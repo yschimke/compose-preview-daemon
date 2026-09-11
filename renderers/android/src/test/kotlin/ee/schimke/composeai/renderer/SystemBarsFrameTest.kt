@@ -1,5 +1,6 @@
 package ee.schimke.composeai.renderer
 
+import android.app.Activity
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -7,6 +8,7 @@ import android.graphics.Color as AndroidColor
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -120,12 +122,56 @@ class SystemBarsFrameTest {
     )
   }
 
+  @Test
+  fun `activity capture overlay paints the same bars above real activity content`() {
+    val width = 200
+    val height = 600
+    val bitmap =
+      renderToBitmap(width, height, uiMode = 0, activityOverlay = true) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Red))
+      }
+
+    val centrePixel = bitmap.getPixel(width / 2, height / 2)
+    val statusPixel = bitmap.getPixel(width / 2, 4)
+    val navPixel = bitmap.getPixel(width / 2, height - 4)
+    assertTrue(AndroidColor.red(centrePixel) > 200 && AndroidColor.green(centrePixel) < 50)
+    assertTrue(AndroidColor.green(statusPixel) > 40 && AndroidColor.blue(statusPixel) > 40)
+    assertTrue(AndroidColor.green(navPixel) > 40 && AndroidColor.blue(navPixel) > 40)
+  }
+
+  @Test
+  fun `activity capture overlay supports a classic non-ComponentActivity`() {
+    val width = 200
+    val height = 600
+    val controller = Robolectric.buildActivity(Activity::class.java)
+    val activity = controller.get()
+    activity.setTheme(android.R.style.Theme_Material_Light_NoActionBar)
+    controller.create().start().resume().visible()
+    activity.setContentView(TextView(activity).apply { setBackgroundColor(AndroidColor.RED) })
+    AppTourRenderer.addSystemBarsOverlay(activity, uiMode = 0)
+
+    val decor = activity.window.decorView
+    val wSpec = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY)
+    val hSpec = View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
+    repeat(5) {
+      ShadowLooper.idleMainLooper(16L, TimeUnit.MILLISECONDS)
+      decor.measure(wSpec, hSpec)
+      decor.layout(0, 0, width, height)
+    }
+
+    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    decor.draw(Canvas(bitmap))
+    assertTrue(AndroidColor.red(bitmap.getPixel(width / 2, height / 2)) > 200)
+    assertTrue(AndroidColor.green(bitmap.getPixel(width / 2, 4)) > 40)
+  }
+
   // --- helpers ----------------------------------------------------------
 
   private fun renderToBitmap(
     width: Int,
     height: Int,
     uiMode: Int,
+    activityOverlay: Boolean = false,
     body: @Composable () -> Unit,
   ): Bitmap {
     val controller = Robolectric.buildActivity(ComponentActivity::class.java)
@@ -142,9 +188,10 @@ class SystemBarsFrameTest {
 
     activity.setContent {
       CompositionLocalProvider(LocalInspectionMode provides true) {
-        SystemBarsFrame(uiMode = uiMode, content = body)
+        if (activityOverlay) body() else SystemBarsFrame(uiMode = uiMode, content = body)
       }
     }
+    if (activityOverlay) AppTourRenderer.addSystemBarsOverlay(activity, uiMode)
 
     val decor = activity.window.decorView
     findComposeView(decor)?.apply {

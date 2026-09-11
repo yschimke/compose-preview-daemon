@@ -1,6 +1,7 @@
 package ee.schimke.composeai.renderer.uiautomator
 
 import ee.schimke.composeai.data.render.extensions.DataProductKey
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.Serializable
 
 /**
@@ -44,8 +45,14 @@ data class UiAutomatorHierarchyNode(
    * keeps wire diffs deterministic across runs.
    */
   val actions: List<String> = emptyList(),
-  /** `left,top,right,bottom` in source-bitmap pixels — same shape `AccessibilityNode` uses. */
+  /**
+   * Deprecated wire alias retained for schema-v1 clients. Despite its historical name, this value
+   * has always been relative to the Compose semantics root, not the physical screen.
+   */
+  @Deprecated("Use boundsInRoot; this field has never contained screen coordinates")
   val boundsInScreen: String,
+  /** `left,top,right,bottom` in source-bitmap pixels relative to the Compose semantics root. */
+  @EncodeDefault(EncodeDefault.Mode.ALWAYS) val boundsInRoot: String = boundsInScreen,
   /**
    * `true` when the snapshot was taken against the merged semantics tree (the on-device UIAutomator
    * default; what `Button { Text("Submit") }` collapses into one node), `false` when the unmerged
@@ -59,7 +66,7 @@ data class UiAutomatorHierarchyNode(
 @Serializable data class UiAutomatorHierarchyPayload(val nodes: List<UiAutomatorHierarchyNode>)
 
 object UiAutomatorDataProducts {
-  const val SCHEMA_VERSION: Int = 1
+  const val SCHEMA_VERSION: Int = 2
   const val KIND_HIERARCHY: String = "uia/hierarchy"
 
   /** Action names emitted on [UiAutomatorHierarchyNode.actions]. */

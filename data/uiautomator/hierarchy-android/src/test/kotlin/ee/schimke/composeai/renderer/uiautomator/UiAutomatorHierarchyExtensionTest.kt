@@ -63,6 +63,11 @@ class UiAutomatorHierarchyExtensionTest {
     // of the default filter and what makes the snapshot useful as a dispatch target list.
     for (node in payload.nodes) {
       assertTrue("default-filtered node carried no actions: $node", node.actions.isNotEmpty())
+      assertEquals(
+        "the schema-v1 bounds alias and canonical root-relative field must agree",
+        node.boundsInScreen,
+        node.boundsInRoot,
+      )
       assertTrue(
         "node action '${node.actions}' contains an unsupported value",
         node.actions.all { it in UiAutomatorDataProducts.SUPPORTED_ACTIONS },
