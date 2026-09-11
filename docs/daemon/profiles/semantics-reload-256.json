@@ -1,0 +1,145 @@
+{
+  "runs": [
+    {
+      "source": "daemon/android/build/semantics-reload-256/summary.json",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30"
+      ],
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 1.0,
+      "fixtureClass": "benchmark.screens.ReloadDashboardPreviewsKt",
+      "checkedFrames": 61,
+      "withinRunParity": true,
+      "fixtureHashes": {
+        "RedSquare": {
+          "pngSha256": "32c435fa3075bb5452cf5a67968fc9cec6c704c6fa87dcde9498ea816ed5df85",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        "ReloadDashboardPreview": {
+          "pngSha256": "e9eaf06ff1ece3f69e1c56967ba338a3732a494483b0f4f160746635590079d4",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        }
+      },
+      "forcedGcCheckpointEvery": 10,
+      "checkpoints": [
+        {
+          "renderIndex": 0,
+          "postGcHeapUsedKiB": 89879,
+          "metaspaceUsedKiB": 102478,
+          "VmHWM": 570280,
+          "VmRSS": 547980,
+          "RssAnon": 491156,
+          "RssFile": 53980,
+          "RssShmem": 2844,
+          "Pss": 526860,
+          "Private": 520340
+        },
+        {
+          "renderIndex": 10,
+          "postGcHeapUsedKiB": 92308,
+          "metaspaceUsedKiB": 111187,
+          "VmHWM": 738700,
+          "VmRSS": 722356,
+          "RssAnon": 665404,
+          "RssFile": 54108,
+          "RssShmem": 2844,
+          "Pss": 701242,
+          "Private": 694716
+        },
+        {
+          "renderIndex": 20,
+          "postGcHeapUsedKiB": 92489,
+          "metaspaceUsedKiB": 112660,
+          "VmHWM": 784232,
+          "VmRSS": 784232,
+          "RssAnon": 727280,
+          "RssFile": 54108,
+          "RssShmem": 2844,
+          "Pss": 763118,
+          "Private": 756592
+        },
+        {
+          "renderIndex": 30,
+          "postGcHeapUsedKiB": 92609,
+          "metaspaceUsedKiB": 113569,
+          "VmHWM": 837084,
+          "VmRSS": 837084,
+          "RssAnon": 780132,
+          "RssFile": 54108,
+          "RssShmem": 2844,
+          "Pss": 815972,
+          "Private": 809444
+        },
+        {
+          "renderIndex": 40,
+          "postGcHeapUsedKiB": 92702,
+          "metaspaceUsedKiB": 113957,
+          "VmHWM": 836004,
+          "VmRSS": 810388,
+          "RssAnon": 753436,
+          "RssFile": 54108,
+          "RssShmem": 2844,
+          "Pss": 789285,
+          "Private": 782748
+        },
+        {
+          "renderIndex": 50,
+          "postGcHeapUsedKiB": 92798,
+          "metaspaceUsedKiB": 114595,
+          "VmHWM": 836004,
+          "VmRSS": 820852,
+          "RssAnon": 763900,
+          "RssFile": 54108,
+          "RssShmem": 2844,
+          "Pss": 799749,
+          "Private": 793212
+        },
+        {
+          "renderIndex": 60,
+          "postGcHeapUsedKiB": 92871,
+          "metaspaceUsedKiB": 114830,
+          "VmHWM": 836004,
+          "VmRSS": 824308,
+          "RssAnon": 767356,
+          "RssFile": 54108,
+          "RssShmem": 2844,
+          "Pss": 803198,
+          "Private": 796668
+        }
+      ],
+      "requestWindows": {
+        "first": {
+          "count": 30,
+          "medianWallMs": 1064.0,
+          "meanCpuMs": 1611.6666666666667
+        },
+        "last": {
+          "count": 30,
+          "medianWallMs": 1034.0,
+          "meanCpuMs": 1113.0
+        }
+      }
+    }
+  ],
+  "crossRunParity": true,
+  "reloadValidation": {
+    "distinctApplicationLoaders": 60,
+    "liveChildLoaderCounts": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "densePngStableAcrossReloads": true,
+    "crossBaselineParity": "Not comparable: this run explicitly uses density 1; historical reload baseline artifact reports density 2."
+  }
+}

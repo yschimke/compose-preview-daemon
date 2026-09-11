@@ -1,0 +1,27 @@
+{
+  "baseline": "daemon/android/build/inspector-access-smoke/0-cached-patterns",
+  "candidate": "daemon/android/build/inspector-access-smoke/0-nonthrowing-access",
+  "checkedFrames": 3,
+  "checkedDataArtifacts": 33,
+  "artifacts": [
+    "layout-inspector.json",
+    "compose-semantics.json",
+    "compose-figma.svg",
+    "compose-semantics-wireframe.png",
+    "compose-semantics-wireframe.svg",
+    "compose-spatial-semantics.json",
+    "fonts-used.json",
+    "i18n-translations.json",
+    "navigation.json",
+    "resources-used.json",
+    "uia-hierarchy.json"
+  ],
+  "normalizedJvmLambdas": false,
+  "normalizedSemanticsDebugOrder": true,
+  "normalizedTypefaceIdentities": true,
+  "normalizedArtifactComparisons": 2,
+  "normalizedArtifactNames": {
+    "fonts-used.json": 2
+  },
+  "parity": true
+}

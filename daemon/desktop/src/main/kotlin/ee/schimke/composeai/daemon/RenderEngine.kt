@@ -961,6 +961,10 @@ class RenderEngine(
           ExtensionContextData.of(
             *buildList {
               add(
+                RenderArtifactContextKeys.SemanticsSnapshot provides
+                  ComposeSemanticsSnapshot(semanticsRoot)
+              )
+              add(
                 RenderArtifactContextKeys.LayoutSnapshot provides
                   LayoutInspectorSnapshot(
                     semanticsRoot,

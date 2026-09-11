@@ -1,0 +1,235 @@
+{
+  "runs": [
+    {
+      "source": "daemon/android/build/inspector-final-reload-256-nmt/summary.json",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-XX:NativeMemoryTracking=summary",
+        "-XX:+UnlockDiagnosticVMOptions",
+        "-XX:+PrintNMTStatistics"
+      ],
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "fixtureClass": "benchmark.screens.ReloadDashboardPreviewsKt",
+      "checkedFrames": 301,
+      "withinRunParity": true,
+      "fixtureHashes": {
+        "RedSquare": {
+          "pngSha256": "32c435fa3075bb5452cf5a67968fc9cec6c704c6fa87dcde9498ea816ed5df85",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        },
+        "ReloadDashboardPreview": {
+          "pngSha256": "e990b4e59d823f573c3c48f59185316aaa7dbf504b0d6928d0974991d08c9b3b",
+          "uiaSha256": "acf2fa576acb702442f9d0101673354c398db67315c066ca48be8db8e0d2c75b"
+        }
+      },
+      "forcedGcCheckpointEvery": 50,
+      "checkpoints": [
+        {
+          "renderIndex": 0,
+          "postGcHeapUsedKiB": 89945,
+          "metaspaceUsedKiB": 102531,
+          "VmHWM": 630396,
+          "VmRSS": 607376,
+          "RssAnon": 550824,
+          "RssFile": 53708,
+          "RssShmem": 2844,
+          "Pss": 586248,
+          "Private": 579660
+        },
+        {
+          "renderIndex": 50,
+          "postGcHeapUsedKiB": 92864,
+          "metaspaceUsedKiB": 114841,
+          "VmHWM": 855052,
+          "VmRSS": 820604,
+          "RssAnon": 763924,
+          "RssFile": 53836,
+          "RssShmem": 2844,
+          "Pss": 799542,
+          "Private": 792956
+        },
+        {
+          "renderIndex": 100,
+          "postGcHeapUsedKiB": 93275,
+          "metaspaceUsedKiB": 116012,
+          "VmHWM": 880720,
+          "VmRSS": 863572,
+          "RssAnon": 806892,
+          "RssFile": 53836,
+          "RssShmem": 2844,
+          "Pss": 842506,
+          "Private": 835924
+        },
+        {
+          "renderIndex": 150,
+          "postGcHeapUsedKiB": 93663,
+          "metaspaceUsedKiB": 116945,
+          "VmHWM": 925908,
+          "VmRSS": 909204,
+          "RssAnon": 852524,
+          "RssFile": 53836,
+          "RssShmem": 2844,
+          "Pss": 888139,
+          "Private": 881556
+        },
+        {
+          "renderIndex": 200,
+          "postGcHeapUsedKiB": 90136,
+          "metaspaceUsedKiB": 117400,
+          "VmHWM": 932400,
+          "VmRSS": 915588,
+          "RssAnon": 858872,
+          "RssFile": 53872,
+          "RssShmem": 2844,
+          "Pss": 894506,
+          "Private": 887904
+        },
+        {
+          "renderIndex": 250,
+          "postGcHeapUsedKiB": 81454,
+          "metaspaceUsedKiB": 115348,
+          "VmHWM": 939244,
+          "VmRSS": 921976,
+          "RssAnon": 865260,
+          "RssFile": 53872,
+          "RssShmem": 2844,
+          "Pss": 900887,
+          "Private": 894292
+        },
+        {
+          "renderIndex": 300,
+          "postGcHeapUsedKiB": 81769,
+          "metaspaceUsedKiB": 116481,
+          "VmHWM": 972796,
+          "VmRSS": 927756,
+          "RssAnon": 871040,
+          "RssFile": 53872,
+          "RssShmem": 2844,
+          "Pss": 906667,
+          "Private": 900072
+        }
+      ],
+      "requestWindows": {
+        "first": {
+          "count": 100,
+          "medianWallMs": 731.0,
+          "meanCpuMs": 920.7
+        },
+        "last": {
+          "count": 100,
+          "medianWallMs": 701.0,
+          "meanCpuMs": 698.2
+        }
+      }
+    }
+  ],
+  "crossRunParity": true,
+  "reloadValidation": {
+    "distinctApplicationLoaders": 300,
+    "liveChildLoaderCounts": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "matchedFrames": 301,
+    "pngAndUiaParityWith": "reload-locale-weak-256-long/summary.json"
+  },
+  "nativeMemoryAtExit": {
+    "Java Heap": {
+      "reservedBytes": 268435456,
+      "committedBytes": 268435456
+    },
+    "Class": {
+      "reservedBytes": 1080215297,
+      "committedBytes": 21743361
+    },
+    "Thread": {
+      "reservedBytes": 28513672,
+      "committedBytes": 1963400
+    },
+    "Code": {
+      "reservedBytes": 262664816,
+      "committedBytes": 134337136
+    },
+    "GC": {
+      "reservedBytes": 904386,
+      "committedBytes": 904386
+    },
+    "Compiler": {
+      "reservedBytes": 8693036,
+      "committedBytes": 8693036
+    },
+    "Internal": {
+      "reservedBytes": 1004160,
+      "committedBytes": 1000064
+    },
+    "Other": {
+      "reservedBytes": 95192,
+      "committedBytes": 95192
+    },
+    "Symbol": {
+      "reservedBytes": 29751696,
+      "committedBytes": 29751696
+    },
+    "Native Memory Tracking": {
+      "reservedBytes": 15513440,
+      "committedBytes": 15513440
+    },
+    "Shared class space": {
+      "reservedBytes": 16777216,
+      "committedBytes": 12361728
+    },
+    "Arena Chunk": {
+      "reservedBytes": 8045312,
+      "committedBytes": 8045312
+    },
+    "Tracing": {
+      "reservedBytes": 265,
+      "committedBytes": 265
+    },
+    "Arguments": {
+      "reservedBytes": 146,
+      "committedBytes": 146
+    },
+    "Module": {
+      "reservedBytes": 396544,
+      "committedBytes": 396544
+    },
+    "Safepoint": {
+      "reservedBytes": 8192,
+      "committedBytes": 8192
+    },
+    "Synchronization": {
+      "reservedBytes": 671600,
+      "committedBytes": 671600
+    },
+    "Serviceability": {
+      "reservedBytes": 672,
+      "committedBytes": 672
+    },
+    "Metaspace": {
+      "reservedBytes": 136399216,
+      "committedBytes": 117066096
+    },
+    "String Deduplication": {
+      "reservedBytes": 704,
+      "committedBytes": 704
+    },
+    "Object Monitors": {
+      "reservedBytes": 95056,
+      "committedBytes": 95056
+    }
+  },
+  "diagnosticCaveat": "NMT and forced GC/histograms enabled. Timings are not paired performance results. NMT committed/reserved bytes are not RSS/PSS and exclude third-party native allocations."
+}

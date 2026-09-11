@@ -1,0 +1,255 @@
+[
+  {
+    "matrix": "semantics-snapshot-smoke",
+    "trial": 0,
+    "report": {
+      "baseline": "daemon/android/build/semantics-snapshot-smoke/0-baseline",
+      "candidate": "daemon/android/build/semantics-snapshot-smoke/0-shared-semantics",
+      "checkedFrames": 3,
+      "checkedDataArtifacts": 33,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 4,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 2,
+        "fonts-used.json": 2
+      },
+      "parity": true
+    }
+  },
+  {
+    "matrix": "semantics-snapshot-density2",
+    "trial": 0,
+    "report": {
+      "baseline": "daemon/android/build/semantics-snapshot-density2/0-baseline",
+      "candidate": "daemon/android/build/semantics-snapshot-density2/0-shared-semantics",
+      "checkedFrames": 3,
+      "checkedDataArtifacts": 33,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 2,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 2
+      },
+      "parity": true
+    }
+  },
+  {
+    "matrix": "semantics-snapshot-matrix",
+    "trial": 0,
+    "report": {
+      "baseline": "daemon/android/build/semantics-snapshot-matrix/0-baseline",
+      "candidate": "daemon/android/build/semantics-snapshot-matrix/0-shared-semantics",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 120,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 60,
+        "fonts-used.json": 60
+      },
+      "parity": true
+    }
+  },
+  {
+    "matrix": "semantics-snapshot-matrix",
+    "trial": 1,
+    "report": {
+      "baseline": "daemon/android/build/semantics-snapshot-matrix/1-baseline",
+      "candidate": "daemon/android/build/semantics-snapshot-matrix/1-shared-semantics",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 120,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 60,
+        "fonts-used.json": 60
+      },
+      "parity": true
+    }
+  },
+  {
+    "matrix": "semantics-snapshot-matrix",
+    "trial": 2,
+    "report": {
+      "baseline": "daemon/android/build/semantics-snapshot-matrix/2-baseline",
+      "candidate": "daemon/android/build/semantics-snapshot-matrix/2-shared-semantics",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    }
+  },
+  {
+    "matrix": "semantics-c1-matrix",
+    "trial": 0,
+    "report": {
+      "baseline": "daemon/android/build/semantics-c1-matrix/0-baseline",
+      "candidate": "daemon/android/build/semantics-c1-matrix/0-shared-semantics",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 407,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 72,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 36,
+        "fonts-used.json": 36
+      },
+      "parity": true
+    }
+  },
+  {
+    "matrix": "semantics-c1-matrix",
+    "trial": 1,
+    "report": {
+      "baseline": "daemon/android/build/semantics-c1-matrix/1-baseline",
+      "candidate": "daemon/android/build/semantics-c1-matrix/1-shared-semantics",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 407,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 36,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 36
+      },
+      "parity": true
+    }
+  },
+  {
+    "matrix": "semantics-c1-matrix",
+    "trial": 2,
+    "report": {
+      "baseline": "daemon/android/build/semantics-c1-matrix/2-baseline",
+      "candidate": "daemon/android/build/semantics-c1-matrix/2-shared-semantics",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 407,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 72,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 36,
+        "fonts-used.json": 36
+      },
+      "parity": true
+    }
+  }
+]

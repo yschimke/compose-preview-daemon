@@ -1,0 +1,257 @@
+{
+  "dimensions": [
+    480,
+    1200
+  ],
+  "density": 1,
+  "rendersPerWorker": 37,
+  "rows": [
+    {
+      "trial": 0,
+      "variant": "baseline",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-XX:ParallelGCThreads=2",
+        "-XX:ConcGCThreads=1",
+        "-Xlog:gc*=info"
+      ],
+      "totalWallMs": 62361,
+      "totalCpuMs": 66130.0,
+      "readyCpuMs": 5260.0,
+      "readyWallMs": 4160,
+      "last30MedianMs": 1515.5,
+      "last30MeanCpuMs": 1606.3333333333333,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 901808,
+        "VmRSS": 763336,
+        "RssAnon": 707464,
+        "RssFile": 53028,
+        "RssShmem": 2844,
+        "Pss": 743104,
+        "Private": 736620
+      },
+      "roundedLoggedGcCpuSeconds": 5.81,
+      "concurrentMarkCycles": 5
+    },
+    {
+      "trial": 0,
+      "variant": "shared-semantics",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-XX:ParallelGCThreads=2",
+        "-XX:ConcGCThreads=1",
+        "-Xlog:gc*=info"
+      ],
+      "totalWallMs": 58426,
+      "totalCpuMs": 61990.0,
+      "readyCpuMs": 5230.0,
+      "readyWallMs": 4027,
+      "last30MedianMs": 1395.5,
+      "last30MeanCpuMs": 1490.6666666666667,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 818868,
+        "VmRSS": 818868,
+        "RssAnon": 763060,
+        "RssFile": 52964,
+        "RssShmem": 2844,
+        "Pss": 798596,
+        "Private": 792112
+      },
+      "roundedLoggedGcCpuSeconds": 5.77,
+      "concurrentMarkCycles": 4
+    },
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-XX:ParallelGCThreads=2",
+        "-XX:ConcGCThreads=1",
+        "-Xlog:gc*=info"
+      ],
+      "totalWallMs": 58961,
+      "totalCpuMs": 65680.0,
+      "readyCpuMs": 5380.0,
+      "readyWallMs": 4071,
+      "last30MedianMs": 1483.0,
+      "last30MeanCpuMs": 1586.3333333333333,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 859544,
+        "VmRSS": 765808,
+        "RssAnon": 709780,
+        "RssFile": 53184,
+        "RssShmem": 2844,
+        "Pss": 745536,
+        "Private": 739056
+      },
+      "roundedLoggedGcCpuSeconds": 6.17,
+      "concurrentMarkCycles": 8
+    },
+    {
+      "trial": 1,
+      "variant": "shared-semantics",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-XX:ParallelGCThreads=2",
+        "-XX:ConcGCThreads=1",
+        "-Xlog:gc*=info"
+      ],
+      "totalWallMs": 56459,
+      "totalCpuMs": 62090.0,
+      "readyCpuMs": 5260.0,
+      "readyWallMs": 4034,
+      "last30MedianMs": 1399.0,
+      "last30MeanCpuMs": 1492.3333333333333,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 801812,
+        "VmRSS": 780468,
+        "RssAnon": 724328,
+        "RssFile": 53296,
+        "RssShmem": 2844,
+        "Pss": 760062,
+        "Private": 753580
+      },
+      "roundedLoggedGcCpuSeconds": 5.55,
+      "concurrentMarkCycles": 4
+    },
+    {
+      "trial": 2,
+      "variant": "baseline",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-XX:ParallelGCThreads=2",
+        "-XX:ConcGCThreads=1",
+        "-Xlog:gc*=info"
+      ],
+      "totalWallMs": 59668,
+      "totalCpuMs": 74510.0,
+      "readyCpuMs": 5500.0,
+      "readyWallMs": 4124,
+      "last30MedianMs": 1506.0,
+      "last30MeanCpuMs": 1846.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 966184,
+        "VmRSS": 724188,
+        "RssAnon": 668052,
+        "RssFile": 53292,
+        "RssShmem": 2844,
+        "Pss": 715380,
+        "Private": 714944
+      },
+      "roundedLoggedGcCpuSeconds": 7.93,
+      "concurrentMarkCycles": 88
+    },
+    {
+      "trial": 2,
+      "variant": "shared-semantics",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-XX:ParallelGCThreads=2",
+        "-XX:ConcGCThreads=1",
+        "-Xlog:gc*=info"
+      ],
+      "totalWallMs": 55384,
+      "totalCpuMs": 61940.0,
+      "readyCpuMs": 5280.0,
+      "readyWallMs": 4061,
+      "last30MedianMs": 1388.5,
+      "last30MeanCpuMs": 1491.3333333333333,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 927264,
+        "VmRSS": 769636,
+        "RssAnon": 713636,
+        "RssFile": 53156,
+        "RssShmem": 2844,
+        "Pss": 760849,
+        "Private": 760420
+      },
+      "roundedLoggedGcCpuSeconds": 5.62,
+      "concurrentMarkCycles": 4
+    }
+  ],
+  "parity": [
+    {
+      "baseline": "daemon/android/build/semantics-c1-bounded-gc-matrix/0-baseline",
+      "candidate": "daemon/android/build/semantics-c1-bounded-gc-matrix/0-shared-semantics",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 407,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 36,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 36
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/semantics-c1-bounded-gc-matrix/1-baseline",
+      "candidate": "daemon/android/build/semantics-c1-bounded-gc-matrix/1-shared-semantics",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 407,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 72,
+      "normalizedArtifactNames": {
+        "layout-inspector.json": 36,
+        "fonts-used.json": 36
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/semantics-c1-bounded-gc-matrix/2-baseline",
+      "candidate": "daemon/android/build/semantics-c1-bounded-gc-matrix/2-shared-semantics",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 407,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 36,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 36
+      },
+      "parity": true
+    }
+  ],
+  "note": "Only bounded GC thread counts and GC logging added to C1 isolation. GC CPU is rounded log data, not an exclusive profile."
+}

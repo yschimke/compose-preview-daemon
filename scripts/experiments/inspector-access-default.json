@@ -1,0 +1,12 @@
+[
+  {
+    "name": "cached-patterns",
+    "classpath": "daemon/android/build/inspector-identity-frozen/classpath.txt",
+    "jvmArgs": []
+  },
+  {
+    "name": "nonthrowing-access",
+    "classpath": "daemon/android/build/inspector-access-frozen/classpath.txt",
+    "jvmArgs": []
+  }
+]

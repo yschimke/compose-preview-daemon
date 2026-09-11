@@ -1,0 +1,395 @@
+{
+  "description": "Unprofiled sequential rotated trials; default and C1 are separate comparisons. CPU variability is unresolved; no general CPU saving claimed.",
+  "java": "OpenJDK 17.0.19",
+  "rows": [
+    {
+      "profile": "default",
+      "trial": 0,
+      "variant": "baseline",
+      "renders": 61,
+      "jvmArgs": [],
+      "readyWallMs": 4454,
+      "totalWallMs": 85003,
+      "totalCpuMs": 113110.0,
+      "last30MedianWallMs": 1017.0,
+      "last30MeanCpuMs": 1330.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1164600,
+        "VmRSS": 1030844,
+        "RssAnon": 972824,
+        "RssFile": 55176,
+        "RssShmem": 2844,
+        "Pss": 1009242,
+        "Private": 1002024
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 29.0,
+        "compose/semantics-wireframe": 126.0,
+        "layout/inspector": 424.5,
+        "compose/figma-svg": 83.0,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    },
+    {
+      "profile": "default",
+      "trial": 0,
+      "variant": "shared-semantics",
+      "renders": 61,
+      "jvmArgs": [],
+      "readyWallMs": 4402,
+      "totalWallMs": 89851,
+      "totalCpuMs": 110000.0,
+      "last30MedianWallMs": 1010.5,
+      "last30MeanCpuMs": 1323.3333333333333,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1161612,
+        "VmRSS": 1050724,
+        "RssAnon": 992452,
+        "RssFile": 55428,
+        "RssShmem": 2844,
+        "Pss": 1029035,
+        "Private": 1021824
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 30.0,
+        "compose/semantics-wireframe": 98.0,
+        "layout/inspector": 469.0,
+        "compose/figma-svg": 54.5,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    },
+    {
+      "profile": "default",
+      "trial": 1,
+      "variant": "baseline",
+      "renders": 61,
+      "jvmArgs": [],
+      "readyWallMs": 4539,
+      "totalWallMs": 74001,
+      "totalCpuMs": 154290.0,
+      "last30MedianWallMs": 1068.0,
+      "last30MeanCpuMs": 2148.6666666666665,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1367512,
+        "VmRSS": 1003424,
+        "RssAnon": 945648,
+        "RssFile": 54932,
+        "RssShmem": 2844,
+        "Pss": 981826,
+        "Private": 974624
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 27.5,
+        "compose/semantics-wireframe": 125.0,
+        "layout/inspector": 434.5,
+        "compose/figma-svg": 94.5,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    },
+    {
+      "profile": "default",
+      "trial": 1,
+      "variant": "shared-semantics",
+      "renders": 61,
+      "jvmArgs": [],
+      "readyWallMs": 4415,
+      "totalWallMs": 68467,
+      "totalCpuMs": 111850.0,
+      "last30MedianWallMs": 1016.0,
+      "last30MeanCpuMs": 1344.3333333333333,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1184732,
+        "VmRSS": 1030572,
+        "RssAnon": 972464,
+        "RssFile": 55264,
+        "RssShmem": 2844,
+        "Pss": 1009073,
+        "Private": 1001888
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 30.0,
+        "compose/semantics-wireframe": 98.0,
+        "layout/inspector": 473.0,
+        "compose/figma-svg": 57.0,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    },
+    {
+      "profile": "default",
+      "trial": 2,
+      "variant": "baseline",
+      "renders": 61,
+      "jvmArgs": [],
+      "readyWallMs": 4566,
+      "totalWallMs": 82302,
+      "totalCpuMs": 180910.0,
+      "last30MedianWallMs": 1159.5,
+      "last30MeanCpuMs": 2524.3333333333335,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1086504,
+        "VmRSS": 1073348,
+        "RssAnon": 1015512,
+        "RssFile": 54992,
+        "RssShmem": 2844,
+        "Pss": 1051854,
+        "Private": 1044668
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 29.0,
+        "compose/semantics-wireframe": 126.5,
+        "layout/inspector": 494.0,
+        "compose/figma-svg": 102.0,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    },
+    {
+      "profile": "default",
+      "trial": 2,
+      "variant": "shared-semantics",
+      "renders": 61,
+      "jvmArgs": [],
+      "readyWallMs": 4452,
+      "totalWallMs": 70452,
+      "totalCpuMs": 109170.0,
+      "last30MedianWallMs": 979.0,
+      "last30MeanCpuMs": 1293.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1173636,
+        "VmRSS": 1020064,
+        "RssAnon": 962172,
+        "RssFile": 55048,
+        "RssShmem": 2844,
+        "Pss": 998537,
+        "Private": 991360
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 30.0,
+        "compose/semantics-wireframe": 98.0,
+        "layout/inspector": 429.5,
+        "compose/figma-svg": 63.5,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    },
+    {
+      "profile": "c1",
+      "trial": 0,
+      "variant": "baseline",
+      "renders": 37,
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1"
+      ],
+      "readyWallMs": 4208,
+      "totalWallMs": 58405,
+      "totalCpuMs": 71140.0,
+      "last30MedianWallMs": 1466.0,
+      "last30MeanCpuMs": 1687.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 749972,
+        "VmRSS": 749972,
+        "RssAnon": 693920,
+        "RssFile": 53208,
+        "RssShmem": 2844,
+        "Pss": 729781,
+        "Private": 723304
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 38.0,
+        "compose/semantics-wireframe": 137.0,
+        "layout/inspector": 815.5,
+        "compose/figma-svg": 92.0,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    },
+    {
+      "profile": "c1",
+      "trial": 0,
+      "variant": "shared-semantics",
+      "renders": 37,
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1"
+      ],
+      "readyWallMs": 4133,
+      "totalWallMs": 60060,
+      "totalCpuMs": 111760.0,
+      "last30MedianWallMs": 1522.5,
+      "last30MeanCpuMs": 2854.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1049696,
+        "VmRSS": 827836,
+        "RssAnon": 772020,
+        "RssFile": 52972,
+        "RssShmem": 2844,
+        "Pss": 807616,
+        "Private": 801140
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 39.0,
+        "compose/semantics-wireframe": 101.0,
+        "layout/inspector": 827.0,
+        "compose/figma-svg": 55.0,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    },
+    {
+      "profile": "c1",
+      "trial": 1,
+      "variant": "baseline",
+      "renders": 37,
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1"
+      ],
+      "readyWallMs": 4219,
+      "totalWallMs": 58736,
+      "totalCpuMs": 71130.0,
+      "last30MedianWallMs": 1475.5,
+      "last30MeanCpuMs": 1701.6666666666667,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 755052,
+        "VmRSS": 755052,
+        "RssAnon": 699160,
+        "RssFile": 53048,
+        "RssShmem": 2844,
+        "Pss": 734913,
+        "Private": 728436
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 38.0,
+        "compose/semantics-wireframe": 137.0,
+        "layout/inspector": 822.0,
+        "compose/figma-svg": 89.0,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    },
+    {
+      "profile": "c1",
+      "trial": 1,
+      "variant": "shared-semantics",
+      "renders": 37,
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1"
+      ],
+      "readyWallMs": 4243,
+      "totalWallMs": 58151,
+      "totalCpuMs": 100000.0,
+      "last30MedianWallMs": 1455.0,
+      "last30MeanCpuMs": 2480.6666666666665,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 914236,
+        "VmRSS": 842368,
+        "RssAnon": 786532,
+        "RssFile": 52992,
+        "RssShmem": 2844,
+        "Pss": 822201,
+        "Private": 815728
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 39.0,
+        "compose/semantics-wireframe": 101.0,
+        "layout/inspector": 834.5,
+        "compose/figma-svg": 51.5,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    },
+    {
+      "profile": "c1",
+      "trial": 2,
+      "variant": "baseline",
+      "renders": 37,
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1"
+      ],
+      "readyWallMs": 4182,
+      "totalWallMs": 58872,
+      "totalCpuMs": 71780.0,
+      "last30MedianWallMs": 1483.0,
+      "last30MeanCpuMs": 1712.6666666666667,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 751092,
+        "VmRSS": 751092,
+        "RssAnon": 695232,
+        "RssFile": 53016,
+        "RssShmem": 2844,
+        "Pss": 730951,
+        "Private": 724480
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 38.0,
+        "compose/semantics-wireframe": 137.0,
+        "layout/inspector": 828.0,
+        "compose/figma-svg": 91.0,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    },
+    {
+      "profile": "c1",
+      "trial": 2,
+      "variant": "shared-semantics",
+      "renders": 37,
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1"
+      ],
+      "readyWallMs": 4229,
+      "totalWallMs": 56120,
+      "totalCpuMs": 67810.0,
+      "last30MedianWallMs": 1403.0,
+      "last30MeanCpuMs": 1631.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 758944,
+        "VmRSS": 758944,
+        "RssAnon": 703184,
+        "RssFile": 52916,
+        "RssShmem": 2844,
+        "Pss": 738802,
+        "Private": 732332
+      },
+      "last30MedianPhaseWallMs": {
+        "fonts/used": 0.0,
+        "resources/used": 0.0,
+        "compose/semantics": 38.0,
+        "compose/semantics-wireframe": 101.0,
+        "layout/inspector": 826.5,
+        "compose/figma-svg": 52.0,
+        "i18n/translations": 0.0,
+        "data/navigation": 0.0
+      }
+    }
+  ],
+  "dimensions": [
+    480,
+    1200
+  ],
+  "density": 1.0
+}

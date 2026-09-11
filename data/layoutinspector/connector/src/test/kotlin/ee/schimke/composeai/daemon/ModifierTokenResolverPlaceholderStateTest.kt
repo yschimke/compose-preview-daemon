@@ -156,4 +156,12 @@ class ModifierTokenResolverPlaceholderStateTest {
     assertEquals(PlaceholderModifiers.KIND_PLACEHOLDER, ph.kind)
     assertTrue(ph.visible == true)
   }
+
+  @Test
+  fun `private captured fields remain readable alongside encapsulated JDK values`() {
+    class DrawContainer(private val label: String, private val draw: Any)
+    val placeholder = PlaceholderDrawLambdaDouble(PlaceholderStateDouble(true), 0L)
+    assertTrue(ModifierTokenResolver.isPlaceholderElement(DrawContainer("label", placeholder)))
+    assertFalse(ModifierTokenResolver.isPlaceholderElement(DrawContainer("label", "ordinary text")))
+  }
 }

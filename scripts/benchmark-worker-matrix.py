@@ -29,6 +29,8 @@ def main():
         help="Compare decoded RGBA pixels instead of PNG encoding bytes (requires Pillow)")
     parser.add_argument("--width", type=int, default=320)
     parser.add_argument("--height", type=int, default=320)
+    parser.add_argument("--density", type=float, default=2.0,
+        help="Pixel density (default: 2, matching historical RenderSpec requests)")
     parser.add_argument("--memory", action="store_true")
     args = parser.parse_args()
     if args.compare_pixels:
@@ -66,7 +68,7 @@ def main():
                 "--classpath", str(Path(variant.get("classpath") or args.classpath).resolve()),
                 "--java", variant.get("java") or args.java,
                 "--output", str(directory), "--renders", str(args.renders),
-                "--width", str(args.width), "--height", str(args.height)]
+                "--width", str(args.width), "--height", str(args.height), "--density", str(args.density)]
             if args.memory:
                 command.append("--memory")
             for fixture in args.fixture:
@@ -105,7 +107,7 @@ def main():
                 "pngByteParity": pngs == reference_pngs,
                 "last30MedianMs": statistics.median(r["wallMs"] for r in summary["renders"][1:][-30:]),
                 "last30MeanCpuMs": statistics.mean(r["cpuMs"] for r in summary["renders"][1:][-30:]),
-                "dimensions": summary["dimensions"], "memoryMeasured": summary["memoryMeasured"]}
+                "dimensions": summary["dimensions"], "density": summary["density"], "memoryMeasured": summary["memoryMeasured"]}
             if args.memory:
                 row["workloadEndMemoryKiB"] = summary["workloadEndMemoryKiB"]
             runs.append(row)

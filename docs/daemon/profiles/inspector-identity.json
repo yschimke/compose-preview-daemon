@@ -1,0 +1,214 @@
+{
+  "dimensions": [
+    480,
+    1200
+  ],
+  "density": 2,
+  "rendersPerWorker": 61,
+  "rows": [
+    {
+      "trial": 0,
+      "variant": "semantics-only",
+      "jvmArgs": [],
+      "totalCpuMs": 108400.0,
+      "totalWallMs": 63511,
+      "readyCpuMs": 16370.0,
+      "readyWallMs": 4379,
+      "last30MedianMs": 947.5,
+      "last30MeanCpuMs": 1261.6666666666667,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1308480,
+        "VmRSS": 992228,
+        "RssAnon": 934380,
+        "RssFile": 55004,
+        "RssShmem": 2844,
+        "Pss": 970937,
+        "Private": 963956
+      }
+    },
+    {
+      "trial": 0,
+      "variant": "cached-patterns",
+      "jvmArgs": [],
+      "totalCpuMs": 102590.0,
+      "totalWallMs": 59192,
+      "readyCpuMs": 15610.0,
+      "readyWallMs": 4324,
+      "last30MedianMs": 877.5,
+      "last30MeanCpuMs": 1208.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1345516,
+        "VmRSS": 1301488,
+        "RssAnon": 1243644,
+        "RssFile": 55000,
+        "RssShmem": 2844,
+        "Pss": 1280171,
+        "Private": 1273176
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "semantics-only",
+      "jvmArgs": [],
+      "totalCpuMs": 128840.0,
+      "totalWallMs": 61620,
+      "readyCpuMs": 15790.0,
+      "readyWallMs": 4363,
+      "last30MedianMs": 930.5,
+      "last30MeanCpuMs": 1873.6666666666667,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1351020,
+        "VmRSS": 1232596,
+        "RssAnon": 1174520,
+        "RssFile": 55232,
+        "RssShmem": 2844,
+        "Pss": 1211260,
+        "Private": 1204264
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "cached-patterns",
+      "jvmArgs": [],
+      "totalCpuMs": 102820.0,
+      "totalWallMs": 59455,
+      "readyCpuMs": 15270.0,
+      "readyWallMs": 4264,
+      "last30MedianMs": 879.5,
+      "last30MeanCpuMs": 1227.3333333333333,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1373040,
+        "VmRSS": 1023836,
+        "RssAnon": 965828,
+        "RssFile": 55164,
+        "RssShmem": 2844,
+        "Pss": 1002434,
+        "Private": 995432
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "semantics-only",
+      "jvmArgs": [],
+      "totalCpuMs": 106170.0,
+      "totalWallMs": 62749,
+      "readyCpuMs": 15890.0,
+      "readyWallMs": 4360,
+      "last30MedianMs": 931.5,
+      "last30MeanCpuMs": 1233.0,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1321784,
+        "VmRSS": 1024276,
+        "RssAnon": 966076,
+        "RssFile": 55356,
+        "RssShmem": 2844,
+        "Pss": 1002819,
+        "Private": 995804
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "cached-patterns",
+      "jvmArgs": [],
+      "totalCpuMs": 103610.0,
+      "totalWallMs": 58802,
+      "readyCpuMs": 15880.0,
+      "readyWallMs": 4328,
+      "last30MedianMs": 873.0,
+      "last30MeanCpuMs": 1229.6666666666667,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1396888,
+        "VmRSS": 1061616,
+        "RssAnon": 1003660,
+        "RssFile": 55112,
+        "RssShmem": 2844,
+        "Pss": 1040196,
+        "Private": 1033192
+      }
+    }
+  ],
+  "parity": [
+    {
+      "baseline": "daemon/android/build/inspector-identity-matrix/0-semantics-only",
+      "candidate": "daemon/android/build/inspector-identity-matrix/0-cached-patterns",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/inspector-identity-matrix/1-semantics-only",
+      "candidate": "daemon/android/build/inspector-identity-matrix/1-cached-patterns",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/inspector-identity-matrix/2-semantics-only",
+      "candidate": "daemon/android/build/inspector-identity-matrix/2-cached-patterns",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    }
+  ],
+  "note": "Default compilation, G1/1 GiB, unpatched Robolectric, no application CDS, no profiler or checkpoint diagnostics. Only the connector jar differs."
+}

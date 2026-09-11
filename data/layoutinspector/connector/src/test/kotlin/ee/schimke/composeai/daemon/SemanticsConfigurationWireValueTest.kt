@@ -77,4 +77,42 @@ class SemanticsConfigurationWireValueTest {
 
     assertEquals("{Flag=a, Flag=b}", ComposeLayoutInspector.canonicalWireValue(configuration))
   }
+
+  @Test
+  fun `runtime identity normalization preserves embedded and whole-key boundaries`() {
+    val cases =
+      listOf(
+        "plain diagnostic value" to "plain diagnostic value",
+        "example.Value@zxy" to "example.Value@zxy",
+        "example.Value@ABCDEF0123456789" to "example.Value@<identity>",
+        "[example.Value@f]" to "[example.Value@<identity>]",
+        "example.Owner\$\$Lambda/0xAbCd@f" to "example.Owner\$\$Lambda/<address>@<identity>",
+        "example.Owner\$\$Lambda/0xAbCd" to "example.Owner\$\$Lambda/<address>",
+        "example.Owner\$\$Lambda/0xINVALID" to "example.Owner\$\$Lambda/0xINVALID",
+      )
+    for ((raw, expected) in cases) {
+      val configuration =
+        SemanticsConfiguration().apply {
+          this[SemanticsPropertyKey<Any>("Custom")] =
+            object {
+              override fun toString() = raw
+            }
+        }
+      assertEquals(
+        raw,
+        "{Custom=$expected}",
+        ComposeLayoutInspector.canonicalWireValue(configuration),
+      )
+    }
+    val configuration =
+      SemanticsConfiguration().apply {
+        this[SemanticsPropertyKey<String>("[example.Value@f]")] = "embedded key"
+        this[SemanticsPropertyKey<String>("example.Value@f")] = "whole key"
+        this[SemanticsPropertyKey<String>("example.Value@0123456789abcdef0")] = "long key"
+      }
+    assertEquals(
+      "{[example.Value@f]=embedded key, example.Value@0123456789abcdef0=long key, example.Value@<identity>=whole key}",
+      ComposeLayoutInspector.canonicalWireValue(configuration),
+    )
+  }
 }
