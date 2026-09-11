@@ -67,7 +67,7 @@ public fun captureRoborazziVisuallySettledFrame(
   try {
     return sampleVisuallySettledFrames(
       advanceFrame,
-      onFinalDecodedFrame = { image ->
+      onFinalDecodedFrame = { image, pixels ->
         val decoded =
           captureDecodableFrame(file, role) {
             originalFormat.awtImageWriter.write(it, context, image)
@@ -75,11 +75,9 @@ public fun captureRoborazziVisuallySettledFrame(
         check(
           image.width == decoded.width &&
             image.height == decoded.height &&
-            image
-              .getRGB(0, 0, image.width, image.height, null, 0, image.width)
-              .contentEquals(
-                decoded.getRGB(0, 0, decoded.width, decoded.height, null, 0, decoded.width)
-              )
+            pixels.contentEquals(
+              decoded.getRGB(0, 0, decoded.width, decoded.height, null, 0, decoded.width)
+            )
         ) {
           "$role final PNG changed pixels during encoding"
         }
