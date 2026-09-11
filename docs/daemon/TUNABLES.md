@@ -22,6 +22,7 @@ flips a knob.
 
 | Property | Type | Default | Effect |
 | --- | --- | --- | --- |
+| `composeai.daemon.metrics.everyRenders` | Int | `1` | Collect full post-GC metrics on the first render and every N renders thereafter. Unmeasured renders retain timing but omit the structured metrics block. Values below 1 use 1. Increasing this may raise resident memory. |
 | `composeai.daemon.idleTimeoutMs` | Long | `5000` | How long the daemon waits after its last client disconnects before exiting. |
 | `composeai.daemon.renderTimeoutMs` | Long | `300000` | Initial per-render `host.submit` timeout, before `initialize.options.maxRenderMs` lands. Non-positive values keep the default. |
 | `composeai.daemon.classpathDirtyGraceMs` | Long | `2000` | Grace window after a classpath-dirty signal before the daemon acts on it. See PROTOCOL.md § 6. |

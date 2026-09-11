@@ -1,6 +1,7 @@
 package ee.schimke.composeai.daemon
 
 import com.sun.management.OperatingSystemMXBean
+import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.protocol.RenderMetrics
 import java.lang.management.ManagementFactory
 import java.util.concurrent.atomic.AtomicBoolean
@@ -53,7 +54,9 @@ public class SandboxLifecycleStats(
  * (per the B2.3 brief: "translate flat map → structured `RenderMetrics` in `JsonRpcServer`"). The
  * engine calls [collect] once per render-completion.
  *
- * Measurement cost target: < 10ms per render (B2.3 DoD). Composed of:
+ * Full measurement can dominate frame latency. [DaemonProperties.metricsEveryRenders] optionally
+ * samples complete measurements; other renders return timing only, never stale or mislabeled heap
+ * values. The default still measures every render. A full measurement consists of:
  * - One `System.gc()` hint (HotSpot mostly honours this for instrumentation; not load-bearing, we
  *   just want post-render heap to reflect short-lived allocation).
  * - Three `MemoryMXBean` / `Runtime` accessor calls (each O(1)).
@@ -72,18 +75,33 @@ public object SandboxMeasurement {
   private val nonHotSpotWarned = AtomicBoolean(false)
 
   /**
-   * Runs measurement and returns a flat `Map<String, Long>` with the four B2.3 keys plus the
-   * pre-existing `tookMs` (passed in by the caller — the engine has already stopped its render
-   * timer by the time we get called).
+   * Advances lifecycle counts and returns the four B2.3 keys on measured renders, or just `tookMs`
+   * when the configured cadence skips measurement. The engine has already stopped its render timer
+   * by the time we get called; reported duration is preserved in either case.
    *
    * The map's keys are pinned constants on [RenderMetrics.Companion] so all consumers
    * (`JsonRpcServer.renderFinishedFromResult`, the soak tests, etc.) agree on the spelling.
    */
   public fun collect(stats: SandboxLifecycleStats, tookMs: Long): Map<String, Long> {
+    return collect(stats, tookMs, DaemonProperties.metricsEveryRenders.read(), System::gc)
+  }
+
+  internal fun collect(
+    stats: SandboxLifecycleStats,
+    tookMs: Long,
+    everyRenders: Int,
+    requestGc: () -> Unit,
+  ): Map<String, Long> {
+    val sandboxAgeRenders = stats.bumpRenderCount()
+    if ((sandboxAgeRenders - 1) % everyRenders.coerceAtLeast(1) != 0L) {
+      // Do not label an ordinary heap reading as post-GC or return stale measurements.
+      // The wire adapter treats timing-only maps as an absent structured metrics block.
+      return mapOf("tookMs" to tookMs)
+    }
     // Run a single GC hint after the render body so post-render heap reflects what survived this
     // render's short-lived allocations. Yes, `System.gc()` is a hint; HotSpot mostly honours it
     // for instrumentation. We don't over-engineer.
-    System.gc()
+    requestGc()
 
     val r = Runtime.getRuntime()
     val heapAfterGcMb = ((r.totalMemory() - r.freeMemory()) / (1024L * 1024L))
@@ -115,7 +133,6 @@ public object SandboxMeasurement {
         0L
       }
 
-    val sandboxAgeRenders = stats.bumpRenderCount()
     val sandboxAgeMs = stats.ageMs()
 
     return mapOf(

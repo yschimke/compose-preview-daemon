@@ -208,6 +208,7 @@ public object DaemonProperties {
    */
   public object Names {
     public const val IDLE_TIMEOUT_MS: String = "composeai.daemon.idleTimeoutMs"
+    public const val METRICS_EVERY_RENDERS: String = "composeai.daemon.metrics.everyRenders"
     public const val RENDER_TIMEOUT_MS: String = "composeai.daemon.renderTimeoutMs"
     public const val CLASSPATH_DIRTY_GRACE_MS: String = "composeai.daemon.classpathDirtyGraceMs"
     public const val DATA_FETCH_RERENDER_BUDGET_MS: String =
@@ -277,6 +278,17 @@ public object DaemonProperties {
   }
 
   // ---- Lifecycle and timeouts ---------------------------------------------------------------
+
+  public val metricsEveryRenders: IntProperty =
+    IntProperty(
+      Names.METRICS_EVERY_RENDERS,
+      1,
+      "Collect full post-GC metrics on the first render and every N renders thereafter. " +
+        "Unmeasured renders retain timing but omit the structured metrics block. " +
+        "Values below 1 use 1. Increasing this may raise resident memory.",
+      G_LIFECYCLE,
+      min = 1,
+    )
 
   public val idleTimeoutMs: LongProperty =
     LongProperty(
@@ -710,6 +722,7 @@ public object DaemonProperties {
    */
   public val ALL: List<DaemonProperty<*>> =
     listOf(
+      metricsEveryRenders,
       idleTimeoutMs,
       renderTimeoutMs,
       classpathDirtyGraceMs,
