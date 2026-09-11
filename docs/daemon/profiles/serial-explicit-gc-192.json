@@ -1,0 +1,110 @@
+{
+  "source": "daemon/android/build/serial-explicit-gc-192-matrix",
+  "rows": [
+    {
+      "trial": 0,
+      "variant": "explicit",
+      "readyWallMs": 4543,
+      "readyCpuMs": 9290.0,
+      "totalWallMs": 32410,
+      "totalCpuMs": 54170.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 424.0,
+      "last30MeanCpuMs": 590.6666666666666,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 611944,
+        "VmRSS": 577040,
+        "RssAnon": 522740,
+        "RssFile": 52220,
+        "RssShmem": 2080,
+        "Pss": 557356,
+        "Private": 550828
+      }
+    },
+    {
+      "trial": 0,
+      "variant": "automatic192",
+      "readyWallMs": 4428,
+      "readyCpuMs": 9170.0,
+      "totalWallMs": 27937,
+      "totalCpuMs": 49290.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 314.0,
+      "last30MeanCpuMs": 503.6666666666667,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 663188,
+        "VmRSS": 663188,
+        "RssAnon": 608668,
+        "RssFile": 52440,
+        "RssShmem": 2080,
+        "Pss": 643531,
+        "Private": 637000
+      }
+    }
+  ],
+  "aggregates": {
+    "explicit": {
+      "meanCpuMs": 54170.0,
+      "medianReadyCpuMs": 9290.0,
+      "medianReadyWallMs": 4543,
+      "medianWallMs": 32410,
+      "medianSteadyCpuMs": 590.6666666666666,
+      "medianSteadyWallMs": 424.0,
+      "medianPssMiB": 544.29296875
+    },
+    "automatic192": {
+      "meanCpuMs": 49290.0,
+      "medianReadyCpuMs": 9170.0,
+      "medianReadyWallMs": 4428,
+      "medianWallMs": 27937,
+      "medianSteadyCpuMs": 503.6666666666667,
+      "medianSteadyWallMs": 314.0,
+      "medianPssMiB": 628.4482421875
+    }
+  },
+  "parity": [
+    {
+      "baseline": "daemon/android/build/serial-explicit-gc-192-matrix/0-explicit",
+      "candidate": "daemon/android/build/serial-explicit-gc-192-matrix/0-automatic192",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    }
+  ]
+}

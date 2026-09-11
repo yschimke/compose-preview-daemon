@@ -1,5 +1,10 @@
 # Cost of per-render explicit GC
 
+A [later bounded-Serial-heap study](BOOT-SERIAL-EXPLICIT-GC-EXPERIMENT.md) repeats
+this comparison with the optimized renderer and cached fonts. It finds a larger
+CPU saving but retains the resident-memory and telemetry-semantics concerns.
+The G1 measurements below keep their original scope.
+
 `SandboxMeasurement.collect` calls `System.gc()` after the engine stops its render
 timer. Earlier dense-screen runs showed 65–87 ms between that timer and the external
 request duration, but that gap also includes result handling. This experiment

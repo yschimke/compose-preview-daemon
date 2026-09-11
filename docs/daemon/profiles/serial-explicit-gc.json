@@ -1,0 +1,426 @@
+{
+  "source": "daemon/android/build/serial-explicit-gc-matrix",
+  "rows": [
+    {
+      "trial": 0,
+      "variant": "explicit",
+      "readyWallMs": 4494,
+      "readyCpuMs": 9030.0,
+      "totalWallMs": 32187,
+      "totalCpuMs": 53590.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 420.5,
+      "last30MeanCpuMs": 574.6666666666666,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 622452,
+        "VmRSS": 603000,
+        "RssAnon": 548564,
+        "RssFile": 52356,
+        "RssShmem": 2080,
+        "Pss": 583328,
+        "Private": 576796
+      }
+    },
+    {
+      "trial": 0,
+      "variant": "automatic",
+      "readyWallMs": 4367,
+      "readyCpuMs": 9000.0,
+      "totalWallMs": 27738,
+      "totalCpuMs": 49520.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 317.5,
+      "last30MeanCpuMs": 509.6666666666667,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 664972,
+        "VmRSS": 651216,
+        "RssAnon": 596868,
+        "RssFile": 52268,
+        "RssShmem": 2080,
+        "Pss": 631512,
+        "Private": 624964
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "automatic",
+      "readyWallMs": 4370,
+      "readyCpuMs": 8900.0,
+      "totalWallMs": 27560,
+      "totalCpuMs": 48850.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 315.0,
+      "last30MeanCpuMs": 484.3333333333333,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 682208,
+        "VmRSS": 682208,
+        "RssAnon": 627500,
+        "RssFile": 52628,
+        "RssShmem": 2080,
+        "Pss": 662454,
+        "Private": 655900
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "explicit",
+      "readyWallMs": 4557,
+      "readyCpuMs": 9280.0,
+      "totalWallMs": 32229,
+      "totalCpuMs": 54060.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 420.0,
+      "last30MeanCpuMs": 568.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 624068,
+        "VmRSS": 606316,
+        "RssAnon": 551844,
+        "RssFile": 52392,
+        "RssShmem": 2080,
+        "Pss": 586585,
+        "Private": 580052
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "explicit",
+      "readyWallMs": 4523,
+      "readyCpuMs": 9200.0,
+      "totalWallMs": 32297,
+      "totalCpuMs": 53900.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 421.0,
+      "last30MeanCpuMs": 570.6666666666666,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 613928,
+        "VmRSS": 594328,
+        "RssAnon": 539888,
+        "RssFile": 52360,
+        "RssShmem": 2080,
+        "Pss": 574691,
+        "Private": 568168
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "automatic",
+      "readyWallMs": 4394,
+      "readyCpuMs": 9130.0,
+      "totalWallMs": 27486,
+      "totalCpuMs": 49220.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 314.0,
+      "last30MeanCpuMs": 498.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "density": 2.0,
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 665264,
+        "VmRSS": 665264,
+        "RssAnon": 610628,
+        "RssFile": 52556,
+        "RssShmem": 2080,
+        "Pss": 645542,
+        "Private": 639016
+      }
+    }
+  ],
+  "aggregates": {
+    "explicit": {
+      "meanCpuMs": 53850.0,
+      "medianReadyCpuMs": 9200.0,
+      "medianReadyWallMs": 4523,
+      "medianWallMs": 32229,
+      "medianSteadyCpuMs": 570.6666666666666,
+      "medianSteadyWallMs": 420.5,
+      "medianPssMiB": 569.65625
+    },
+    "automatic": {
+      "meanCpuMs": 49196.666666666664,
+      "medianReadyCpuMs": 9000.0,
+      "medianReadyWallMs": 4370,
+      "medianWallMs": 27560,
+      "medianSteadyCpuMs": 498.0,
+      "medianSteadyWallMs": 315.0,
+      "medianPssMiB": 630.412109375
+    }
+  },
+  "parity": [
+    {
+      "baseline": "daemon/android/build/serial-explicit-gc-matrix/0-explicit",
+      "candidate": "daemon/android/build/serial-explicit-gc-matrix/0-automatic",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/serial-explicit-gc-matrix/1-explicit",
+      "candidate": "daemon/android/build/serial-explicit-gc-matrix/1-automatic",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/serial-explicit-gc-matrix/2-explicit",
+      "candidate": "daemon/android/build/serial-explicit-gc-matrix/2-automatic",
+      "checkedFrames": 61,
+      "checkedDataArtifacts": 671,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-semantics.json",
+        "compose-figma.svg",
+        "compose-semantics-wireframe.png",
+        "compose-semantics-wireframe.svg",
+        "compose-spatial-semantics.json",
+        "fonts-used.json",
+        "i18n-translations.json",
+        "navigation.json",
+        "resources-used.json",
+        "uia-hierarchy.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedTypefaceIdentities": true,
+      "normalizedArtifactComparisons": 60,
+      "normalizedArtifactNames": {
+        "fonts-used.json": 60
+      },
+      "parity": true
+    }
+  ],
+  "gc": [
+    {
+      "source": "daemon/android/build/serial-explicit-gc-matrix/0-explicit",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ],
+      "completedFrames": 61,
+      "totalWorkerCpuMs": 53590.0,
+      "loggedPauseCount": 292,
+      "loggedPauseTotalMs": 7828.143,
+      "explicitFullGcCount": 63,
+      "explicitFullGcPauseTotalMs": 6574.051,
+      "last30ExplicitFullGcMedianMs": 109.6885,
+      "explicitFullGcReportedCpuMs": 7060.0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    },
+    {
+      "source": "daemon/android/build/serial-explicit-gc-matrix/1-explicit",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ],
+      "completedFrames": 61,
+      "totalWorkerCpuMs": 54060.0,
+      "loggedPauseCount": 292,
+      "loggedPauseTotalMs": 7794.029,
+      "explicitFullGcCount": 63,
+      "explicitFullGcPauseTotalMs": 6532.556,
+      "last30ExplicitFullGcMedianMs": 108.9975,
+      "explicitFullGcReportedCpuMs": 6830.0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    },
+    {
+      "source": "daemon/android/build/serial-explicit-gc-matrix/2-explicit",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true"
+      ],
+      "completedFrames": 61,
+      "totalWorkerCpuMs": 53900.0,
+      "loggedPauseCount": 292,
+      "loggedPauseTotalMs": 7887.222,
+      "explicitFullGcCount": 63,
+      "explicitFullGcPauseTotalMs": 6620.403,
+      "last30ExplicitFullGcMedianMs": 110.2705,
+      "explicitFullGcReportedCpuMs": 7010.0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    },
+    {
+      "source": "daemon/android/build/serial-explicit-gc-matrix/0-automatic",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-XX:+DisableExplicitGC"
+      ],
+      "completedFrames": 61,
+      "totalWorkerCpuMs": 49520.0,
+      "loggedPauseCount": 238,
+      "loggedPauseTotalMs": 3345.022,
+      "explicitFullGcCount": 0,
+      "explicitFullGcPauseTotalMs": 0,
+      "last30ExplicitFullGcMedianMs": null,
+      "explicitFullGcReportedCpuMs": 0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    },
+    {
+      "source": "daemon/android/build/serial-explicit-gc-matrix/1-automatic",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-XX:+DisableExplicitGC"
+      ],
+      "completedFrames": 61,
+      "totalWorkerCpuMs": 48850.0,
+      "loggedPauseCount": 229,
+      "loggedPauseTotalMs": 3156.462,
+      "explicitFullGcCount": 0,
+      "explicitFullGcPauseTotalMs": 0,
+      "last30ExplicitFullGcMedianMs": null,
+      "explicitFullGcReportedCpuMs": 0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    },
+    {
+      "source": "daemon/android/build/serial-explicit-gc-matrix/2-automatic",
+      "jvmArgs": [
+        "-Xmx256m",
+        "-Xms32m",
+        "-XX:+UseSerialGC",
+        "-XX:MinHeapFreeRatio=10",
+        "-XX:MaxHeapFreeRatio=30",
+        "-Xlog:gc*=info",
+        "-XX:CICompilerCount=2",
+        "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+        "-Dcomposeai.fonts.offline=true",
+        "-XX:+DisableExplicitGC"
+      ],
+      "completedFrames": 61,
+      "totalWorkerCpuMs": 49220.0,
+      "loggedPauseCount": 229,
+      "loggedPauseTotalMs": 3135.791,
+      "explicitFullGcCount": 0,
+      "explicitFullGcPauseTotalMs": 0,
+      "last30ExplicitFullGcMedianMs": null,
+      "explicitFullGcReportedCpuMs": 0,
+      "note": "Pauses cover worker lifetime, including startup. GC CPU fields are rounded diagnostic samples; use paired total worker CPU to measure net savings."
+    }
+  ],
+  "motivationProfile": {
+    "source": "daemon/android/build/bulk-argb-stall-profile",
+    "explicitFullGcCount": 303,
+    "roundedLoggedExplicitGcCpuSeconds": 41.62,
+    "roundedLoggedAllGcCpuSeconds": 46.33,
+    "note": "Diagnostic whole-worker GC logs, including startup; not an exclusive profile or an estimate of removable CPU."
+  }
+}
