@@ -78,3 +78,57 @@ Validation command: `./gradlew ktfmtFormatAll :renderer-android:testDebugUnitTes
 All 17 tests pass. This module does not declare `checkKotlinAbi`; attempting that
 module task confirms it is unavailable. Existing public function declarations
 are unchanged; the new helper is Kotlin-internal.
+
+## 300 actual application reloads
+
+A subsequent [baseline-then-bulk pair](profiles/bulk-argb-long-reloads.json) keeps
+the same JDK, frozen jars and launch flags, replacing the static fixture with
+`benchmark.screens.ReloadDashboardPreviewsKt.ReloadDashboardPreview` from
+`daemon/android/build/locale-weak-frozen/1-testFixtures-classes.jar`. Each variant
+uses `--renders 300 --swap-every 1 --reuse-output --memory`, with the same dimensions.
+The saved summaries verify **300 distinct application loader identities per
+variant**, rather than merely repeating one parent-loaded fixture.
+
+| Metric | Baseline | Bulk ARGB |
+| --- | ---: | ---: |
+| Whole-process CPU | 182.820 s | 177.700 s (−2.8%) |
+| Whole-session wall | 192.138 s | 225.973 s (+17.6%) |
+| End PSS | 629.83 MiB | 641.14 MiB (+11.30 MiB) |
+| Final worker-reported heap after GC | 81 MiB | 81 MiB |
+| Frames taking over 2 seconds | 5 | 20 |
+
+The CPU benefit persists in every 50-reload block:
+
+| Reloads | Mean CPU baseline / bulk (ms) | Median wall baseline / bulk (ms) |
+| --- | ---: | ---: |
+| 1–50 | 846.6 / 827.8 | 564.5 / 546.5 |
+| 51–100 | 565.8 / 551.4 | 534.0 / 505.0 |
+| 101–150 | 517.4 / 505.0 | 525.5 / 503.0 |
+| 151–200 | 506.6 / 483.2 | 527.0 / 504.0 |
+| 201–250 | 520.8 / 499.2 | 529.0 / 494.5 |
+| 251–300 | 492.0 / 471.4 | 529.0 / 490.5 |
+
+**The total-wall regression remains material and unexplained.** The worst candidate
+frame takes 5.987 s wall, 0.750 s process CPU, and reports 5.862 s within the worker.
+The largest logged GC pause is 151 ms (baseline 158 ms). Render-time sums account
+for almost all total wall after readiness, so the stalls are not simply gaps in
+the Python driver. This is consistent with the previously observed long waits,
+but does not establish their cause or rule out an optimization-induced regression.
+Do not infer a tail-latency win from the lower frame medians. Next capture wall
+stacks during a reproducible stall before attributing it to scheduling, rendering,
+or the JVM.
+
+Worker heap medians remain around 97–99 MiB before dropping into the high 80s;
+both variants finish at 81 MiB. Sampled RSS still grows more slowly late in the
+run: baseline 30-second medians rise from 654.6 MiB at 90–120 s to 669.1 MiB in
+the final partial interval; candidate rises from 662.0 to 682.7 MiB. These are
+elapsed-time intervals, not matched reload blocks, and RSS is not PSS. This is
+not evidence of a complete memory plateau or a leak-free lifetime. No extra
+histograms/root census or diagnostic GCs were added; ordinary worker GC remains.
+
+All **301 PNG/UIA pairs match**. Because output names are reused, other artifacts
+are not retained for every reload, so the full historical artifact-parity claim
+from the short matrix does not apply here. One ordered pair is insufficient to
+establish a universal CPU saving, native-memory ownership, or a reaping interval.
+The longer run supports the CPU saving and confirms that this is not a memory
+improvement; it also makes tail-wait investigation the next priority.
