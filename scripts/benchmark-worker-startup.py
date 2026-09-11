@@ -47,10 +47,33 @@ def main():
     parser.add_argument("--memory", action="store_true", help="Sample RSS at 100 ms and snapshot PSS/private memory at readiness and workload end (Linux)")
     parser.add_argument("--profiler", type=Path, help="Path to libasyncProfiler.so (4.5)")
     parser.add_argument("--renders", type=int, default=10, help="Fixture renders after one red render")
-    parser.add_argument("--fixture", action="append", help="Repeat to cycle fixture functions from RedFixturePreviewsKt (default: MaterialButtonInteractionState)")
+    parser.add_argument("--fixture", action="append", help="Repeat to cycle functions from --class-name (default: MaterialButtonInteractionState)")
     parser.add_argument("--exercise-recovery", action="store_true",
         help="After timings, check configure/swap and recovery from a throwing composable")
+    parser.add_argument("--width", type=int, default=320)
+    parser.add_argument("--height", type=int, default=320)
+    parser.add_argument("--gc-checkpoint-every", type=int, default=0,
+        help="Diagnostic only: force GC and record heap/PSS every N renders; timings include checkpoint overhead")
+    parser.add_argument("--heap-histograms", action="store_true",
+        help="Write a live-object histogram at each GC checkpoint (adds another diagnostic GC)")
+    parser.add_argument("--heap-dump", action="store_true",
+        help="Write a live heap dump after workload measurements (diagnostic overhead excluded from totals)")
+    parser.add_argument("--reuse-output", action="store_true",
+        help="Overwrite one output name per fixture to distinguish repeated previews from growing output cardinality")
+    parser.add_argument("--class-name", default="ee.schimke.composeai.daemon.RedFixturePreviewsKt")
+    parser.add_argument("--user-class-dir", type=Path, action="append", default=[],
+        help="Directory or jar for the application's child-first classloader")
+    parser.add_argument("--swap-every", type=int, default=0,
+        help="Swap application classloaders every N fixture renders (diagnostic workload)")
     args = parser.parse_args()
+    if args.swap_every < 0 or (args.swap_every and not args.user_class_dir):
+        parser.error("--swap-every must be nonnegative and requires --user-class-dir")
+    if any(not path.exists() for path in args.user_class_dir):
+        parser.error("user class paths must exist")
+    if args.heap_histograms and not args.gc_checkpoint_every:
+        parser.error("--heap-histograms requires --gc-checkpoint-every")
+    if args.width < 1 or args.height < 1 or args.gc_checkpoint_every < 0:
+        parser.error("dimensions must be positive and checkpoint interval nonnegative")
     fixtures = args.fixture or ["MaterialButtonInteractionState"]
     if any(not name.isidentifier() for name in fixtures):
         parser.error("--fixture must be a function identifier")
@@ -77,7 +100,7 @@ def main():
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     (output / "worker.pid").write_text(str(process.pid) + "\n")
     summary = {"memoryMeasured": args.memory, "java": args.java, "jvmArgs": args.jvm_arg, "profiled": bool(args.profiler),
-        "fixtures": fixtures, "startedUnixSeconds": time.time(),
+        "dimensions": [args.width, args.height], "gcCheckpointEvery": args.gc_checkpoint_every, "heapHistograms": args.heap_histograms, "heapCheckpoints": [], "reuseOutput": args.reuse_output, "fixtureClass": args.class_name, "swapEvery": args.swap_every, "userClassDirs": [str(p.resolve()) for p in args.user_class_dir], "fixtures": fixtures, "startedUnixSeconds": time.time(),
         "hostLoadAverage": os.getloadavg(), "logicalCpus": os.cpu_count(), "renders": []}
 
     def pump():
@@ -150,33 +173,74 @@ def main():
                     raise RuntimeError("worker closed connection")
                 return json.loads(reply)
 
+            if args.user_class_dir:
+                configured = request({"type": "configure", "systemProperties": {
+                    "composeai.daemon.userClassDirs": os.pathsep.join(str(p.resolve()) for p in args.user_class_dir)}})
+                if configured.get("type") != "configured" or configured.get("pid") != process.pid:
+                    raise RuntimeError(f"configure failed: {configured}")
+            previous_loader = None
+            expect_new_loader = False
             for index in range(args.renders + 1):
                 function = "RedSquare" if index == 0 else fixtures[(index - 1) % len(fixtures)]
                 prefix = "material" if function == "MaterialButtonInteractionState" else function
-                tag = "red" if index == 0 else f"{prefix}-{index - 1}"
+                tag = "red" if index == 0 else (prefix if args.reuse_output else f"{prefix}-{index - 1}")
                 before = time.monotonic()
                 before_cpu = cpu_ms(process.pid)
                 reply = request({"type": "render", "id": index, "timeoutMs": 120000,
                     "target": {"type": "spec", "spec": {
-                        "className": "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
-                        "functionName": function, "widthPx": 320, "heightPx": 320,
+                        "className": "ee.schimke.composeai.daemon.RedFixturePreviewsKt" if index == 0 else args.class_name,
+                        "functionName": function, "widthPx": args.width, "heightPx": args.height,
                         "outputBaseName": tag,
                     }}})
                 wall_ms = round((time.monotonic() - before) * 1000)
                 used_cpu = cpu_ms(process.pid) - before_cpu
                 if reply.get("type") != "result":
                     raise RuntimeError(f"render failed: {reply}")
+                loader = reply["result"]["classLoaderHashCode"]
+                if expect_new_loader and loader == previous_loader:
+                    raise RuntimeError("swap acknowledged without changing the render classloader")
+                previous_loader = loader
+                expect_new_loader = False
                 png = output / "renders" / f"{tag}.png"
                 data = png.read_bytes()
                 if not data.startswith(b"\x89PNG\r\n\x1a\n"):
                     raise RuntimeError(f"invalid PNG: {png}")
                 summary["renders"].append({"tag": tag, "fixture": function, "wallMs": wall_ms,
-                    "cpuMs": used_cpu, "pngSha256": hashlib.sha256(data).hexdigest(),
+                    "cpuMs": used_cpu, "classLoaderHashCode": loader, "workerMetrics": reply["result"].get("metrics"), "pngSha256": hashlib.sha256(data).hexdigest(),
                     "uiaSha256": hashlib.sha256((output / "data" / tag / "uia-hierarchy.json").read_bytes()).hexdigest()})
+                if args.swap_every and index > 0 and index % args.swap_every == 0 and index < args.renders:
+                    swapped = request({"type": "swap"})
+                    if swapped.get("type") != "ok":
+                        raise RuntimeError(f"swap failed: {swapped}")
+                    expect_new_loader = True
+                if args.gc_checkpoint_every and (index % args.gc_checkpoint_every == 0 or index == args.renders):
+                    jcmd = str(Path(args.java).with_name("jcmd"))
+                    gc = subprocess.run([jcmd, str(process.pid), "GC.run"], check=True, capture_output=True, text=True, timeout=30)
+                    heap = subprocess.run([jcmd, str(process.pid), "GC.heap_info"], check=True, capture_output=True, text=True, timeout=30)
+                    checkpoint = {"renderIndex": index, "elapsedMs": round((time.monotonic() - started) * 1000),
+                        "memoryKiB": memory_kib(process.pid, proportional=True), "gcOutput": gc.stdout, "heapInfo": heap.stdout}
+                    if args.heap_histograms:
+                        histogram = subprocess.run([jcmd, str(process.pid), "GC.class_histogram"],
+                            check=True, capture_output=True, text=True, timeout=60)
+                        histogram_path = output / f"heap-histogram-{index}.txt"
+                        histogram_path.write_text(histogram.stdout)
+                        checkpoint["histogramFile"] = histogram_path.name
+                        loaders = subprocess.run([jcmd, str(process.pid), "VM.classloader_stats"],
+                            check=True, capture_output=True, text=True, timeout=30)
+                        loaders_path = output / f"classloader-stats-{index}.txt"
+                        loaders_path.write_text(loaders.stdout)
+                        checkpoint["classloaderStatsFile"] = loaders_path.name
+                    summary["heapCheckpoints"].append(checkpoint)
+                    (output / "heap-checkpoints.json").write_text(json.dumps(summary["heapCheckpoints"], indent=2) + "\n")
             summary["totalCpuMs"] = cpu_ms(process.pid)
             summary["totalWallMs"] = round((time.monotonic() - started) * 1000)
             if args.memory:
                 summary["workloadEndMemoryKiB"] = memory_kib(process.pid, proportional=True)
+            if args.heap_dump:
+                dump_path = output / "heap.hprof"
+                subprocess.run([str(Path(args.java).with_name("jcmd")), str(process.pid),
+                    "GC.heap_dump", str(dump_path)], check=True, capture_output=True, text=True, timeout=120)
+                summary["heapDumpFile"] = dump_path.name
             if args.exercise_recovery:
                 configured = request({"type": "configure", "systemProperties": {}})
                 if configured.get("type") != "configured" or configured.get("pid") != process.pid:
@@ -190,7 +254,7 @@ def main():
                     reply = request({"type": "render", "id": args.renders + 1 + offset,
                         "timeoutMs": 120000, "target": {"type": "spec", "spec": {
                             "className": "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
-                            "functionName": function, "widthPx": 320, "heightPx": 320,
+                            "functionName": function, "widthPx": args.width, "heightPx": args.height,
                             "outputBaseName": tag,
                         }}})
                     if function == "BoomComposable":

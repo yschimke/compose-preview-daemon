@@ -1,0 +1,468 @@
+{
+  "baselineCommit": "a1d85201",
+  "java": "17",
+  "rendersPerWorker": 37,
+  "trials": 3,
+  "dimensions": [
+    480,
+    1200
+  ],
+  "fixture": "DenseDashboardPreview",
+  "note": "Sequential rotated trials; profile-specific comparisons. Candidate shares one layout snapshot per capture. Default = unpatched/1GiB/default JVM; tuned = guarded constant bindings/C1/MH30/Serial/256MiB. No application CDS or spare heap-free-ratio overrides.",
+  "medians": {
+    "baseline-default": {
+      "readyWallMs": 4385,
+      "readyCpuMs": 16000.0,
+      "totalWallMs": 56941,
+      "totalCpuMs": 94690.0,
+      "last30MedianMs": 1409.5,
+      "last30MeanCpuMs": 1923.3333333333333,
+      "endPssMiB": 989.5400390625
+    },
+    "baseline-tuned": {
+      "readyWallMs": 3921,
+      "readyCpuMs": 4730.0,
+      "totalWallMs": 79430,
+      "totalCpuMs": 81090.0,
+      "last30MedianMs": 2065.0,
+      "last30MeanCpuMs": 2058.3333333333335,
+      "endPssMiB": 500.263671875
+    },
+    "candidate-default": {
+      "readyWallMs": 4341,
+      "readyCpuMs": 15820.0,
+      "totalWallMs": 42395,
+      "totalCpuMs": 78900.0,
+      "last30MedianMs": 1006.0,
+      "last30MeanCpuMs": 1509.0,
+      "endPssMiB": 1026.701171875
+    },
+    "candidate-tuned": {
+      "readyWallMs": 3939,
+      "readyCpuMs": 4720.0,
+      "totalWallMs": 54116,
+      "totalCpuMs": 55960.0,
+      "last30MedianMs": 1361.0,
+      "last30MeanCpuMs": 1355.6666666666667,
+      "endPssMiB": 501.6259765625
+    }
+  },
+  "rows": [
+    {
+      "trial": 0,
+      "variant": "baseline-default",
+      "readyWallMs": 4425,
+      "readyCpuMs": 16460.0,
+      "totalWallMs": 57413,
+      "totalCpuMs": 95270.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 1422.5,
+      "last30MeanCpuMs": 1932.3333333333333,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1096064,
+        "VmRSS": 1056032,
+        "RssAnon": 997900,
+        "RssFile": 55288,
+        "RssShmem": 2844,
+        "Pss": 1034459,
+        "Private": 1027344
+      }
+    },
+    {
+      "trial": 0,
+      "variant": "baseline-tuned",
+      "readyWallMs": 3952,
+      "readyCpuMs": 4740.0,
+      "totalWallMs": 79637,
+      "totalCpuMs": 80650.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 2068.0,
+      "last30MeanCpuMs": 2043.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 533180,
+        "VmRSS": 533180,
+        "RssAnon": 478480,
+        "RssFile": 51856,
+        "RssShmem": 2844,
+        "Pss": 513458,
+        "Private": 507656
+      }
+    },
+    {
+      "trial": 0,
+      "variant": "candidate-default",
+      "readyWallMs": 4302,
+      "readyCpuMs": 15820.0,
+      "totalWallMs": 40809,
+      "totalCpuMs": 77420.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 966.5,
+      "last30MeanCpuMs": 1468.6666666666667,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1099252,
+        "VmRSS": 1085684,
+        "RssAnon": 1027808,
+        "RssFile": 55032,
+        "RssShmem": 2844,
+        "Pss": 1064115,
+        "Private": 1057008
+      }
+    },
+    {
+      "trial": 0,
+      "variant": "candidate-tuned",
+      "readyWallMs": 3917,
+      "readyCpuMs": 4650.0,
+      "totalWallMs": 53733,
+      "totalCpuMs": 55580.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 1350.0,
+      "last30MeanCpuMs": 1347.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 533192,
+        "VmRSS": 533192,
+        "RssAnon": 478784,
+        "RssFile": 51564,
+        "RssShmem": 2844,
+        "Pss": 513665,
+        "Private": 507884
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "baseline-tuned",
+      "readyWallMs": 3921,
+      "readyCpuMs": 4730.0,
+      "totalWallMs": 79272,
+      "totalCpuMs": 81090.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 2064.5,
+      "last30MeanCpuMs": 2058.3333333333335,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 531872,
+        "VmRSS": 531872,
+        "RssAnon": 477204,
+        "RssFile": 51824,
+        "RssShmem": 2844,
+        "Pss": 512270,
+        "Private": 506480
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "candidate-default",
+      "readyWallMs": 4353,
+      "readyCpuMs": 16210.0,
+      "totalWallMs": 42630,
+      "totalCpuMs": 79630.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 1009.0,
+      "last30MeanCpuMs": 1519.6666666666667,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1138532,
+        "VmRSS": 1073020,
+        "RssAnon": 1014792,
+        "RssFile": 55384,
+        "RssShmem": 2844,
+        "Pss": 1051342,
+        "Private": 1044216
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "candidate-tuned",
+      "readyWallMs": 3939,
+      "readyCpuMs": 4760.0,
+      "totalWallMs": 54116,
+      "totalCpuMs": 55960.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 1361.0,
+      "last30MeanCpuMs": 1355.6666666666667,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 534940,
+        "VmRSS": 534940,
+        "RssAnon": 480252,
+        "RssFile": 51844,
+        "RssShmem": 2844,
+        "Pss": 515343,
+        "Private": 509560
+      }
+    },
+    {
+      "trial": 1,
+      "variant": "baseline-default",
+      "readyWallMs": 4361,
+      "readyCpuMs": 16000.0,
+      "totalWallMs": 56941,
+      "totalCpuMs": 94690.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 1409.5,
+      "last30MeanCpuMs": 1923.3333333333333,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1071580,
+        "VmRSS": 1009032,
+        "RssAnon": 950932,
+        "RssFile": 55256,
+        "RssShmem": 2844,
+        "Pss": 987270,
+        "Private": 980136
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "candidate-default",
+      "readyWallMs": 4341,
+      "readyCpuMs": 15730.0,
+      "totalWallMs": 42395,
+      "totalCpuMs": 78900.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 1006.0,
+      "last30MeanCpuMs": 1509.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1107880,
+        "VmRSS": 1064460,
+        "RssAnon": 1006432,
+        "RssFile": 55184,
+        "RssShmem": 2844,
+        "Pss": 1042827,
+        "Private": 1035704
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "candidate-tuned",
+      "readyWallMs": 4039,
+      "readyCpuMs": 4720.0,
+      "totalWallMs": 55812,
+      "totalCpuMs": 57610.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 1399.0,
+      "last30MeanCpuMs": 1397.6666666666667,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 532716,
+        "VmRSS": 532716,
+        "RssAnon": 478056,
+        "RssFile": 51816,
+        "RssShmem": 2844,
+        "Pss": 513153,
+        "Private": 507372
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "baseline-default",
+      "readyWallMs": 4385,
+      "readyCpuMs": 15960.0,
+      "totalWallMs": 53915,
+      "totalCpuMs": 90810.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 1322.5,
+      "last30MeanCpuMs": 1819.0,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 1072988,
+        "VmRSS": 1034892,
+        "RssAnon": 976872,
+        "RssFile": 55176,
+        "RssShmem": 2844,
+        "Pss": 1013289,
+        "Private": 1006172
+      }
+    },
+    {
+      "trial": 2,
+      "variant": "baseline-tuned",
+      "readyWallMs": 3893,
+      "readyCpuMs": 4700.0,
+      "totalWallMs": 79430,
+      "totalCpuMs": 81180.0,
+      "parity": true,
+      "comparison": "pngBytes",
+      "pngByteParity": true,
+      "last30MedianMs": 2065.0,
+      "last30MeanCpuMs": 2059.3333333333335,
+      "dimensions": [
+        480,
+        1200
+      ],
+      "memoryMeasured": true,
+      "workloadEndMemoryKiB": {
+        "VmHWM": 535072,
+        "VmRSS": 519924,
+        "RssAnon": 465536,
+        "RssFile": 51544,
+        "RssShmem": 2844,
+        "Pss": 500339,
+        "Private": 494556
+      }
+    }
+  ],
+  "artifactParity": [
+    {
+      "baseline": "daemon/android/build/layout-snapshot-matrix/0-baseline-default",
+      "candidate": "daemon/android/build/layout-snapshot-matrix/0-candidate-default",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 111,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-figma.svg",
+        "compose-semantics.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedArtifactComparisons": 36,
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/layout-snapshot-matrix/0-baseline-tuned",
+      "candidate": "daemon/android/build/layout-snapshot-matrix/0-candidate-tuned",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 111,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-figma.svg",
+        "compose-semantics.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedArtifactComparisons": 36,
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/layout-snapshot-matrix/1-baseline-default",
+      "candidate": "daemon/android/build/layout-snapshot-matrix/1-candidate-default",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 111,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-figma.svg",
+        "compose-semantics.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedArtifactComparisons": 36,
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/layout-snapshot-matrix/1-baseline-tuned",
+      "candidate": "daemon/android/build/layout-snapshot-matrix/1-candidate-tuned",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 111,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-figma.svg",
+        "compose-semantics.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedArtifactComparisons": 36,
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/layout-snapshot-matrix/2-baseline-default",
+      "candidate": "daemon/android/build/layout-snapshot-matrix/2-candidate-default",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 111,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-figma.svg",
+        "compose-semantics.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedArtifactComparisons": 0,
+      "parity": true
+    },
+    {
+      "baseline": "daemon/android/build/layout-snapshot-matrix/2-baseline-tuned",
+      "candidate": "daemon/android/build/layout-snapshot-matrix/2-candidate-tuned",
+      "checkedFrames": 37,
+      "checkedDataArtifacts": 111,
+      "artifacts": [
+        "layout-inspector.json",
+        "compose-figma.svg",
+        "compose-semantics.json"
+      ],
+      "normalizedJvmLambdas": false,
+      "normalizedSemanticsDebugOrder": true,
+      "normalizedArtifactComparisons": 0,
+      "parity": true
+    }
+  ]
+}

@@ -1,0 +1,1335 @@
+{
+  "cpus": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "workersPerCohort": 4,
+  "trials": 3,
+  "java": "/usr/lib/jvm/java-17-openjdk/bin/java",
+  "fixtures": [
+    "MaterialButtonInteractionState",
+    "SerifTextPreview",
+    "DialogWindowSurface",
+    "OpaqueImageSquare",
+    "GradientBackgroundCard",
+    "RadialGradientBackgroundCard",
+    "EmojiAndAnnotatedText",
+    "GraphicsLayerAndWideVector",
+    "IconButtonRowInputBar",
+    "LazyColumnListPreview",
+    "EditableTextFieldSquare",
+    "GenericOutlineShapeSquare"
+  ],
+  "rendersAfterRed": 144,
+  "variants": [
+    {
+      "name": "serial-512m",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "-XX:+UseSerialGC",
+        "-Xmx512m"
+      ]
+    },
+    {
+      "name": "serial-384m",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "-XX:+UseSerialGC",
+        "-Xmx384m"
+      ]
+    },
+    {
+      "name": "serial-256m",
+      "jvmArgs": [
+        "-XX:TieredStopAtLevel=1",
+        "-Djava.lang.invoke.MethodHandle.COMPILE_THRESHOLD=30",
+        "-XX:+UseSerialGC",
+        "-Xmx256m"
+      ]
+    }
+  ],
+  "memoryNote": "KiB. Summed worker HWM is not simultaneous physical-memory peak; PSS is per-worker snapshot.",
+  "cohorts": [
+    {
+      "trial": 0,
+      "variant": "serial-512m",
+      "frames": 580,
+      "parity": true,
+      "cohortWallMs": 46294,
+      "framesPerSecondIncludingStartupAndShutdown": 12.52862600412397,
+      "totalWorkerCpuMs": 161120.0,
+      "cpuMsPerFrameIncludingStartup": 277.7931034482759,
+      "last30MeanWorkerCpuMsPerFrame": 234.5,
+      "last30RenderMedianMs": 235.5,
+      "readyMedianMs": 5243.0,
+      "readyMaxMs": 5767,
+      "renderMedianMs": 235.5,
+      "renderP95Ms": 388,
+      "sumWorkerHighWaterKiB": 2441616,
+      "endPssMedianKiB": 576001.5,
+      "startSpreadMs": 0,
+      "workers": [
+        {
+          "readyWallMs": 5124,
+          "readyCpuMs": 5130.0,
+          "totalWallMs": 44775,
+          "totalCpuMs": 40220.0,
+          "readyMemoryKiB": {
+            "VmHWM": 478712,
+            "VmRSS": 478712,
+            "RssAnon": 424780,
+            "RssFile": 51088,
+            "RssShmem": 2844,
+            "Pss": 444156,
+            "Private": 437620
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 607696,
+            "VmRSS": 607696,
+            "RssAnon": 553188,
+            "RssFile": 51664,
+            "RssShmem": 2844,
+            "Pss": 574071,
+            "Private": 566464
+          },
+          "hostLoadAverage": [
+            0.6552734375,
+            4.57177734375,
+            5.7421875
+          ]
+        },
+        {
+          "readyWallMs": 5134,
+          "readyCpuMs": 5140.0,
+          "totalWallMs": 44315,
+          "totalCpuMs": 40290.0,
+          "readyMemoryKiB": {
+            "VmHWM": 479060,
+            "VmRSS": 479060,
+            "RssAnon": 424536,
+            "RssFile": 51680,
+            "RssShmem": 2844,
+            "Pss": 444246,
+            "Private": 437668
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 613072,
+            "VmRSS": 613072,
+            "RssAnon": 557948,
+            "RssFile": 52280,
+            "RssShmem": 2844,
+            "Pss": 577932,
+            "Private": 571336
+          },
+          "hostLoadAverage": [
+            0.6552734375,
+            4.57177734375,
+            5.7421875
+          ]
+        },
+        {
+          "readyWallMs": 5767,
+          "readyCpuMs": 5220.0,
+          "totalWallMs": 45756,
+          "totalCpuMs": 40340.0,
+          "readyMemoryKiB": {
+            "VmHWM": 478988,
+            "VmRSS": 478988,
+            "RssAnon": 424968,
+            "RssFile": 51176,
+            "RssShmem": 2844,
+            "Pss": 444473,
+            "Private": 437940
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 615680,
+            "VmRSS": 615680,
+            "RssAnon": 561132,
+            "RssFile": 51704,
+            "RssShmem": 2844,
+            "Pss": 594204,
+            "Private": 590644
+          },
+          "hostLoadAverage": [
+            0.6552734375,
+            4.57177734375,
+            5.7421875
+          ]
+        },
+        {
+          "readyWallMs": 5352,
+          "readyCpuMs": 5170.0,
+          "totalWallMs": 45003,
+          "totalCpuMs": 40270.0,
+          "readyMemoryKiB": {
+            "VmHWM": 479500,
+            "VmRSS": 479500,
+            "RssAnon": 425180,
+            "RssFile": 51476,
+            "RssShmem": 2844,
+            "Pss": 444480,
+            "Private": 437896
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 605168,
+            "VmRSS": 605168,
+            "RssAnon": 550332,
+            "RssFile": 51992,
+            "RssShmem": 2844,
+            "Pss": 571644,
+            "Private": 563468
+          },
+          "hostLoadAverage": [
+            0.6552734375,
+            4.57177734375,
+            5.7421875
+          ]
+        }
+      ]
+    },
+    {
+      "trial": 0,
+      "variant": "serial-384m",
+      "frames": 580,
+      "parity": true,
+      "cohortWallMs": 43649,
+      "framesPerSecondIncludingStartupAndShutdown": 13.287706013311757,
+      "totalWorkerCpuMs": 159380.0,
+      "cpuMsPerFrameIncludingStartup": 274.7931034482759,
+      "last30MeanWorkerCpuMsPerFrame": 231.58333333333334,
+      "last30RenderMedianMs": 233.0,
+      "readyMedianMs": 5106.5,
+      "readyMaxMs": 6006,
+      "renderMedianMs": 235.0,
+      "renderP95Ms": 358,
+      "sumWorkerHighWaterKiB": 2322180,
+      "endPssMedianKiB": 545620.0,
+      "startSpreadMs": 0,
+      "workers": [
+        {
+          "readyWallMs": 5028,
+          "readyCpuMs": 5120.0,
+          "totalWallMs": 41952,
+          "totalCpuMs": 39820.0,
+          "readyMemoryKiB": {
+            "VmHWM": 447000,
+            "VmRSS": 447000,
+            "RssAnon": 392464,
+            "RssFile": 51692,
+            "RssShmem": 2844,
+            "Pss": 411962,
+            "Private": 405328
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 576176,
+            "VmRSS": 576176,
+            "RssAnon": 521052,
+            "RssFile": 52280,
+            "RssShmem": 2844,
+            "Pss": 540849,
+            "Private": 534172
+          },
+          "hostLoadAverage": [
+            4.28759765625,
+            5.02587890625,
+            5.84326171875
+          ]
+        },
+        {
+          "readyWallMs": 5135,
+          "readyCpuMs": 5130.0,
+          "totalWallMs": 42244,
+          "totalCpuMs": 39800.0,
+          "readyMemoryKiB": {
+            "VmHWM": 451316,
+            "VmRSS": 451316,
+            "RssAnon": 396884,
+            "RssFile": 51588,
+            "RssShmem": 2844,
+            "Pss": 416277,
+            "Private": 409596
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 586772,
+            "VmRSS": 585700,
+            "RssAnon": 530732,
+            "RssFile": 52124,
+            "RssShmem": 2844,
+            "Pss": 550391,
+            "Private": 543692
+          },
+          "hostLoadAverage": [
+            4.28759765625,
+            5.02587890625,
+            5.84326171875
+          ]
+        },
+        {
+          "readyWallMs": 5078,
+          "readyCpuMs": 5130.0,
+          "totalWallMs": 41924,
+          "totalCpuMs": 39880.0,
+          "readyMemoryKiB": {
+            "VmHWM": 446716,
+            "VmRSS": 446716,
+            "RssAnon": 392436,
+            "RssFile": 51436,
+            "RssShmem": 2844,
+            "Pss": 411872,
+            "Private": 405296
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 575668,
+            "VmRSS": 575668,
+            "RssAnon": 520860,
+            "RssFile": 51964,
+            "RssShmem": 2844,
+            "Pss": 540572,
+            "Private": 533976
+          },
+          "hostLoadAverage": [
+            4.28759765625,
+            5.02587890625,
+            5.84326171875
+          ]
+        },
+        {
+          "readyWallMs": 6006,
+          "readyCpuMs": 5220.0,
+          "totalWallMs": 43115,
+          "totalCpuMs": 39880.0,
+          "readyMemoryKiB": {
+            "VmHWM": 447028,
+            "VmRSS": 447028,
+            "RssAnon": 392604,
+            "RssFile": 51580,
+            "RssShmem": 2844,
+            "Pss": 411936,
+            "Private": 405364
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 583564,
+            "VmRSS": 582240,
+            "RssAnon": 527300,
+            "RssFile": 52096,
+            "RssShmem": 2844,
+            "Pss": 560257,
+            "Private": 556580
+          },
+          "hostLoadAverage": [
+            4.28759765625,
+            5.02587890625,
+            5.84326171875
+          ]
+        }
+      ]
+    },
+    {
+      "trial": 0,
+      "variant": "serial-256m",
+      "frames": 580,
+      "parity": true,
+      "cohortWallMs": 43188,
+      "framesPerSecondIncludingStartupAndShutdown": 13.42966134985776,
+      "totalWorkerCpuMs": 159340.0,
+      "cpuMsPerFrameIncludingStartup": 274.7241379310345,
+      "last30MeanWorkerCpuMsPerFrame": 230.41666666666666,
+      "last30RenderMedianMs": 231.5,
+      "readyMedianMs": 5175.0,
+      "readyMaxMs": 5525,
+      "renderMedianMs": 232.0,
+      "renderP95Ms": 367,
+      "sumWorkerHighWaterKiB": 2156768,
+      "endPssMedianKiB": 504092.0,
+      "startSpreadMs": 3,
+      "workers": [
+        {
+          "readyWallMs": 5090,
+          "readyCpuMs": 5110.0,
+          "totalWallMs": 42404,
+          "totalCpuMs": 39810.0,
+          "readyMemoryKiB": {
+            "VmHWM": 406664,
+            "VmRSS": 406664,
+            "RssAnon": 352280,
+            "RssFile": 51540,
+            "RssShmem": 2844,
+            "Pss": 371684,
+            "Private": 365128
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 534272,
+            "VmRSS": 534272,
+            "RssAnon": 479424,
+            "RssFile": 52004,
+            "RssShmem": 2844,
+            "Pss": 499129,
+            "Private": 492528
+          },
+          "hostLoadAverage": [
+            6.05126953125,
+            5.48193359375,
+            5.96533203125
+          ]
+        },
+        {
+          "readyWallMs": 5220,
+          "readyCpuMs": 5120.0,
+          "totalWallMs": 42094,
+          "totalCpuMs": 39910.0,
+          "readyMemoryKiB": {
+            "VmHWM": 405736,
+            "VmRSS": 405736,
+            "RssAnon": 351388,
+            "RssFile": 51504,
+            "RssShmem": 2844,
+            "Pss": 370888,
+            "Private": 364288
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 534524,
+            "VmRSS": 534524,
+            "RssAnon": 479600,
+            "RssFile": 52080,
+            "RssShmem": 2844,
+            "Pss": 499401,
+            "Private": 492756
+          },
+          "hostLoadAverage": [
+            6.05126953125,
+            5.48193359375,
+            5.96533203125
+          ]
+        },
+        {
+          "readyWallMs": 5130,
+          "readyCpuMs": 5100.0,
+          "totalWallMs": 42016,
+          "totalCpuMs": 39790.0,
+          "readyMemoryKiB": {
+            "VmHWM": 406764,
+            "VmRSS": 406764,
+            "RssAnon": 352512,
+            "RssFile": 51408,
+            "RssShmem": 2844,
+            "Pss": 372029,
+            "Private": 365520
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 543808,
+            "VmRSS": 543808,
+            "RssAnon": 488952,
+            "RssFile": 52012,
+            "RssShmem": 2844,
+            "Pss": 508783,
+            "Private": 502216
+          },
+          "hostLoadAverage": [
+            6.05126953125,
+            5.48193359375,
+            5.96533203125
+          ]
+        },
+        {
+          "readyWallMs": 5525,
+          "readyCpuMs": 5150.0,
+          "totalWallMs": 42623,
+          "totalCpuMs": 39830.0,
+          "readyMemoryKiB": {
+            "VmHWM": 406340,
+            "VmRSS": 406340,
+            "RssAnon": 352032,
+            "RssFile": 51464,
+            "RssShmem": 2844,
+            "Pss": 371381,
+            "Private": 364792
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 544164,
+            "VmRSS": 544164,
+            "RssAnon": 489344,
+            "RssFile": 51976,
+            "RssShmem": 2844,
+            "Pss": 513966,
+            "Private": 503240
+          },
+          "hostLoadAverage": [
+            6.05126953125,
+            5.48193359375,
+            5.96533203125
+          ]
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "serial-384m",
+      "frames": 580,
+      "parity": true,
+      "cohortWallMs": 43975,
+      "framesPerSecondIncludingStartupAndShutdown": 13.189435209250624,
+      "totalWorkerCpuMs": 160080.0,
+      "cpuMsPerFrameIncludingStartup": 276.0,
+      "last30MeanWorkerCpuMsPerFrame": 232.41666666666666,
+      "last30RenderMedianMs": 234.0,
+      "readyMedianMs": 5140.5,
+      "readyMaxMs": 5515,
+      "renderMedianMs": 237.0,
+      "renderP95Ms": 362,
+      "sumWorkerHighWaterKiB": 2313760,
+      "endPssMedianKiB": 543847.0,
+      "startSpreadMs": 1,
+      "workers": [
+        {
+          "readyWallMs": 5263,
+          "readyCpuMs": 5080.0,
+          "totalWallMs": 43407,
+          "totalCpuMs": 40660.0,
+          "readyMemoryKiB": {
+            "VmHWM": 446820,
+            "VmRSS": 446820,
+            "RssAnon": 392468,
+            "RssFile": 51508,
+            "RssShmem": 2844,
+            "Pss": 411998,
+            "Private": 405348
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 584844,
+            "VmRSS": 584844,
+            "RssAnon": 529852,
+            "RssFile": 52148,
+            "RssShmem": 2844,
+            "Pss": 563078,
+            "Private": 559456
+          },
+          "hostLoadAverage": [
+            6.8935546875,
+            5.8046875,
+            6.05615234375
+          ]
+        },
+        {
+          "readyWallMs": 5515,
+          "readyCpuMs": 5090.0,
+          "totalWallMs": 42503,
+          "totalCpuMs": 39720.0,
+          "readyMemoryKiB": {
+            "VmHWM": 448056,
+            "VmRSS": 448056,
+            "RssAnon": 393612,
+            "RssFile": 51600,
+            "RssShmem": 2844,
+            "Pss": 413064,
+            "Private": 406376
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 572540,
+            "VmRSS": 572540,
+            "RssAnon": 517520,
+            "RssFile": 52176,
+            "RssShmem": 2844,
+            "Pss": 539008,
+            "Private": 530676
+          },
+          "hostLoadAverage": [
+            6.8935546875,
+            5.8046875,
+            6.05615234375
+          ]
+        },
+        {
+          "readyWallMs": 5018,
+          "readyCpuMs": 5070.0,
+          "totalWallMs": 41831,
+          "totalCpuMs": 39590.0,
+          "readyMemoryKiB": {
+            "VmHWM": 451184,
+            "VmRSS": 451184,
+            "RssAnon": 396748,
+            "RssFile": 51592,
+            "RssShmem": 2844,
+            "Pss": 416075,
+            "Private": 409412
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 580388,
+            "VmRSS": 580388,
+            "RssAnon": 525436,
+            "RssFile": 52108,
+            "RssShmem": 2844,
+            "Pss": 545044,
+            "Private": 538356
+          },
+          "hostLoadAverage": [
+            6.8935546875,
+            5.8046875,
+            6.05615234375
+          ]
+        },
+        {
+          "readyWallMs": 5007,
+          "readyCpuMs": 5060.0,
+          "totalWallMs": 42345,
+          "totalCpuMs": 40110.0,
+          "readyMemoryKiB": {
+            "VmHWM": 447092,
+            "VmRSS": 447092,
+            "RssAnon": 392776,
+            "RssFile": 51472,
+            "RssShmem": 2844,
+            "Pss": 412157,
+            "Private": 405548
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 575988,
+            "VmRSS": 575988,
+            "RssAnon": 521080,
+            "RssFile": 52064,
+            "RssShmem": 2844,
+            "Pss": 542650,
+            "Private": 534588
+          },
+          "hostLoadAverage": [
+            6.8935546875,
+            5.8046875,
+            6.05615234375
+          ]
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "serial-256m",
+      "frames": 580,
+      "parity": true,
+      "cohortWallMs": 43272,
+      "framesPerSecondIncludingStartupAndShutdown": 13.403546946634231,
+      "totalWorkerCpuMs": 158460.0,
+      "cpuMsPerFrameIncludingStartup": 273.2068965517241,
+      "last30MeanWorkerCpuMsPerFrame": 231.83333333333334,
+      "last30RenderMedianMs": 235.0,
+      "readyMedianMs": 5286.0,
+      "readyMaxMs": 5399,
+      "renderMedianMs": 233.0,
+      "renderP95Ms": 374,
+      "sumWorkerHighWaterKiB": 2143888,
+      "endPssMedianKiB": 500136.5,
+      "startSpreadMs": 2,
+      "workers": [
+        {
+          "readyWallMs": 5236,
+          "readyCpuMs": 5110.0,
+          "totalWallMs": 42686,
+          "totalCpuMs": 39600.0,
+          "readyMemoryKiB": {
+            "VmHWM": 406432,
+            "VmRSS": 406432,
+            "RssAnon": 351932,
+            "RssFile": 51656,
+            "RssShmem": 2844,
+            "Pss": 371355,
+            "Private": 364704
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 536988,
+            "VmRSS": 536988,
+            "RssAnon": 481976,
+            "RssFile": 52168,
+            "RssShmem": 2844,
+            "Pss": 501610,
+            "Private": 494996
+          },
+          "hostLoadAverage": [
+            7.919921875,
+            6.24609375,
+            6.19482421875
+          ]
+        },
+        {
+          "readyWallMs": 5399,
+          "readyCpuMs": 5130.0,
+          "totalWallMs": 42267,
+          "totalCpuMs": 39590.0,
+          "readyMemoryKiB": {
+            "VmHWM": 406200,
+            "VmRSS": 406200,
+            "RssAnon": 351860,
+            "RssFile": 51496,
+            "RssShmem": 2844,
+            "Pss": 371413,
+            "Private": 364876
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 533860,
+            "VmRSS": 533860,
+            "RssAnon": 478844,
+            "RssFile": 52172,
+            "RssShmem": 2844,
+            "Pss": 498663,
+            "Private": 492116
+          },
+          "hostLoadAverage": [
+            7.919921875,
+            6.24609375,
+            6.19482421875
+          ]
+        },
+        {
+          "readyWallMs": 5336,
+          "readyCpuMs": 5140.0,
+          "totalWallMs": 42529,
+          "totalCpuMs": 39690.0,
+          "readyMemoryKiB": {
+            "VmHWM": 406192,
+            "VmRSS": 406192,
+            "RssAnon": 351744,
+            "RssFile": 51604,
+            "RssShmem": 2844,
+            "Pss": 371243,
+            "Private": 364640
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 537368,
+            "VmRSS": 537368,
+            "RssAnon": 482400,
+            "RssFile": 52124,
+            "RssShmem": 2844,
+            "Pss": 502124,
+            "Private": 495552
+          },
+          "hostLoadAverage": [
+            7.919921875,
+            6.24609375,
+            6.19482421875
+          ]
+        },
+        {
+          "readyWallMs": 5090,
+          "readyCpuMs": 5100.0,
+          "totalWallMs": 42364,
+          "totalCpuMs": 39580.0,
+          "readyMemoryKiB": {
+            "VmHWM": 405912,
+            "VmRSS": 405912,
+            "RssAnon": 351360,
+            "RssFile": 51708,
+            "RssShmem": 2844,
+            "Pss": 370808,
+            "Private": 364176
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 535672,
+            "VmRSS": 533984,
+            "RssAnon": 478904,
+            "RssFile": 52236,
+            "RssShmem": 2844,
+            "Pss": 498586,
+            "Private": 491976
+          },
+          "hostLoadAverage": [
+            7.919921875,
+            6.24609375,
+            6.19482421875
+          ]
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "variant": "serial-512m",
+      "frames": 580,
+      "parity": true,
+      "cohortWallMs": 43827,
+      "framesPerSecondIncludingStartupAndShutdown": 13.233809249989934,
+      "totalWorkerCpuMs": 162030.0,
+      "cpuMsPerFrameIncludingStartup": 279.36206896551727,
+      "last30MeanWorkerCpuMsPerFrame": 233.5,
+      "last30RenderMedianMs": 232.5,
+      "readyMedianMs": 5343.5,
+      "readyMaxMs": 5623,
+      "renderMedianMs": 238.0,
+      "renderP95Ms": 377,
+      "sumWorkerHighWaterKiB": 2442488,
+      "endPssMedianKiB": 575939.0,
+      "startSpreadMs": 2,
+      "workers": [
+        {
+          "readyWallMs": 5623,
+          "readyCpuMs": 5240.0,
+          "totalWallMs": 43286,
+          "totalCpuMs": 40580.0,
+          "readyMemoryKiB": {
+            "VmHWM": 479824,
+            "VmRSS": 479824,
+            "RssAnon": 425632,
+            "RssFile": 51348,
+            "RssShmem": 2844,
+            "Pss": 444862,
+            "Private": 438400
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 611288,
+            "VmRSS": 611288,
+            "RssAnon": 556520,
+            "RssFile": 51924,
+            "RssShmem": 2844,
+            "Pss": 577730,
+            "Private": 569596
+          },
+          "hostLoadAverage": [
+            8.64306640625,
+            6.73876953125,
+            6.3681640625
+          ]
+        },
+        {
+          "readyWallMs": 5502,
+          "readyCpuMs": 5190.0,
+          "totalWallMs": 43000,
+          "totalCpuMs": 40480.0,
+          "readyMemoryKiB": {
+            "VmHWM": 478716,
+            "VmRSS": 478716,
+            "RssAnon": 424472,
+            "RssFile": 51400,
+            "RssShmem": 2844,
+            "Pss": 443778,
+            "Private": 437248
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 614060,
+            "VmRSS": 614060,
+            "RssAnon": 559240,
+            "RssFile": 51976,
+            "RssShmem": 2844,
+            "Pss": 578856,
+            "Private": 572244
+          },
+          "hostLoadAverage": [
+            8.64306640625,
+            6.73876953125,
+            6.3681640625
+          ]
+        },
+        {
+          "readyWallMs": 5185,
+          "readyCpuMs": 5150.0,
+          "totalWallMs": 42816,
+          "totalCpuMs": 40430.0,
+          "readyMemoryKiB": {
+            "VmHWM": 479952,
+            "VmRSS": 479952,
+            "RssAnon": 425344,
+            "RssFile": 51764,
+            "RssShmem": 2844,
+            "Pss": 445003,
+            "Private": 438528
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 609280,
+            "VmRSS": 609280,
+            "RssAnon": 554140,
+            "RssFile": 52296,
+            "RssShmem": 2844,
+            "Pss": 574148,
+            "Private": 567580
+          },
+          "hostLoadAverage": [
+            8.64306640625,
+            6.73876953125,
+            6.3681640625
+          ]
+        },
+        {
+          "readyWallMs": 5089,
+          "readyCpuMs": 5160.0,
+          "totalWallMs": 43091,
+          "totalCpuMs": 40540.0,
+          "readyMemoryKiB": {
+            "VmHWM": 479408,
+            "VmRSS": 479408,
+            "RssAnon": 424832,
+            "RssFile": 51732,
+            "RssShmem": 2844,
+            "Pss": 444198,
+            "Private": 437596
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 607860,
+            "VmRSS": 607860,
+            "RssAnon": 552772,
+            "RssFile": 52244,
+            "RssShmem": 2844,
+            "Pss": 572474,
+            "Private": 565792
+          },
+          "hostLoadAverage": [
+            8.64306640625,
+            6.73876953125,
+            6.3681640625
+          ]
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "serial-256m",
+      "frames": 580,
+      "parity": true,
+      "cohortWallMs": 43201,
+      "framesPerSecondIncludingStartupAndShutdown": 13.425701337870526,
+      "totalWorkerCpuMs": 160070.0,
+      "cpuMsPerFrameIncludingStartup": 275.98275862068965,
+      "last30MeanWorkerCpuMsPerFrame": 232.58333333333334,
+      "last30RenderMedianMs": 234.0,
+      "readyMedianMs": 5191.0,
+      "readyMaxMs": 5541,
+      "renderMedianMs": 235.5,
+      "renderP95Ms": 365,
+      "sumWorkerHighWaterKiB": 2155604,
+      "endPssMedianKiB": 503955.0,
+      "startSpreadMs": 0,
+      "workers": [
+        {
+          "readyWallMs": 5156,
+          "readyCpuMs": 5110.0,
+          "totalWallMs": 41928,
+          "totalCpuMs": 39900.0,
+          "readyMemoryKiB": {
+            "VmHWM": 405936,
+            "VmRSS": 405936,
+            "RssAnon": 351512,
+            "RssFile": 51580,
+            "RssShmem": 2844,
+            "Pss": 370931,
+            "Private": 364372
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 538544,
+            "VmRSS": 538544,
+            "RssAnon": 483520,
+            "RssFile": 52180,
+            "RssShmem": 2844,
+            "Pss": 503275,
+            "Private": 496628
+          },
+          "hostLoadAverage": [
+            8.04248046875,
+            6.87744140625,
+            6.43505859375
+          ]
+        },
+        {
+          "readyWallMs": 5226,
+          "readyCpuMs": 5110.0,
+          "totalWallMs": 42428,
+          "totalCpuMs": 39940.0,
+          "readyMemoryKiB": {
+            "VmHWM": 405916,
+            "VmRSS": 405916,
+            "RssAnon": 351476,
+            "RssFile": 51596,
+            "RssShmem": 2844,
+            "Pss": 370964,
+            "Private": 364352
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 542572,
+            "VmRSS": 541864,
+            "RssAnon": 486772,
+            "RssFile": 52248,
+            "RssShmem": 2844,
+            "Pss": 508374,
+            "Private": 500100
+          },
+          "hostLoadAverage": [
+            8.04248046875,
+            6.87744140625,
+            6.43505859375
+          ]
+        },
+        {
+          "readyWallMs": 5541,
+          "readyCpuMs": 5160.0,
+          "totalWallMs": 42634,
+          "totalCpuMs": 39860.0,
+          "readyMemoryKiB": {
+            "VmHWM": 406852,
+            "VmRSS": 406852,
+            "RssAnon": 352316,
+            "RssFile": 51692,
+            "RssShmem": 2844,
+            "Pss": 371936,
+            "Private": 365400
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 536336,
+            "VmRSS": 536336,
+            "RssAnon": 481184,
+            "RssFile": 52308,
+            "RssShmem": 2844,
+            "Pss": 502827,
+            "Private": 494604
+          },
+          "hostLoadAverage": [
+            8.04248046875,
+            6.87744140625,
+            6.43505859375
+          ]
+        },
+        {
+          "readyWallMs": 5051,
+          "readyCpuMs": 5100.0,
+          "totalWallMs": 42575,
+          "totalCpuMs": 40370.0,
+          "readyMemoryKiB": {
+            "VmHWM": 405556,
+            "VmRSS": 405556,
+            "RssAnon": 351348,
+            "RssFile": 51364,
+            "RssShmem": 2844,
+            "Pss": 370568,
+            "Private": 364028
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 538152,
+            "VmRSS": 538152,
+            "RssAnon": 483272,
+            "RssFile": 52036,
+            "RssShmem": 2844,
+            "Pss": 504635,
+            "Private": 496456
+          },
+          "hostLoadAverage": [
+            8.04248046875,
+            6.87744140625,
+            6.43505859375
+          ]
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "serial-512m",
+      "frames": 580,
+      "parity": true,
+      "cohortWallMs": 43589,
+      "framesPerSecondIncludingStartupAndShutdown": 13.306212476779145,
+      "totalWorkerCpuMs": 162120.0,
+      "cpuMsPerFrameIncludingStartup": 279.51724137931035,
+      "last30MeanWorkerCpuMsPerFrame": 237.75,
+      "last30RenderMedianMs": 239.5,
+      "readyMedianMs": 5158.5,
+      "readyMaxMs": 5600,
+      "renderMedianMs": 239.0,
+      "renderP95Ms": 364,
+      "sumWorkerHighWaterKiB": 2443612,
+      "endPssMedianKiB": 575920.0,
+      "startSpreadMs": 2,
+      "workers": [
+        {
+          "readyWallMs": 5600,
+          "readyCpuMs": 5130.0,
+          "totalWallMs": 43002,
+          "totalCpuMs": 40570.0,
+          "readyMemoryKiB": {
+            "VmHWM": 479080,
+            "VmRSS": 479080,
+            "RssAnon": 424616,
+            "RssFile": 51620,
+            "RssShmem": 2844,
+            "Pss": 444133,
+            "Private": 437404
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 617296,
+            "VmRSS": 617296,
+            "RssAnon": 562212,
+            "RssFile": 52240,
+            "RssShmem": 2844,
+            "Pss": 582047,
+            "Private": 575256
+          },
+          "hostLoadAverage": [
+            8.03759765625,
+            7.01904296875,
+            6.50146484375
+          ]
+        },
+        {
+          "readyWallMs": 5115,
+          "readyCpuMs": 5120.0,
+          "totalWallMs": 43040,
+          "totalCpuMs": 40560.0,
+          "readyMemoryKiB": {
+            "VmHWM": 479304,
+            "VmRSS": 479304,
+            "RssAnon": 424812,
+            "RssFile": 51648,
+            "RssShmem": 2844,
+            "Pss": 444281,
+            "Private": 437576
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 611488,
+            "VmRSS": 611488,
+            "RssAnon": 556376,
+            "RssFile": 52268,
+            "RssShmem": 2844,
+            "Pss": 576152,
+            "Private": 569396
+          },
+          "hostLoadAverage": [
+            8.03759765625,
+            7.01904296875,
+            6.50146484375
+          ]
+        },
+        {
+          "readyWallMs": 5051,
+          "readyCpuMs": 5100.0,
+          "totalWallMs": 42697,
+          "totalCpuMs": 40370.0,
+          "readyMemoryKiB": {
+            "VmHWM": 478896,
+            "VmRSS": 478896,
+            "RssAnon": 424624,
+            "RssFile": 51428,
+            "RssShmem": 2844,
+            "Pss": 443963,
+            "Private": 437344
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 610920,
+            "VmRSS": 610920,
+            "RssAnon": 556068,
+            "RssFile": 52008,
+            "RssShmem": 2844,
+            "Pss": 575688,
+            "Private": 569032
+          },
+          "hostLoadAverage": [
+            8.03759765625,
+            7.01904296875,
+            6.50146484375
+          ]
+        },
+        {
+          "readyWallMs": 5202,
+          "readyCpuMs": 5110.0,
+          "totalWallMs": 42868,
+          "totalCpuMs": 40620.0,
+          "readyMemoryKiB": {
+            "VmHWM": 479268,
+            "VmRSS": 479268,
+            "RssAnon": 424824,
+            "RssFile": 51600,
+            "RssShmem": 2844,
+            "Pss": 444402,
+            "Private": 437808
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 603908,
+            "VmRSS": 603908,
+            "RssAnon": 548936,
+            "RssFile": 52128,
+            "RssShmem": 2844,
+            "Pss": 568812,
+            "Private": 562176
+          },
+          "hostLoadAverage": [
+            8.03759765625,
+            7.01904296875,
+            6.50146484375
+          ]
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "variant": "serial-384m",
+      "frames": 580,
+      "parity": true,
+      "cohortWallMs": 44484,
+      "framesPerSecondIncludingStartupAndShutdown": 13.038502574663621,
+      "totalWorkerCpuMs": 161790.0,
+      "cpuMsPerFrameIncludingStartup": 278.94827586206895,
+      "last30MeanWorkerCpuMsPerFrame": 232.75,
+      "last30RenderMedianMs": 234.0,
+      "readyMedianMs": 5292.0,
+      "readyMaxMs": 5712,
+      "renderMedianMs": 238.0,
+      "renderP95Ms": 358,
+      "sumWorkerHighWaterKiB": 2329532,
+      "endPssMedianKiB": 549685.5,
+      "startSpreadMs": 1,
+      "workers": [
+        {
+          "readyWallMs": 5712,
+          "readyCpuMs": 5220.0,
+          "totalWallMs": 43937,
+          "totalCpuMs": 40460.0,
+          "readyMemoryKiB": {
+            "VmHWM": 448280,
+            "VmRSS": 448280,
+            "RssAnon": 393904,
+            "RssFile": 51532,
+            "RssShmem": 2844,
+            "Pss": 413383,
+            "Private": 406852
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 582344,
+            "VmRSS": 582344,
+            "RssAnon": 527300,
+            "RssFile": 52200,
+            "RssShmem": 2844,
+            "Pss": 560399,
+            "Private": 556736
+          },
+          "hostLoadAverage": [
+            8.08056640625,
+            7.171875,
+            6.57763671875
+          ]
+        },
+        {
+          "readyWallMs": 5495,
+          "readyCpuMs": 5230.0,
+          "totalWallMs": 43121,
+          "totalCpuMs": 40500.0,
+          "readyMemoryKiB": {
+            "VmHWM": 447292,
+            "VmRSS": 447292,
+            "RssAnon": 392880,
+            "RssFile": 51568,
+            "RssShmem": 2844,
+            "Pss": 412290,
+            "Private": 405728
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 577276,
+            "VmRSS": 577276,
+            "RssAnon": 522272,
+            "RssFile": 52160,
+            "RssShmem": 2844,
+            "Pss": 546886,
+            "Private": 536016
+          },
+          "hostLoadAverage": [
+            8.08056640625,
+            7.171875,
+            6.57763671875
+          ]
+        },
+        {
+          "readyWallMs": 5046,
+          "readyCpuMs": 5170.0,
+          "totalWallMs": 42041,
+          "totalCpuMs": 40390.0,
+          "readyMemoryKiB": {
+            "VmHWM": 447348,
+            "VmRSS": 447348,
+            "RssAnon": 392868,
+            "RssFile": 51636,
+            "RssShmem": 2844,
+            "Pss": 412319,
+            "Private": 405704
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 584732,
+            "VmRSS": 584732,
+            "RssAnon": 529676,
+            "RssFile": 52212,
+            "RssShmem": 2844,
+            "Pss": 549460,
+            "Private": 542832
+          },
+          "hostLoadAverage": [
+            8.08056640625,
+            7.171875,
+            6.57763671875
+          ]
+        },
+        {
+          "readyWallMs": 5089,
+          "readyCpuMs": 5170.0,
+          "totalWallMs": 41942,
+          "totalCpuMs": 40440.0,
+          "readyMemoryKiB": {
+            "VmHWM": 446904,
+            "VmRSS": 446904,
+            "RssAnon": 392476,
+            "RssFile": 51584,
+            "RssShmem": 2844,
+            "Pss": 411926,
+            "Private": 405316
+          },
+          "workloadEndMemoryKiB": {
+            "VmHWM": 585180,
+            "VmRSS": 585180,
+            "RssAnon": 530176,
+            "RssFile": 52160,
+            "RssShmem": 2844,
+            "Pss": 549911,
+            "Private": 543272
+          },
+          "hostLoadAverage": [
+            8.08056640625,
+            7.171875,
+            6.57763671875
+          ]
+        }
+      ]
+    }
+  ],
+  "medianCohortResults": {
+    "serial-512m": {
+      "cohortWallMs": 43827,
+      "framesPerSecondIncludingStartupAndShutdown": 13.233809249989934,
+      "totalWorkerCpuMs": 162030.0,
+      "cpuMsPerFrameIncludingStartup": 279.36206896551727,
+      "readyMedianMs": 5243.0,
+      "readyMaxMs": 5623,
+      "renderMedianMs": 238.0,
+      "renderP95Ms": 377,
+      "sumWorkerHighWaterKiB": 2442488,
+      "endPssMedianKiB": 575939.0,
+      "endPrivateMedianKiB": 568900.0,
+      "trials": 3
+    },
+    "serial-384m": {
+      "cohortWallMs": 43975,
+      "framesPerSecondIncludingStartupAndShutdown": 13.189435209250624,
+      "totalWorkerCpuMs": 160080.0,
+      "cpuMsPerFrameIncludingStartup": 276.0,
+      "readyMedianMs": 5140.5,
+      "readyMaxMs": 5712,
+      "renderMedianMs": 237.0,
+      "renderP95Ms": 358,
+      "sumWorkerHighWaterKiB": 2322180,
+      "endPssMedianKiB": 545620.0,
+      "endPrivateMedianKiB": 538932.0,
+      "trials": 3
+    },
+    "serial-256m": {
+      "cohortWallMs": 43201,
+      "framesPerSecondIncludingStartupAndShutdown": 13.425701337870526,
+      "totalWorkerCpuMs": 159340.0,
+      "cpuMsPerFrameIncludingStartup": 274.7241379310345,
+      "readyMedianMs": 5191.0,
+      "readyMaxMs": 5525,
+      "renderMedianMs": 233.0,
+      "renderP95Ms": 367,
+      "sumWorkerHighWaterKiB": 2155604,
+      "endPssMedianKiB": 503955.0,
+      "endPrivateMedianKiB": 496542.0,
+      "trials": 3
+    }
+  }
+}

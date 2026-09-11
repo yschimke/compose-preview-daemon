@@ -19,6 +19,15 @@ import java.io.File
  * by-value (name + type), so populating one and reading the other resolves regardless.
  */
 object RenderArtifactContextKeys {
+  /**
+   * Fresh for each capture; shares the layout walk across products without a cross-render cache.
+   */
+  val LayoutSnapshot: ExtensionContextKey<LayoutInspectorSnapshot> =
+    ExtensionContextKey(
+      name = "render-data-artifact.layoutSnapshot",
+      type = LayoutInspectorSnapshot::class.java,
+    )
+
   /** Per-preview data-product output root (`<rootDir>/<previewId>/<file>`). */
   val RootDir: ExtensionContextKey<File> =
     ExtensionContextKey(name = "render-data-artifact.rootDir", type = File::class.java)

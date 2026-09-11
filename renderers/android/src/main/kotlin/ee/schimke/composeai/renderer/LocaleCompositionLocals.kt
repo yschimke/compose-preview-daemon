@@ -4,8 +4,10 @@ import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ProvidedValue
+import java.lang.ref.WeakReference
 import java.lang.reflect.Constructor
-import java.util.concurrent.ConcurrentHashMap
+import java.util.Collections
+import java.util.WeakHashMap
 
 /**
  * Bridges the locale from the preview's Robolectric [Configuration] into the locale composition
@@ -52,12 +54,17 @@ object LocaleCompositionLocals {
    * Per-class-loader resolution cache. The daemon renders thousands of previews per process and
    * every composition asks for this, so neither the reflective lookup nor — in the far more common
    * [Resolution.Absent] case — the cost of *throwing* `ClassNotFoundException` should be paid per
-   * render. Keyed by class loader because one daemon can host preview bytecode from several.
+   * render. Keyed weakly by class loader because application loaders are disposable. Successful
+   * bindings are opportunistic and may resolve again after GC; holding a reflective constructor
+   * strongly here could retain its defining loader even with weak keys.
    */
-  private val resolutions = ConcurrentHashMap<ClassLoader, Resolution>()
+  // Values must be weak too: a Bound constructor/local can itself refer back to its loader.
+  // Absent is a singleton, so old-Compose misses stay cached while their loader is alive.
+  private val resolutions = WeakHashMap<ClassLoader, WeakReference<Resolution>>()
 
   /** Reported at most once per class loader, so a broken classpath says so without spamming. */
-  private val reportedFailures = ConcurrentHashMap.newKeySet<ClassLoader>()
+  private val reportedFailures =
+    Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap<ClassLoader, Boolean>()))
 
   private val defaultClassLoader: ClassLoader
     get() = LocaleCompositionLocals::class.java.classLoader ?: ClassLoader.getSystemClassLoader()
@@ -84,9 +91,12 @@ object LocaleCompositionLocals {
     classLoader: ClassLoader,
     findClass: (String) -> Class<*> = { Class.forName(it, false, classLoader) },
   ): ProvidedValue<*>? {
-    val bound =
-      resolutions.computeIfAbsent(classLoader) { resolve(it, findClass) } as? Resolution.Bound
-        ?: return null
+    val resolution =
+      synchronized(resolutions) {
+        resolutions[classLoader]?.get()
+          ?: resolve(classLoader, findClass).also { resolutions[classLoader] = WeakReference(it) }
+      }
+    val bound = resolution as? Resolution.Bound ?: return null
     return try {
       bound.local provides bound.localeListConstructor.newInstance(languageTags)
     } catch (e: ReflectiveOperationException) {

@@ -40,7 +40,6 @@ class ComposeFigmaSvgExtension(private val fontResolver: () -> FigmaFontResolver
     // function-level previewId directory would replay one captured tree into every SVG path.
     val previewId = outputBaseName
     val semanticsRoot = context.require(RenderArtifactContextKeys.SemanticsRoot)
-    val slotTables = context.get(RenderArtifactContextKeys.SlotTables).orEmpty()
     val density = context.get(RenderArtifactContextKeys.Density) ?: 1f
     val fontScale = context.get(RenderArtifactContextKeys.FontScale) ?: 1f
     val frameImage = context.get(RenderArtifactContextKeys.OutputPng)
@@ -55,9 +54,7 @@ class ComposeFigmaSvgExtension(private val fontResolver: () -> FigmaFontResolver
     // easy to add back. Unset defers to the daemon-wide default, which is "none".
     // See [RenderArtifactContextKeys.SvgBackgroundMode].
     val backgroundMode = context.get(RenderArtifactContextKeys.SvgBackgroundMode)
-    val layout =
-      LayoutInspectorDataProducer.buildPayload(semanticsRoot, slotTables, density, fontScale)
-        ?: return
+    val layout = context.layoutInspectorPayload() ?: return
     val semantics = ComposeSemanticsDataProducer.buildPayload(semanticsRoot, density)
     ComposeFigmaSvgDataProducer.writeSvg(
       rootDir = rootDir,

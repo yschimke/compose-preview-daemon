@@ -27,6 +27,9 @@ def main():
     parser.add_argument("--fixture", action="append", default=[])
     parser.add_argument("--compare-pixels", action="store_true",
         help="Compare decoded RGBA pixels instead of PNG encoding bytes (requires Pillow)")
+    parser.add_argument("--width", type=int, default=320)
+    parser.add_argument("--height", type=int, default=320)
+    parser.add_argument("--memory", action="store_true")
     args = parser.parse_args()
     if args.compare_pixels:
         try:
@@ -62,7 +65,10 @@ def main():
             command = [sys.executable, str(Path(__file__).with_name("benchmark-worker-startup.py")),
                 "--classpath", str(Path(variant.get("classpath") or args.classpath).resolve()),
                 "--java", variant.get("java") or args.java,
-                "--output", str(directory), "--renders", str(args.renders)]
+                "--output", str(directory), "--renders", str(args.renders),
+                "--width", str(args.width), "--height", str(args.height)]
+            if args.memory:
+                command.append("--memory")
             for fixture in args.fixture:
                 command += ["--fixture", fixture]
             command += ["--jvm-arg=" + flag for flag in variant.get("jvmArgs", [])]
@@ -97,7 +103,11 @@ def main():
                 "totalCpuMs": summary["totalCpuMs"], "parity": True,
                 "comparison": "pixels" if args.compare_pixels else "pngBytes",
                 "pngByteParity": pngs == reference_pngs,
-                "last30MedianMs": statistics.median(r["wallMs"] for r in summary["renders"][1:][-30:])}
+                "last30MedianMs": statistics.median(r["wallMs"] for r in summary["renders"][1:][-30:]),
+                "last30MeanCpuMs": statistics.mean(r["cpuMs"] for r in summary["renders"][1:][-30:]),
+                "dimensions": summary["dimensions"], "memoryMeasured": summary["memoryMeasured"]}
+            if args.memory:
+                row["workloadEndMemoryKiB"] = summary["workloadEndMemoryKiB"]
             runs.append(row)
             (output / "matrix-summary.json").write_text(json.dumps(runs, indent=2) + "\n")
             print(json.dumps(row), flush=True)

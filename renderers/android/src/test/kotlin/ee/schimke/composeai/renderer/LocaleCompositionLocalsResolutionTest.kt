@@ -4,6 +4,7 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -113,6 +114,51 @@ class LocaleCompositionLocalsResolutionTest {
     // The miss is cached too: a per-render ClassNotFoundException is the expensive default case.
     assertNull(provide(olderCompose))
     assertEquals(1, olderCompose.lookups.get())
+  }
+
+  private fun disposableResolution(bound: Boolean): WeakReference<ClassLoader> {
+    val name = FakeLocaleList::class.java.name
+    val bytes =
+      FakeLocaleList::class
+        .java
+        .getResourceAsStream("/" + name.replace('.', '/') + ".class")!!
+        .use { it.readBytes() }
+    val loader =
+      object : ClassLoader(FakeLocaleList::class.java.classLoader) {
+        override fun loadClass(className: String, resolve: Boolean): Class<*> {
+          if (className != name) return super.loadClass(className, resolve)
+          synchronized(this) {
+            return (findLoadedClass(className) ?: defineClass(className, bytes, 0, bytes.size))
+              .also { if (resolve) resolveClass(it) }
+          }
+        }
+      }
+    val value =
+      LocaleCompositionLocals.providedValue("de-DE", loader) { className ->
+        if (!bound) throw ClassNotFoundException(className)
+        when (className) {
+          "androidx.compose.ui.platform.CompositionLocalsKt" -> FakeCompositionLocalsKt::class.java
+          "androidx.compose.ui.text.intl.LocaleList" -> loader.loadClass(name)
+          else -> throw ClassNotFoundException(className)
+        }
+      }
+    if (bound) assertNotNull(value) else assertNull(value)
+    return WeakReference(loader)
+  }
+
+  @Test
+  fun `cached misses and bound constructors do not retain disposable loaders`() {
+    val loaders = listOf(disposableResolution(false), disposableResolution(true))
+    // A helper frame ensures no test local keeps the constructor, provided value or loader alive.
+    repeat(100) {
+      System.gc()
+      if (loaders.all { it.get() == null }) return
+      Thread.sleep(20)
+    }
+    assertTrue(
+      "Locale resolution retained a disposable classloader",
+      loaders.all { it.get() == null },
+    )
   }
 
   /** Runs [body] with stderr captured, returning what it printed. */

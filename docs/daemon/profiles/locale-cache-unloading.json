@@ -1,0 +1,119 @@
+{
+  "baselineCommit": "400b42b6",
+  "profile": "unpatched/default JVM, 1 GiB cap, JDK17, no CDS or spare heap-free-ratio overrides",
+  "renders": 60,
+  "swapEvery": 1,
+  "reuseOutput": true,
+  "dimensions": [
+    480,
+    1200
+  ],
+  "distinctApplicationLoaders": 60,
+  "pngUiaParityWithBaseline": true,
+  "baselineRenders": 30,
+  "checkpoints": [
+    {
+      "renderIndex": 0,
+      "liveChildLoaders": 2,
+      "memoryKiB": {
+        "VmHWM": 673172,
+        "VmRSS": 653380,
+        "RssAnon": 595176,
+        "RssFile": 55360,
+        "RssShmem": 2844,
+        "Pss": 632067,
+        "Private": 625192
+      },
+      "heapInfo": "566463:\n garbage-first heap   total 327680K, used 92370K [0x00000000c0000000, 0x0000000100000000)\n  region size 1024K, 1 young (1024K), 0 survivors (0K)\n Metaspace       used 102519K, committed 109568K, reserved 1179648K\n  class space    used 10697K, committed 13952K, reserved 1048576K\n"
+    },
+    {
+      "renderIndex": 10,
+      "liveChildLoaders": 2,
+      "memoryKiB": {
+        "VmHWM": 913068,
+        "VmRSS": 892072,
+        "RssAnon": 833740,
+        "RssFile": 55488,
+        "RssShmem": 2844,
+        "Pss": 870763,
+        "Private": 863884
+      },
+      "heapInfo": "566463:\n garbage-first heap   total 317440K, used 95017K [0x00000000c0000000, 0x0000000100000000)\n  region size 1024K, 1 young (1024K), 0 survivors (0K)\n Metaspace       used 111237K, committed 118656K, reserved 1179648K\n  class space    used 11193K, committed 14720K, reserved 1048576K\n"
+    },
+    {
+      "renderIndex": 20,
+      "liveChildLoaders": 2,
+      "memoryKiB": {
+        "VmHWM": 1063948,
+        "VmRSS": 966360,
+        "RssAnon": 908028,
+        "RssFile": 55488,
+        "RssShmem": 2844,
+        "Pss": 945051,
+        "Private": 938172
+      },
+      "heapInfo": "566463:\n garbage-first heap   total 327680K, used 95209K [0x00000000c0000000, 0x0000000100000000)\n  region size 1024K, 1 young (1024K), 0 survivors (0K)\n Metaspace       used 112759K, committed 120256K, reserved 1179648K\n  class space    used 11231K, committed 14784K, reserved 1048576K\n"
+    },
+    {
+      "renderIndex": 30,
+      "liveChildLoaders": 2,
+      "memoryKiB": {
+        "VmHWM": 1086128,
+        "VmRSS": 1011196,
+        "RssAnon": 952864,
+        "RssFile": 55488,
+        "RssShmem": 2844,
+        "Pss": 989887,
+        "Private": 983008
+      },
+      "heapInfo": "566463:\n garbage-first heap   total 334848K, used 95339K [0x00000000c0000000, 0x0000000100000000)\n  region size 1024K, 1 young (1024K), 0 survivors (0K)\n Metaspace       used 113663K, committed 121152K, reserved 1179648K\n  class space    used 11250K, committed 14848K, reserved 1048576K\n"
+    },
+    {
+      "renderIndex": 40,
+      "liveChildLoaders": 2,
+      "memoryKiB": {
+        "VmHWM": 1187476,
+        "VmRSS": 970756,
+        "RssAnon": 912424,
+        "RssFile": 55488,
+        "RssShmem": 2844,
+        "Pss": 949447,
+        "Private": 942568
+      },
+      "heapInfo": "566463:\n garbage-first heap   total 331776K, used 95468K [0x00000000c0000000, 0x0000000100000000)\n  region size 1024K, 1 young (1024K), 0 survivors (0K)\n Metaspace       used 114110K, committed 121600K, reserved 1179648K\n  class space    used 11251K, committed 14848K, reserved 1048576K\n"
+    },
+    {
+      "renderIndex": 50,
+      "liveChildLoaders": 2,
+      "memoryKiB": {
+        "VmHWM": 1187476,
+        "VmRSS": 984012,
+        "RssAnon": 925680,
+        "RssFile": 55488,
+        "RssShmem": 2844,
+        "Pss": 962703,
+        "Private": 955824
+      },
+      "heapInfo": "566463:\n garbage-first heap   total 334848K, used 95552K [0x00000000c0000000, 0x0000000100000000)\n  region size 1024K, 1 young (1024K), 0 survivors (0K)\n Metaspace       used 114791K, committed 122240K, reserved 1179648K\n  class space    used 11251K, committed 14848K, reserved 1048576K\n"
+    },
+    {
+      "renderIndex": 60,
+      "liveChildLoaders": 2,
+      "memoryKiB": {
+        "VmHWM": 1187476,
+        "VmRSS": 1005200,
+        "RssAnon": 946868,
+        "RssFile": 55488,
+        "RssShmem": 2844,
+        "Pss": 983891,
+        "Private": 977012
+      },
+      "heapInfo": "566463:\n garbage-first heap   total 331776K, used 95653K [0x00000000c0000000, 0x0000000100000000)\n  region size 1024K, 1 young (1024K), 0 survivors (0K)\n Metaspace       used 114986K, committed 122432K, reserved 1179648K\n  class space    used 11251K, committed 14848K, reserved 1048576K\n"
+    }
+  ],
+  "remainingRoots": [
+    "AWT AppContext main contextClassLoader retains first child",
+    "SandboxSlot.childLoaderRef and UserClassLoaderHolder.current retain current child"
+  ],
+  "note": "Final heap dump contains two child loaders, with no strong locale cache path. End PSS is not a before/after memory saving measurement; run lengths differ and G1 committed pages vary."
+}
