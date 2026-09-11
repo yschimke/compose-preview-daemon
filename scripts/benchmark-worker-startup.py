@@ -56,6 +56,8 @@ def main():
         help="Diagnostic only: force GC and record heap/PSS every N renders; timings include checkpoint overhead")
     parser.add_argument("--heap-histograms", action="store_true",
         help="Write a live-object histogram at each GC checkpoint (adds another diagnostic GC)")
+    parser.add_argument("--heap-dump", action="store_true",
+        help="Write a live heap dump after workload measurements (diagnostic overhead excluded from totals)")
     parser.add_argument("--reuse-output", action="store_true",
         help="Overwrite one output name per fixture to distinguish repeated previews from growing output cardinality")
     parser.add_argument("--class-name", default="ee.schimke.composeai.daemon.RedFixturePreviewsKt")
@@ -234,6 +236,11 @@ def main():
             summary["totalWallMs"] = round((time.monotonic() - started) * 1000)
             if args.memory:
                 summary["workloadEndMemoryKiB"] = memory_kib(process.pid, proportional=True)
+            if args.heap_dump:
+                dump_path = output / "heap.hprof"
+                subprocess.run([str(Path(args.java).with_name("jcmd")), str(process.pid),
+                    "GC.heap_dump", str(dump_path)], check=True, capture_output=True, text=True, timeout=120)
+                summary["heapDumpFile"] = dump_path.name
             if args.exercise_recovery:
                 configured = request({"type": "configure", "systemProperties": {}})
                 if configured.get("type") != "configured" or configured.get("pid") != process.pid:

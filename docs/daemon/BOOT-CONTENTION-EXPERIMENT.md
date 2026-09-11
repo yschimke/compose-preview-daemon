@@ -272,3 +272,7 @@ compilation tiers remain separate comparisons before changing launch defaults.
 
 The implementation and matched performance procedure for the shared layout walk
 are recorded in [the layout snapshot experiment](BOOT-LAYOUT-SNAPSHOT-EXPERIMENT.md).
+
+The growing locale-cache owner has now been traced and fixed; see
+[locale cache retention](BOOT-LOCALE-CACHE-RETENTION.md) for heap-root evidence and
+the repeat showing two live child loaders throughout 60 application reloads.
