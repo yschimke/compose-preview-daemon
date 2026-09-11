@@ -162,3 +162,8 @@ python3 scripts/experiments/benchmark-allocator-concurrent.py \
 The runner's historical allocator and compiler modes remain available. Metrics mode
 requires a warmed cache and checks the fixture's Roboto WOFF2 signatures before
 launch, preventing silent offline fallback from being treated as the same workload.
+
+A subsequent [periodic native-trimming experiment](BOOT-PERIODIC-NATIVE-TRIM.md)
+recovers most of the single-worker residency penalty while retaining the CPU gain.
+It uses an existing HotSpot/Linux/glibc option on a verified JDK build; concurrent
+and long-reload qualification of that combined policy remains pending.

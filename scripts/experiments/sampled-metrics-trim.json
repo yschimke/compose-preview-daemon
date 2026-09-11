@@ -1,0 +1,56 @@
+[
+  {
+    "name": "every1",
+    "classpath": "daemon/android/build/sampled-metrics-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-Xms32m",
+      "-XX:+UseSerialGC",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-Xlog:gc*=info",
+      "-XX:CICompilerCount=2",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true",
+      "-Dcomposeai.daemon.metrics.everyRenders=1",
+      "-XX:TrimNativeHeapInterval=0",
+      "-Xlog:trimnative=debug"
+    ]
+  },
+  {
+    "name": "every5",
+    "classpath": "daemon/android/build/sampled-metrics-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-Xms32m",
+      "-XX:+UseSerialGC",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-Xlog:gc*=info",
+      "-XX:CICompilerCount=2",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true",
+      "-Dcomposeai.daemon.metrics.everyRenders=5",
+      "-XX:TrimNativeHeapInterval=0",
+      "-Xlog:trimnative=debug"
+    ]
+  },
+  {
+    "name": "every5trim",
+    "classpath": "daemon/android/build/sampled-metrics-frozen/classpath.txt",
+    "jvmArgs": [
+      "-Xmx256m",
+      "-Xms32m",
+      "-XX:+UseSerialGC",
+      "-XX:MinHeapFreeRatio=10",
+      "-XX:MaxHeapFreeRatio=30",
+      "-Xlog:gc*=info",
+      "-XX:CICompilerCount=2",
+      "-Dcomposeai.fonts.cacheDir=daemon/android/build/bulk-font-cache",
+      "-Dcomposeai.fonts.offline=true",
+      "-Dcomposeai.daemon.metrics.everyRenders=5",
+      "-XX:TrimNativeHeapInterval=5000",
+      "-Xlog:trimnative=debug"
+    ]
+  }
+]
