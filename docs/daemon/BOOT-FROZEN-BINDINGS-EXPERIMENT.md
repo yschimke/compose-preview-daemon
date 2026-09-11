@@ -158,7 +158,10 @@ match. No production settings changed. Values are per-variant medians.
 The default G1 wins on latency. Restricting G1 to two parallel threads and one
 concurrent thread saves CPU but increases total wall time by 11.3%. Serial GC
 increases total wall time by 25.7%. Lower collector CPU is not evidence of a faster
-worker; these variants are rejected for the minimum-latency objective on this host.
+worker; these variants are rejected for isolated minimum latency on this host.
+That result does not settle efficiency under contention: the later
+[loaded-worker CPU/memory comparison](BOOT-CONTENTION-EXPERIMENT.md) finds Serial
+GC useful when four workers share four cores.
 This does not establish their behavior in a CPU-constrained container.
 
 Reproduce with the same matrix command above and a matrix whose three variants all
