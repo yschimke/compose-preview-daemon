@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.4.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.3...v3.4.4) (2026-09-12)
+
+
+### Bug Fixes
+
+* **deps:** update compose-preview-contracts to v2.18.0 ([#96](https://github.com/yschimke/compose-preview-daemon/issues/96)) ([99c35fa](https://github.com/yschimke/compose-preview-daemon/commit/99c35fa0df2937d4e89452f2eb3b37fa8ba3bcf5))
+* **deps:** update dependency ee.schimke.composeai:third-party-rc-embedded-player to v1.61.1 ([#97](https://github.com/yschimke/compose-preview-daemon/issues/97)) ([e02d014](https://github.com/yschimke/compose-preview-daemon/commit/e02d0145c464eb82a774cd8b7ae70f5be613fcf0))
+
+
+### Chores
+
+* drop the catalog entries the compose-ai-tools split left behind ([#95](https://github.com/yschimke/compose-preview-daemon/issues/95)) ([325b632](https://github.com/yschimke/compose-preview-daemon/commit/325b632ee0615ced94d4a9379e0b926689bf1ff8))
+
 ## [3.4.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.2...v3.4.3) (2026-09-11)
 
 
