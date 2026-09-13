@@ -5,6 +5,9 @@
 - [`design/EMBEDDING.md`](design/EMBEDDING.md) — what this repository should
   own when a caller wants to run a daemon, and what the caller owns. Argues the seam from what the
   two current consumers actually do today.
+- [`design/USE_CASES.md`](design/USE_CASES.md) — research: what else the daemon's warm host,
+  data products and interactive surface are good for, what other ecosystems do that we do not, and
+  which gaps are worth closing first.
 - [`daemon/README.md`](daemon/README.md) — the render daemon: design, protocol, classloaders, the
   sandbox pool, startup profile and tunables.
 - [`daemon/ROBOLECTRIC-UPSTREAM-FEEDBACK.md`](daemon/ROBOLECTRIC-UPSTREAM-FEEDBACK.md) — maintained upstream feedback: friction, coupling, performance, bugs, APIs and simulator embedding.
