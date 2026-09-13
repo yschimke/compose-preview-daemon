@@ -166,6 +166,31 @@ class UserClassLoaderHolderTest {
         "ee.schimke.composeai.overrides.ControllerPreviewOverrideHost"
       )
     )
+    // The `choice` knob's option type. `PreviewOverrideOption` is an actual typealias onto
+    // `:data-preview-overrides-core`, so a preview calling
+    // `previewOverrideChoice(options = listOf(PreviewOverrideOption(...)))` builds a value from
+    // THIS package and passes it to the runtime pinned above. Delegating one and not the other put
+    // the two halves of a single call on different loaders — on Android the child loader's parent
+    // is the Robolectric sandbox loader, so the option resolved child-first from the bundle's core
+    // jar while the runtime resolved to the sandbox copy, and live mode died with
+    // `ClassCastException: PreviewOverrideOption cannot be cast to PreviewOverrideOption`.
+    // Regression pin for compose-preview-server#839.
+    assertTrue(
+      UserClassLoaderHolder.mustDelegateToParent(
+        "ee.schimke.composeai.data.overrides.PreviewOverrideOption"
+      )
+    )
+    assertTrue(
+      UserClassLoaderHolder.mustDelegateToParent(
+        "ee.schimke.composeai.data.overrides.PreviewOverrideDeclaration"
+      )
+    )
+    // Sibling `data.*` payload packages are NOT covered: they carry no type a preview hands to the
+    // overrides runtime, and widening the rule to all of `ee.schimke.composeai.data.` would pin
+    // user-recompilable classes to the parent for no reason.
+    assertFalse(
+      UserClassLoaderHolder.mustDelegateToParent("ee.schimke.composeai.data.gestures.Swipe")
+    )
     // User preview classes (and unrelated app code) stay child-first so recompiles are picked up.
     assertFalse(UserClassLoaderHolder.mustDelegateToParent("com.example.app.MyPreviewKt"))
     assertFalse(
