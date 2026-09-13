@@ -225,6 +225,22 @@ public class UserClassLoaderHolder(
      *    the daemon and the user preview see the **same** `Class<?>` — one shared static, not two
      *    per-classloader copies.
      *
+     * `ee.schimke.composeai.data.overrides.` is the same rule, and missing it was a real bug
+     * (compose-preview-server#839). The JVM `PreviewOverrideOption` is an `actual typealias` onto
+     * `ee.schimke.composeai.data.overrides.PreviewOverrideOption` — the serializable wire shape in
+     * `:data-preview-overrides-core` — so a preview calling `previewOverrideChoice(options =
+     * listOf(PreviewOverrideOption("enabled", "Enabled")))` constructs a type from THAT package and
+     * hands it to the runtime above. Delegating only `…composeai.overrides.` put the two halves of
+     * one call on different loaders: on the Android backend a slot's child loader is built with the
+     * Robolectric sandbox loader as its parent (`RobolectricHost.ensureHolderForSlot`), so the
+     * runtime resolved to the sandbox copy while the option resolved child-first out of the
+     * bundle's core jar, and the call died with `ClassCastException: PreviewOverrideOption cannot
+     * be cast to PreviewOverrideOption`.
+     *
+     * Only `choice` passes a declared type across that seam — every other `previewOverride*` knob
+     * takes JLS types (`String`, `Int`, `Boolean`, …) — which is why an option-bearing knob was the
+     * first to expose it.
+     *
      * The overrides runtime is the load-bearing case for the **bundle-backed live daemon**
      * (`ServeBundleDaemon`, the engine behind `--catalogs` `liveBundle` / `preview.coo.ee`): there
      * the bundle's resolved maven classpath — which includes `:data-preview-overrides-runtime` — is
@@ -250,7 +266,8 @@ public class UserClassLoaderHolder(
         name.startsWith("org.jetbrains.skia.") ||
         name.startsWith("org.jetbrains.compose.resources.") ||
         name.startsWith("ee.schimke.composeai.daemon.") ||
-        name.startsWith("ee.schimke.composeai.overrides.")
+        name.startsWith("ee.schimke.composeai.overrides.") ||
+        name.startsWith("ee.schimke.composeai.data.overrides.")
 
     /**
      * Resolves [USER_CLASS_DIRS_PROP] into a list of [URL]s, dropping entries that don't exist on
