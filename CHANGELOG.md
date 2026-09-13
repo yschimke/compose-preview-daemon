@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.5](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.4...v3.4.5) (2026-09-13)
+
+
+### Bug Fixes
+
+* **daemon:** delegate the choice-knob option type to the parent loader ([#99](https://github.com/yschimke/compose-preview-daemon/issues/99)) ([fe36def](https://github.com/yschimke/compose-preview-daemon/commit/fe36def3240e1485371509b12485bea51405d7df))
+
 ## [3.4.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.3...v3.4.4) (2026-09-12)
 
 
