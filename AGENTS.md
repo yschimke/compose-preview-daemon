@@ -103,6 +103,26 @@ updated when investigations uncover upstream friction, coupling, performance opp
 missing APIs or simulator feedback. Preserve evidence/version, ownership and validation status;
 distinguish our bugs from confirmed upstream bugs and hypotheses.
 
+## Running Gradle
+
+Wrap Gradle in [`build-brief`](https://bb.staticvar.dev). It keeps the full log on disk, prints only
+the failures, warnings and artifacts that decide the next move, and preserves Gradle's exit code.
+
+On a shared developer host, automated builds use [`scripts/agent-gradle.sh`](scripts/agent-gradle.sh):
+
+```
+scripts/agent-gradle.sh :daemon:core:test
+scripts/agent-gradle.sh --exclusive check
+```
+
+The launcher still goes through `build-brief`, but gives automation a four-worker ceiling, low
+process priority, non-interactive input and a ten-minute Gradle-daemon idle timeout. Use the normal
+profile for focused compilation, formatting and tests. Use `--exclusive` for `check`, sidecar
+packaging and other broad Gradle task graphs: it takes the same per-user machine lock as the Compose
+Preview server and tools repositories, so heavyweight automated builds cannot peak together. Direct
+Gradle and `build-brief` invocations remain unrestricted for interactive development, and hosted CI
+keeps its runner's full capacity. Do not copy these limits into `gradle.properties`.
+
 ## Where everything else lives
 
 | You need | Read |
