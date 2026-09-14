@@ -76,5 +76,7 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 20
+      - name: Test automated Gradle launcher
+        run: .github/scripts/test-agent-gradle.sh
       - run: node scripts/codegen/gen-spatial-scene.mjs --check
       - run: node scripts/codegen/gen-xr-render-service.mjs --check
