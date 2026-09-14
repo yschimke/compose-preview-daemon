@@ -894,7 +894,6 @@ abstract class RobolectricRenderTestBase(
     // in here rather than once per JVM. Idempotent, so a shard that reuses its sandbox across
     // previews pays a `getProperty` per capture and nothing more. Unset (the default) is silent.
     LinkBufferComposer.applyAndDescribe(javaClass.classLoader)?.let(System.err::println)
-
     val outputDir =
       File(System.getProperty("composeai.render.outputDir") ?: "build/compose-previews/renders")
     outputDir.mkdirs()
@@ -1424,6 +1423,10 @@ abstract class RobolectricRenderTestBase(
      */
     jobFilter: (RenderJob) -> Boolean = { true },
   ) {
+    // Glimmer surfaces deliberately keep an ambient pulse running after focus/press. Detect the
+    // consumer dependency itself: environment compositing is optional and therefore cannot be
+    // used as the signal that the frame will never become pixel-quiescent.
+    val hasContinuousAmbientMotion = isGlimmerAvailable(javaClass.classLoader)
     val appContext: android.app.Application =
       androidx.test.core.app.ApplicationProvider.getApplicationContext()
     org.robolectric.Shadows.shadowOf(appContext.packageManager)
@@ -2019,6 +2022,7 @@ abstract class RobolectricRenderTestBase(
                 advanceTimeMillis = job.advanceTimeMillis,
                 hasFollowingJobs = jobIndex < jobs.lastIndex,
                 hasExactSettle = job.hasExactSettle,
+                hasContinuousAmbientMotion = hasContinuousAmbientMotion,
               )
             // When the job has no explicit `advanceTimeMillis`, default
             // to `CAPTURE_ADVANCE_MS` *or* the current virtual time —
@@ -2489,6 +2493,15 @@ abstract class RobolectricRenderTestBase(
                   job.settleTargetMs?.let {
                     VisualSettleDiagnostics.recordPinnedPhase("Preview '${preview.id}' still", it)
                   }
+                } else if (hasContinuousAmbientMotion) {
+                  // A focused Glimmer surface starts an intentional ambient loop. It has no
+                  // visually quiescent frame to discover, so probing merely walks to sample five
+                  // and reports a mid-loop warning. Capture the deterministic paused-clock
+                  // coordinate reached after the focus/press transition instead.
+                  VisualSettleDiagnostics.recordPinnedPhase(
+                    "Preview '${preview.id}' Glimmer ambient still",
+                    currentTime,
+                  )
                 }
               }
             }
@@ -3679,7 +3692,15 @@ internal fun shouldAdvanceClockForVisualSettling(
   advanceTimeMillis: Long?,
   hasFollowingJobs: Boolean,
   hasExactSettle: Boolean = false,
-): Boolean = advanceTimeMillis == null && !hasExactSettle && !hasFollowingJobs
+  hasContinuousAmbientMotion: Boolean = false,
+): Boolean =
+  advanceTimeMillis == null && !hasExactSettle && !hasFollowingJobs && !hasContinuousAmbientMotion
+
+/** True when the consumer sandbox contains XR Glimmer's surface implementation. */
+internal fun isGlimmerAvailable(classLoader: ClassLoader): Boolean = runCatching {
+  Class.forName("androidx.xr.glimmer.SurfaceKt", false, classLoader)
+}
+  .isSuccess
 
 /**
  * How a still capture's quiescence probe ended. Three outcomes, not two, because "the frame never

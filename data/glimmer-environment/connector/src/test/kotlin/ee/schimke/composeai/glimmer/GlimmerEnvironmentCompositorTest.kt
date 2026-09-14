@@ -21,6 +21,22 @@ class GlimmerEnvironmentCompositorTest {
   }
 
   @Test
+  fun `transparent captures emit premultiplied light`() {
+    val transparent = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
+    val halfAlpha = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
+    transparent.setRGB(0, 0, 0x00ffffff)
+    halfAlpha.setRGB(0, 0, 0x80800000.toInt())
+
+    val baseline =
+      GlimmerEnvironmentCompositor.composite(transparent, GlimmerEnvironment.Light).getRGB(0, 0)
+    val lit =
+      GlimmerEnvironmentCompositor.composite(halfAlpha, GlimmerEnvironment.Light).getRGB(0, 0)
+
+    assertThat(lit and 0x00ffff).isEqualTo(baseline and 0x00ffff)
+    assertThat(((lit ushr 16) and 0xff) - ((baseline ushr 16) and 0xff)).isEqualTo(64)
+  }
+
+  @Test
   fun `png application preserves raw capture`() {
     val dir = createTempDirectory("glimmer-composite-").toFile()
     try {

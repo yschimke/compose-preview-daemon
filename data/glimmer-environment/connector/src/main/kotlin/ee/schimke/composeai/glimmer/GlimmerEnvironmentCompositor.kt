@@ -16,11 +16,13 @@ enum class GlimmerEnvironment {
 }
 
 /**
- * ADD-composites an opaque RGB-on-black Glimmer capture over a simulated environment.
+ * ADD-composites a Glimmer capture over a simulated environment.
  *
- * The source capture is never treated as alpha: black is additive zero and each colour channel is
- * saturated independently. [applyToPng] preserves the source next to the composited result as
- * `<basename>.raw.png` unless the caller supplies a distinct preservation path.
+ * Black is additive zero and each premultiplied colour channel is saturated independently. Opaque
+ * RGB-on-black captures retain their historical result, while transparent component captures can
+ * preserve their silhouette without making translucent pixels emit at full strength. [applyToPng]
+ * preserves the source next to the composited result as `<basename>.raw.png` unless the caller
+ * supplies a distinct preservation path.
  */
 object GlimmerEnvironmentCompositor {
   fun applyToPng(
@@ -41,9 +43,13 @@ object GlimmerEnvironmentCompositor {
       for (x in 0 until capture.width) {
         val world = backdrop.getRGB(x, y)
         val display = capture.getRGB(x, y)
-        val red = (((world ushr 16) and 0xff) + ((display ushr 16) and 0xff)).coerceAtMost(255)
-        val green = (((world ushr 8) and 0xff) + ((display ushr 8) and 0xff)).coerceAtMost(255)
-        val blue = ((world and 0xff) + (display and 0xff)).coerceAtMost(255)
+        val alpha = (display ushr 24) and 0xff
+        fun emitted(channel: Int): Int = (channel * alpha + 127) / 255
+        val red =
+          (((world ushr 16) and 0xff) + emitted((display ushr 16) and 0xff)).coerceAtMost(255)
+        val green =
+          (((world ushr 8) and 0xff) + emitted((display ushr 8) and 0xff)).coerceAtMost(255)
+        val blue = ((world and 0xff) + emitted(display and 0xff)).coerceAtMost(255)
         result.setRGB(x, y, (0xff shl 24) or (red shl 16) or (green shl 8) or blue)
       }
     }

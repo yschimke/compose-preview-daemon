@@ -11,6 +11,17 @@ import org.junit.Test
 class CaptureVisuallySettledFrameTest {
 
   @Test
+  fun `continuous ambient motion pins a phase instead of probing for quiescence`() {
+    assertFalse(
+      shouldAdvanceClockForVisualSettling(
+        advanceTimeMillis = null,
+        hasFollowingJobs = false,
+        hasContinuousAmbientMotion = true,
+      )
+    )
+  }
+
+  @Test
   fun `an exact settle is a snapshot and skips the quiescence probe`() {
     // `@SettledPreview(afterMs = N)` names an instant, exactly as `advanceTimeMillis` does. The
     // probe spends at least one more frame and up to the sample budget, which would publish an

@@ -6,6 +6,8 @@
 //    consumer code wrapping its UI in `AmbientAware { ... }` (or registering its own
 //    `AmbientLifecycleCallback`) sees the requested state instead of silently degrading to
 //    `Inactive`.
+//  - `ShadowAmbientModeManagerImpl` — bypasses the Wear system-service constructor used by
+//    `rememberAmbientModeManager()` and routes the factory path through the same controller.
 //  - `AmbientOverrideExtension` / `AmbientPreviewOverrideExtension` — Compose `AroundComposable`
 //    plumbing that primes the controller before the consumer's `AmbientAware` reaches it.
 //  - `AmbientInputDispatchObserver` — `RecordingScriptDispatchObserver` that wakes the controller
