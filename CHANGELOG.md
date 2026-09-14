@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.4.6](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.5...v3.4.6) (2026-09-14)
+
+
+### Bug Fixes
+
+* stabilize Glimmer previews and Wear ambient rendering ([#107](https://github.com/yschimke/compose-preview-daemon/issues/107)) ([9b7fdf4](https://github.com/yschimke/compose-preview-daemon/commit/9b7fdf43864fe9eda3da68866ddb4010801556f7))
+
+
+### Documentation
+
+* research use cases for the render daemon ([#101](https://github.com/yschimke/compose-preview-daemon/issues/101)) ([df96a1c](https://github.com/yschimke/compose-preview-daemon/commit/df96a1c43e26e76dea2595b19988f264a93a6595))
+
+
+### Build
+
+* make automated Gradle lock portable ([#106](https://github.com/yschimke/compose-preview-daemon/issues/106)) ([19730c4](https://github.com/yschimke/compose-preview-daemon/commit/19730c4bb42141dbdaeb711b96850ef6bf28e6cd))
+* throttle automated Gradle runs ([#105](https://github.com/yschimke/compose-preview-daemon/issues/105)) ([976cc85](https://github.com/yschimke/compose-preview-daemon/commit/976cc859536b29211c2062b7316774e5cee50cf2))
+
 ## [3.4.5](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.4...v3.4.5) (2026-09-13)
 
 
