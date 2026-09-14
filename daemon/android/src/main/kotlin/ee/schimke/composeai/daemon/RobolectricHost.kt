@@ -2734,6 +2734,10 @@ open class RobolectricHost(
         slot.childLoaderRef.get()
           ?: Thread.currentThread().contextClassLoader
           ?: RenderEngine::class.java.classLoader
+      // Glimmer targets gaze + pinch rather than a touchscreen. Detect it from the consumer's
+      // classpath once per held session; plain Android/Wear sessions keep their existing touch
+      // profile byte-for-byte.
+      val glimmerInputProfile = isGlimmerAvailable(classLoader)
       // The rewritten-SlotTable opt-in, against the sandbox's own child loader. A daemon whose
       // FIRST request is `interactive/start` (or `recording/start`, which delegates here through
       // `acquireInteractiveSession`) composes in the held `setContent` below without ever calling
@@ -2955,6 +2959,10 @@ open class RobolectricHost(
             // that frame back to the preview's own size. Re-measured on each recomposition, so a
             // live edit that changes the composable's size is reflected on the next frame.
             val heldMeasuredContent = intArrayOf(0, 0)
+            // Incremented after a Glimmer click. The composable wrapper observes it and clears
+            // focus through LocalFocusManager, separating the discrete pinch-like activation from
+            // the gaze-like focus channel.
+            val glimmerClearFocusGeneration = androidx.compose.runtime.mutableIntStateOf(0)
             // Same per-session reset the one-shot renderer does before every render
             // (`RobolectricRenderTest`): the soft-keyboard band's state holder is a JVM-wide
             // singleton, so without this a live session that focused a text field — which raises
@@ -3017,9 +3025,19 @@ open class RobolectricHost(
                         androidx.compose.runtime.saveable.LocalSaveableStateRegistry provides
                           recreateRegistry
                       )
+                      if (glimmerInputProfile) {
+                        add(
+                          androidx.compose.ui.platform.LocalInputModeManager provides
+                            KeyboardInputModeManager
+                        )
+                      }
                     }
                       .toTypedArray()
                     androidx.compose.runtime.CompositionLocalProvider(*heldProviders) {
+                      ClearGlimmerFocusEffect(
+                        enabled = glimmerInputProfile,
+                        clearFocusGeneration = glimmerClearFocusGeneration,
+                      )
                       androidx.compose.foundation.layout.Box(
                         modifier = androidx.compose.ui.Modifier.fillMaxSize()
                       ) {
@@ -3031,22 +3049,26 @@ open class RobolectricHost(
                         // — they're consulted only inside `RenderEngine.render`'s composition
                         // setup, which the held-rule `setContent` bypasses.
                         //
-                        // The reconstructed `PreviewOverrides(touchOverlay = …, focus = …)` carries
+                        // The reconstructed `PreviewOverrides(touchOverlay = …, focus = …)`
+                        // carries
                         // only the fields whose planners are exercised on the interactive path
                         // today; other override-driven planners ride along because their
                         // `plan(request)` returns an extension regardless of input (e.g. the
-                        // always-active keyboard band). See `InteractiveCommand.Start.touchOverlay`
+                        // always-active keyboard band). See
+                        // `InteractiveCommand.Start.touchOverlay`
                         // for the cross-boundary-threading rationale.
                         //
                         // `localeTag` joins it for the pseudolocale planner: `en-XA` / `ar-XB` is
                         // otherwise applied here only as a Robolectric qualifier (base locale +
                         // `ldrtl`), so a live session browsed at `?localeTag=ar-XB` mirrored but
-                        // showed plain, un-pseudolocalised strings (#4371). `withPseudolocaleFrom`
+                        // showed plain, un-pseudolocalised strings (#4371).
+                        // `withPseudolocaleFrom`
                         // ignores every real locale, which the qualifier path already serves.
                         //
                         // `namedOverrides` joins them for the plain-Compose knob planner, decoded
                         // here so the values are the sandbox classloader's own — a host-side
-                        // `PreviewOverrideValue` would fail the controller's typed reads even if it
+                        // `PreviewOverrideValue` would fail the controller's typed reads even if
+                        // it
                         // crossed. Omitting it planned every held composition with an empty seed,
                         // so an `@OverrideVariant` cell browsed in Live drew its base state and a
                         // knob edited in the viewer did nothing (yschimke/wear-m3-catalog#83).
@@ -3072,10 +3094,13 @@ open class RobolectricHost(
                         ) {
                           // Mirror `RenderEngine.render`'s kind dispatch so live mode renders the
                           // same way a one-shot capture does. Non-composable previews (tile /
-                          // notification / Glance) go through their `*PreviewComposable` strategy;
+                          // notification / Glance) go through their `*PreviewComposable`
+                          // strategy;
                           // everything else invokes the resolved held composable. Pointer / key
-                          // dispatch against a tile or notification simply finds no Compose targets
-                          // (they're inflated Views inside an `AndroidView`), so live input no-ops
+                          // dispatch against a tile or notification simply finds no Compose
+                          // targets
+                          // (they're inflated Views inside an `AndroidView`), so live input
+                          // no-ops
                           // gracefully while the frame still renders instead of going blank.
                           // `widthDp` / `heightDp` are the held session's resolved canvas
                           // dimensions
@@ -3083,11 +3108,14 @@ open class RobolectricHost(
                           //
                           // AS-parity wrap, mirroring `RenderEngine.render`'s content box: on a
                           // wrapped axis measure the preview against a relaxed (min = 0) sandbox
-                          // constraint and size the box to its intrinsic size, recording that size
-                          // so each streamed frame can be cropped back to it. Fixed axes stay tight
+                          // constraint and size the box to its intrinsic size, recording that
+                          // size
+                          // so each streamed frame can be cropped back to it. Fixed axes stay
+                          // tight
                           // so `fillMax*` / lazy content keep a finite viewport. It has to sit
                           // *inside* the extension pipeline, exactly where the one-shot path puts
-                          // it — an `AroundComposable` extension may fill the window, and measuring
+                          // it — an `AroundComposable` extension may fill the window, and
+                          // measuring
                           // outside it reports the sandbox rather than the preview. Without this
                           // wrap the held composition filled the window and every streamed frame
                           // was the sandbox device: a wear component sticker arrived as the whole
@@ -3118,8 +3146,10 @@ open class RobolectricHost(
                           ) {
                             if (isProtolayoutIr) {
                               // v5 IR replay, protolayout — inflate the captured `Layout` +
-                              // `Resources` protos through `TileRenderer`, with no reference to the
-                              // tile function that produced them. Same AndroidView-hosted shape as
+                              // `Resources` protos through `TileRenderer`, with no reference to
+                              // the
+                              // tile function that produced them. Same AndroidView-hosted shape
+                              // as
                               // `RenderEngine.render`'s branch, so a held frame and a one-shot
                               // capture walk an identical Compose tree.
                               ee.schimke.composeai.renderer.TileIrReplayComposable(
@@ -3130,7 +3160,8 @@ open class RobolectricHost(
                             } else if (rcReplayClass != null) {
                               // v5 IR replay, Remote Compose — paint the captured RemoteDocument
                               // through the connector's player, reached reflectively. The view
-                              // player owns the document's own state, so the held composition stays
+                              // player owns the document's own state, so the held composition
+                              // stays
                               // interactive: a tap dispatched by `interactive/input` lands on the
                               // document exactly as it would on-device.
                               InvokeIrReplay(rcReplayClass, irReplay!!.bytes)
@@ -3159,10 +3190,12 @@ open class RobolectricHost(
                                 classLoader = classLoader,
                               )
                             } else {
-                              // The held composition must obey the same app environment contract as
+                              // The held composition must obey the same app environment contract
+                              // as
                               // a
                               // one-shot render. A PreviewWrapperProvider may install required
-                              // composition locals (for example app-owned SharedTransition scopes),
+                              // composition locals (for example app-owned SharedTransition
+                              // scopes),
                               // and a selected theme provider replaces it on the same terms.
                               InvokeWithOptionalWrapper(
                                 composableMethod = composableMethod!!,
@@ -3185,7 +3218,7 @@ open class RobolectricHost(
             setupTrace.section("compose:advanceClock") {
               advanceHeldClocks(rule, HELD_CAPTURE_ADVANCE_MS)
             }
-            start.focusTabIndex?.let { tabIndex ->
+            (start.focusTabIndex ?: if (glimmerInputProfile) 0 else null)?.let { tabIndex ->
               setupTrace.section("compose:focus") {
                 // The connector's moveFocus walk does not land in this held Robolectric scene.
                 // Address the target through semantics, matching the one-shot daemon renderer,
@@ -3225,7 +3258,18 @@ open class RobolectricHost(
                           backend = "android-live",
                         )
                       inputTrace.section("interactive:dispatch") {
-                        dispatchHeldMotion(rule, cmd, position)
+                        dispatchHeldMotion(
+                          rule = rule,
+                          cmd = cmd,
+                          position = position,
+                          glimmerInputProfile = glimmerInputProfile,
+                          clearGlimmerFocus = {
+                            rule.runOnUiThread {
+                              glimmerClearFocusGeneration.intValue++
+                              androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
+                            }
+                          },
+                        )
                       }
                       inputTrace.section("compose:advanceClock") {
                         advanceHeldClocks(rule, postDispatchAdvanceMs(cmd.kind))
@@ -3991,7 +4035,16 @@ open class RobolectricHost(
         >,
       cmd: InteractiveCommand.Dispatch,
       position: Offset,
+      glimmerInputProfile: Boolean = false,
+      clearGlimmerFocus: () -> Unit = {},
     ) {
+      // A pointer move is the held-session analogue of gaze for Glimmer: focus the smallest
+      // focusable under the cursor without synthesising any press. Touch/mobile keeps the ordinary
+      // pointer stream below.
+      if (glimmerInputProfile && cmd.kind == "pointerMove") {
+        performRequestFocusAt(rule, position)
+        return
+      }
       // Issue #3491 — a mouse drag and a finger drag are different gestures to Compose, and only
       // the mouse one drags out a text selection. The wire now says which device it was; absent
       // (every pre-#3491 client) still means touch.
@@ -4081,6 +4134,7 @@ open class RobolectricHost(
           dispatchHeldKeyEvent(rule, cmd.keyCode, cmd.text, down = false)
         }
       }
+      if (glimmerInputProfile && cmd.kind == "click") clearGlimmerFocus()
     }
 
     /**
@@ -4640,6 +4694,24 @@ open class RobolectricHost(
        */
       private val UNRESOLVED_REASON_JSON: Json = Json { encodeDefaults = true }
     }
+  }
+}
+
+/**
+ * Clears focus acquired by a Glimmer click. Pointer moves request focus directly in
+ * [dispatchHeldMotion]; clicks bump [clearFocusGeneration] after activation so they cannot leave
+ * touch-acquired focus latched.
+ */
+@androidx.compose.runtime.Composable
+private fun ClearGlimmerFocusEffect(
+  enabled: Boolean,
+  clearFocusGeneration: androidx.compose.runtime.State<Int>,
+) {
+  if (!enabled) return
+  val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+  val generation = clearFocusGeneration.value
+  androidx.compose.runtime.LaunchedEffect(generation) {
+    if (generation > 0) focusManager.clearFocus(force = true)
   }
 }
 

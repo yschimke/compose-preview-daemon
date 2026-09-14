@@ -141,6 +141,7 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     if (isWearAmbientAvailable(javaClass.classLoader)) {
       try {
         shadows += ShadowAmbientLifecycleObserver::class.java
+        shadows += ShadowAmbientModeManagerImpl::class.java
       } catch (_: NoClassDefFoundError) {
         // connector not on classpath — skip ambient shadow
       }
@@ -220,6 +221,19 @@ internal fun isWearAmbientAvailable(loader: ClassLoader?): Boolean {
   val effective = loader ?: ClassLoader.getSystemClassLoader() ?: return false
   return try {
     Class.forName("androidx.wear.ambient.AmbientLifecycleObserver", false, effective)
+    true
+  } catch (_: ClassNotFoundException) {
+    false
+  } catch (_: NoClassDefFoundError) {
+    false
+  }
+}
+
+/** Whether this consumer classpath carries Jetpack Compose Glimmer. */
+internal fun isGlimmerAvailable(loader: ClassLoader?): Boolean {
+  val effective = loader ?: ClassLoader.getSystemClassLoader() ?: return false
+  return try {
+    Class.forName("androidx.xr.glimmer.SurfaceKt", false, effective)
     true
   } catch (_: ClassNotFoundException) {
     false

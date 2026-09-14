@@ -6,11 +6,13 @@ package ee.schimke.composeai.preview
  * The composable is captured unchanged as opaque RGB on black. After capture,
  * `:data-glimmer-environment-connector` preserves that raw image and ADD-composites a separate
  * preview artifact over the selected environment. Environment imagery is therefore tooling data,
- * not application UI that would run on glasses.
+ * not application UI that would run on glasses. Repeat the annotation to emit several named
+ * environment captures from one preview function.
  */
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
+@Repeatable
 annotation class GlimmerEnvironmentPreview(val environment: GlimmerEnvironment)
 
 /** Environment presets supported by [GlimmerEnvironmentPreview]. */
