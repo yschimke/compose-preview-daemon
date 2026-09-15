@@ -17,8 +17,12 @@ repo_root="$(git -C "$(dirname "$0")/.." rev-parse --show-toplevel)"
 SCAN="$repo_root/.github/scripts/agent-attribution-scan.sh"
 HOOK_COMMIT_MSG="$repo_root/.githooks/commit-msg"
 HOOK_PRE_PUSH="$repo_root/.githooks/pre-push"
+# The hooks also call the release-please parse detector and fail closed without
+# it, so the scratch clone needs it too or every "clean commit is accepted" case
+# below fails for the wrong reason.
+PARSE_SCAN="$repo_root/.github/scripts/release-please-parse-scan.sh"
 
-for f in "$SCAN" "$HOOK_COMMIT_MSG" "$HOOK_PRE_PUSH"; do
+for f in "$SCAN" "$HOOK_COMMIT_MSG" "$HOOK_PRE_PUSH" "$PARSE_SCAN"; do
   if [ ! -x "$f" ]; then
     printf 'missing or non-executable: %s\n' "$f" >&2
     exit 2
@@ -112,9 +116,12 @@ git init -q -b main "$w"
 cd "$w" || exit 2
 mkdir -p .github/scripts .githooks
 cp "$SCAN" .github/scripts/agent-attribution-scan.sh
+cp "$PARSE_SCAN" .github/scripts/release-please-parse-scan.sh
 cp "$HOOK_COMMIT_MSG" .githooks/commit-msg
 cp "$HOOK_PRE_PUSH" .githooks/pre-push
-chmod +x .github/scripts/agent-attribution-scan.sh .githooks/commit-msg .githooks/pre-push
+chmod +x .github/scripts/agent-attribution-scan.sh \
+  .github/scripts/release-please-parse-scan.sh \
+  .githooks/commit-msg .githooks/pre-push
 git config core.hooksPath .githooks
 git config user.name "Test Human"
 git config user.email "human@example.com"

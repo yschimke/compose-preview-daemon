@@ -1,0 +1,62 @@
+name: Release Notes Parseable
+
+# release-please DISCARDS a commit whose message its parser rejects, and the run
+# still reports success — the commit never reaches the changelog, and when it is
+# the only one since the last release no release is proposed at all. The release
+# pull request simply stops moving and nothing goes red. That is issue #115, and
+# this gate is the layer that makes it loud.
+#
+# It runs on the pull request rather than after the merge for the obvious
+# reason: after the merge the message is on main and cannot be reworded.
+#
+# Detection is shared with the local commit-msg and pre-push hooks —
+# see .github/scripts/release-please-parse-scan.sh.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  parseable:
+    name: Release notes parseable
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The scan walks base..head, so it needs both sides, not just the tip.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      # The detector runs authoritatively only when it can resolve the very
+      # parser release-please uses; `--require-parser` below makes a missing
+      # one a failure rather than a silent downgrade to the heuristic.
+      - name: Install the release-please parser
+        run: npm install --no-save @conventional-commits/parser
+
+      - name: Scan the commits this pull request adds
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          .github/scripts/release-please-parse-scan.sh \
+            --require-parser \
+            --range "${BASE_SHA}..${HEAD_SHA}"
+
+      # The squashed commit carries the PR TITLE as its subject, so a title the
+      # parser rejects drops the whole squash however clean the commits were.
+      - name: Scan the pull request title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$PR_TITLE" > /tmp/pr-title.txt
+          .github/scripts/release-please-parse-scan.sh \
+            --require-parser \
+            --text-file /tmp/pr-title.txt
