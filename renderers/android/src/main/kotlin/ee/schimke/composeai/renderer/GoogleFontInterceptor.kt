@@ -107,15 +107,48 @@ internal data class ResolvedFace(val file: File, val variable: Boolean)
  */
 object GoogleFontFiles {
   /**
-   * The cached TTF for `(family, weight, italic)`, or null when nothing has resolved it. Never
+   * Faces this process actually resolved, keyed the same way [cached] asks for them.
+   *
+   * The cache directory alone stopped being able to answer "which file did the render draw with?"
+   * once an axes-bearing request could be served the family's variable file: that lands as
+   * `<slug>-variable.ttf` and the weight-specific `<slug>-<weight>.ttf` is never downloaded, so a
+   * directory lookup misses on a clean cache — and on a shared machine cache warmed by another
+   * project it is worse than a miss, answering with a static instance the raster never drew.
+   * Recording the resolution keeps [cached]'s contract true by construction rather than by
+   * coincidence of filename.
+   */
+  private val resolved = java.util.concurrent.ConcurrentHashMap<String, File>()
+
+  /** Publish the face [file] that a render just resolved for [key]. */
+  internal fun record(key: GoogleFontKey, file: File) {
+    resolved[key.fileName()] = file
+  }
+
+  /**
+   * The TTF `(family, weight, italic)` resolved to, or null when nothing has resolved it. Never
    * downloads — a miss means the render didn't draw with this face either, and the export should
    * degrade rather than fetch a face the raster never saw.
+   *
+   * Answers from [resolved] first, so an axes-bearing face embeds the variable file the raster
+   * used; falls back to the cache directory for a face resolved before this process (or by a path
+   * that does not record), which is the original behaviour.
    */
   fun cached(family: String, weight: Int, italic: Boolean): File? {
+    val key = GoogleFontKey(family, weight, italic)
+    resolved[key.fileName()]
+      ?.takeIf { it.isFile && it.length() > 0 }
+      ?.let {
+        return it
+      }
     val dir =
       System.getProperty("composeai.fonts.cacheDir")?.takeIf { it.isNotBlank() } ?: return null
-    val file = File(dir, GoogleFontKey(family, weight, italic).fileName())
+    val file = File(dir, key.fileName())
     return file.takeIf { it.isFile && it.length() > 0 }
+  }
+
+  /** Forget the recorded resolutions. Tests only. */
+  internal fun resetForTest() {
+    resolved.clear()
   }
 }
 

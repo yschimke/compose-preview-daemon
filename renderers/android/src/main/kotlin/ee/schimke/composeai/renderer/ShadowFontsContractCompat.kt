@@ -112,6 +112,10 @@ class ShadowFontsContractCompat {
         )
         return
       }
+      // Publish the exact file the raster is about to draw with, so `compose/figma-svg` embeds
+      // those bytes rather than guessing at `<slug>-<weight>.ttf` — which an axes-bearing request
+      // never downloads (issue #2906 is what that divergence looks like from the outside).
+      GoogleFontFiles.record(key, file)
       callback.onTypefaceRetrieved(typeface)
     }
   }

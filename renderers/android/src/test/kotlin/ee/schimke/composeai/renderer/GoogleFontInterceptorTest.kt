@@ -96,6 +96,49 @@ class GoogleFontInterceptorTest {
   }
 
   @Test
+  fun `a recorded face wins over the weight-named file the cache directory holds`() {
+    val dir = java.nio.file.Files.createTempDirectory("fonts").toFile()
+    val stale = java.io.File(dir, "google-sans-flex-400.ttf").apply { writeText("stale") }
+    val variable =
+      java.io.File(dir, "google-sans-flex-variable.ttf").apply { writeText("variable") }
+    val previous = System.getProperty("composeai.fonts.cacheDir")
+    System.setProperty("composeai.fonts.cacheDir", dir.absolutePath)
+    try {
+      GoogleFontFiles.resetForTest()
+      // Without a record the directory answers, which is the pre-existing behaviour.
+      assertEquals(stale, GoogleFontFiles.cached("Google Sans Flex", 400, italic = false))
+      // The axes-bearing render resolved the variable file, so that is what the export must embed
+      // — not the static instance a shared machine cache happens to hold under the weight name.
+      GoogleFontFiles.record(GoogleFontKey("Google Sans Flex", 400, italic = false), variable)
+      assertEquals(variable, GoogleFontFiles.cached("Google Sans Flex", 400, italic = false))
+    } finally {
+      GoogleFontFiles.resetForTest()
+      if (previous == null) System.clearProperty("composeai.fonts.cacheDir")
+      else System.setProperty("composeai.fonts.cacheDir", previous)
+    }
+  }
+
+  @Test
+  fun `a recorded face that no longer exists falls back to the cache directory`() {
+    val dir = java.nio.file.Files.createTempDirectory("fonts").toFile()
+    val onDisk = java.io.File(dir, "lato-400.ttf").apply { writeText("lato") }
+    val previous = System.getProperty("composeai.fonts.cacheDir")
+    System.setProperty("composeai.fonts.cacheDir", dir.absolutePath)
+    try {
+      GoogleFontFiles.resetForTest()
+      GoogleFontFiles.record(
+        GoogleFontKey("Lato", 400, italic = false),
+        java.io.File(dir, "gone.ttf"),
+      )
+      assertEquals(onDisk, GoogleFontFiles.cached("Lato", 400, italic = false))
+    } finally {
+      GoogleFontFiles.resetForTest()
+      if (previous == null) System.clearProperty("composeai.fonts.cacheDir")
+      else System.setProperty("composeai.fonts.cacheDir", previous)
+    }
+  }
+
+  @Test
   fun `the Glimmer title role needs the variable file`() {
     // Verbatim `GoogleSansFlexTypographyDefaults.TitleLargeVariationSettings`, in the
     // sorted-by-axis order Compose puts on the wire.
