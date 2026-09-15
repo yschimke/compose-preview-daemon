@@ -1,18 +1,23 @@
 package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.protocol.FocusOverride
+import ee.schimke.composeai.daemon.protocol.InteractiveInputKind
+import ee.schimke.composeai.daemon.protocol.InteractiveInputParams
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import java.io.ByteArrayInputStream
 import java.io.File
 import javax.imageio.ImageIO
+import javax.tools.ToolProvider
 import kotlin.math.abs
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
-/** Pixel-level regression for #4937: focused variants must remain focused in Android Live mode. */
+/** Pixel-level regressions for authored and gaze-driven focus in Android Live mode. */
 class AndroidInteractiveFocusOverrideTest {
 
   @get:Rule val tempFolder: TemporaryFolder = TemporaryFolder()
@@ -49,6 +54,96 @@ class AndroidInteractiveFocusOverrideTest {
     } finally {
       host.shutdown()
     }
+  }
+
+  /** Regression for the Glimmer Live-mode initial-frame mismatch introduced in #107. */
+  @Test
+  fun glimmer_session_without_focus_override_matches_the_resting_snapshot() {
+    val outputDir = tempFolder.newFolder("interactive-glimmer-resting-renders")
+    val glimmerMarkerDir = compileGlimmerMarker()
+    System.setProperty(RenderEngine.OUTPUT_DIR_PROP, outputDir.absolutePath)
+
+    val host =
+      RobolectricHost(
+        sandboxCount = 2,
+        userClassloaderHolderFactory = { sandboxClassLoader ->
+          UserClassLoaderHolder(
+            urls = listOf(glimmerMarkerDir.toURI().toURL()),
+            parentSupplier = { sandboxClassLoader },
+          )
+        },
+        previewSpecResolver = ::resolvePreview,
+      )
+    host.start()
+    try {
+      val snapshotResult =
+        host.submit(
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = PREVIEW_ID)),
+          timeoutMs = 120_000,
+        )
+      val snapshot = decode(File(snapshotResult.artifact.pathOrNull()!!))
+
+      val session =
+        host.acquireInteractiveSession(
+          previewId = PREVIEW_ID,
+          classLoader = AndroidInteractiveFocusOverrideTest::class.java.classLoader!!,
+        )
+      try {
+        val liveResult = session.render(requestId = RenderHost.nextRequestId())
+        val live = decode(File(liveResult.artifact.pathOrNull()!!))
+
+        assertEquals(snapshot.width, live.width)
+        assertEquals(snapshot.height, live.height)
+        assertArrayEquals(
+          "an unoverridden Glimmer Live session must match the resting snapshot pixel-for-pixel",
+          snapshot.getRGB(0, 0, snapshot.width, snapshot.height, null, 0, snapshot.width),
+          live.getRGB(0, 0, live.width, live.height, null, 0, live.width),
+        )
+        assertTrue(
+          "an unoverridden Glimmer Live session must retain the snapshot's resting pixels",
+          pixelMatchPct(live, expectedRgb = RESTING_FILL_RGB) > 0.9 &&
+            pixelMatchPct(live, expectedRgb = FOCUSED_FILL_RGB) < 0.01,
+        )
+
+        session.dispatch(
+          InteractiveInputParams(
+            frameStreamId = "irrelevant-on-host-side",
+            kind = InteractiveInputKind.POINTER_MOVE,
+            pixelX = FRAME_PX / 2,
+            pixelY = FRAME_PX / 2,
+          )
+        )
+        val gazeFocused =
+          decode(
+            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!)
+          )
+        assertTrue(
+          "pointer movement must still acquire Glimmer gaze focus after the resting first frame",
+          pixelMatchPct(gazeFocused, expectedRgb = FOCUSED_FILL_RGB) > 0.9 &&
+            pixelMatchPct(gazeFocused, expectedRgb = RESTING_FILL_RGB) < 0.01,
+        )
+      } finally {
+        session.close()
+      }
+    } finally {
+      host.shutdown()
+    }
+  }
+
+  private fun compileGlimmerMarker(): File {
+    val output = tempFolder.newFolder("glimmer-marker-classes")
+    val sourceDir = output.resolve("src/androidx/xr/glimmer").apply { mkdirs() }
+    val source =
+      sourceDir.resolve("SurfaceKt.java").apply {
+        writeText("package androidx.xr.glimmer; public final class SurfaceKt {}")
+      }
+    val compiler = requireNotNull(ToolProvider.getSystemJavaCompiler()) { "JDK compiler required" }
+    assertEquals(
+      "failed to compile the isolated Glimmer classpath marker",
+      0,
+      compiler.run(null, null, null, "-d", output.absolutePath, source.absolutePath),
+    )
+    return output
   }
 
   private fun resolvePreview(previewId: String): RenderSpec? =
