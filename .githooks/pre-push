@@ -84,6 +84,24 @@ ADVERTISED
   scan_out="$("$scan" "$@" 2>&1)"
   scan_status=$?
 
+  # The same range, through the release-please parse detector: a commit it
+  # cannot parse is dropped silently and never reaches the changelog (#115).
+  # Reported separately below so a push failing both says why twice rather
+  # than once.
+  parse_scan="$repo_root/.github/scripts/release-please-parse-scan.sh"
+  parse_out=""
+  parse_status=0
+  if [ -x "$parse_scan" ]; then
+    parse_out="$("$parse_scan" "$@" 2>&1)"
+    parse_status=$?
+  fi
+  if [ "$parse_status" -ne 0 ] && [ "$parse_status" -ne 2 ]; then
+    printf '\n%s\n' "$parse_out" >&2
+    printf '\npre-push hook rejected this push: release-please would silently\n' >&2
+    printf 'drop the commit(s) above. Reword, or push with --no-verify.\n' >&2
+    exit 1
+  fi
+
   if [ "$scan_status" -eq 2 ]; then
     printf '\n%s\n' "$scan_out" >&2
     printf 'pre-push hook: the agent-attribution detector could not run for %s.\n' \

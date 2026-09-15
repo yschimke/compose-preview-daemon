@@ -76,7 +76,33 @@ solely to the human committer.
 authorship. An agent co-author or an agent commit identity does.)"
 fi
 
-# 2. Enforce Conventional Commits on the subject line.
+# 2. Reject a message release-please cannot parse.
+#
+#    A commit it cannot parse is DISCARDED while the run still reports success,
+#    so the change never reaches the changelog — and when it is the only commit
+#    since the last release, no release is proposed at all (issue #115). The
+#    trigger is a body line whose first token carries a nested "(", which the
+#    grammar reads as a scope. Catching it here costs a reword; catching it
+#    after the merge costs a changelog entry that cannot be recovered.
+parse_scan="$repo_root/.github/scripts/release-please-parse-scan.sh"
+if [ ! -x "$parse_scan" ]; then
+  fail "cannot find $parse_scan — the release-please parse detector is missing.
+Restore it, or bypass this one commit with 'git commit --no-verify'."
+fi
+
+parse_out="$("$parse_scan" --text-file "$scan_text" 2>&1)"
+parse_status=$?
+if [ "$parse_status" -eq 2 ]; then
+  printf '%s\n' "$parse_out" >&2
+  fail "the release-please parse detector could not run — it fails closed
+rather than letting an unparseable commit through."
+fi
+if [ "$parse_status" -ne 0 ]; then
+  printf '\n%s\n' "$parse_out" >&2
+  fail "release-please would silently drop this commit."
+fi
+
+# 3. Enforce Conventional Commits on the subject line.
 # Format: type(scope)?!?: description   (scope optional, '!' marks breaking change)
 if [ "$conventional_exempt" -eq 1 ]; then
   exit 0
