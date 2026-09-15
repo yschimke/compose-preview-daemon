@@ -2963,6 +2963,25 @@ open class RobolectricHost(
             // focus through LocalFocusManager, separating the discrete pinch-like activation from
             // the gaze-like focus channel.
             val glimmerClearFocusGeneration = androidx.compose.runtime.mutableIntStateOf(0)
+            // Glimmer treats pointer movement as gaze. Keep the ordinary touch input mode until
+            // gaze actually arrives: forcing Keyboard from the first composition removes the
+            // touch-sized minimum constraints from GlimmerTheme controls (48 dp becomes the
+            // compact 28 dp visual), so a Live frame starts smaller than its snapshot. Authored
+            // focus starts in Keyboard mode because it must be focusable before the initial drive.
+            val glimmerInputModeManager =
+              GazeInputModeManager(
+                initialMode =
+                  if (start.focusTabIndex != null) {
+                    androidx.compose.ui.input.InputMode.Keyboard
+                  } else {
+                    androidx.compose.ui.input.InputMode.Touch
+                  }
+              )
+            // A click following pointer movement is the viewer's eye-tracking "select focused
+            // element" gesture, so it must retain focus while gaze remains on that element. A
+            // click without prior gaze is direct input and must not leave touch-acquired focus
+            // latched after activation.
+            val glimmerGazeActive = java.util.concurrent.atomic.AtomicBoolean(false)
             // Same per-session reset the one-shot renderer does before every render
             // (`RobolectricRenderTest`): the soft-keyboard band's state holder is a JVM-wide
             // singleton, so without this a live session that focused a text field — which raises
@@ -3028,7 +3047,7 @@ open class RobolectricHost(
                       if (glimmerInputProfile) {
                         add(
                           androidx.compose.ui.platform.LocalInputModeManager provides
-                            KeyboardInputModeManager
+                            glimmerInputModeManager
                         )
                       }
                     }
@@ -3267,10 +3286,35 @@ open class RobolectricHost(
                           cmd = cmd,
                           position = position,
                           glimmerInputProfile = glimmerInputProfile,
-                          clearGlimmerFocus = {
+                          enterGlimmerGazeMode = {
+                            glimmerGazeActive.set(true)
                             rule.runOnUiThread {
+                              glimmerInputModeManager.requestInputMode(
+                                androidx.compose.ui.input.InputMode.Keyboard
+                              )
+                              androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
+                            }
+                            rule.waitForIdle()
+                          },
+                          leaveGlimmerGazeMode = {
+                            glimmerGazeActive.set(false)
+                            rule.runOnUiThread {
+                              glimmerInputModeManager.requestInputMode(
+                                androidx.compose.ui.input.InputMode.Touch
+                              )
                               glimmerClearFocusGeneration.intValue++
                               androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
+                            }
+                          },
+                          finishGlimmerClick = {
+                            if (!glimmerGazeActive.get()) {
+                              rule.runOnUiThread {
+                                glimmerInputModeManager.requestInputMode(
+                                  androidx.compose.ui.input.InputMode.Touch
+                                )
+                                glimmerClearFocusGeneration.intValue++
+                                androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
+                              }
                             }
                           },
                         )
@@ -4040,13 +4084,16 @@ open class RobolectricHost(
       cmd: InteractiveCommand.Dispatch,
       position: Offset,
       glimmerInputProfile: Boolean = false,
-      clearGlimmerFocus: () -> Unit = {},
+      enterGlimmerGazeMode: () -> Unit = {},
+      leaveGlimmerGazeMode: () -> Unit = {},
+      finishGlimmerClick: () -> Unit = {},
     ) {
       // A pointer move is the held-session analogue of gaze for Glimmer: focus the smallest
       // focusable under the cursor without synthesising any press. Touch/mobile keeps the ordinary
       // pointer stream below.
       if (glimmerInputProfile && cmd.kind == "pointerMove") {
-        performRequestFocusAt(rule, position)
+        enterGlimmerGazeMode()
+        if (!performRequestFocusAt(rule, position)) leaveGlimmerGazeMode()
         return
       }
       // Issue #3491 — a mouse drag and a finger drag are different gestures to Compose, and only
@@ -4138,7 +4185,7 @@ open class RobolectricHost(
           dispatchHeldKeyEvent(rule, cmd.keyCode, cmd.text, down = false)
         }
       }
-      if (glimmerInputProfile && cmd.kind == "click") clearGlimmerFocus()
+      if (glimmerInputProfile && cmd.kind == "click") finishGlimmerClick()
     }
 
     /**
@@ -4702,9 +4749,30 @@ open class RobolectricHost(
 }
 
 /**
- * Clears focus acquired by a Glimmer click. Pointer moves request focus directly in
- * [dispatchHeldMotion]; clicks bump [clearFocusGeneration] after activation so they cannot leave
- * touch-acquired focus latched.
+ * Per-session input mode for Glimmer's gaze profile.
+ *
+ * A Live session starts in touch mode, matching the one-shot preview and retaining GlimmerTheme's
+ * touch-sized layout. Pointer movement switches it to keyboard mode immediately before requesting
+ * focus, which is the mode Compose requires for `Focusability.SystemDefined`; leaving the target
+ * returns it to touch mode.
+ */
+private class GazeInputModeManager(initialMode: androidx.compose.ui.input.InputMode) :
+  androidx.compose.ui.input.InputModeManager {
+  private val mode = androidx.compose.runtime.mutableStateOf(initialMode)
+
+  override val inputMode: androidx.compose.ui.input.InputMode
+    get() = mode.value
+
+  override fun requestInputMode(inputMode: androidx.compose.ui.input.InputMode): Boolean {
+    mode.value = inputMode
+    return true
+  }
+}
+
+/**
+ * Clears direct-touch focus when a Glimmer click occurs without active gaze, or when gaze leaves
+ * the rendered target. Pointer moves request focus directly in [dispatchHeldMotion]; a click while
+ * gaze remains active deliberately keeps focus, matching an eye-tracking select gesture.
  */
 @androidx.compose.runtime.Composable
 private fun ClearGlimmerFocusEffect(
