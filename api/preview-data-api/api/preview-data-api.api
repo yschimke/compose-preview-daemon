@@ -1,19 +1,24 @@
 public final class ee/schimke/composeai/designpages/DesignPage {
 	public static final field Companion Lee/schimke/composeai/designpages/DesignPage$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/designpages/PageFrame;Lee/schimke/composeai/designpages/PageImage;Ljava/util/List;Z)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/designpages/PageFrame;Lee/schimke/composeai/designpages/PageImage;Ljava/util/List;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/designpages/PageFrame;Lee/schimke/composeai/designpages/PageImage;Ljava/util/List;ZLjava/util/List;Lee/schimke/composeai/designpages/PageBlendMode;Lee/schimke/composeai/designpages/PageBlendMode;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/designpages/PageFrame;Lee/schimke/composeai/designpages/PageImage;Ljava/util/List;ZLjava/util/List;Lee/schimke/composeai/designpages/PageBlendMode;Lee/schimke/composeai/designpages/PageBlendMode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Lee/schimke/composeai/designpages/PageBlendMode;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Lee/schimke/composeai/designpages/PageFrame;
 	public final fun component5 ()Lee/schimke/composeai/designpages/PageImage;
 	public final fun component6 ()Ljava/util/List;
 	public final fun component7 ()Z
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/designpages/PageFrame;Lee/schimke/composeai/designpages/PageImage;Ljava/util/List;Z)Lee/schimke/composeai/designpages/DesignPage;
-	public static synthetic fun copy$default (Lee/schimke/composeai/designpages/DesignPage;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/designpages/PageFrame;Lee/schimke/composeai/designpages/PageImage;Ljava/util/List;ZILjava/lang/Object;)Lee/schimke/composeai/designpages/DesignPage;
+	public final fun component8 ()Ljava/util/List;
+	public final fun component9 ()Lee/schimke/composeai/designpages/PageBlendMode;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/designpages/PageFrame;Lee/schimke/composeai/designpages/PageImage;Ljava/util/List;ZLjava/util/List;Lee/schimke/composeai/designpages/PageBlendMode;Lee/schimke/composeai/designpages/PageBlendMode;)Lee/schimke/composeai/designpages/DesignPage;
+	public static synthetic fun copy$default (Lee/schimke/composeai/designpages/DesignPage;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/designpages/PageFrame;Lee/schimke/composeai/designpages/PageImage;Ljava/util/List;ZLjava/util/List;Lee/schimke/composeai/designpages/PageBlendMode;Lee/schimke/composeai/designpages/PageBlendMode;ILjava/lang/Object;)Lee/schimke/composeai/designpages/DesignPage;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBackground ()Ljava/util/List;
 	public final fun getCoverageGaps ()Ljava/util/List;
 	public final fun getCoverageTotal ()I
+	public final fun getDesignBlend ()Lee/schimke/composeai/designpages/PageBlendMode;
 	public final fun getFrame ()Lee/schimke/composeai/designpages/PageFrame;
 	public final fun getId ()Ljava/lang/String;
 	public final fun getImage ()Lee/schimke/composeai/designpages/PageImage;
@@ -22,6 +27,7 @@ public final class ee/schimke/composeai/designpages/DesignPage {
 	public final fun getName ()Ljava/lang/String;
 	public final fun getNodeId ()Ljava/lang/String;
 	public final fun getNodes ()Ljava/util/List;
+	public final fun getRenderBlend ()Lee/schimke/composeai/designpages/PageBlendMode;
 	public final fun getUnlinked ()Ljava/util/List;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -50,18 +56,25 @@ public final class ee/schimke/composeai/designpages/DesignPagesKt {
 
 public final class ee/schimke/composeai/designpages/DesignPagesManifest {
 	public static final field Companion Lee/schimke/composeai/designpages/DesignPagesManifest$Companion;
-	public fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/util/List;)V
-	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun backgroundFor (Lee/schimke/composeai/designpages/DesignPage;)Ljava/util/List;
 	public final fun component1 ()I
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/util/List;
-	public final fun copy (ILjava/lang/String;Ljava/lang/String;Ljava/util/List;)Lee/schimke/composeai/designpages/DesignPagesManifest;
-	public static synthetic fun copy$default (Lee/schimke/composeai/designpages/DesignPagesManifest;ILjava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lee/schimke/composeai/designpages/DesignPagesManifest;
+	public final fun component5 ()Ljava/util/List;
+	public final fun copy (ILjava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Lee/schimke/composeai/designpages/DesignPagesManifest;
+	public static synthetic fun copy$default (Lee/schimke/composeai/designpages/DesignPagesManifest;ILjava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lee/schimke/composeai/designpages/DesignPagesManifest;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAssets ()Ljava/util/List;
+	public final fun getAssetsById ()Ljava/util/Map;
+	public final fun getDanglingAssetRefs ()Ljava/util/List;
 	public final fun getFileKey ()Ljava/lang/String;
 	public final fun getPages ()Ljava/util/List;
+	public final fun getReferencedAssetIds ()Ljava/util/Set;
 	public final fun getSource ()Ljava/lang/String;
+	public final fun getUnreachableAssets ()Ljava/util/List;
 	public final fun getVersion ()I
 	public fun hashCode ()I
 	public final fun isSupported ()Z
@@ -81,6 +94,67 @@ public final synthetic class ee/schimke/composeai/designpages/DesignPagesManifes
 }
 
 public final class ee/schimke/composeai/designpages/DesignPagesManifest$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/designpages/PageAsset {
+	public static final field Companion Lee/schimke/composeai/designpages/PageAsset$Companion;
+	public static final field JPEG Ljava/lang/String;
+	public static final field MAX_ASSET_BYTES J
+	public static final field MAX_ASSET_DIMENSION I
+	public static final field MAX_ASSET_PIXELS J
+	public static final field PNG Ljava/lang/String;
+	public static final field WEBP Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIJ)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun component6 ()J
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIJ)Lee/schimke/composeai/designpages/PageAsset;
+	public static synthetic fun copy$default (Lee/schimke/composeai/designpages/PageAsset;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIJILjava/lang/Object;)Lee/schimke/composeai/designpages/PageAsset;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBytes ()J
+	public final fun getFormat ()Ljava/lang/String;
+	public final fun getHeight ()I
+	public final fun getId ()Ljava/lang/String;
+	public final fun getUri ()Ljava/lang/String;
+	public final fun getWidth ()I
+	public fun hashCode ()I
+	public final fun isWellFormed ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/designpages/PageAsset$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lee/schimke/composeai/designpages/PageAsset$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/designpages/PageAsset;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/designpages/PageAsset;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/designpages/PageAsset$Companion {
+	public final fun getFORMATS ()Ljava/util/Set;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/designpages/PageBlendMode : java/lang/Enum {
+	public static final field Companion Lee/schimke/composeai/designpages/PageBlendMode$Companion;
+	public static final field MULTIPLY Lee/schimke/composeai/designpages/PageBlendMode;
+	public static final field PLUS_LIGHTER Lee/schimke/composeai/designpages/PageBlendMode;
+	public static final field SCREEN Lee/schimke/composeai/designpages/PageBlendMode;
+	public static final field SOURCE_OVER Lee/schimke/composeai/designpages/PageBlendMode;
+	public final fun getCss ()Ljava/lang/String;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/designpages/PageBlendMode;
+	public static fun values ()[Lee/schimke/composeai/designpages/PageBlendMode;
+}
+
+public final class ee/schimke/composeai/designpages/PageBlendMode$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -141,6 +215,57 @@ public final synthetic class ee/schimke/composeai/designpages/PageImage$$seriali
 }
 
 public final class ee/schimke/composeai/designpages/PageImage$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/designpages/PageLayerPlacement {
+	public static final field CONTAIN Ljava/lang/String;
+	public static final field COVER Ljava/lang/String;
+	public static final field Companion Lee/schimke/composeai/designpages/PageLayerPlacement$Companion;
+	public static final field FILL Ljava/lang/String;
+	public fun <init> (Ljava/lang/String;DDDDDLjava/lang/String;DZLee/schimke/composeai/designpages/PageBlendMode;)V
+	public synthetic fun <init> (Ljava/lang/String;DDDDDLjava/lang/String;DZLee/schimke/composeai/designpages/PageBlendMode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Lee/schimke/composeai/designpages/PageBlendMode;
+	public final fun component2 ()D
+	public final fun component3 ()D
+	public final fun component4 ()D
+	public final fun component5 ()D
+	public final fun component6 ()D
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()D
+	public final fun component9 ()Z
+	public final fun copy (Ljava/lang/String;DDDDDLjava/lang/String;DZLee/schimke/composeai/designpages/PageBlendMode;)Lee/schimke/composeai/designpages/PageLayerPlacement;
+	public static synthetic fun copy$default (Lee/schimke/composeai/designpages/PageLayerPlacement;Ljava/lang/String;DDDDDLjava/lang/String;DZLee/schimke/composeai/designpages/PageBlendMode;ILjava/lang/Object;)Lee/schimke/composeai/designpages/PageLayerPlacement;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAsset ()Ljava/lang/String;
+	public final fun getBlend ()Lee/schimke/composeai/designpages/PageBlendMode;
+	public final fun getClip ()Z
+	public final fun getFit ()Ljava/lang/String;
+	public final fun getHeight ()D
+	public final fun getOpacity ()D
+	public final fun getRadius ()D
+	public final fun getWidth ()D
+	public final fun getX ()D
+	public final fun getY ()D
+	public fun hashCode ()I
+	public final fun isWellFormed ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/designpages/PageLayerPlacement$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lee/schimke/composeai/designpages/PageLayerPlacement$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/designpages/PageLayerPlacement;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/designpages/PageLayerPlacement;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/designpages/PageLayerPlacement$Companion {
+	public final fun getFITS ()Ljava/util/Set;
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
