@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.10](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.9...v3.4.10) (2026-09-15)
+
+
+### Bug Fixes
+
+* **deps:** update compose-preview-contracts to v2.19.0 ([#118](https://github.com/yschimke/compose-preview-daemon/issues/118)) ([58fc973](https://github.com/yschimke/compose-preview-daemon/commit/58fc973206e95c4d4525013780378e646b0f1a67))
+
 ## [3.4.9](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.8...v3.4.9) (2026-09-15)
 
 
