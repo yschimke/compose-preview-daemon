@@ -71,9 +71,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
@@ -303,6 +305,24 @@ fun InteractionStateSquare() {
           orientation = Orientation.Horizontal,
           interactionSource = interactionSource,
         )
+  )
+}
+
+/**
+ * Wrap-sized interaction target modelling GlimmerTheme's input-mode-sensitive minimum size.
+ * Snapshot/touch mode is 48 dp; keyboard mode exposes the compact 28 dp visual. The Glimmer Live
+ * regression uses this to catch a keyboard-mode provider installed before any gaze input arrives.
+ */
+@Composable
+fun InputModeSizedInteractionStateSquare() {
+  val interactionSource = remember { MutableInteractionSource() }
+  val focused by interactionSource.collectIsFocusedAsState()
+  val size = if (LocalInputModeManager.current.inputMode == InputMode.Touch) 48.dp else 28.dp
+  Box(
+    modifier =
+      Modifier.size(size)
+        .background(if (focused) Color(0xFFFFA726) else Color(0xFFEF5350))
+        .focusable(interactionSource = interactionSource)
   )
 }
 

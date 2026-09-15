@@ -78,14 +78,14 @@ class AndroidInteractiveFocusOverrideTest {
     try {
       val snapshotResult =
         host.submit(
-          RenderRequest.Render(target = RenderTarget.Preview(previewId = PREVIEW_ID)),
+          RenderRequest.Render(target = RenderTarget.Preview(previewId = GLIMMER_PREVIEW_ID)),
           timeoutMs = 120_000,
         )
       val snapshot = decode(File(snapshotResult.artifact.pathOrNull()!!))
 
       val session =
         host.acquireInteractiveSession(
-          previewId = PREVIEW_ID,
+          previewId = GLIMMER_PREVIEW_ID,
           classLoader = AndroidInteractiveFocusOverrideTest::class.java.classLoader!!,
         )
       try {
@@ -94,6 +94,8 @@ class AndroidInteractiveFocusOverrideTest {
 
         assertEquals(snapshot.width, live.width)
         assertEquals(snapshot.height, live.height)
+        assertEquals("touch-sized snapshot fixture", TOUCH_FRAME_PX, snapshot.width)
+        assertEquals("touch-sized Live fixture", TOUCH_FRAME_PX, live.width)
         assertArrayEquals(
           "an unoverridden Glimmer Live session must match the resting snapshot pixel-for-pixel",
           snapshot.getRGB(0, 0, snapshot.width, snapshot.height, null, 0, snapshot.width),
@@ -108,9 +110,37 @@ class AndroidInteractiveFocusOverrideTest {
         session.dispatch(
           InteractiveInputParams(
             frameStreamId = "irrelevant-on-host-side",
+            kind = InteractiveInputKind.CLICK,
+            pixelX = TOUCH_FRAME_PX / 2,
+            pixelY = TOUCH_FRAME_PX / 2,
+          )
+        )
+        val directActivation =
+          decode(
+            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!)
+          )
+        assertEquals(
+          "direct activation retains the touch-sized width",
+          TOUCH_FRAME_PX,
+          directActivation.width,
+        )
+        assertEquals(
+          "direct activation retains the touch-sized height",
+          TOUCH_FRAME_PX,
+          directActivation.height,
+        )
+        assertTrue(
+          "direct activation cannot leave touch-acquired focus latched",
+          pixelMatchPct(directActivation, expectedRgb = RESTING_FILL_RGB) > 0.9 &&
+            pixelMatchPct(directActivation, expectedRgb = FOCUSED_FILL_RGB) < 0.01,
+        )
+
+        session.dispatch(
+          InteractiveInputParams(
+            frameStreamId = "irrelevant-on-host-side",
             kind = InteractiveInputKind.POINTER_MOVE,
-            pixelX = FRAME_PX / 2,
-            pixelY = FRAME_PX / 2,
+            pixelX = TOUCH_FRAME_PX / 2,
+            pixelY = TOUCH_FRAME_PX / 2,
           )
         )
         val gazeFocused =
@@ -121,6 +151,40 @@ class AndroidInteractiveFocusOverrideTest {
           "pointer movement must still acquire Glimmer gaze focus after the resting first frame",
           pixelMatchPct(gazeFocused, expectedRgb = FOCUSED_FILL_RGB) > 0.9 &&
             pixelMatchPct(gazeFocused, expectedRgb = RESTING_FILL_RGB) < 0.01,
+        )
+        assertEquals(
+          "gaze switches to the compact keyboard-mode width",
+          GAZE_FRAME_PX,
+          gazeFocused.width,
+        )
+        assertEquals(
+          "gaze switches to the compact keyboard-mode height",
+          GAZE_FRAME_PX,
+          gazeFocused.height,
+        )
+
+        session.dispatch(
+          InteractiveInputParams(
+            frameStreamId = "irrelevant-on-host-side",
+            kind = InteractiveInputKind.CLICK,
+            pixelX = GAZE_FRAME_PX / 2,
+            pixelY = GAZE_FRAME_PX / 2,
+          )
+        )
+        val activated =
+          decode(
+            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!)
+          )
+        assertEquals("gaze activation retains keyboard-mode width", GAZE_FRAME_PX, activated.width)
+        assertEquals(
+          "gaze activation retains keyboard-mode height",
+          GAZE_FRAME_PX,
+          activated.height,
+        )
+        assertTrue(
+          "activation retains focus while gaze remains on the target",
+          pixelMatchPct(activated, expectedRgb = FOCUSED_FILL_RGB) > 0.9 &&
+            pixelMatchPct(activated, expectedRgb = RESTING_FILL_RGB) < 0.01,
         )
       } finally {
         session.close()
@@ -147,18 +211,33 @@ class AndroidInteractiveFocusOverrideTest {
   }
 
   private fun resolvePreview(previewId: String): RenderSpec? =
-    if (previewId == PREVIEW_ID) {
-      RenderSpec(
-        previewId = PREVIEW_ID,
-        className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
-        functionName = "InteractionStateSquare",
-        widthPx = FRAME_PX,
-        heightPx = FRAME_PX,
-        density = 1.0f,
-        showBackground = true,
-        outputBaseName = "interactive-focus-override",
-      )
-    } else null
+    when (previewId) {
+      PREVIEW_ID ->
+        RenderSpec(
+          previewId = PREVIEW_ID,
+          className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+          functionName = "InteractionStateSquare",
+          widthPx = FRAME_PX,
+          heightPx = FRAME_PX,
+          density = 1.0f,
+          showBackground = true,
+          outputBaseName = "interactive-focus-override",
+        )
+      GLIMMER_PREVIEW_ID ->
+        RenderSpec(
+          previewId = GLIMMER_PREVIEW_ID,
+          className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+          functionName = "InputModeSizedInteractionStateSquare",
+          widthPx = TOUCH_FRAME_PX,
+          heightPx = TOUCH_FRAME_PX,
+          wrapWidth = true,
+          wrapHeight = true,
+          density = 1.0f,
+          showBackground = true,
+          outputBaseName = "interactive-glimmer-input-mode",
+        )
+      else -> null
+    }
 
   private fun decode(file: File): java.awt.image.BufferedImage {
     require(file.exists()) { "expected capture at ${file.absolutePath}" }
@@ -192,7 +271,10 @@ class AndroidInteractiveFocusOverrideTest {
 
   private companion object {
     const val PREVIEW_ID = "android-focus-override-interactive"
+    const val GLIMMER_PREVIEW_ID = "android-glimmer-input-mode-interactive"
     const val FRAME_PX = 64
+    const val TOUCH_FRAME_PX = 48
+    const val GAZE_FRAME_PX = 28
     const val RESTING_FILL_RGB = 0xEF5350
     const val FOCUSED_FILL_RGB = 0xFFA726
   }
