@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.8](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.7...v3.4.8) (2026-09-15)
+
+
+### Bug Fixes
+
+* model Glimmer live gaze without shrinking defaults ([#111](https://github.com/yschimke/compose-preview-daemon/issues/111)) ([c0bc949](https://github.com/yschimke/compose-preview-daemon/commit/c0bc949961fd57ef4b17d72e1c0ff3ae66d16dc0))
+
 ## [3.4.7](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.6...v3.4.7) (2026-09-15)
 
 
