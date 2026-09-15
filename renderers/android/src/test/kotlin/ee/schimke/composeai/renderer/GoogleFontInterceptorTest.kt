@@ -49,4 +49,59 @@ class GoogleFontInterceptorTest {
     assertNull(parseFontRequestQuery("weight=400&italic=0.0"))
     assertNull(parseFontRequestQuery("name=&weight=400"))
   }
+
+  @Test
+  fun `parseVariationAxes reads both join shapes and reads nothing from junk`() {
+    assertEquals(
+      listOf("wght" to 750f, "GRAD" to 0f, "opsz" to 9f, "slnt" to -10f),
+      parseVariationAxes("'wght' 750, 'GRAD' 0,'opsz' 9, 'slnt' -10"),
+    )
+    assertEquals(emptyList<Pair<String, Float>>(), parseVariationAxes(null))
+    assertEquals(emptyList<Pair<String, Float>>(), parseVariationAxes(""))
+    assertEquals(emptyList<Pair<String, Float>>(), parseVariationAxes("wght=750"))
+  }
+
+  @Test
+  fun `a request with no axes keeps resolving through the CSS API`() {
+    val key = GoogleFontKey("Lato", 400, italic = false)
+    assertFalse(requiresVariableFace(null, key))
+    assertFalse(requiresVariableFace("", key))
+  }
+
+  @Test
+  fun `axes the static instance already bakes do not need the variable file`() {
+    assertFalse(requiresVariableFace("'wght' 500", GoogleFontKey("Lato", 500, italic = false)))
+    assertFalse(
+      requiresVariableFace("'wght' 500, 'ital' 1", GoogleFontKey("Lato", 500, italic = true))
+    )
+  }
+
+  @Test
+  fun `a wght that differs from the requested weight needs the variable file`() {
+    // The Glimmer shape: `Font(...)` stays at the default W400 so the query asks for the 400 face,
+    // and the role's real weight rides in the axes — where a static instance drops it.
+    assertTrue(
+      requiresVariableFace("'wght' 750", GoogleFontKey("Google Sans Flex", 400, italic = false))
+    )
+    assertTrue(requiresVariableFace("'ital' 1", GoogleFontKey("Lato", 400, italic = false)))
+  }
+
+  @Test
+  fun `any axis beyond wght and ital needs the variable file`() {
+    val key = GoogleFontKey("Google Sans Flex", 400, italic = false)
+    assertTrue(requiresVariableFace("'ROND' 100", key))
+    assertTrue(requiresVariableFace("'opsz' 9", key))
+    assertTrue(requiresVariableFace("'GRAD' 0", key))
+    assertTrue(requiresVariableFace("'wdth' 100", key))
+  }
+
+  @Test
+  fun `the Glimmer title role needs the variable file`() {
+    // Verbatim `GoogleSansFlexTypographyDefaults.TitleLargeVariationSettings`, in the
+    // sorted-by-axis order Compose puts on the wire.
+    val settings = "'GRAD' 0,'ROND' 100.0,'opsz' 9.0,'slnt' 0.0,'wdth' 100.0,'wght' 750"
+    assertTrue(
+      requiresVariableFace(settings, GoogleFontKey("Google Sans Flex", 400, italic = false))
+    )
+  }
 }
