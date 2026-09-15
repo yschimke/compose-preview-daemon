@@ -3218,7 +3218,11 @@ open class RobolectricHost(
             setupTrace.section("compose:advanceClock") {
               advanceHeldClocks(rule, HELD_CAPTURE_ADVANCE_MS)
             }
-            (start.focusTabIndex ?: if (glimmerInputProfile) 0 else null)?.let { tabIndex ->
+            // Only an authored focus override may change the initial frame. Glimmer's input
+            // profile acquires gaze focus from pointerMove below; eagerly focusing index 0 here
+            // made every ordinary Glimmer preview enter Live in a different visual state from its
+            // snapshot, which is especially conspicuous on tightly wrapped 48dp controls.
+            start.focusTabIndex?.let { tabIndex ->
               setupTrace.section("compose:focus") {
                 // The connector's moveFocus walk does not land in this held Robolectric scene.
                 // Address the target through semantics, matching the one-shot daemon renderer,
