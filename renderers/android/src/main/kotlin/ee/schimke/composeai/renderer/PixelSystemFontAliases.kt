@@ -152,7 +152,11 @@ object PixelSystemFontAliases {
           cache.load(GoogleFontKey(n, w, i))
         }
         else -> { n, w, i ->
-          GoogleFontCacheAccess.load(n, w, i)
+          // `preferVariable = false` keeps this path on the static instance the KDoc above
+          // describes. The downloadable-font shadow reaches for a variable file when a request
+          // names axes; seeding asks for none, and changing the face here would move every
+          // render that resolves a system-font alias.
+          GoogleFontCacheAccess.load(GoogleFontKey(n, w, i), preferVariable = false)?.file
         }
       }
     val seeded = mutableListOf<String>()

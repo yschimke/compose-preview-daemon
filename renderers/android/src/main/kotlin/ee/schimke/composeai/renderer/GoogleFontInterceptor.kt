@@ -45,9 +45,51 @@ internal object GoogleFontCacheAccess {
     GoogleFontCache(File(cacheDirPath), offline = offline)
   }
 
-  fun load(name: String, weight: Int, italic: Boolean): File? =
-    cache?.load(GoogleFontKey(name, weight, italic))
+  /**
+   * Remembered variable-file lookups, keyed by `(family, italic)` and including misses.
+   *
+   * Keyed without the weight because one variable file serves every weight: keying per weight would
+   * probe — and on a hit download — the same multi-megabyte file once per role a typography
+   * declares. Misses are remembered for the opposite reason: a family that ships no variable file
+   * costs three `METADATA.pb` probes to establish that, and a sheet that asks for seven roles of it
+   * would otherwise pay them seven times.
+   */
+  private val variableFiles = HashMap<Pair<String, Boolean>, File?>()
+
+  /**
+   * The cached face for [key], preferring the family's variable file when [preferVariable].
+   *
+   * Falls back to the static instance when the variable file cannot be fetched, because a face in
+   * the right family at the right weight is still much closer than the platform default — the
+   * caller reports the dropped axes rather than the resolution failing outright.
+   */
+  fun load(key: GoogleFontKey, preferVariable: Boolean): ResolvedFace? {
+    val source = cache ?: return null
+    if (preferVariable) {
+      variableFile(source, key)?.let {
+        return ResolvedFace(it, variable = true)
+      }
+    }
+    return source.load(key)?.let { ResolvedFace(it, variable = false) }
+  }
+
+  private fun variableFile(source: GoogleFontSource, key: GoogleFontKey): File? =
+    synchronized(variableFiles) {
+      val cacheKey = key.name to key.italic
+      if (variableFiles.containsKey(cacheKey)) return variableFiles[cacheKey]
+      val file = runCatching { source.loadVariable(key.name, key.italic) }.getOrNull()
+      variableFiles[cacheKey] = file
+      file
+    }
 }
+
+/**
+ * A resolved font file plus whether it still carries its `fvar` table.
+ *
+ * The flag is what lets the shadow tell "the axes will apply" from "the axes are about to be
+ * silently dropped", without re-reading the file's table directory to find out.
+ */
+internal data class ResolvedFace(val file: File, val variable: Boolean)
 
 /**
  * Read-only view of the downloadable-font cache for consumers that need the *file the render
@@ -65,15 +107,48 @@ internal object GoogleFontCacheAccess {
  */
 object GoogleFontFiles {
   /**
-   * The cached TTF for `(family, weight, italic)`, or null when nothing has resolved it. Never
+   * Faces this process actually resolved, keyed the same way [cached] asks for them.
+   *
+   * The cache directory alone stopped being able to answer "which file did the render draw with?"
+   * once an axes-bearing request could be served the family's variable file: that lands as
+   * `<slug>-variable.ttf` and the weight-specific `<slug>-<weight>.ttf` is never downloaded, so a
+   * directory lookup misses on a clean cache — and on a shared machine cache warmed by another
+   * project it is worse than a miss, answering with a static instance the raster never drew.
+   * Recording the resolution keeps [cached]'s contract true by construction rather than by
+   * coincidence of filename.
+   */
+  private val resolved = java.util.concurrent.ConcurrentHashMap<String, File>()
+
+  /** Publish the face [file] that a render just resolved for [key]. */
+  internal fun record(key: GoogleFontKey, file: File) {
+    resolved[key.fileName()] = file
+  }
+
+  /**
+   * The TTF `(family, weight, italic)` resolved to, or null when nothing has resolved it. Never
    * downloads — a miss means the render didn't draw with this face either, and the export should
    * degrade rather than fetch a face the raster never saw.
+   *
+   * Answers from [resolved] first, so an axes-bearing face embeds the variable file the raster
+   * used; falls back to the cache directory for a face resolved before this process (or by a path
+   * that does not record), which is the original behaviour.
    */
   fun cached(family: String, weight: Int, italic: Boolean): File? {
+    val key = GoogleFontKey(family, weight, italic)
+    resolved[key.fileName()]
+      ?.takeIf { it.isFile && it.length() > 0 }
+      ?.let {
+        return it
+      }
     val dir =
       System.getProperty("composeai.fonts.cacheDir")?.takeIf { it.isNotBlank() } ?: return null
-    val file = File(dir, GoogleFontKey(family, weight, italic).fileName())
+    val file = File(dir, key.fileName())
     return file.takeIf { it.isFile && it.length() > 0 }
+  }
+
+  /** Forget the recorded resolutions. Tests only. */
+  internal fun resetForTest() {
+    resolved.clear()
   }
 }
 
@@ -145,6 +220,29 @@ object FontResolutionDiagnostics {
     val fallback = FontFallback(key.name, key.weight, key.italic, reason)
     currentPreview.add(fallback)
     if (warnedThisProcess.add(key.fileName())) System.err.println(describe(fallback))
+  }
+
+  /**
+   * Record that [key] resolved to a face with no axes although the request named some, so Compose's
+   * `Paint.setFontVariationSettings` will drop them and the text renders at the instance's baked
+   * axis values.
+   *
+   * A warning rather than a per-preview failure, unlike an unresolved family: the face IS the right
+   * family at the right weight, so the render is a close approximation rather than the wrong
+   * typeface, and a consumer whose egress reaches the CSS API but not the font repository would
+   * otherwise lose every preview instead of some axis precision. It is deduplicated per `(family,
+   * weight, italic)` for the process the same way [recordFallback] is — a sheet asks for the same
+   * face once per role per preview.
+   */
+  internal fun recordAxesDropped(key: GoogleFontKey, variationSettings: String) {
+    if (!warnedThisProcess.add("axes:${key.fileName()}")) return
+    System.err.println(
+      "ComposeAiFonts: \"${key.name}\" resolved to a static instance, so the requested font " +
+        "variation settings ($variationSettings) are dropped and the text renders at that " +
+        "instance's baked axis values. The family's variable file — the only one carrying an " +
+        "`fvar` table — could not be fetched; allow egress to raw.githubusercontent.com or warm " +
+        "the font cache to render the axes."
+    )
   }
 
   /**
@@ -231,3 +329,60 @@ internal fun parseFontRequestQuery(query: String?): GoogleFontKey? {
   val italic = pairs["italic"]?.toFloatOrNull()?.let { it >= 0.5f } ?: false
   return GoogleFontKey(name, weight, italic)
 }
+
+/**
+ * The axes named in a `FontRequest.variationSettings` string, as `tag to value` pairs.
+ *
+ * The wire format is the CSS-like one `Paint.setFontVariationSettings` takes and Compose's
+ * `FontVariation.Settings.toAndroidString` produces — `'wght' 750, 'GRAD' 0, 'opsz' 9` — joined
+ * with either `,` or `, ` depending on which branch of that function ran, so the tags are matched
+ * rather than the string being split. Anything unparseable reads as no axes, which routes the
+ * caller to the existing static-instance behaviour rather than to an error.
+ */
+internal fun parseVariationAxes(variationSettings: String?): List<Pair<String, Float>> {
+  if (variationSettings.isNullOrBlank()) return emptyList()
+  return VARIATION_AXIS.findAll(variationSettings)
+    .mapNotNull { match ->
+      val value = match.groupValues[2].toFloatOrNull() ?: return@mapNotNull null
+      match.groupValues[1] to value
+    }
+    .toList()
+}
+
+private val VARIATION_AXIS = Regex("'([^']{1,4})'\\s*(-?[0-9]*\\.?[0-9]+)")
+
+/**
+ * Whether [variationSettings] asks for something the *static instance* for [key] cannot express.
+ *
+ * This is the question that decides which file the shadow serves, and it exists because the two
+ * halves of a downloadable variable font travel on different channels. The family and weight go in
+ * the `FontRequest` query and pick a file; the axes ride alongside in `variationSettings` and are
+ * applied by Compose *after* the typeface comes back (`GoogleFontTypefaceLoader` →
+ * `Paint.setFontVariationSettings`). That second step filters every requested axis against
+ * `Typeface.isSupportedAxes` and, if nothing survives, returns false and leaves the typeface
+ * exactly as it was — no error, no warning, the wrong face drawn.
+ *
+ * Nothing survives on a file from the CSS API, which bakes a static instance with no `fvar` table
+ * at all (see `GoogleFontSource.loadVariable`). So a request that names axes needs the family's
+ * pre-instancing file, and one that does not must keep resolving through the CSS API exactly as
+ * before — that path is warm in every consumer's cache and its metrics are what existing renders
+ * were captured against.
+ *
+ * "Cannot express" is therefore narrow on purpose:
+ * * an axis other than `wght` / `ital` — `GRAD`, `ROND`, `opsz`, `slnt`, `wdth` — can only come
+ *   from a variable file;
+ * * a `wght` that differs from the query's weight is the same story, and it is not hypothetical:
+ *   `createGoogleSansFlexTypography()` leaves every role's `Font` at the default `FontWeight.W400`
+ *   and carries 520 / 650 / 750 in the axes, so all seven roles ask the CSS API for the *same* 400
+ *   file and every weight distinction is dropped;
+ * * a `wght` that matches, or an `ital` that matches, is precisely what the static instance already
+ *   is, so it stays on the cheap path.
+ */
+internal fun requiresVariableFace(variationSettings: String?, key: GoogleFontKey): Boolean =
+  parseVariationAxes(variationSettings).any { (axis, value) ->
+    when (axis) {
+      "wght" -> Math.round(value) != key.weight
+      "ital" -> (value >= 0.5f) != key.italic
+      else -> true
+    }
+  }

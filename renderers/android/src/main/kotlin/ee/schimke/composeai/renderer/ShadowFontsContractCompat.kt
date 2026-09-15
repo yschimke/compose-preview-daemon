@@ -23,6 +23,12 @@ import org.robolectric.annotation.Implements
  * Registered globally via the generated `robolectric.properties` on the renderer's test classpath
  * (see [ee.schimke.composeai.plugin.GenerateRobolectricPropertiesTask]).
  *
+ * **Variable faces.** A request that names font variation axes is served the family's *variable*
+ * file rather than the CSS API's baked static instance, because Compose applies those axes to
+ * whatever Typeface this shadow hands back and `Paint.setFontVariationSettings` silently drops
+ * every axis the face does not support. [requiresVariableFace] is where that decision is made and
+ * why it is narrow.
+ *
  * **Callback dispatch.** The real `requestFont` posts the callback through the supplied [Handler].
  * Under Robolectric's PAUSED looper mode the post never runs during `renderDefault`'s
  * `advanceTimeBy(32ms)` pump — that pump drives Compose's `MonotonicFrameClock`, not the main
@@ -70,7 +76,18 @@ class ShadowFontsContractCompat {
         )
         return
       }
-      val file: File? = GoogleFontCacheAccess.load(key.name, key.weight, key.italic)
+      // Compose puts the axes in `FontRequest.variationSettings` rather than in the query, so this
+      // is the only place the shadow can learn that the caller needs a face with an `fvar` table.
+      // Read defensively: the field arrived in a later `androidx.core` than the 5-arg `requestFont`
+      // overload above, and a consumer resolving an older one would otherwise take a
+      // `NoSuchMethodError` here instead of simply keeping the static-instance behaviour.
+      val variationSettings = runCatching { request.variationSettings }.getOrNull()
+      val needsAxes = requiresVariableFace(variationSettings, key)
+      val resolved: ResolvedFace? = GoogleFontCacheAccess.load(key, preferVariable = needsAxes)
+      if (needsAxes && resolved != null && !resolved.variable) {
+        FontResolutionDiagnostics.recordAxesDropped(key, variationSettings.orEmpty())
+      }
+      val file: File? = resolved?.file
       if (file == null) {
         // The cache couldn't produce a TTF (offline / no cache dir / failed download / no such
         // face). Record the fallback so the render loop can fail or warn on it — text would
@@ -95,6 +112,10 @@ class ShadowFontsContractCompat {
         )
         return
       }
+      // Publish the exact file the raster is about to draw with, so `compose/figma-svg` embeds
+      // those bytes rather than guessing at `<slug>-<weight>.ttf` — which an axes-bearing request
+      // never downloads (issue #2906 is what that divergence looks like from the outside).
+      GoogleFontFiles.record(key, file)
       callback.onTypefaceRetrieved(typeface)
     }
   }
