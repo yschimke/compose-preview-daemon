@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.9](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.8...v3.4.9) (2026-09-15)
+
+
+### CI
+
+* fail when release-please cannot parse a commit message ([#116](https://github.com/yschimke/compose-preview-daemon/issues/116)) ([e084b6e](https://github.com/yschimke/compose-preview-daemon/commit/e084b6e765f321b45b02ad251cf5b97c00b702a6))
+
 ## [3.4.8](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.7...v3.4.8) (2026-09-15)
 
 
