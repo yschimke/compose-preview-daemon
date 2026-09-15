@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.7](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.6...v3.4.7) (2026-09-15)
+
+
+### Bug Fixes
+
+* keep Glimmer live previews initially unfocused ([#109](https://github.com/yschimke/compose-preview-daemon/issues/109)) ([70f207f](https://github.com/yschimke/compose-preview-daemon/commit/70f207f3a608d579861512238e5cac58d61553fb))
+
 ## [3.4.6](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.5...v3.4.6) (2026-09-14)
 
 
