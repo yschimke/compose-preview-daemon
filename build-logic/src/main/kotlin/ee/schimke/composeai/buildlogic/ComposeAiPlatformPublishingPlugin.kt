@@ -32,8 +32,8 @@ constructor(objects: ObjectFactory) {
  * wants. What the two do share — coordinates, signing and the POM metadata block — is
  * [configureComposeAiPublication], so the BOM cannot drift from the modules it describes.
  *
- * `version` comes from [publishedVersion] exactly as it does for a module, so the BOM is always
- * resolvable at the release tag.
+ * `version` comes from [platformPublishedVersion], NOT the module path: the BOM is the index of a
+ * release rather than a member of it, so it always carries the tag and is never skipped.
  */
 class ComposeAiPlatformPublishingPlugin : Plugin<Project> {
   override fun apply(project: Project) {
@@ -48,7 +48,7 @@ class ComposeAiPlatformPublishingPlugin : Plugin<Project> {
       )
 
     project.group = "ee.schimke.composeai"
-    project.version = project.publishedVersion()
+    project.version = project.platformPublishedVersion()
 
     project.afterEvaluate {
       project.configureComposeAiPublication(

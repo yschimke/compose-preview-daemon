@@ -47,12 +47,20 @@ object PublishedVersions {
       ?.groupValues
       ?.get(1)
 
-  /** Parses the `-Pcomposeai.publishSet` property. Blank or absent means "publish everything". */
+  /**
+   * Parses the `-Pcomposeai.publishSet` property.
+   *
+   * The distinction between absent and empty is load-bearing, and the two must not be collapsed:
+   *
+   *  * **absent** (`null`) -- the release did not compute a plan, so publish everything. This is the
+   *    old behaviour and the `workflow_dispatch` recovery path.
+   *  * **present but empty** (`""`) -- the plan ran and found nothing to publish, which happens for
+   *    a releasable change confined to `.github/` or the docs. Publish nothing (bar the BOM).
+   *
+   * Treating an empty property as "publish everything" would upload all 69 coordinates on exactly
+   * the releases that need none of them, while `record-published.py` recorded none of them --
+   * defeating the saving and leaving the manifest disagreeing with Central.
+   */
   fun parsePublishSet(property: String?): Set<String>? =
-    property
-      ?.split(",")
-      ?.map(String::trim)
-      ?.filter(String::isNotEmpty)
-      ?.toSet()
-      ?.takeIf { it.isNotEmpty() }
+    property?.split(",")?.map(String::trim)?.filter(String::isNotEmpty)?.toSet()
 }

@@ -58,6 +58,11 @@ tasks.register("printPublishTasks") {
     //
     // `:bom` is never filtered out. It is the index of the release: a consumer resolving the BOM at
     // the tag must find it there whether or not any module changed.
+    // Absent and empty mean different things and must not be collapsed: absent is "no plan ran,
+    // publish everything", empty is "the plan found nothing to publish". Deliberately mirrors
+    // `PublishedVersions.parsePublishSet`, which the modules and `:bom` use -- the root build
+    // script cannot see build-logic's classes, so this is the one place the rule is restated.
+    // `PublishSetParsingTest` pins the two against each other.
     val publishSet =
       providers
         .gradleProperty("composeai.publishSet")
@@ -66,7 +71,6 @@ tasks.register("printPublishTasks") {
         ?.map(String::trim)
         ?.filter(String::isNotEmpty)
         ?.toSet()
-        ?.takeIf { it.isNotEmpty() }
     val rows =
       subprojects
         .filter {

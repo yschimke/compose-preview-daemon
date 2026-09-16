@@ -188,6 +188,22 @@ internal fun Project.publishedVersion(): String {
   )
 }
 
+/**
+ * The version a *platform* publishes at: always the tag, never the manifest.
+ *
+ * `:bom` is the index of a release, not a member of it. A consumer resolving the BOM at the tag has
+ * to find it there whether or not any module changed, so it is never skipped and never carries a
+ * recorded version — it has no entry in `publishing-manifest.json` at all.
+ *
+ * Kept separate from [publishedVersion] rather than special-cased inside it. Routing the BOM
+ * through the module path is what broke it: its derived artifact id (`bom`) is absent from both the
+ * publish set and the manifest, so `PublishedVersions.resolve` threw and *every* release with a
+ * reduced publish set died during Gradle configuration, before `printPublishTasks` could run.
+ */
+internal fun Project.platformPublishedVersion(): String =
+  providers.environmentVariable("PLUGIN_VERSION").orNull?.takeIf { it.isNotBlank() }
+    ?: nextPatchSnapshotVersion()
+
 /** The committed `publishing-manifest.json`, or an empty document when there is none. */
 internal fun Project.publishingManifestText(): String =
   generateSequence(rootDir) { it.parentFile }

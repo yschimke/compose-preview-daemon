@@ -68,11 +68,27 @@ class PublishedVersionsTest {
   }
 
   @Test
-  fun `a blank publish set property means publish everything`() {
+  fun `an absent publish set property means publish everything`() {
     assertNull(PublishedVersions.parsePublishSet(null))
-    assertNull(PublishedVersions.parsePublishSet(""))
-    assertNull(PublishedVersions.parsePublishSet("  , ,"))
     assertEquals(setOf("a", "b"), PublishedVersions.parsePublishSet(" a , b "))
+  }
+
+  /**
+   * Regression: an empty property used to parse to null, which the rest of the build reads as
+   * "publish everything". A release whose changes are confined to `.github/` plans nothing, and
+   * that release would then have uploaded all 69 coordinates while `record-published.py` recorded
+   * none of them -- the maximum quota cost on exactly the release that needed none of it, and a
+   * manifest left disagreeing with Central.
+   */
+  @Test
+  fun `an explicitly empty publish set means publish nothing, not everything`() {
+    assertEquals(emptySet(), PublishedVersions.parsePublishSet(""))
+    assertEquals(emptySet(), PublishedVersions.parsePublishSet("  , ,"))
+    // And it must not be mistaken for the publish-everything case.
+    assertEquals(
+      "3.4.2",
+      PublishedVersions.resolve("daemon-core", "3.6.0", emptySet(), manifest),
+    )
   }
 
   @Test
