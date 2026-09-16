@@ -1,5 +1,30 @@
 # Changelog
 
+## [3.8.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.7.0...v3.8.0) (2026-09-16)
+
+
+### Features
+
+* **deps:** take contracts 3.0.0 and move to its builders ([#141](https://github.com/yschimke/compose-preview-daemon/issues/141)) ([3232b4f](https://github.com/yschimke/compose-preview-daemon/commit/3232b4fed30f19c2397bcb70d5191d64d150f274))
+* **design-pages:** put the wire types behind builders so they can grow ([#139](https://github.com/yschimke/compose-preview-daemon/issues/139)) ([a5cc051](https://github.com/yschimke/compose-preview-daemon/commit/a5cc0517010456a6ecea252a89c1f086dd8a3469))
+
+
+### Bug Fixes
+
+* **build:** gate the six published JVM modules a bad classifier missed ([#140](https://github.com/yschimke/compose-preview-daemon/issues/140)) ([7fc3e4a](https://github.com/yschimke/compose-preview-daemon/commit/7fc3e4a92b497a1433edac2369655e7bb6167632))
+* **build:** stop lint checking a device API floor against host-JVM code ([#136](https://github.com/yschimke/compose-preview-daemon/issues/136)) ([9b5808d](https://github.com/yschimke/compose-preview-daemon/commit/9b5808d3bb5d1e75e5e5d8344670f6a87a0a19a4))
+* **renderer:** emit catalog sidecars from SideEffect, not remember ([#137](https://github.com/yschimke/compose-preview-daemon/issues/137)) ([b944ee0](https://github.com/yschimke/compose-preview-daemon/commit/b944ee0958ec058cea0e5d8d6a557e1b80e13609))
+
+
+### CI
+
+* run Android lint on every pull request ([#138](https://github.com/yschimke/compose-preview-daemon/issues/138)) ([7cb1cc7](https://github.com/yschimke/compose-preview-daemon/commit/7cb1cc71ecf55de398266aa12461967556b3b865))
+
+
+### Chores
+
+* record published versions for v3.7.0 ([#135](https://github.com/yschimke/compose-preview-daemon/issues/135)) ([75f9c9a](https://github.com/yschimke/compose-preview-daemon/commit/75f9c9a45b159e086908999ee7529e98cd04b2fd))
+
 ## [3.7.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.6.1...v3.7.0) (2026-09-16)
 
 
