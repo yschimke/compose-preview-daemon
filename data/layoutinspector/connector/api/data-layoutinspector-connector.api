@@ -1,0 +1,342 @@
+public final class ee/schimke/composeai/daemon/ComposeFigmaSvgDataProducer {
+	public static final field $stable I
+	public static final field DEFAULT_EMBED_FAMILY Ljava/lang/String;
+	public static final field FILE_FONT_WARNINGS Ljava/lang/String;
+	public static final field FILE_SVG Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/ComposeFigmaSvgDataProducer;
+	public static final field KIND Ljava/lang/String;
+	public static final field PROP_BACKGROUND Ljava/lang/String;
+	public static final field RASTER_DIR Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public final fun writeSvg (Ljava/io/File;Ljava/lang/String;Lee/schimke/composeai/data/layoutinspector/LayoutInspectorPayload;Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsPayload;Ljava/util/Map;FFLjava/io/File;Lee/schimke/composeai/daemon/FigmaFontResolver;ZLjava/lang/String;Lee/schimke/composeai/daemon/protocol/FigmaSvgBackgroundMode;Lokio/FileSystem;)V
+	public static synthetic fun writeSvg$default (Lee/schimke/composeai/daemon/ComposeFigmaSvgDataProducer;Ljava/io/File;Ljava/lang/String;Lee/schimke/composeai/data/layoutinspector/LayoutInspectorPayload;Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsPayload;Ljava/util/Map;FFLjava/io/File;Lee/schimke/composeai/daemon/FigmaFontResolver;ZLjava/lang/String;Lee/schimke/composeai/daemon/protocol/FigmaSvgBackgroundMode;Lokio/FileSystem;ILjava/lang/Object;)V
+}
+
+public final class ee/schimke/composeai/daemon/ComposeFigmaSvgDataProductRegistry : ee/schimke/composeai/daemon/FileBackedDataProductRegistry {
+	public static final field $stable I
+	public fun <init> (Ljava/io/File;Lokio/FileSystem;)V
+	public synthetic fun <init> (Ljava/io/File;Lokio/FileSystem;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+}
+
+public final class ee/schimke/composeai/daemon/ComposeFigmaSvgExtension : ee/schimke/composeai/data/render/extensions/PostCaptureProcessor {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/ComposeFigmaSvgExtension$Companion;
+	public fun <init> (Lkotlin/jvm/functions/Function0;)V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+	public fun process (Lee/schimke/composeai/data/render/extensions/ExtensionPostCaptureContext;)V
+}
+
+public final class ee/schimke/composeai/daemon/ComposeFigmaSvgExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/ComposeFigmaSvgLongDataProductRegistry : ee/schimke/composeai/daemon/FileBackedDataProductRegistry {
+	public static final field $stable I
+	public fun <init> (Ljava/io/File;Lokio/FileSystem;)V
+	public synthetic fun <init> (Ljava/io/File;Lokio/FileSystem;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/ComposeSemanticsDataProducer {
+	public static final field $stable I
+	public static final field FILE Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/ComposeSemanticsDataProducer;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public final fun buildPayload (Landroidx/compose/ui/semantics/SemanticsNode;Ljava/lang/Float;)Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsPayload;
+	public static synthetic fun buildPayload$default (Lee/schimke/composeai/daemon/ComposeSemanticsDataProducer;Landroidx/compose/ui/semantics/SemanticsNode;Ljava/lang/Float;ILjava/lang/Object;)Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsPayload;
+	public final fun decodeProbeNodes (Ljava/lang/String;)Ljava/util/List;
+	public final fun probeNodes (Landroidx/compose/ui/semantics/SemanticsNode;)Ljava/util/List;
+	public final fun probeNodesJson (Landroidx/compose/ui/semantics/SemanticsNode;)Ljava/lang/String;
+	public final fun writeArtifacts (Ljava/io/File;Ljava/lang/String;Landroidx/compose/ui/semantics/SemanticsNode;Lokio/FileSystem;Ljava/lang/Float;)V
+	public static synthetic fun writeArtifacts$default (Lee/schimke/composeai/daemon/ComposeSemanticsDataProducer;Ljava/io/File;Ljava/lang/String;Landroidx/compose/ui/semantics/SemanticsNode;Lokio/FileSystem;Ljava/lang/Float;ILjava/lang/Object;)V
+}
+
+public final class ee/schimke/composeai/daemon/ComposeSemanticsDataProductKt {
+	public static final fun toProbeNodes (Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsNode;)Ljava/util/List;
+}
+
+public final class ee/schimke/composeai/daemon/ComposeSemanticsDataProductRegistry : ee/schimke/composeai/daemon/FileBackedDataProductRegistry {
+	public static final field $stable I
+	public fun <init> (Ljava/io/File;)V
+}
+
+public final class ee/schimke/composeai/daemon/ComposeSemanticsExtension : ee/schimke/composeai/data/render/extensions/PostCaptureProcessor {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/ComposeSemanticsExtension$Companion;
+	public fun <init> ()V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+	public fun process (Lee/schimke/composeai/data/render/extensions/ExtensionPostCaptureContext;)V
+}
+
+public final class ee/schimke/composeai/daemon/ComposeSemanticsExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/ComposeSemanticsSnapshot {
+	public static final field $stable I
+	public fun <init> (Landroidx/compose/ui/semantics/SemanticsNode;)V
+	public final fun payload (Ljava/lang/Float;)Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsPayload;
+}
+
+public final class ee/schimke/composeai/daemon/ComposeSemanticsWireframeDataProducer {
+	public static final field $stable I
+	public static final field FILE_PNG Ljava/lang/String;
+	public static final field FILE_SVG Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/ComposeSemanticsWireframeDataProducer;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public final fun writeSvg (Ljava/io/File;Ljava/lang/String;Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsPayload;Lokio/FileSystem;)V
+	public static synthetic fun writeSvg$default (Lee/schimke/composeai/daemon/ComposeSemanticsWireframeDataProducer;Ljava/io/File;Ljava/lang/String;Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsPayload;Lokio/FileSystem;ILjava/lang/Object;)V
+}
+
+public final class ee/schimke/composeai/daemon/ComposeSemanticsWireframeDataProductRegistry : ee/schimke/composeai/daemon/FileBackedDataProductRegistry {
+	public static final field $stable I
+	public fun <init> (Ljava/io/File;Lokio/FileSystem;)V
+	public synthetic fun <init> (Ljava/io/File;Lokio/FileSystem;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class ee/schimke/composeai/daemon/ComposeSemanticsWireframeExtension : ee/schimke/composeai/data/render/extensions/PostCaptureProcessor {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/ComposeSemanticsWireframeExtension$Companion;
+	public fun <init> (Lkotlin/jvm/functions/Function2;Z)V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+	public fun process (Lee/schimke/composeai/data/render/extensions/ExtensionPostCaptureContext;)V
+}
+
+public final class ee/schimke/composeai/daemon/ComposeSemanticsWireframeExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/FigmaFidelity {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/FigmaFidelity;
+	public final fun compare (Ljava/awt/image/BufferedImage;Ljava/awt/image/BufferedImage;Lee/schimke/composeai/daemon/FigmaFidelity$Options;)Lee/schimke/composeai/daemon/FigmaFidelity$Result;
+	public static synthetic fun compare$default (Lee/schimke/composeai/daemon/FigmaFidelity;Ljava/awt/image/BufferedImage;Ljava/awt/image/BufferedImage;Lee/schimke/composeai/daemon/FigmaFidelity$Options;ILjava/lang/Object;)Lee/schimke/composeai/daemon/FigmaFidelity$Result;
+}
+
+public final class ee/schimke/composeai/daemon/FigmaFidelity$Options {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (IIII)V
+	public synthetic fun <init> (IIIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun copy (IIII)Lee/schimke/composeai/daemon/FigmaFidelity$Options;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/FigmaFidelity$Options;IIIIILjava/lang/Object;)Lee/schimke/composeai/daemon/FigmaFidelity$Options;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBackground ()I
+	public final fun getGutter ()I
+	public final fun getSpatialRadius ()I
+	public final fun getTolerance ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/FigmaFidelity$Result {
+	public static final field $stable I
+	public fun <init> (DDIILjava/awt/image/BufferedImage;)V
+	public final fun component1 ()D
+	public final fun component2 ()D
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()Ljava/awt/image/BufferedImage;
+	public final fun copy (DDIILjava/awt/image/BufferedImage;)Lee/schimke/composeai/daemon/FigmaFidelity$Result;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/FigmaFidelity$Result;DDIILjava/awt/image/BufferedImage;ILjava/lang/Object;)Lee/schimke/composeai/daemon/FigmaFidelity$Result;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getComposite ()Ljava/awt/image/BufferedImage;
+	public final fun getHeight ()I
+	public final fun getMeanAbsError ()D
+	public final fun getScore ()D
+	public final fun getScorePercent ()D
+	public final fun getWidth ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ee/schimke/composeai/daemon/FigmaFontResolver {
+	public abstract fun woff2 (Ljava/lang/String;IZ)[B
+}
+
+public final class ee/schimke/composeai/daemon/FigmaResourceFonts {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/FigmaResourceFonts;
+	public final fun beginPreview ()V
+	public final fun clear ()V
+	public final fun familyName ([B)Ljava/lang/String;
+	public final fun identityFor (I)Ljava/lang/String;
+	public final fun pathFor (Ljava/lang/String;)Ljava/lang/String;
+	public final fun pathFor (Ljava/lang/String;IZ)Ljava/lang/String;
+	public final fun register (Ljava/lang/String;IZLjava/lang/String;)V
+	public final fun register (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class ee/schimke/composeai/daemon/FigmaSvgFontWarnings {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/FigmaSvgFontWarnings$Companion;
+	public fun <init> (Ljava/util/List;Ljava/util/List;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/util/List;Ljava/util/List;Ljava/lang/String;)Lee/schimke/composeai/daemon/FigmaSvgFontWarnings;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/FigmaSvgFontWarnings;Ljava/util/List;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/daemon/FigmaSvgFontWarnings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNamedFamilies ()Ljava/util/List;
+	public final fun getTofuFamily ()Ljava/lang/String;
+	public final fun getUnnamedRenderedFamilies ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/daemon/FigmaSvgFontWarnings$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/FigmaSvgFontWarnings$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/daemon/FigmaSvgFontWarnings;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/daemon/FigmaSvgFontWarnings;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/daemon/FigmaSvgFontWarnings$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/daemon/FigmaSvgRenderedFonts {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/FigmaSvgRenderedFonts;
+	public final fun begin ()V
+	public final fun record (Ljava/lang/String;)V
+	public final fun singleRenderedFamily ()Ljava/lang/String;
+	public final fun snapshot ()Ljava/util/Set;
+	public final fun unnamedIn (Ljava/util/Collection;)Ljava/util/List;
+}
+
+public final class ee/schimke/composeai/daemon/FontSubsetter {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/FontSubsetter;
+	public final fun getPRINTABLE_ASCII ()Ljava/util/Set;
+	public final fun subset ([BLjava/util/Set;)[B
+}
+
+public final class ee/schimke/composeai/daemon/GoogleFontsWoff2Resolver : ee/schimke/composeai/daemon/FigmaFontResolver {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/GoogleFontsWoff2Resolver$Companion;
+	public static final field DEFAULT_MAX_ATTEMPTS I
+	public fun <init> (Ljava/io/File;ZLokio/FileSystem;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljava/io/File;ZLokio/FileSystem;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun woff2 (Ljava/lang/String;IZ)[B
+}
+
+public final class ee/schimke/composeai/daemon/GoogleFontsWoff2Resolver$Companion {
+	public final fun cssUrl (Ljava/lang/String;IZ)Ljava/lang/String;
+	public final fun firstWoff2Url (Ljava/lang/String;)Ljava/lang/String;
+	public final fun slugify (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/LayoutInspectorDataProducer {
+	public static final field $stable I
+	public static final field FILE Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/LayoutInspectorDataProducer;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public final fun buildPayload (Landroidx/compose/ui/semantics/SemanticsNode;Ljava/util/List;FF)Lee/schimke/composeai/data/layoutinspector/LayoutInspectorPayload;
+	public final fun buildPayload (Lee/schimke/composeai/data/render/PreviewContext;FF)Lee/schimke/composeai/data/layoutinspector/LayoutInspectorPayload;
+	public static synthetic fun buildPayload$default (Lee/schimke/composeai/daemon/LayoutInspectorDataProducer;Landroidx/compose/ui/semantics/SemanticsNode;Ljava/util/List;FFILjava/lang/Object;)Lee/schimke/composeai/data/layoutinspector/LayoutInspectorPayload;
+	public static synthetic fun buildPayload$default (Lee/schimke/composeai/daemon/LayoutInspectorDataProducer;Lee/schimke/composeai/data/render/PreviewContext;FFILjava/lang/Object;)Lee/schimke/composeai/data/layoutinspector/LayoutInspectorPayload;
+	public final fun writeArtifacts (Ljava/io/File;Ljava/lang/String;Landroidx/compose/ui/semantics/SemanticsNode;Ljava/util/List;FFLokio/FileSystem;)V
+	public final fun writeArtifacts (Ljava/io/File;Ljava/lang/String;Lee/schimke/composeai/data/render/PreviewContext;FFLokio/FileSystem;)V
+	public static synthetic fun writeArtifacts$default (Lee/schimke/composeai/daemon/LayoutInspectorDataProducer;Ljava/io/File;Ljava/lang/String;Landroidx/compose/ui/semantics/SemanticsNode;Ljava/util/List;FFLokio/FileSystem;ILjava/lang/Object;)V
+	public static synthetic fun writeArtifacts$default (Lee/schimke/composeai/daemon/LayoutInspectorDataProducer;Ljava/io/File;Ljava/lang/String;Lee/schimke/composeai/data/render/PreviewContext;FFLokio/FileSystem;ILjava/lang/Object;)V
+}
+
+public final class ee/schimke/composeai/daemon/LayoutInspectorDataProductRegistry : ee/schimke/composeai/daemon/FileBackedDataProductRegistry {
+	public static final field $stable I
+	public fun <init> (Ljava/io/File;)V
+}
+
+public final class ee/schimke/composeai/daemon/LayoutInspectorExtension : ee/schimke/composeai/data/render/extensions/PostCaptureProcessor {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/LayoutInspectorExtension$Companion;
+	public fun <init> ()V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+	public fun process (Lee/schimke/composeai/data/render/extensions/ExtensionPostCaptureContext;)V
+}
+
+public final class ee/schimke/composeai/daemon/LayoutInspectorExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/LayoutInspectorSnapshot {
+	public static final field $stable I
+	public fun <init> (Landroidx/compose/ui/semantics/SemanticsNode;Ljava/util/List;FF)V
+	public final fun getPayload ()Lee/schimke/composeai/data/layoutinspector/LayoutInspectorPayload;
+}
+
+public final class ee/schimke/composeai/daemon/RenderArtifactContextKeys {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/RenderArtifactContextKeys;
+	public final fun getDensity ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getFontScale ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getLayoutSnapshot ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getOutputBaseName ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getOutputPng ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getPreviewBackground ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getPreviewId ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getRootDir ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getRoundClip ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getSemanticsRoot ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getSemanticsSnapshot ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getSlotTables ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getSvgBackgroundMode ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+}
+
+public final class ee/schimke/composeai/daemon/SpatialSemanticsDataProducer {
+	public static final field $stable I
+	public static final field FILE Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/SpatialSemanticsDataProducer;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public final fun writeSinglePanel (Ljava/io/File;Ljava/lang/String;Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsPayload;Lokio/FileSystem;)V
+	public static synthetic fun writeSinglePanel$default (Lee/schimke/composeai/daemon/SpatialSemanticsDataProducer;Ljava/io/File;Ljava/lang/String;Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsPayload;Lokio/FileSystem;ILjava/lang/Object;)V
+	public final fun writeTree (Ljava/io/File;Ljava/lang/String;Lee/schimke/composeai/xr/SpatialSemanticsTree;Lokio/FileSystem;)V
+	public static synthetic fun writeTree$default (Lee/schimke/composeai/daemon/SpatialSemanticsDataProducer;Ljava/io/File;Ljava/lang/String;Lee/schimke/composeai/xr/SpatialSemanticsTree;Lokio/FileSystem;ILjava/lang/Object;)V
+}
+
+public final class ee/schimke/composeai/daemon/SpatialSemanticsDataProductRegistry : ee/schimke/composeai/daemon/FileBackedDataProductRegistry {
+	public static final field $stable I
+	public fun <init> (Ljava/io/File;)V
+}
+
+public final class ee/schimke/composeai/daemon/TofuFont {
+	public static final field $stable I
+	public static final field FAMILY Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/TofuFont;
+	public final fun build (Ljava/util/Set;)[B
+}
+

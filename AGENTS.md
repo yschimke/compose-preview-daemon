@@ -69,15 +69,20 @@ pins its public API in a committed dump under `api/`; `checkKotlinAbi` runs in C
 public-surface change is committed with `./gradlew updateKotlinAbi`.
 
 Apply the gate with `id("composeai.abi-validation")` in the module's `plugins {}` block — it sets
-the dump location and wires `checkKotlinAbi` into `check`, which KGP does not do. **45 of the 69
-published modules are gated**: every JVM and Kotlin Multiplatform one. The exceptions are not
-oversights:
+the dump location and wires `checkKotlinAbi` into `check`, which KGP does not do. **51 of the 69
+published modules are gated**: every JVM and Kotlin Multiplatform one (48 + 3). The exceptions are
+not oversights:
 
-- the **23 Android modules** compile Kotlin through AGP's built-in support rather than the Kotlin
+- the **17 Android modules** compile Kotlin through AGP's built-in support rather than the Kotlin
   Android plugin, and Kotlin 2.4.20 writes them an *empty* dump — which would make `checkKotlinAbi`
   pass while recording nothing. The convention plugin fails the build rather than let that happen,
   so they stay ungated until Kotlin can dump one; and
 - `:data-gestures-robolectric-stubs` is a `java-library` with no Kotlin at all.
+
+Classify a module by its `plugins {}` block, not by grepping the file. Six modules that migrated
+off `android.library` still say so in their header comment, and a grep over the whole file reads
+them as Android — which is how they were missed on the first pass. `gradlew lintDebug --dry-run`
+names the real Android set: a lint task exists only where AGP is applied.
 
 Five modules predate the convention plugin and hand-roll the same wiring in their own build files
 (`:daemon-client`, `:daemon-core`, `:preview-data-api`, `:data-pseudolocale-core`,

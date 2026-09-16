@@ -1,0 +1,50 @@
+public final class ee/schimke/composeai/daemon/FocusController {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/FocusController;
+	public static final field SETTLE_MS J
+	public final fun current ()Lee/schimke/composeai/daemon/protocol/FocusOverride;
+	public final fun getActiveFocus ()Landroidx/compose/runtime/State;
+	public final fun resetForNewSession ()V
+	public final fun set (Lee/schimke/composeai/daemon/protocol/FocusOverride;)V
+}
+
+public final class ee/schimke/composeai/daemon/FocusControllerDesktopKt {
+	public static final fun toCompose (Lee/schimke/composeai/daemon/protocol/FocusDirection;)I
+}
+
+public final class ee/schimke/composeai/daemon/FocusOverlayDesktop {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/FocusOverlayDesktop;
+	public final fun apply (Ljava/awt/Rectangle;Ljava/io/File;Lee/schimke/composeai/daemon/protocol/FocusOverride;Lokio/FileSystem;)V
+	public static synthetic fun apply$default (Lee/schimke/composeai/daemon/FocusOverlayDesktop;Ljava/awt/Rectangle;Ljava/io/File;Lee/schimke/composeai/daemon/protocol/FocusOverride;Lokio/FileSystem;ILjava/lang/Object;)V
+}
+
+public final class ee/schimke/composeai/daemon/FocusOverrideExtension : ee/schimke/composeai/data/render/extensions/compose/AroundComposableExtension {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/FocusOverrideExtension$Companion;
+	public fun <init> ()V
+	public fun <init> (Lee/schimke/composeai/daemon/protocol/FocusOverride;)V
+	public synthetic fun <init> (Lee/schimke/composeai/daemon/protocol/FocusOverride;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun AroundComposable (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ee/schimke/composeai/daemon/FocusOverrideExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/FocusPreviewOverrideExtension : ee/schimke/composeai/data/render/extensions/DataExtension {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun getDefaultConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun plan (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+	public synthetic fun plan (Ljava/lang/Object;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+}
+
+public final class ee/schimke/composeai/daemon/KeyboardInputModeManager : androidx/compose/ui/input/InputModeManager {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/KeyboardInputModeManager;
+	public fun getInputMode-aOaMEAU ()I
+	public fun requestInputMode-iuPiT84 (I)Z
+}
+
