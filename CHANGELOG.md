@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.6.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.5.0...v3.6.0) (2026-09-16)
+
+
+### Features
+
+* **build:** publish a BOM describing every daemon coordinate ([#122](https://github.com/yschimke/compose-preview-daemon/issues/122)) ([78bb41e](https://github.com/yschimke/compose-preview-daemon/commit/78bb41eaa3d142ef770e87c6e41270c8bfc5039a))
+* **build:** publish only the modules a release changes ([#123](https://github.com/yschimke/compose-preview-daemon/issues/123)) ([63638da](https://github.com/yschimke/compose-preview-daemon/commit/63638da97f75c0a31e439114203d499501b2bf43))
+* **fonts:** record the axes a resolution asked for and did not get ([#125](https://github.com/yschimke/compose-preview-daemon/issues/125)) ([71ead85](https://github.com/yschimke/compose-preview-daemon/commit/71ead85c74bf56b54580a3e5dc1b091712020e8e))
+
 ## [3.5.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.9...v3.5.0) (2026-09-16)
 
 
