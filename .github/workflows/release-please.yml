@@ -72,3 +72,8 @@ jobs:
       SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
     permissions:
       contents: write
+      # `record-published` opens the manifest pull request, so it asks for `pull-requests: write`.
+      # A called workflow can only ever narrow what the CALL SITE grants, so a permission missing
+      # here is not a job that fails -- it is the whole workflow refused before any job starts,
+      # with no logs to read. That is what `startup_failure` meant on runs 114 and 115.
+      pull-requests: write
