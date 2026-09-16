@@ -50,6 +50,29 @@ android {
   // produces a published JAR-shape artefact that JVM consumers (the harness is plain
   // `org.jetbrains.kotlin.jvm`) can consume via the standard `testFixtures(project(...))` accessor.
   testFixtures { enable = true }
+
+  // `NewApi` is mis-calibrated for this module and cannot produce a true positive here.
+  //
+  // The conventions plugin sets `minSdk = 24`, a floor for code that ships to a device. Nothing in
+  // this module ever does. It is an Android library by packaging only — it compiles against
+  // Android and Robolectric types, and every entry point executes on the **daemon JVM**, under
+  // Robolectric at `RobolectricHost.ANDROID_SDK` (35), against a full JDK.
+  //
+  // The files lint flags are the proof: `SandboxProcessPool` spawns and reaps the sandbox JVMs
+  // through `ProcessBuilder` / `Process#destroyForcibly`, which is not something an app does on a
+  // device at all, and `RenderEngine` / `RobolectricHost` / `PreviewManifestRouter` reach for
+  // `java.nio.file`, `java.time` and `java.util.Base64` beside it.
+  //
+  // So lint reads a device floor of 24 against JDK classes that are simply present, and reports 19
+  // errors, every one of them `java.*`. Raising `minSdk` instead would be worse: it changes the
+  // published AAR's floor for consumers to describe a deployment that does not happen. Core
+  // library desugaring would push a dexing requirement onto consumers for the same non-existent
+  // deployment.
+  //
+  // Disabled here rather than in `composeai.android-conventions`, because the device-facing
+  // `data/*/connector` modules should keep the check. `:renderer-android` carries the same block
+  // for the same reason.
+  lint { disable += "NewApi" }
 }
 
 dependencies {

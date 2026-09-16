@@ -36,6 +36,30 @@ android {
       )
     }
   }
+
+  // `NewApi` is mis-calibrated for this module and cannot produce a true positive here.
+  //
+  // The conventions plugin sets `minSdk = 24`, a floor for code that ships to a device. Nothing in
+  // this module ever does. It is an Android library by packaging only — it compiles against
+  // Android and Robolectric types, and every entry point executes on the **render JVM**, under
+  // Robolectric at `RobolectricHost.ANDROID_SDK` (35), against a full JDK.
+  //
+  // The two files lint flags are the proof: `PreviewClock` pins "the wall clock a preview render
+  // sees" and documents `-Dcomposeai.render.fixedTime` "on the render JVM", and
+  // `SharedNativeRuntimeLoader` extends Robolectric's native-runtime loader and caches under
+  // `XDG_CACHE_HOME` / `System.getProperty("user.home")`.
+  //
+  // So lint reads a device floor of 24 against JDK classes that are simply present, and reports
+  // 83 errors, 82 of them `java.nio.file` / `java.time`. Raising `minSdk` instead would be worse:
+  // it changes the published
+  // AAR's floor for consumers to describe a deployment that does not happen, and it still would
+  // not cover everything (`Icon#getResId` needs 28, `Path#of` 34, `Files#writeString` 36.1). Core
+  // library desugaring
+  // would push a dexing requirement onto consumers for the same non-existent deployment.
+  //
+  // Disabled here rather than in `composeai.android-conventions`, because the device-facing
+  // `data/*/connector` modules should keep the check.
+  lint { disable += "NewApi" }
 }
 
 dependencies {
