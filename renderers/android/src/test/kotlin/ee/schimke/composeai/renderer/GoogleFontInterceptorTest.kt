@@ -119,6 +119,50 @@ class GoogleFontInterceptorTest {
   }
 
   @Test
+  fun `dropped axes are recorded per resolution and read back by face`() {
+    try {
+      GoogleFontFiles.resetForTest()
+      // Nothing recorded: null, not false. Whether axes were dropped is a property of a
+      // RESOLUTION, so a face this process never resolved has no answer, and inventing one would
+      // claim the axes applied when nothing checked.
+      assertNull(GoogleFontFiles.droppedVariationSettings("Google Sans Flex", 400, italic = false))
+
+      GoogleFontFiles.recordAxesDropped(
+        GoogleFontKey("Google Sans Flex", 400, italic = false),
+        "'wght' 750",
+      )
+      assertEquals(
+        "'wght' 750",
+        GoogleFontFiles.droppedVariationSettings("Google Sans Flex", 400, italic = false),
+      )
+      // Keyed by face, so a sibling weight and the italic of the same family stay unanswered.
+      assertNull(GoogleFontFiles.droppedVariationSettings("Google Sans Flex", 500, italic = false))
+      assertNull(GoogleFontFiles.droppedVariationSettings("Google Sans Flex", 400, italic = true))
+      assertNull(GoogleFontFiles.droppedVariationSettings("Lato", 400, italic = false))
+    } finally {
+      GoogleFontFiles.resetForTest()
+    }
+  }
+
+  @Test
+  fun `the axes registry is not deduplicated the way the stderr warning is`() {
+    try {
+      GoogleFontFiles.resetForTest()
+      val key = GoogleFontKey("Google Sans Flex", 400, italic = false)
+      // FontResolutionDiagnostics warns once per process. The registry must NOT: the recorder asks
+      // per resolution, and a second render of the same face is entitled to the same answer.
+      GoogleFontFiles.recordAxesDropped(key, "'wght' 650")
+      GoogleFontFiles.recordAxesDropped(key, "'wght' 750")
+      assertEquals(
+        "'wght' 750",
+        GoogleFontFiles.droppedVariationSettings("Google Sans Flex", 400, italic = false),
+      )
+    } finally {
+      GoogleFontFiles.resetForTest()
+    }
+  }
+
+  @Test
   fun `a recorded face that no longer exists falls back to the cache directory`() {
     val dir = java.nio.file.Files.createTempDirectory("fonts").toFile()
     val onDisk = java.io.File(dir, "lato-400.ttf").apply { writeText("lato") }

@@ -26,6 +26,64 @@ class FontsUsedDataProductRegistryTest {
   }
 
   @Test
+  fun dropped_variation_settings_reach_the_served_payload() {
+    val root = tempFolder.newFolder("data")
+    FontsUsedDataProducer.writeArtifacts(
+      rootDir = root,
+      previewId = "preview-axes",
+      payload =
+        FontsUsedPayload(
+          fonts =
+            listOf(
+              // The shape of the weight collapse in compose-preview-daemon#114, and the reason this
+              // field exists: the FAMILY resolved and nothing fell back, so every other field here
+              // is legitimately clean. Only `droppedVariationSettings` says the render is wrong.
+              FontUsedEntry(
+                requestedFamily = "Google Sans Flex",
+                resolvedFamily = "Google Sans Flex",
+                weight = 400,
+                style = "normal",
+                fellBackFrom = null,
+                droppedVariationSettings = "'wght' 750",
+              )
+            )
+        ),
+    )
+
+    val outcome =
+      FontsUsedDataProductRegistry(root)
+        .fetch("preview-axes", "fonts/used", params = null, inline = true)
+    val payload = (outcome as DataProductRegistry.Outcome.Ok).result.payload!!.jsonObject
+    val font = payload["fonts"]!!.jsonArray.single().jsonObject
+    assertEquals("Google Sans Flex", font["resolvedFamily"]!!.jsonPrimitive.content)
+    assertEquals("'wght' 750", font["droppedVariationSettings"]!!.jsonPrimitive.content)
+  }
+
+  @Test
+  fun a_payload_predating_the_field_still_reads() {
+    // The field defaults to null, so a `fonts-used.json` written before it existed — and an entry
+    // whose axes all applied — parse and serve unchanged. A required field here would have made
+    // every archived bundle unreadable.
+    val root = tempFolder.newFolder("data")
+    FontsUsedDataProducer.writeArtifacts(
+      rootDir = root,
+      previewId = "preview-old",
+      payload = FontsUsedPayload(fonts = listOf(FontUsedEntry("Lato", "Lato", 400, "normal"))),
+    )
+
+    val outcome =
+      FontsUsedDataProductRegistry(root)
+        .fetch("preview-old", "fonts/used", params = null, inline = true)
+    val payload = (outcome as DataProductRegistry.Outcome.Ok).result.payload!!.jsonObject
+    val font = payload["fonts"]!!.jsonArray.single().jsonObject
+    assertEquals("Lato", font["resolvedFamily"]!!.jsonPrimitive.content)
+    assertTrue(
+      font["droppedVariationSettings"] == null ||
+        font["droppedVariationSettings"]!!.toString() == "null"
+    )
+  }
+
+  @Test
   fun fetch_reads_payload_written_by_render_loop() {
     val root = tempFolder.newFolder("data")
     FontsUsedDataProducer.writeArtifacts(

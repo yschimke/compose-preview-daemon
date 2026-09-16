@@ -79,7 +79,35 @@ class FontResolverRecorder(private val context: Context? = null) {
         sourceFile = sourceFile(fontFamily, fontWeight, fontStyle),
         fellBackFrom = chain.takeIf { it.isNotEmpty() },
         consumerNodeIds = emptyList(),
+        droppedVariationSettings = droppedVariationSettings(matched, displayName),
       )
+  }
+
+  /**
+   * The axes this resolution asked for and did not get, from the renderer's registry.
+   *
+   * Keyed off the MATCHED face rather than the requested text weight, for the same reason
+   * [recoverDownloadableFont] is: the shadow keyed its resolution on the face's own declared
+   * weight, and those two differ precisely in the shape this field exists to catch. A family that
+   * carries its weight on a `wght` AXIS leaves every `Font` at `W400` and varies the settings, so
+   * the requested text weight is 750 while the face — and the key — is 400. Keying off the request
+   * would miss every one of them.
+   *
+   * Null whenever the face is not a downloadable Google font, or resolved before this process: the
+   * registry answers only for resolutions it saw, and inventing `false` for the rest would claim
+   * the axes applied when nothing checked.
+   */
+  private fun droppedVariationSettings(matched: Font?, displayName: String?): String? {
+    val family = displayName ?: return null
+    val font = matched ?: return null
+    return runCatching {
+      ee.schimke.composeai.renderer.GoogleFontFiles.droppedVariationSettings(
+        family,
+        font.weight.weight,
+        styleName(font.style) == "italic",
+      )
+    }
+      .getOrNull()
   }
 
   fun payload(): FontsUsedPayload =
