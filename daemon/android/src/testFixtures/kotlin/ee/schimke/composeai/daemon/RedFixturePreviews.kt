@@ -726,6 +726,12 @@ fun DarkAwareSquare() {
  * the half of a pseudolocale override the Robolectric qualifier path does *not* provide (that half
  * only rewrites the locale to `en` and adds `ldrtl`).
  */
+// `LocalContextGetResourceValueCall`: lint wants `stringResource()`, which is right for app code —
+// it re-reads on a configuration change. This fixture is the probe for the *payload* path, where
+// the pseudolocale override rewrites the string rather than the configuration, so it has to take
+// the `Context.getString` route the check steers away from; `stringResource()` would test the
+// qualifier path this fixture exists to distinguish itself from.
+@Suppress("LocalContextGetResourceValueCall")
 @Composable
 fun PseudolocaleStringSquare() {
   val resolved = androidx.compose.ui.platform.LocalContext.current.getString(android.R.string.ok)
@@ -802,6 +808,10 @@ fun ResourceReadingPreview() {
  * Passing a raw int rather than an `R.string.*` constant keeps the miss guaranteed — the id is
  * never added to the resource table.
  */
+// `ResourceType`: the raw id is the fixture. An `R.string.*` constant would be in the resource
+// table and so could not miss; passing an id that was never added is what guarantees the lookup
+// fails, which is the condition this fixture probes (see the KDoc above).
+@Suppress("ResourceType")
 @Composable
 fun MissingStringResourceSquare() {
   val label = stringResource(0x7f0f9999)

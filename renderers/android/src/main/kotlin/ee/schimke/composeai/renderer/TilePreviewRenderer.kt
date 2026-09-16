@@ -1,3 +1,10 @@
+// `RestrictedApi`: rendering a Wear Tile outside `androidx.wear.protolayout`'s own library group
+// means crossing that group's `@RestrictTo` boundary, and there is no supported route that does
+// not. `Layout` / `Resources` expose no byte serializer other than `toProto()` / `fromProto()`,
+// which is what the IR sidecar and the layout round-trip below are built on. Scoped to this file so
+// the check keeps running everywhere else in the module.
+@file:Suppress("RestrictedApi")
+
 package ee.schimke.composeai.renderer
 
 import android.content.Context
