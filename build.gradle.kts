@@ -51,11 +51,32 @@ tasks.register("printPublishTasks") {
     description = "Print the publish task path for each published module."
     notCompatibleWithConfigurationCache("Inspects the project tree at execution time")
     val rootDirPath = rootDir
+    // `-Pcomposeai.publishSet` names the modules this release actually has to upload, computed by
+    // `.github/scripts/maven-publish-plan.sh`. Absent, every module publishes — the old behaviour,
+    // and the right default for a `workflow_dispatch` recovery run where the plan's baseline may
+    // not be trustworthy.
+    //
+    // `:bom` is never filtered out. It is the index of the release: a consumer resolving the BOM at
+    // the tag must find it there whether or not any module changed.
+    val publishSet =
+      providers
+        .gradleProperty("composeai.publishSet")
+        .orNull
+        ?.split(",")
+        ?.map(String::trim)
+        ?.filter(String::isNotEmpty)
+        ?.toSet()
+        ?.takeIf { it.isNotEmpty() }
     val rows =
       subprojects
         .filter {
           it.plugins.hasPlugin("composeai.maven-publishing") ||
             it.plugins.hasPlugin("composeai.maven-publishing-platform")
+        }
+        .filter { p ->
+          publishSet == null ||
+            p.path == ":bom" ||
+            p.path.removePrefix(":").replace(':', '-') in publishSet
         }
         .map { p ->
           "${p.path}:publishAndReleaseToMavenCentral" to
