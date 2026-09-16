@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.6.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.6.0...v3.6.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* **design-pages:** keep an unrecognised enum a parse failure ([#128](https://github.com/yschimke/compose-preview-daemon/issues/128)) ([61a4d34](https://github.com/yschimke/compose-preview-daemon/commit/61a4d34906b60d350b0c1ab403ad004b27d10afd))
+
 ## [3.6.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.5.0...v3.6.0) (2026-09-16)
 
 
