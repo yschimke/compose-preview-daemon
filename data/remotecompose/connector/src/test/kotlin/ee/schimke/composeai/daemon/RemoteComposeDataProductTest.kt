@@ -52,7 +52,7 @@ class RemoteComposeDataProductTest {
 
   @Test
   fun extension_declares_around_composable_hook_in_outer_environment() {
-    val extension = RemoteComposeOverrideExtension(RemoteComposeOverride())
+    val extension = RemoteComposeOverrideExtension(RemoteComposeOverride.Builder().build())
     val hook: AroundComposableHook = extension
 
     assertEquals(DataExtensionId("compose/remotecompose"), extension.id)
@@ -73,10 +73,12 @@ class RemoteComposeDataProductTest {
   @Test
   fun planner_threads_override_through_to_extension() {
     val override =
-      RemoteComposeOverride(
-        profile = RemoteComposeProfile.ANDROIDX,
-        namedValues = mapOf("score" to RemoteNamedValue.FloatValue(0.75f)),
-      )
+      RemoteComposeOverride.Builder()
+        .also {
+          it.profile = RemoteComposeProfile.ANDROIDX
+          it.namedValues = mapOf("score" to RemoteNamedValue.FloatValue(0.75f))
+        }
+        .build()
     val planned =
       RemoteComposePreviewOverrideExtension().plan(PreviewOverrides(remoteCompose = override))
     assertTrue(planned is RemoteComposeOverrideExtension)
@@ -128,21 +130,25 @@ class RemoteComposeDataProductTest {
   fun controller_set_replaces_named_values_and_profile() {
     val controller = RemoteComposeController
     controller.set(
-      RemoteComposeOverride(
-        profile = RemoteComposeProfile.ANDROIDX,
-        namedValues =
-          mapOf(
-            "score" to RemoteNamedValue.FloatValue(0.5f),
-            "label" to RemoteNamedValue.StringValue("hello"),
-          ),
-      )
+      RemoteComposeOverride.Builder()
+        .also {
+          it.profile = RemoteComposeProfile.ANDROIDX
+          it.namedValues =
+            mapOf(
+              "score" to RemoteNamedValue.FloatValue(0.5f),
+              "label" to RemoteNamedValue.StringValue("hello"),
+            )
+        }
+        .build()
     )
     assertEquals(RemoteComposeProfile.ANDROIDX, controller.profile.value)
     assertEquals(RemoteNamedValue.FloatValue(0.5f), controller.valueOf("score"))
     assertEquals(RemoteNamedValue.StringValue("hello"), controller.valueOf("label"))
 
     controller.set(
-      RemoteComposeOverride(namedValues = mapOf("score" to RemoteNamedValue.FloatValue(0.9f)))
+      RemoteComposeOverride.Builder()
+        .also { it.namedValues = mapOf("score" to RemoteNamedValue.FloatValue(0.9f)) }
+        .build()
     )
     assertNull("profile must clear when new override drops it", controller.profile.value)
     assertEquals(RemoteNamedValue.FloatValue(0.9f), controller.valueOf("score"))
@@ -159,11 +165,13 @@ class RemoteComposeDataProductTest {
   fun controller_set_is_idempotent_and_does_not_notify_when_nothing_changed() {
     val controller = RemoteComposeController
     val override =
-      RemoteComposeOverride(
-        profile = RemoteComposeProfile.ANDROIDX,
-        namedValues = mapOf("score" to RemoteNamedValue.FloatValue(0.5f)),
-        acceptedHostActions = listOf("allowed"),
-      )
+      RemoteComposeOverride.Builder()
+        .also {
+          it.profile = RemoteComposeProfile.ANDROIDX
+          it.namedValues = mapOf("score" to RemoteNamedValue.FloatValue(0.5f))
+          it.acceptedHostActions = listOf("allowed")
+        }
+        .build()
     controller.set(override)
 
     var notifications = 0
@@ -171,7 +179,12 @@ class RemoteComposeDataProductTest {
     try {
       controller.set(override)
       assertEquals("re-applying an identical override must notify nobody", 0, notifications)
-      controller.set(override.copy(namedValues = mapOf("score" to RemoteNamedValue.FloatValue(1f))))
+      controller.set(
+        override
+          .newBuilder()
+          .also { it.namedValues = mapOf("score" to RemoteNamedValue.FloatValue(1f)) }
+          .build()
+      )
       assertEquals("a changed override must still notify", 1, notifications)
     } finally {
       unregister()
@@ -188,9 +201,13 @@ class RemoteComposeDataProductTest {
   fun controller_clearSeed_only_clears_while_that_seed_is_still_applied() {
     val controller = RemoteComposeController
     val outgoing =
-      RemoteComposeOverride(namedValues = mapOf("fill" to RemoteNamedValue.StringValue("red")))
+      RemoteComposeOverride.Builder()
+        .also { it.namedValues = mapOf("fill" to RemoteNamedValue.StringValue("red")) }
+        .build()
     val incoming =
-      RemoteComposeOverride(namedValues = mapOf("fill" to RemoteNamedValue.StringValue("blue")))
+      RemoteComposeOverride.Builder()
+        .also { it.namedValues = mapOf("fill" to RemoteNamedValue.StringValue("blue")) }
+        .build()
 
     controller.set(outgoing)
     controller.set(incoming)
@@ -212,10 +229,12 @@ class RemoteComposeDataProductTest {
   fun controller_setNamedValue_merges_without_dropping_existing_keys() {
     val controller = RemoteComposeController
     controller.set(
-      RemoteComposeOverride(
-        namedValues =
-          mapOf("a" to RemoteNamedValue.IntValue(1), "b" to RemoteNamedValue.IntValue(2))
-      )
+      RemoteComposeOverride.Builder()
+        .also {
+          it.namedValues =
+            mapOf("a" to RemoteNamedValue.IntValue(1), "b" to RemoteNamedValue.IntValue(2))
+        }
+        .build()
     )
     controller.setNamedValue("a", RemoteNamedValue.IntValue(42))
     controller.setNamedValue("c", RemoteNamedValue.BooleanValue(true))
@@ -227,7 +246,9 @@ class RemoteComposeDataProductTest {
   @Test
   fun controller_recordHostAction_respects_accepted_list_filter() {
     val controller = RemoteComposeController
-    controller.set(RemoteComposeOverride(acceptedHostActions = listOf("allowed")))
+    controller.set(
+      RemoteComposeOverride.Builder().also { it.acceptedHostActions = listOf("allowed") }.build()
+    )
     controller.recordHostAction(RemoteHostAction(payload = "allowed", handlerId = 1f))
     controller.recordHostAction(RemoteHostAction(payload = "rejected", handlerId = 2f))
     val captured = controller.hostActions.value
@@ -252,10 +273,12 @@ class RemoteComposeDataProductTest {
   fun on_render_captures_payload_after_override_applied() {
     val registry = RemoteComposeDataProductRegistry()
     val override =
-      RemoteComposeOverride(
-        profile = RemoteComposeProfile.WEAR_WIDGETS,
-        namedValues = mapOf("brightness" to RemoteNamedValue.FloatValue(0.6f)),
-      )
+      RemoteComposeOverride.Builder()
+        .also {
+          it.profile = RemoteComposeProfile.WEAR_WIDGETS
+          it.namedValues = mapOf("brightness" to RemoteNamedValue.FloatValue(0.6f))
+        }
+        .build()
     RemoteComposeController.set(override)
     RemoteComposeController.recordHostAction(RemoteHostAction(payload = "tap", handlerId = 3f))
 
@@ -320,10 +343,12 @@ class RemoteComposeDataProductTest {
   fun controller_clearDeclarations_keeps_named_values_and_profile() {
     val controller = RemoteComposeController
     controller.set(
-      RemoteComposeOverride(
-        profile = RemoteComposeProfile.ANDROIDX,
-        namedValues = mapOf("a" to RemoteNamedValue.IntValue(1)),
-      )
+      RemoteComposeOverride.Builder()
+        .also {
+          it.profile = RemoteComposeProfile.ANDROIDX
+          it.namedValues = mapOf("a" to RemoteNamedValue.IntValue(1))
+        }
+        .build()
     )
     controller.recordDeclaration(
       RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("x"))
@@ -348,7 +373,9 @@ class RemoteComposeDataProductTest {
       RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Filled"))
     )
     controller.set(
-      RemoteComposeOverride(namedValues = mapOf("label" to RemoteNamedValue.StringValue("seed")))
+      RemoteComposeOverride.Builder()
+        .also { it.namedValues = mapOf("label" to RemoteNamedValue.StringValue("seed")) }
+        .build()
     )
     controller.set(null) // simulates the around-composable's onDispose
     assertEquals(

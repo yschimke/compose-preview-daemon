@@ -218,36 +218,37 @@ class SpareAdoptionAndroidRealModeTest {
    * spawns from. Two sandboxes, background boot, so there is exactly one worker slot to adopt into.
    */
   private fun descriptor(paths: RealModeScenarioPaths): DaemonLaunchDescriptor =
-    DaemonLaunchDescriptor(
-      schemaVersion = 2,
-      modulePath = ":spare-adoption",
-      variant = "android",
-      enabled = true,
-      mainClass = "ee.schimke.composeai.daemon.DaemonMain",
-      classpath = paths.classpath.map { it.absolutePath },
-      jvmArgs =
-        listOf(
-          "--add-opens=java.base/java.io=ALL-UNNAMED",
-          "--add-opens=java.base/java.lang=ALL-UNNAMED",
-          "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
-          "--add-opens=java.base/java.nio=ALL-UNNAMED",
-          "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
-        ),
-      systemProperties =
-        mapOf(
-          "composeai.render.outputDir" to paths.rendersDir.absolutePath,
-          "composeai.harness.previewsManifest" to paths.manifestFile.absolutePath,
-          "robolectric.graphicsMode" to "NATIVE",
-          "robolectric.looperMode" to "PAUSED",
-          "robolectric.conscryptMode" to "OFF",
-          "robolectric.pixelCopyRenderMode" to "hardware",
-          "robolectric.config.sdk" to "35",
-          "roborazzi.test.record" to "true",
-          DaemonProperties.Names.IDLE_TIMEOUT_MS to "600000",
-          DaemonProperties.Names.SANDBOX_COUNT to "2",
-          DaemonProperties.Names.BACKGROUND_SANDBOX_BOOT to "true",
-        ),
-      workingDirectory = paths.rendersDir.parentFile.absolutePath,
-      manifestPath = paths.manifestFile.absolutePath,
-    )
+    DaemonLaunchDescriptor.Builder(
+        schemaVersion = 2,
+        modulePath = ":spare-adoption",
+        variant = "android",
+        enabled = true,
+        mainClass = "ee.schimke.composeai.daemon.DaemonMain",
+        classpath = paths.classpath.map { it.absolutePath },
+        jvmArgs =
+          listOf(
+            "--add-opens=java.base/java.io=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+            "--add-opens=java.base/java.nio=ALL-UNNAMED",
+            "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+          ),
+        systemProperties =
+          mapOf(
+            "composeai.render.outputDir" to paths.rendersDir.absolutePath,
+            "composeai.harness.previewsManifest" to paths.manifestFile.absolutePath,
+            "robolectric.graphicsMode" to "NATIVE",
+            "robolectric.looperMode" to "PAUSED",
+            "robolectric.conscryptMode" to "OFF",
+            "robolectric.pixelCopyRenderMode" to "hardware",
+            "robolectric.config.sdk" to "35",
+            "roborazzi.test.record" to "true",
+            DaemonProperties.Names.IDLE_TIMEOUT_MS to "600000",
+            DaemonProperties.Names.SANDBOX_COUNT to "2",
+            DaemonProperties.Names.BACKGROUND_SANDBOX_BOOT to "true",
+          ),
+        workingDirectory = paths.rendersDir.parentFile.absolutePath,
+        manifestPath = paths.manifestFile.absolutePath,
+      )
+      .build()
 }

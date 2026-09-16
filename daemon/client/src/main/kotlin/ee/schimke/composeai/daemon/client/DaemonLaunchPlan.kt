@@ -85,31 +85,32 @@ public class DaemonLaunchPlan(
       addAll(runtimeJars)
     }
 
-    return DaemonLaunchDescriptor(
-      schemaVersion = DAEMON_LAUNCH_SCHEMA_VERSION,
-      modulePath = modulePath,
-      variant = variantName(),
-      mainClass = DAEMON_MAIN_CLASS,
-      javaLauncher = javaLauncher?.absolutePath,
-      classpath = classpath.map { it.absolutePath }.distinct(),
-      // Bound compiler work in Android daemon processes. Pooled workers inherit this flag and
-      // spares forward it from the descriptor. Keep shared Robolectric/test launch args neutral;
-      // callers can replace or remove this default through the descriptor's jvmArgs.
-      jvmArgs =
-        backend.jvmArgs() +
-          if (backend is DaemonBackend.Android) listOf("-XX:CICompilerCount=2") else emptyList(),
-      // Backend properties first, so a caller's explicit option wins a collision. The two sets are
-      // disjoint today — `robolectric.*` / `composeai.fonts.*` against `composeai.daemon.*` — and
-      // this ordering is what keeps that from becoming load-bearing.
-      systemProperties = backend.systemProperties() + options.toSystemProperties(),
-      workingDirectory = workingDirectory.absolutePath,
-      // The preview index doubles as the descriptor's manifest pointer, so a caller that set
-      // `previewsJsonPath` does not have to say it twice. Empty rather than null because the
-      // descriptor's field is non-null, and both daemon mains already read a blank manifest as
-      // "none set" and fall back to the `PreviewIndex`-backed catalog.
-      manifestPath = options.previewsJsonPath.orEmpty(),
-      enabled = true,
-    )
+    return DaemonLaunchDescriptor.Builder(
+        schemaVersion = DAEMON_LAUNCH_SCHEMA_VERSION,
+        modulePath = modulePath,
+        variant = variantName(),
+        enabled = true,
+        mainClass = DAEMON_MAIN_CLASS,
+        classpath = classpath.map { it.absolutePath }.distinct(),
+        // Bound compiler work in Android daemon processes. Pooled workers inherit this flag and
+        // spares forward it from the descriptor. Keep shared Robolectric/test launch args neutral;
+        // callers can replace or remove this default through the descriptor's jvmArgs.
+        jvmArgs =
+          backend.jvmArgs() +
+            if (backend is DaemonBackend.Android) listOf("-XX:CICompilerCount=2") else emptyList(),
+        // Backend properties first, so a caller's explicit option wins a collision. The two sets
+        // are disjoint today — `robolectric.*` / `composeai.fonts.*` against `composeai.daemon.*`
+        // — and this ordering is what keeps that from becoming load-bearing.
+        systemProperties = backend.systemProperties() + options.toSystemProperties(),
+        workingDirectory = workingDirectory.absolutePath,
+        // The preview index doubles as the descriptor's manifest pointer, so a caller that set
+        // `previewsJsonPath` does not have to say it twice. Empty rather than null because the
+        // descriptor's field is non-null, and both daemon mains already read a blank manifest as
+        // "none set" and fall back to the `PreviewIndex`-backed catalog.
+        manifestPath = options.previewsJsonPath.orEmpty(),
+      )
+      .also { it.javaLauncher = javaLauncher?.absolutePath }
+      .build()
   }
 
   private fun variantName(): String =

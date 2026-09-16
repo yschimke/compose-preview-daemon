@@ -4578,14 +4578,16 @@ private const val HOLD_END_ANIM_MS = 1000
  * because the renderer's `previews.json` schema predates the protocol module's override type.
  */
 private fun FocusCapture.toFocusOverride(): FocusOverride =
-  FocusOverride(
-    tabIndex = tabIndex,
-    direction = direction?.toProtocol(),
-    step = step,
-    overlay = overlay,
-    enterPlacesFocus = enterPlacesFocus,
-    pressed = pressed,
-  )
+  FocusOverride.Builder()
+    .also {
+      it.tabIndex = tabIndex
+      it.direction = direction?.toProtocol()
+      it.step = step
+      it.overlay = overlay
+      it.enterPlacesFocus = enterPlacesFocus
+      it.pressed = pressed
+    }
+    .build()
 
 private fun FocusDirection.toProtocol(): ProtocolFocusDirection =
   when (this) {
@@ -4634,7 +4636,7 @@ private fun overrideSeedMap(
  * concerns).
  */
 private fun GestureHintCapture.toGestureOverride(): GestureOverride =
-  GestureOverride(showHints = showHints)
+  GestureOverride.Builder().also { it.showHints = showHints }.build()
 
 /**
  * Maps the renderer-side [PermissionsCapture] (read from `previews.json`) onto the connector's

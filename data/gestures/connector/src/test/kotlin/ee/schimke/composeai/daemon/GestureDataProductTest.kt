@@ -34,7 +34,8 @@ class GestureDataProductTest {
 
   @Test
   fun `gesture override extension declares around-composable hook`() {
-    val extension = GestureOverrideExtension(GestureOverride(showHints = true))
+    val extension =
+      GestureOverrideExtension(GestureOverride.Builder().also { it.showHints = true }.build())
     val hook: AroundComposableHook = extension
 
     assertEquals(DataExtensionId(Material3GestureProduct.KIND), extension.id)
@@ -47,7 +48,10 @@ class GestureDataProductTest {
   @Test
   fun `planner returns extension when gestures override present`() {
     val planner = GesturePreviewOverrideExtension()
-    val planned = planner.plan(PreviewOverrides(gestures = GestureOverride(showHints = true)))
+    val planned =
+      planner.plan(
+        PreviewOverrides(gestures = GestureOverride.Builder().also { it.showHints = true }.build())
+      )
     assertTrue("expected planner to produce a hook", planned is AroundComposableHook)
     assertEquals(DataExtensionId(Material3GestureProduct.KIND), planned!!.id)
   }
@@ -102,10 +106,11 @@ class GestureDataProductTest {
       hintAvailable = false,
       enabled = true,
     ) {}
-    GestureStateController.set(GestureOverride(showHints = true))
+    GestureStateController.set(GestureOverride.Builder().also { it.showHints = true }.build())
 
     val registry = GestureDataProductRegistry()
-    val overrides = PreviewOverrides(gestures = GestureOverride(showHints = true))
+    val overrides =
+      PreviewOverrides(gestures = GestureOverride.Builder().also { it.showHints = true }.build())
     val stubResult = RenderResult(id = 1L, classLoaderHashCode = 0, classLoaderName = "test")
     registry.onRender("preview-1", stubResult, overrides, null)
 
@@ -136,7 +141,7 @@ class GestureDataProductTest {
     registry.onRender(
       "preview-1",
       RenderResult(id = 1L, classLoaderHashCode = 0, classLoaderName = "test"),
-      PreviewOverrides(gestures = GestureOverride(showHints = true)),
+      PreviewOverrides(gestures = GestureOverride.Builder().also { it.showHints = true }.build()),
       null,
     )
     // A later render with no gesture override drops the captured payload.

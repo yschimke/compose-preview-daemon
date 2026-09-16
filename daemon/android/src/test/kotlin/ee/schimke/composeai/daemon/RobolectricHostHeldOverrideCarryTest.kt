@@ -79,11 +79,19 @@ class RobolectricHostHeldOverrideCarryTest {
     val spec =
       host()
         .applyOverridesForTest(
-          variantSpec(PreviewOverrides(focus = FocusOverride(tabIndex = 2), talkBack = true)),
+          variantSpec(
+            PreviewOverrides(
+              focus = FocusOverride.Builder().also { it.tabIndex = 2 }.build(),
+              talkBack = true,
+            )
+          ),
           PreviewOverrides(),
         )
 
-    assertEquals(FocusOverride(tabIndex = 2), spec.overrides?.focus)
+    assertEquals(
+      FocusOverride.Builder().also { it.tabIndex = 2 }.build(),
+      spec.overrides?.focus,
+    )
     assertEquals(true, spec.overrides?.talkBack)
   }
 

@@ -171,12 +171,20 @@ class DaemonLaunchPlanGoldenTest {
       assertThat(pool.spareCommand(descriptor, archiveSlot = 0).filter { it.startsWith(flag) })
         .containsExactly("${flag}2")
       val explicit =
-        descriptor.copy(jvmArgs = descriptor.jvmArgs.filterNot { it.startsWith(flag) } + "${flag}4")
+        descriptor
+          .newBuilder()
+          .also {
+            it.jvmArgs = descriptor.jvmArgs.filterNot { a -> a.startsWith(flag) } + "${flag}4"
+          }
+          .build()
       assertThat(pool.spareCommand(explicit, archiveSlot = 0).filter { it.startsWith(flag) })
         .containsExactly("${flag}4")
       assertThat(pool.signatureOf(explicit)).isNotEqualTo(pool.signatureOf(descriptor))
       val ergonomic =
-        descriptor.copy(jvmArgs = descriptor.jvmArgs.filterNot { it.startsWith(flag) })
+        descriptor
+          .newBuilder()
+          .also { it.jvmArgs = descriptor.jvmArgs.filterNot { a -> a.startsWith(flag) } }
+          .build()
       assertThat(pool.spareCommand(ergonomic, archiveSlot = 0).any { it.startsWith(flag) })
         .isFalse()
     }

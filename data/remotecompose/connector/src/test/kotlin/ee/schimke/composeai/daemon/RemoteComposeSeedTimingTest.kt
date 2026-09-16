@@ -57,7 +57,9 @@ class RemoteComposeSeedTimingTest {
   private val authorRed = "#FFEF5350"
 
   private fun seedOf(name: String, argb: String): RemoteComposeOverride =
-    RemoteComposeOverride(namedValues = mapOf(name to RemoteNamedValue.ColorValue(argb)))
+    RemoteComposeOverride.Builder()
+      .also { it.namedValues = mapOf(name to RemoteNamedValue.ColorValue(argb)) }
+      .build()
 
   /** Compose [content] the way a render does — wrapped in the extension's around-composable. */
   @Composable

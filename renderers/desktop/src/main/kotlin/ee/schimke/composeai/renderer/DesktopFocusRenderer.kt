@@ -78,18 +78,21 @@ data class DesktopFocusIntent(
    * so a traversal capture flips it once per replayed step. Indexed mode ignores [index].
    */
   fun toOverride(index: Int = directions.lastIndex): FocusOverride =
-    FocusOverride(
-      tabIndex = if (directions.isEmpty()) tabIndex else null,
-      direction = directions.getOrNull(index),
-      step = if (directions.isEmpty()) step else index + 1,
-      overlay = overlay,
-      enterPlacesFocus = enterPlacesFocus,
-      pressed = pressed,
-    )
+    FocusOverride.Builder()
+      .also {
+        it.tabIndex = if (directions.isEmpty()) tabIndex else null
+        it.direction = directions.getOrNull(index)
+        it.step = if (directions.isEmpty()) step else index + 1
+        it.overlay = overlay
+        it.enterPlacesFocus = enterPlacesFocus
+        it.pressed = pressed
+      }
+      .build()
 
   /** The override describing what this capture documents — the last step of the walk. */
   fun documentedOverride(): FocusOverride =
-    if (directions.isEmpty()) toOverride() else toOverride().copy(step = step ?: directions.size)
+    if (directions.isEmpty()) toOverride()
+    else toOverride().newBuilder().also { it.step = step ?: directions.size }.build()
 }
 
 /**
