@@ -1,0 +1,107 @@
+public final class ee/schimke/composeai/data/navigation/NavigationBackPressedState {
+	public static final field Companion Lee/schimke/composeai/data/navigation/NavigationBackPressedState$Companion;
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lee/schimke/composeai/data/navigation/NavigationBackPressedState;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/navigation/NavigationBackPressedState;ZILjava/lang/Object;)Lee/schimke/composeai/data/navigation/NavigationBackPressedState;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHasEnabledCallbacks ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/data/navigation/NavigationBackPressedState$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lee/schimke/composeai/data/navigation/NavigationBackPressedState$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/data/navigation/NavigationBackPressedState;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/data/navigation/NavigationBackPressedState;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/navigation/NavigationBackPressedState$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/navigation/NavigationDataProduct {
+	public static final field FILE Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/data/navigation/NavigationDataProduct;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+}
+
+public final class ee/schimke/composeai/data/navigation/NavigationIntent {
+	public static final field Companion Lee/schimke/composeai/data/navigation/NavigationIntent$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/util/List;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/util/List;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()I
+	public final fun component7 ()Ljava/util/List;
+	public final fun component8 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/util/List;Ljava/util/Map;)Lee/schimke/composeai/data/navigation/NavigationIntent;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/navigation/NavigationIntent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/util/List;Ljava/util/Map;ILjava/lang/Object;)Lee/schimke/composeai/data/navigation/NavigationIntent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAction ()Ljava/lang/String;
+	public final fun getCategories ()Ljava/util/List;
+	public final fun getComponent ()Ljava/lang/String;
+	public final fun getDataUri ()Ljava/lang/String;
+	public final fun getExtras ()Ljava/util/Map;
+	public final fun getFlags ()I
+	public final fun getPackageName ()Ljava/lang/String;
+	public final fun getType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/data/navigation/NavigationIntent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lee/schimke/composeai/data/navigation/NavigationIntent$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/data/navigation/NavigationIntent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/data/navigation/NavigationIntent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/navigation/NavigationIntent$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/navigation/NavigationPayload {
+	public static final field Companion Lee/schimke/composeai/data/navigation/NavigationPayload$Companion;
+	public fun <init> (Lee/schimke/composeai/data/navigation/NavigationIntent;Lee/schimke/composeai/data/navigation/NavigationBackPressedState;)V
+	public synthetic fun <init> (Lee/schimke/composeai/data/navigation/NavigationIntent;Lee/schimke/composeai/data/navigation/NavigationBackPressedState;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lee/schimke/composeai/data/navigation/NavigationIntent;
+	public final fun component2 ()Lee/schimke/composeai/data/navigation/NavigationBackPressedState;
+	public final fun copy (Lee/schimke/composeai/data/navigation/NavigationIntent;Lee/schimke/composeai/data/navigation/NavigationBackPressedState;)Lee/schimke/composeai/data/navigation/NavigationPayload;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/navigation/NavigationPayload;Lee/schimke/composeai/data/navigation/NavigationIntent;Lee/schimke/composeai/data/navigation/NavigationBackPressedState;ILjava/lang/Object;)Lee/schimke/composeai/data/navigation/NavigationPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIntent ()Lee/schimke/composeai/data/navigation/NavigationIntent;
+	public final fun getOnBackPressed ()Lee/schimke/composeai/data/navigation/NavigationBackPressedState;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/data/navigation/NavigationPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lee/schimke/composeai/data/navigation/NavigationPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/data/navigation/NavigationPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/data/navigation/NavigationPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/navigation/NavigationPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+

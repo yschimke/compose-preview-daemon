@@ -1,0 +1,11 @@
+public final class ee/schimke/composeai/daemon/ScrollDataProductRegistry : ee/schimke/composeai/daemon/FileBackedDataProductRegistry {
+	public static final field Companion Lee/schimke/composeai/daemon/ScrollDataProductRegistry$Companion;
+	public static final field SCROLL_GIF_SUBDIR Ljava/lang/String;
+	public static final field SCROLL_LONG_SUBDIR Ljava/lang/String;
+	public fun <init> (Ljava/io/File;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/ScrollDataProductRegistry$Companion {
+}
+

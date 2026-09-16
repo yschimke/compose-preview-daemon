@@ -1,0 +1,71 @@
+public final class ee/schimke/composeai/data/deviceframe/DeviceArtCatalog {
+	public static final field ATTRIBUTION Ljava/lang/String;
+	public static final field BACK Ljava/lang/String;
+	public static final field DEFAULT_BASE_URL Ljava/lang/String;
+	public static final field FORE Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/data/deviceframe/DeviceArtCatalog;
+	public static final field SHADOW Ljava/lang/String;
+	public final fun byArtId (Ljava/lang/String;)Lee/schimke/composeai/data/deviceframe/DeviceArtCatalog$DeviceArtSpec;
+	public final fun forDeviceString (Ljava/lang/String;)Lee/schimke/composeai/data/deviceframe/DeviceArtCatalog$DeviceArtSpec;
+	public final fun getALL ()Ljava/util/List;
+	public final fun getPHONE ()Lee/schimke/composeai/data/deviceframe/DeviceArtCatalog$DeviceArtSpec;
+	public final fun getWEAR_ROUND ()Lee/schimke/composeai/data/deviceframe/DeviceArtCatalog$DeviceArtSpec;
+	public final fun getWEAR_SQUARE ()Lee/schimke/composeai/data/deviceframe/DeviceArtCatalog$DeviceArtSpec;
+}
+
+public final class ee/schimke/composeai/data/deviceframe/DeviceArtCatalog$DeviceArtSpec {
+	public fun <init> (Ljava/lang/String;IIIIILjava/util/List;Z)V
+	public synthetic fun <init> (Ljava/lang/String;IIIIILjava/util/List;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun component7 ()Ljava/util/List;
+	public final fun component8 ()Z
+	public final fun copy (Ljava/lang/String;IIIIILjava/util/List;Z)Lee/schimke/composeai/data/deviceframe/DeviceArtCatalog$DeviceArtSpec;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/deviceframe/DeviceArtCatalog$DeviceArtSpec;Ljava/lang/String;IIIIILjava/util/List;ZILjava/lang/Object;)Lee/schimke/composeai/data/deviceframe/DeviceArtCatalog$DeviceArtSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArtId ()Ljava/lang/String;
+	public final fun getCornerRadius ()I
+	public final fun getNotch ()Z
+	public final fun getResources ()Ljava/util/List;
+	public final fun getScreenHeight ()I
+	public final fun getScreenWidth ()I
+	public final fun getScreenX ()I
+	public final fun getScreenY ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/data/deviceframe/DeviceFrameCompositor {
+	public static final field INSTANCE Lee/schimke/composeai/data/deviceframe/DeviceFrameCompositor;
+	public final fun composite (Ljava/awt/image/BufferedImage;Ljava/util/Map;Lee/schimke/composeai/data/deviceframe/DeviceArtCatalog$DeviceArtSpec;ZZ)Ljava/awt/image/BufferedImage;
+	public static synthetic fun composite$default (Lee/schimke/composeai/data/deviceframe/DeviceFrameCompositor;Ljava/awt/image/BufferedImage;Ljava/util/Map;Lee/schimke/composeai/data/deviceframe/DeviceArtCatalog$DeviceArtSpec;ZZILjava/lang/Object;)Ljava/awt/image/BufferedImage;
+}
+
+public final class ee/schimke/composeai/data/deviceframe/DeviceModelCatalog {
+	public static final field INSTANCE Lee/schimke/composeai/data/deviceframe/DeviceModelCatalog;
+	public final fun byId (Ljava/lang/String;)Lee/schimke/composeai/data/deviceframe/DeviceModelCatalog$DeviceModelSpec;
+	public final fun getALL ()Ljava/util/List;
+	public final fun getIPHONE ()Lee/schimke/composeai/data/deviceframe/DeviceModelCatalog$DeviceModelSpec;
+}
+
+public final class ee/schimke/composeai/data/deviceframe/DeviceModelCatalog$DeviceModelSpec {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lee/schimke/composeai/data/deviceframe/DeviceModelCatalog$DeviceModelSpec;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/deviceframe/DeviceModelCatalog$DeviceModelSpec;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/data/deviceframe/DeviceModelCatalog$DeviceModelSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAttribution ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getLicense ()Ljava/lang/String;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+

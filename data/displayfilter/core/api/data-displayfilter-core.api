@@ -1,0 +1,102 @@
+public final class ee/schimke/composeai/data/displayfilter/ColorMatrix4x5 {
+	public static final field Companion Lee/schimke/composeai/data/displayfilter/ColorMatrix4x5$Companion;
+	public static final field LENGTH I
+	public static final fun applyToArgb-impl ([FI)I
+	public static final synthetic fun box-impl ([F)Lee/schimke/composeai/data/displayfilter/ColorMatrix4x5;
+	public static fun constructor-impl ([F)[F
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl ([FLjava/lang/Object;)Z
+	public static final fun equals-impl0 ([F[F)Z
+	public final fun getValues ()[F
+	public fun hashCode ()I
+	public static fun hashCode-impl ([F)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl ([F)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()[F
+}
+
+public final class ee/schimke/composeai/data/displayfilter/ColorMatrix4x5$Companion {
+	public final fun getIdentity-MaWrAGA ()[F
+	public final fun ofRows-6ymlS0w ([F[F[F[F)[F
+}
+
+public final class ee/schimke/composeai/data/displayfilter/DisplayFilter : java/lang/Enum {
+	public static final field Companion Lee/schimke/composeai/data/displayfilter/DisplayFilter$Companion;
+	public static final field DeuteranopiaSimulation Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+	public static final field Grayscale Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+	public static final field Invert Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+	public static final field ProtanopiaSimulation Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+	public static final field TritanopiaSimulation Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getMatrix-MaWrAGA ()[F
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+	public static fun values ()[Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+}
+
+public final class ee/schimke/composeai/data/displayfilter/DisplayFilter$Companion {
+	public final fun fromId (Ljava/lang/String;)Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+}
+
+public final class ee/schimke/composeai/data/displayfilter/DisplayFilterArtifact {
+	public fun <init> (Lee/schimke/composeai/data/displayfilter/DisplayFilter;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Lee/schimke/composeai/data/displayfilter/DisplayFilter;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Lee/schimke/composeai/data/displayfilter/DisplayFilter;Ljava/lang/String;Ljava/lang/String;)Lee/schimke/composeai/data/displayfilter/DisplayFilterArtifact;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/displayfilter/DisplayFilterArtifact;Lee/schimke/composeai/data/displayfilter/DisplayFilter;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/data/displayfilter/DisplayFilterArtifact;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilter ()Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+	public final fun getMediaType ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/data/displayfilter/DisplayFilterArtifacts {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lee/schimke/composeai/data/displayfilter/DisplayFilterArtifacts;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/displayfilter/DisplayFilterArtifacts;Ljava/util/List;ILjava/lang/Object;)Lee/schimke/composeai/data/displayfilter/DisplayFilterArtifacts;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArtifacts ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/data/displayfilter/DisplayFilterContextKeys {
+	public static final field INSTANCE Lee/schimke/composeai/data/displayfilter/DisplayFilterContextKeys;
+	public final fun getFilters ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+	public final fun getOutputDirectory ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+}
+
+public final class ee/schimke/composeai/data/displayfilter/DisplayFilterDataProducts {
+	public static final field INSTANCE Lee/schimke/composeai/data/displayfilter/DisplayFilterDataProducts;
+	public static final field KIND_VARIANTS Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public final fun getVariants ()Lee/schimke/composeai/data/render/extensions/DataProductKey;
+}
+
+public final class ee/schimke/composeai/data/displayfilter/DisplayFilterExtension : ee/schimke/composeai/data/render/extensions/PostCaptureProcessor {
+	public static final field Companion Lee/schimke/composeai/data/displayfilter/DisplayFilterExtension$Companion;
+	public static final field EXTENSION_ID Ljava/lang/String;
+	public fun <init> ()V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+	public fun process (Lee/schimke/composeai/data/render/extensions/ExtensionPostCaptureContext;)V
+}
+
+public final class ee/schimke/composeai/data/displayfilter/DisplayFilterExtension$Companion {
+}
+
+public final class ee/schimke/composeai/data/displayfilter/PngColorMatrix {
+	public static final field INSTANCE Lee/schimke/composeai/data/displayfilter/PngColorMatrix;
+	public final fun apply-cgM4cy4 (Ljava/io/File;Ljava/io/File;[FLokio/FileSystem;)Ljava/io/File;
+	public static synthetic fun apply-cgM4cy4$default (Lee/schimke/composeai/data/displayfilter/PngColorMatrix;Ljava/io/File;Ljava/io/File;[FLokio/FileSystem;ILjava/lang/Object;)Ljava/io/File;
+}
+

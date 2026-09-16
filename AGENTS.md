@@ -64,9 +64,30 @@ CI's `ktfmtCheckAll` is a hard gate. Before each commit touching `*.kt` / `*.kts
 ### The published surface
 
 Every module under `api/`, `daemon/`, `data/`, `renderers/` and `runtimes/` publishes to Maven
-Central under `ee.schimke.composeai` at the release tag, on **one** version line. Modules that
-declare `abiValidation()` pin their public API in a committed dump; `checkKotlinAbi` runs in CI, and
-a public-surface change is committed with `./gradlew updateKotlinAbi`.
+Central under `ee.schimke.composeai` at the release tag, on **one** version line. A published module
+pins its public API in a committed dump under `api/`; `checkKotlinAbi` runs in CI, and a
+public-surface change is committed with `./gradlew updateKotlinAbi`.
+
+Apply the gate with `id("composeai.abi-validation")` in the module's `plugins {}` block — it sets
+the dump location and wires `checkKotlinAbi` into `check`, which KGP does not do. **45 of the 69
+published modules are gated**: every JVM and Kotlin Multiplatform one. The exceptions are not
+oversights:
+
+- the **23 Android modules** compile Kotlin through AGP's built-in support rather than the Kotlin
+  Android plugin, and Kotlin 2.4.20 writes them an *empty* dump — which would make `checkKotlinAbi`
+  pass while recording nothing. The convention plugin fails the build rather than let that happen,
+  so they stay ungated until Kotlin can dump one; and
+- `:data-gestures-robolectric-stubs` is a `java-library` with no Kotlin at all.
+
+Five modules predate the convention plugin and hand-roll the same wiring in their own build files
+(`:daemon-client`, `:daemon-core`, `:preview-data-api`, `:data-pseudolocale-core`,
+`:data-remotecompose-core`); they are gated, just not through the plugin. New modules use the
+plugin.
+
+The gate is independent of `explicitApi()`: a dump records whatever is public, explicit or not. The
+five above declare both for their own reasons, and adding the gate to a module does not require an
+explicit-API pass first.
+
 `docs/daemon/TUNABLES.md` is generated from `DaemonProperties`; `DaemonPropertiesDocTest` fails
 when it is stale.
 Dependency versions are maintained in `gradle/libs.versions.toml`; this repository does not use

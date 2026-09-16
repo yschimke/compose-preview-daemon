@@ -1,0 +1,380 @@
+public abstract class ee/schimke/composeai/data/render/extensions/compose/AroundComposableExtension : ee/schimke/composeai/data/render/extensions/compose/AroundComposableHook {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun Around (Lee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+	public abstract fun AroundComposable (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public final fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+}
+
+public abstract interface class ee/schimke/composeai/data/render/extensions/compose/AroundComposableHook : ee/schimke/composeai/data/render/extensions/PlannedDataExtension {
+	public abstract fun Around (Lee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/AroundComposableHook$DefaultImpls {
+	public static fun getInputs (Lee/schimke/composeai/data/render/extensions/compose/AroundComposableHook;)Ljava/util/Set;
+	public static fun getOutputs (Lee/schimke/composeai/data/render/extensions/compose/AroundComposableHook;)Ljava/util/Set;
+	public static fun getTargets (Lee/schimke/composeai/data/render/extensions/compose/AroundComposableHook;)Ljava/util/Set;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/CommonExtensionContextKeys {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/data/render/extensions/compose/CommonExtensionContextKeys;
+	public final fun getRenderPreviewContext ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+}
+
+public abstract class ee/schimke/composeai/data/render/extensions/compose/ComposableExtractorExtension : ee/schimke/composeai/data/render/extensions/compose/ComposableExtractorHook {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun Extract (Lee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink;Landroidx/compose/runtime/Composer;I)V
+	public abstract fun Extract (Lee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink;Lee/schimke/composeai/data/render/extensions/DataProductSink;Landroidx/compose/runtime/Composer;I)V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public final fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+}
+
+public abstract interface class ee/schimke/composeai/data/render/extensions/compose/ComposableExtractorHook : ee/schimke/composeai/data/render/extensions/PlannedDataExtension {
+	public abstract fun Extract (Lee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ComposableExtractorHook$DefaultImpls {
+	public static fun getInputs (Lee/schimke/composeai/data/render/extensions/compose/ComposableExtractorHook;)Ljava/util/Set;
+	public static fun getOutputs (Lee/schimke/composeai/data/render/extensions/compose/ComposableExtractorHook;)Ljava/util/Set;
+	public static fun getTargets (Lee/schimke/composeai/data/render/extensions/compose/ComposableExtractorHook;)Ljava/util/Set;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ComposeColorSpec {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/data/render/extensions/compose/ComposeColorSpec;
+	public final fun resolve-vNxB06k (Ljava/lang/String;)J
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ComposeDataExtensionHooksKt {
+	public static final fun getHasAroundComposableHook (Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;)Z
+	public static final fun getHasComposableExtractorHook (Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;)Z
+	public static final fun getHasCompositionObserverHook (Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;)Z
+	public static final fun getHasFrameDriverHook (Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;)Z
+	public static final fun getHasImageFrameTransformHook (Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;)Z
+	public static final fun staticExtensionState (Ljava/lang/Object;)Landroidx/compose/runtime/State;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ComposeDataExtensionPipeline {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/data/render/extensions/compose/ComposeDataExtensionPipeline;
+	public final fun Apply (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink;Ljava/util/Map;Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/DataProductStore;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public final fun Extract (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink;Ljava/util/Map;Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/DataProductStore;Landroidx/compose/runtime/Composer;II)V
+	public final fun Observe (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink;Ljava/util/Map;Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/DataProductStore;Landroidx/compose/runtime/Composer;II)V
+}
+
+public abstract class ee/schimke/composeai/data/render/extensions/compose/CompositionObserverExtension : ee/schimke/composeai/data/render/extensions/compose/CompositionObserverHook {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun Observe (Lee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink;Landroidx/compose/runtime/Composer;I)V
+	public abstract fun Observe (Lee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink;Lee/schimke/composeai/data/render/extensions/DataProductSink;Landroidx/compose/runtime/Composer;I)V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public final fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+}
+
+public abstract interface class ee/schimke/composeai/data/render/extensions/compose/CompositionObserverHook : ee/schimke/composeai/data/render/extensions/PlannedDataExtension {
+	public abstract fun Observe (Lee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/CompositionObserverHook$DefaultImpls {
+	public static fun getInputs (Lee/schimke/composeai/data/render/extensions/compose/CompositionObserverHook;)Ljava/util/Set;
+	public static fun getOutputs (Lee/schimke/composeai/data/render/extensions/compose/CompositionObserverHook;)Ljava/util/Set;
+	public static fun getTargets (Lee/schimke/composeai/data/render/extensions/compose/CompositionObserverHook;)Ljava/util/Set;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/CompositionTracing {
+	public static final field $stable I
+	public static final field CATEGORY Ljava/lang/String;
+	public static final field ENABLED_PROP Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/data/render/extensions/compose/CompositionTracing;
+	public final fun enabled ()Z
+	public final fun record (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/DataProductStore;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/DataProductStore;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-6nMuUE8 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/Map;
+	public final fun component5 ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;
+	public final fun component6 ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;
+	public final fun component7 ()Lee/schimke/composeai/data/render/extensions/DataProductStore;
+	public final fun copy-72jBje0 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/DataProductStore;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext;
+	public static synthetic fun copy-72jBje0$default (Lee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/DataProductStore;ILjava/lang/Object;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun exportState (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;Landroidx/compose/runtime/State;)V
+	public final fun get (Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;)Ljava/lang/Object;
+	public final fun getAttributes ()Ljava/util/Map;
+	public final fun getExtensionId-6nMuUE8 ()Ljava/lang/String;
+	public final fun getExtraction ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;
+	public final fun getPreviewId ()Ljava/lang/String;
+	public final fun getProducts ()Lee/schimke/composeai/data/render/extensions/DataProductStore;
+	public final fun getRenderMode ()Ljava/lang/String;
+	public final fun getSlotTables ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables;
+	public final fun getStates ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;
+	public fun hashCode ()I
+	public final fun require (Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;)Ljava/lang/Object;
+	public final fun state (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Landroidx/compose/runtime/State;
+	public fun toString ()Ljava/lang/String;
+	public final fun value (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Ljava/lang/Object;
+}
+
+public abstract interface class ee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink {
+	public abstract fun put-54gzrX0 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext$Companion;
+	public fun <init> ()V
+	public fun <init> (Lee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables;Lee/schimke/composeai/data/render/extensions/ExtensionContextData;)V
+	public synthetic fun <init> (Lee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables;Lee/schimke/composeai/data/render/extensions/ExtensionContextData;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables;
+	public final fun component2 ()Lee/schimke/composeai/data/render/extensions/ExtensionContextData;
+	public final fun copy (Lee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables;Lee/schimke/composeai/data/render/extensions/ExtensionContextData;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables;Lee/schimke/composeai/data/render/extensions/ExtensionContextData;ILjava/lang/Object;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun get (Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;)Ljava/lang/Object;
+	public final fun getData ()Lee/schimke/composeai/data/render/extensions/ExtensionContextData;
+	public final fun getSlotTables ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables;
+	public fun hashCode ()I
+	public final fun require (Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;)Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext$Companion {
+	public final fun getEmpty ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ExtensionFrame {
+	public static final field $stable I
+	public fun <init> (IFJI)V
+	public final fun component1 ()I
+	public final fun component2 ()F
+	public final fun component3 ()J
+	public final fun component4 ()I
+	public final fun copy (IFJI)Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrame;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrame;IFJIILjava/lang/Object;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrame;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDelayMillis ()I
+	public final fun getFraction ()F
+	public final fun getIndex ()I
+	public final fun getTimeMillis ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ExtensionFrameContext {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/DataProductStore;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/DataProductStore;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-6nMuUE8 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/Map;
+	public final fun component5 ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;
+	public final fun component6 ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;
+	public final fun component7 ()Lee/schimke/composeai/data/render/extensions/DataProductStore;
+	public final fun copy-72jBje0 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/DataProductStore;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameContext;
+	public static synthetic fun copy-72jBje0$default (Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameContext;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/DataProductStore;ILjava/lang/Object;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun exportState (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;Landroidx/compose/runtime/State;)V
+	public final fun getAttributes ()Ljava/util/Map;
+	public final fun getExtensionId-6nMuUE8 ()Ljava/lang/String;
+	public final fun getExtraction ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionExtractionContext;
+	public final fun getPreviewId ()Ljava/lang/String;
+	public final fun getProducts ()Lee/schimke/composeai/data/render/extensions/DataProductStore;
+	public final fun getRenderMode ()Ljava/lang/String;
+	public final fun getStates ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;
+	public fun hashCode ()I
+	public final fun state (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Landroidx/compose/runtime/State;
+	public fun toString ()Ljava/lang/String;
+	public final fun value (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Ljava/lang/Object;
+}
+
+public abstract interface class ee/schimke/composeai/data/render/extensions/compose/ExtensionFrameCurve {
+	public static final field Companion Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameCurve$Companion;
+	public abstract fun transform (F)F
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ExtensionFrameCurve$Companion {
+	public final fun getLinear ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameCurve;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ExtensionFrameSequence {
+	public static final field $stable I
+	public fun <init> (Ljava/util/List;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameCurve;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/List;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameCurve;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameCurve;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/List;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameCurve;Ljava/util/Map;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameSequence;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameSequence;Ljava/util/List;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameCurve;Ljava/util/Map;ILjava/lang/Object;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameSequence;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCurve ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameCurve;
+	public final fun getExtras ()Ljava/util/Map;
+	public final fun getFrames ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables {
+	public static final field Companion Lee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables$Companion;
+	public abstract fun snapshot ()Ljava/util/List;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables$Companion {
+	public final fun getEmpty ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables;
+	public final fun of (Ljava/util/List;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionSlotTables;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Class;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-6nMuUE8 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Class;
+	public final fun copy-54gzrX0 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Class;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;
+	public static synthetic fun copy-54gzrX0$default (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Class;ILjava/lang/Object;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getOwner-6nMuUE8 ()Ljava/lang/String;
+	public final fun getType ()Ljava/lang/Class;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry {
+	public abstract fun export (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;Landroidx/compose/runtime/State;)V
+	public fun requireState (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Landroidx/compose/runtime/State;
+	public fun requireValue (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Ljava/lang/Object;
+	public abstract fun state (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Landroidx/compose/runtime/State;
+	public fun value (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Ljava/lang/Object;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry$DefaultImpls {
+	public static fun requireState (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Landroidx/compose/runtime/State;
+	public static fun requireValue (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Ljava/lang/Object;
+	public static fun value (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry;Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Ljava/lang/Object;
+}
+
+public abstract interface class ee/schimke/composeai/data/render/extensions/compose/FrameDriverHook : ee/schimke/composeai/data/render/extensions/PlannedDataExtension {
+	public abstract fun frames (Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameContext;)Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameSequence;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/FrameDriverHook$DefaultImpls {
+	public static fun getInputs (Lee/schimke/composeai/data/render/extensions/compose/FrameDriverHook;)Ljava/util/Set;
+	public static fun getOutputs (Lee/schimke/composeai/data/render/extensions/compose/FrameDriverHook;)Ljava/util/Set;
+	public static fun getTargets (Lee/schimke/composeai/data/render/extensions/compose/FrameDriverHook;)Ljava/util/Set;
+}
+
+public abstract class ee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformExtension : ee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformHook {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public final fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+}
+
+public abstract interface class ee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformHook : ee/schimke/composeai/data/render/extensions/PlannedDataExtension {
+	public abstract fun transform (Lee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformInput;)Ljava/lang/Object;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformHook$DefaultImpls {
+	public static fun getInputs (Lee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformHook;)Ljava/util/Set;
+	public static fun getOutputs (Lee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformHook;)Ljava/util/Set;
+	public static fun getTargets (Lee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformHook;)Ljava/util/Set;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformInput {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/Object;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrame;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameSequence;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/Object;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrame;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameSequence;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun component2 ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrame;
+	public final fun component3 ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameSequence;
+	public final fun component4 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/Object;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrame;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameSequence;Ljava/util/Map;)Lee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformInput;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformInput;Ljava/lang/Object;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrame;Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameSequence;Ljava/util/Map;ILjava/lang/Object;)Lee/schimke/composeai/data/render/extensions/compose/ImageFrameTransformInput;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExtras ()Ljava/util/Map;
+	public final fun getFrame ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrame;
+	public final fun getImage ()Ljava/lang/Object;
+	public final fun getSequence ()Lee/schimke/composeai/data/render/extensions/compose/ExtensionFrameSequence;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class ee/schimke/composeai/data/render/extensions/compose/NormalizedFrameDriverExtension : ee/schimke/composeai/data/render/extensions/compose/FrameDriverHook {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public final fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/PreviewSystemTheme : java/lang/Enum {
+	public static final field Dark Lee/schimke/composeai/data/render/extensions/compose/PreviewSystemTheme;
+	public static final field Light Lee/schimke/composeai/data/render/extensions/compose/PreviewSystemTheme;
+	public static final field Unknown Lee/schimke/composeai/data/render/extensions/compose/PreviewSystemTheme;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/data/render/extensions/compose/PreviewSystemTheme;
+	public static fun values ()[Lee/schimke/composeai/data/render/extensions/compose/PreviewSystemTheme;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/PreviewSystemThemeKt {
+	public static final fun previewSystemThemeValue (Lee/schimke/composeai/data/render/extensions/compose/PreviewSystemTheme;)Landroidx/compose/runtime/ProvidedValue;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/RecordingExtensionCompositionSink : ee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun put-54gzrX0 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V
+	public final fun values ()Ljava/util/Map;
+	public final fun values-b4w2t7o (Ljava/lang/String;)Ljava/util/Map;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/RecordingExtensionStateRegistry : ee/schimke/composeai/data/render/extensions/compose/ExtensionStateRegistry {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun export (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;Landroidx/compose/runtime/State;)V
+	public fun requireState (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Landroidx/compose/runtime/State;
+	public fun requireValue (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Ljava/lang/Object;
+	public fun state (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Landroidx/compose/runtime/State;
+	public fun value (Lee/schimke/composeai/data/render/extensions/compose/ExtensionStateKey;)Ljava/lang/Object;
+}
+
+public final class ee/schimke/composeai/data/render/extensions/compose/StaticExtensionState : androidx/compose/runtime/State {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/Object;)V
+	public fun getValue ()Ljava/lang/Object;
+}
+

@@ -1,0 +1,367 @@
+public abstract interface annotation class ee/schimke/composeai/preview/AmbientPreview : java/lang/annotation/Annotation {
+	public abstract fun burnInProtectionRequired ()Z
+	public abstract fun deviceHasLowBitAmbient ()Z
+	public abstract fun state ()Lee/schimke/composeai/preview/AmbientPreviewState;
+}
+
+public final class ee/schimke/composeai/preview/AmbientPreviewState : java/lang/Enum {
+	public static final field Ambient Lee/schimke/composeai/preview/AmbientPreviewState;
+	public static final field Interactive Lee/schimke/composeai/preview/AmbientPreviewState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/AmbientPreviewState;
+	public static fun values ()[Lee/schimke/composeai/preview/AmbientPreviewState;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/AnimatedPreview : java/lang/annotation/Annotation {
+	public abstract fun caption ()Ljava/lang/String;
+	public abstract fun durationMs ()I
+	public abstract fun format ()Lee/schimke/composeai/preview/MotionFormat;
+	public abstract fun frameIntervalMs ()I
+	public abstract fun showCurves ()Z
+}
+
+public final class ee/schimke/composeai/preview/AnimatedPreviewKt {
+	public static final field AUTO_DETECT_DURATION_MS I
+	public static final field DEFAULT_ANIMATION_DURATION_MS I
+	public static final field DEFAULT_ANIMATION_FRAME_INTERVAL_MS I
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/BuilderComponent : java/lang/annotation/Annotation {
+	public abstract fun canvas ()Ljava/lang/String;
+	public abstract fun component ()Ljava/lang/String;
+	public abstract fun displayName ()Ljava/lang/String;
+	public abstract fun exclude ()Ljava/lang/String;
+	public abstract fun group ()Ljava/lang/String;
+	public abstract fun id ()Ljava/lang/String;
+	public abstract fun nativeOnly ()Z
+	public abstract fun slots ()[Ljava/lang/String;
+	public abstract fun starter ()[Ljava/lang/String;
+	public abstract fun stateCallbacks ()[Ljava/lang/String;
+	public abstract fun traits ()[Ljava/lang/String;
+	public abstract fun variantProperty ()Ljava/lang/String;
+	public abstract fun variants ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/CaptureGutter : java/lang/annotation/Annotation {
+	public abstract fun all ()I
+	public abstract fun bottom ()I
+	public abstract fun end ()I
+	public abstract fun start ()I
+	public abstract fun top ()I
+}
+
+public final class ee/schimke/composeai/preview/CaptureGutterKt {
+	public static final field INHERIT_GUTTER I
+	public static final field MAX_CAPTURE_GUTTER_DP I
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/CatalogComponent : java/lang/annotation/Annotation {
+	public abstract fun breakpointKit ()[Ljava/lang/String;
+	public abstract fun caption ()Ljava/lang/String;
+	public abstract fun group ()Ljava/lang/String;
+	public abstract fun id ()Ljava/lang/String;
+	public abstract fun kitAxis ()Ljava/lang/String;
+	public abstract fun motionPreview ()Ljava/lang/String;
+	public abstract fun noReference ()Ljava/lang/String;
+	public abstract fun parallel ()Ljava/lang/String;
+	public abstract fun perBreakpoint ()Z
+	public abstract fun reference ()Ljava/lang/String;
+	public abstract fun referenceContentsOnly ()Z
+	public abstract fun referenceSet ()Ljava/lang/String;
+	public abstract fun related ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/CatalogGroup : java/lang/annotation/Annotation {
+	public abstract fun name ()Ljava/lang/String;
+	public abstract fun section ()Ljava/lang/String;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/CatalogVariant : java/lang/annotation/Annotation {
+	public abstract fun caption ()Ljava/lang/String;
+	public abstract fun kitAxis ()Ljava/lang/String;
+	public abstract fun kitValue ()Ljava/lang/String;
+	public abstract fun noReference ()Ljava/lang/String;
+	public abstract fun of ()Ljava/lang/String;
+	public abstract fun parallel ()Ljava/lang/String;
+	public abstract fun props ()[Ljava/lang/String;
+	public abstract fun reference ()Ljava/lang/String;
+	public abstract fun referenceContentsOnly ()Z
+	public abstract fun referenceSet ()Ljava/lang/String;
+	public abstract fun state ()Ljava/lang/String;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/ColorCatalog : java/lang/annotation/Annotation {
+	public abstract fun group ()Ljava/lang/String;
+	public abstract fun name ()Ljava/lang/String;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/FixedTheme : java/lang/annotation/Annotation {
+}
+
+public final class ee/schimke/composeai/preview/FocusDirection : java/lang/Enum {
+	public static final field Down Lee/schimke/composeai/preview/FocusDirection;
+	public static final field Left Lee/schimke/composeai/preview/FocusDirection;
+	public static final field Next Lee/schimke/composeai/preview/FocusDirection;
+	public static final field Previous Lee/schimke/composeai/preview/FocusDirection;
+	public static final field Right Lee/schimke/composeai/preview/FocusDirection;
+	public static final field Up Lee/schimke/composeai/preview/FocusDirection;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/FocusDirection;
+	public static fun values ()[Lee/schimke/composeai/preview/FocusDirection;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/FocusedPreview : java/lang/annotation/Annotation {
+	public abstract fun enterPlacesFocus ()Z
+	public abstract fun gif ()Z
+	public abstract fun indices ()[I
+	public abstract fun overlay ()Z
+	public abstract fun pressed ()Z
+	public abstract fun traverse ()[Lee/schimke/composeai/preview/FocusDirection;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/GestureHintPreview : java/lang/annotation/Annotation {
+	public abstract fun showHints ()Z
+}
+
+public final class ee/schimke/composeai/preview/GlimmerEnvironment : java/lang/Enum {
+	public static final field Busy Lee/schimke/composeai/preview/GlimmerEnvironment;
+	public static final field Dark Lee/schimke/composeai/preview/GlimmerEnvironment;
+	public static final field Light Lee/schimke/composeai/preview/GlimmerEnvironment;
+	public static final field VeniceCanalCats Lee/schimke/composeai/preview/GlimmerEnvironment;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/GlimmerEnvironment;
+	public static fun values ()[Lee/schimke/composeai/preview/GlimmerEnvironment;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/GlimmerEnvironmentPreview : java/lang/annotation/Annotation {
+	public abstract fun environment ()Lee/schimke/composeai/preview/GlimmerEnvironment;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/GlimmerEnvironmentPreview$Container : java/lang/annotation/Annotation {
+	public abstract fun value ()[Lee/schimke/composeai/preview/GlimmerEnvironmentPreview;
+}
+
+public final class ee/schimke/composeai/preview/InteractionGesture : java/lang/Enum {
+	public static final field PressAndHold Lee/schimke/composeai/preview/InteractionGesture;
+	public static final field Tap Lee/schimke/composeai/preview/InteractionGesture;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/InteractionGesture;
+	public static fun values ()[Lee/schimke/composeai/preview/InteractionGesture;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/InteractionPreview : java/lang/annotation/Annotation {
+	public abstract fun caption ()Ljava/lang/String;
+	public abstract fun format ()Lee/schimke/composeai/preview/MotionFormat;
+	public abstract fun frameIntervalMs ()I
+	public abstract fun gapMs ()I
+	public abstract fun gesture ()Lee/schimke/composeai/preview/InteractionGesture;
+	public abstract fun holdMs ()I
+	public abstract fun leadInMs ()I
+	public abstract fun targets ()[I
+}
+
+public final class ee/schimke/composeai/preview/InteractionPreviewKt {
+	public static final field DEFAULT_MOTION_FRAME_INTERVAL_MS I
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/KnobValue : java/lang/annotation/Annotation {
+	public abstract fun value ()Ljava/lang/String;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/LauncherWidgetPreview : java/lang/annotation/Annotation {
+	public abstract fun cellSizeDp ()I
+	public abstract fun cellSpacingDp ()I
+	public abstract fun height ()I
+	public abstract fun launcherMode ()Z
+	public abstract fun maxHeight ()I
+	public abstract fun maxWidth ()I
+	public abstract fun minHeight ()I
+	public abstract fun minWidth ()I
+	public abstract fun resizeOrder ()Lee/schimke/composeai/preview/LauncherWidgetResizeOrder;
+	public abstract fun width ()I
+}
+
+public final class ee/schimke/composeai/preview/LauncherWidgetPreviewKt {
+	public static final field LAUNCHER_WIDGET_CELL_BOUND_DEFAULT I
+	public static final field LAUNCHER_WIDGET_CELL_SIZE_DEFAULT I
+	public static final field LAUNCHER_WIDGET_CELL_SPACING_DEFAULT I
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/LauncherWidgetResize : java/lang/annotation/Annotation {
+	public abstract fun cellSizeDp ()I
+	public abstract fun cellSpacingDp ()I
+	public abstract fun frameDelayMs ()I
+	public abstract fun fromHeight ()I
+	public abstract fun fromWidth ()I
+	public abstract fun launcherMode ()Z
+	public abstract fun resizeOrder ()Lee/schimke/composeai/preview/LauncherWidgetResizeOrder;
+	public abstract fun toHeight ()I
+	public abstract fun toWidth ()I
+}
+
+public final class ee/schimke/composeai/preview/LauncherWidgetResizeKt {
+	public static final field DEFAULT_LAUNCHER_WIDGET_RESIZE_FRAME_DELAY_MS I
+}
+
+public final class ee/schimke/composeai/preview/LauncherWidgetResizeOrder : java/lang/Enum {
+	public static final field Diagonal Lee/schimke/composeai/preview/LauncherWidgetResizeOrder;
+	public static final field HeightFirst Lee/schimke/composeai/preview/LauncherWidgetResizeOrder;
+	public static final field WidthFirst Lee/schimke/composeai/preview/LauncherWidgetResizeOrder;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/LauncherWidgetResizeOrder;
+	public static fun values ()[Lee/schimke/composeai/preview/LauncherWidgetResizeOrder;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/LightDarkPreview : java/lang/annotation/Annotation {
+}
+
+public final class ee/schimke/composeai/preview/MotionFormat : java/lang/Enum {
+	public static final field Apng Lee/schimke/composeai/preview/MotionFormat;
+	public static final field Gif Lee/schimke/composeai/preview/MotionFormat;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/MotionFormat;
+	public static fun values ()[Lee/schimke/composeai/preview/MotionFormat;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/NotificationPreview : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/OverrideVariant : java/lang/annotation/Annotation {
+	public abstract fun booleans ()[Ljava/lang/String;
+	public abstract fun colors ()[Ljava/lang/String;
+	public abstract fun floats ()[Ljava/lang/String;
+	public abstract fun interaction ()Lee/schimke/composeai/preview/VariantInteraction;
+	public abstract fun interactionIndex ()I
+	public abstract fun ints ()[Ljava/lang/String;
+	public abstract fun kitAxis ()Ljava/lang/String;
+	public abstract fun kitProps ()[Ljava/lang/String;
+	public abstract fun kitValue ()Ljava/lang/String;
+	public abstract fun name ()Ljava/lang/String;
+	public abstract fun noReference ()Ljava/lang/String;
+	public abstract fun secondary ()Z
+	public abstract fun strings ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/OverrideVariant$Container : java/lang/annotation/Annotation {
+	public abstract fun value ()[Lee/schimke/composeai/preview/OverrideVariant;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/PermissionPreview : java/lang/annotation/Annotation {
+	public abstract fun grants ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/PreviewAxis : java/lang/annotation/Annotation {
+	public static final field Companion Lee/schimke/composeai/preview/PreviewAxis$Companion;
+	public static final field MAX_CELLS I
+	public static final field MAX_CELLS_WARN I
+	public abstract fun default ()Ljava/lang/String;
+	public abstract fun key ()Ljava/lang/String;
+	public abstract fun kind ()Lee/schimke/composeai/preview/PreviewAxisKind;
+	public abstract fun namesEveryValue ()Z
+	public abstract fun order ()I
+	public abstract fun slugs ()[Ljava/lang/String;
+	public abstract fun values ()[Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/preview/PreviewAxis$Companion {
+	public static final field MAX_CELLS I
+	public static final field MAX_CELLS_WARN I
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/PreviewAxis$Container : java/lang/annotation/Annotation {
+	public abstract fun value ()[Lee/schimke/composeai/preview/PreviewAxis;
+}
+
+public final class ee/schimke/composeai/preview/PreviewAxisKind : java/lang/Enum {
+	public static final field BOOLEAN Lee/schimke/composeai/preview/PreviewAxisKind;
+	public static final field FLOAT Lee/schimke/composeai/preview/PreviewAxisKind;
+	public static final field INT Lee/schimke/composeai/preview/PreviewAxisKind;
+	public static final field STRING Lee/schimke/composeai/preview/PreviewAxisKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/PreviewAxisKind;
+	public static fun values ()[Lee/schimke/composeai/preview/PreviewAxisKind;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/PreviewHelper : java/lang/annotation/Annotation {
+	public abstract fun includeInA11y ()Z
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/PreviewWrapperClass : java/lang/annotation/Annotation {
+	public abstract fun wrapperClassName ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/preview/ScrollAxis : java/lang/Enum {
+	public static final field HORIZONTAL Lee/schimke/composeai/preview/ScrollAxis;
+	public static final field VERTICAL Lee/schimke/composeai/preview/ScrollAxis;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/ScrollAxis;
+	public static fun values ()[Lee/schimke/composeai/preview/ScrollAxis;
+}
+
+public final class ee/schimke/composeai/preview/ScrollMode : java/lang/Enum {
+	public static final field END Lee/schimke/composeai/preview/ScrollMode;
+	public static final field GIF Lee/schimke/composeai/preview/ScrollMode;
+	public static final field LONG Lee/schimke/composeai/preview/ScrollMode;
+	public static final field TOP Lee/schimke/composeai/preview/ScrollMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/ScrollMode;
+	public static fun values ()[Lee/schimke/composeai/preview/ScrollMode;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/ScrollingPreview : java/lang/annotation/Annotation {
+	public abstract fun axis ()Lee/schimke/composeai/preview/ScrollAxis;
+	public abstract fun frameIntervalMs ()I
+	public abstract fun maxScrollPx ()I
+	public abstract fun modes ()[Lee/schimke/composeai/preview/ScrollMode;
+	public abstract fun reduceMotion ()Z
+}
+
+public final class ee/schimke/composeai/preview/ScrollingPreviewKt {
+	public static final field DEFAULT_GIF_FRAME_INTERVAL_MS I
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/SettledPreview : java/lang/annotation/Annotation {
+	public abstract fun afterMs ()I
+	public abstract fun maxMs ()I
+}
+
+public final class ee/schimke/composeai/preview/SettledPreviewKt {
+	public static final field AUTO_SETTLE_MS I
+	public static final field DEFAULT_SETTLE_MAX_MS I
+	public static final field MAX_SETTLE_MS I
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/ShapeCatalog : java/lang/annotation/Annotation {
+	public abstract fun group ()Ljava/lang/String;
+	public abstract fun name ()Ljava/lang/String;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/ThemeCatalog : java/lang/annotation/Annotation {
+	public abstract fun group ()Ljava/lang/String;
+	public abstract fun name ()Ljava/lang/String;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/TypographyCatalog : java/lang/annotation/Annotation {
+	public abstract fun group ()Ljava/lang/String;
+	public abstract fun name ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/preview/VariantInteraction : java/lang/Enum {
+	public static final field Dragged Lee/schimke/composeai/preview/VariantInteraction;
+	public static final field Focused Lee/schimke/composeai/preview/VariantInteraction;
+	public static final field Hovered Lee/schimke/composeai/preview/VariantInteraction;
+	public static final field None Lee/schimke/composeai/preview/VariantInteraction;
+	public static final field Pressed Lee/schimke/composeai/preview/VariantInteraction;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/VariantInteraction;
+	public static fun values ()[Lee/schimke/composeai/preview/VariantInteraction;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/WearThemeCatalog : java/lang/annotation/Annotation {
+	public abstract fun group ()Ljava/lang/String;
+	public abstract fun name ()Ljava/lang/String;
+}
+
+public abstract interface annotation class ee/schimke/composeai/preview/XrSubspacePreview : java/lang/annotation/Annotation {
+}
+

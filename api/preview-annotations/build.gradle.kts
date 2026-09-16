@@ -1,6 +1,7 @@
 plugins {
   id("composeai.base-conventions")
   id("composeai.maven-publishing")
+  id("composeai.abi-validation")
   // Kotlin Multiplatform so the annotations are usable from a KMP consumer's `commonMain` (e.g.
   // meshcore-mobile's `:meshcore-components`, whose design tokens live in shared code). The
   // annotations are pure Kotlin with zero deps, so everything lives in `commonMain` and each target

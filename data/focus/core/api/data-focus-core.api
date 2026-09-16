@@ -1,0 +1,6 @@
+public final class ee/schimke/composeai/data/focus/Material3FocusProduct {
+	public static final field INSTANCE Lee/schimke/composeai/data/focus/Material3FocusProduct;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+}
+

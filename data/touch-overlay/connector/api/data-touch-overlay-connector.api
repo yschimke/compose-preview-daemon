@@ -1,0 +1,20 @@
+public final class ee/schimke/composeai/daemon/TouchOverlayExtension : ee/schimke/composeai/data/render/extensions/compose/AroundComposableExtension {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/TouchOverlayExtension$Companion;
+	public fun <init> ()V
+	public fun AroundComposable (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ee/schimke/composeai/daemon/TouchOverlayExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/TouchOverlayPreviewOverrideExtension : ee/schimke/composeai/data/render/extensions/DataExtension {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun getDefaultConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun plan (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+	public synthetic fun plan (Ljava/lang/Object;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+}
+

@@ -1,0 +1,77 @@
+public final class ee/schimke/composeai/daemon/Material3ThemeOverrideExtension : ee/schimke/composeai/data/render/extensions/compose/AroundComposableExtension {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/Material3ThemeOverrideExtension$Companion;
+	public fun <init> (Lee/schimke/composeai/daemon/protocol/Material3ThemeOverrides;)V
+	public fun AroundComposable (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ee/schimke/composeai/daemon/Material3ThemeOverrideExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/Material3ThemePreviewOverrideExtension : ee/schimke/composeai/data/render/extensions/DataExtension {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun getDefaultConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun plan (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+	public synthetic fun plan (Ljava/lang/Object;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+}
+
+public final class ee/schimke/composeai/daemon/ThemeCaptureExtension : ee/schimke/composeai/data/render/extensions/compose/ComposableExtractorExtension {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/ThemeCaptureExtension$Companion;
+	public static final field PAYLOAD_KEY Ljava/lang/String;
+	public fun <init> ()V
+	public fun Extract (Lee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink;Lee/schimke/composeai/data/render/extensions/DataProductSink;Landroidx/compose/runtime/Composer;I)V
+	public fun getOutputs ()Ljava/util/Set;
+}
+
+public final class ee/schimke/composeai/daemon/ThemeCaptureExtension$Companion {
+	public final fun getThemeProduct ()Lee/schimke/composeai/data/render/extensions/DataProductKey;
+}
+
+public final class ee/schimke/composeai/daemon/ThemeConsumerCapture {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/ThemeConsumerCapture;
+	public final fun consumersFor (Ljava/lang/Object;Lee/schimke/composeai/data/theme/ResolvedThemeTokens;)Ljava/util/List;
+	public final fun extractFacts (Ljava/lang/Object;)Ljava/util/List;
+}
+
+public final class ee/schimke/composeai/daemon/ThemeDataProductKt {
+	public static final field MATERIAL3_THEME_PAYLOAD_CONTEXT_KEY Ljava/lang/String;
+	public static final fun Material3ThemeOverride (Lee/schimke/composeai/daemon/protocol/Material3ThemeOverrides;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+	public static final fun hexArgb-8_81llA (J)Ljava/lang/String;
+	public static final fun themePayloadFromMaterialTheme (Landroidx/compose/material3/ColorScheme;Landroidx/compose/material3/Typography;Landroidx/compose/material3/Shapes;)Lee/schimke/composeai/data/theme/ThemePayload;
+	public static final fun themePayloadFromPreviewContext (Lee/schimke/composeai/data/render/PreviewContext;)Lee/schimke/composeai/data/theme/ThemePayload;
+	public static final fun themePayloadFromPreviewContext (Lee/schimke/composeai/data/render/PreviewContext;Landroidx/compose/material3/Typography;Landroidx/compose/material3/Shapes;)Lee/schimke/composeai/data/theme/ThemePayload;
+	public static final fun themePayloadFromThemeObjects (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Landroidx/compose/material3/Typography;Landroidx/compose/material3/Shapes;)Lee/schimke/composeai/data/theme/ThemePayload;
+}
+
+public final class ee/schimke/composeai/daemon/ThemeDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/ThemeDataProductRegistry$Companion;
+	public static final field KIND Ljava/lang/String;
+	public static final field RENDER_MODE Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public fun <init> ()V
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public final fun capture (Ljava/lang/String;Lee/schimke/composeai/data/theme/ThemePayload;)V
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public fun getCapabilities ()Ljava/util/List;
+	public fun isKnown (Ljava/lang/String;)Z
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+	public final fun shouldCapture (Ljava/lang/String;Ljava/lang/String;)Z
+}
+
+public final class ee/schimke/composeai/daemon/ThemeDataProductRegistry$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/ThemeTokenReadingKt {
+	public static final fun themePayloadFromDuckTypedTheme (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lee/schimke/composeai/data/theme/ThemePayload;
+}
+

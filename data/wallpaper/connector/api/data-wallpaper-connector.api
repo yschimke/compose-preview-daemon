@@ -1,0 +1,53 @@
+public final class ee/schimke/composeai/daemon/WallpaperColorScheme {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/WallpaperColorScheme;
+	public final fun from-Iv8Zu3U (JZLee/schimke/composeai/daemon/protocol/WallpaperPaletteStyle;D)Landroidx/compose/material3/ColorScheme;
+	public static synthetic fun from-Iv8Zu3U$default (Lee/schimke/composeai/daemon/WallpaperColorScheme;JZLee/schimke/composeai/daemon/protocol/WallpaperPaletteStyle;DILjava/lang/Object;)Landroidx/compose/material3/ColorScheme;
+}
+
+public final class ee/schimke/composeai/daemon/WallpaperDataProductKt {
+	public static final field WALLPAPER_PAYLOAD_CONTEXT_KEY Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/WallpaperDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/WallpaperDataProductRegistry$Companion;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public fun <init> ()V
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public final fun capture (Ljava/lang/String;Lee/schimke/composeai/data/wallpaper/WallpaperPayload;)V
+	public final fun clear (Ljava/lang/String;)V
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public fun getCapabilities ()Ljava/util/List;
+	public fun isKnown (Ljava/lang/String;)Z
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/WallpaperDataProductRegistry$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/WallpaperOverrideExtension : ee/schimke/composeai/data/render/extensions/compose/AroundComposableExtension {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/WallpaperOverrideExtension$Companion;
+	public fun <init> (Lee/schimke/composeai/daemon/protocol/WallpaperOverride;)V
+	public fun AroundComposable (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ee/schimke/composeai/daemon/WallpaperOverrideExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/WallpaperPreviewOverrideExtension : ee/schimke/composeai/data/render/extensions/DataExtension {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun getDefaultConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun plan (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+	public synthetic fun plan (Ljava/lang/Object;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+}
+

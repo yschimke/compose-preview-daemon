@@ -1,0 +1,39 @@
+public final class ee/schimke/composeai/data/ambient/AmbientPayload {
+	public static final field Companion Lee/schimke/composeai/data/ambient/AmbientPayload$Companion;
+	public fun <init> (Ljava/lang/String;ZZJ)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun component3 ()Z
+	public final fun component4 ()J
+	public final fun copy (Ljava/lang/String;ZZJ)Lee/schimke/composeai/data/ambient/AmbientPayload;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/ambient/AmbientPayload;Ljava/lang/String;ZZJILjava/lang/Object;)Lee/schimke/composeai/data/ambient/AmbientPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBurnInProtectionRequired ()Z
+	public final fun getDeviceHasLowBitAmbient ()Z
+	public final fun getState ()Ljava/lang/String;
+	public final fun getUpdateTimeMillis ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/data/ambient/AmbientPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lee/schimke/composeai/data/ambient/AmbientPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/data/ambient/AmbientPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/data/ambient/AmbientPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/ambient/AmbientPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/ambient/Material3AmbientProduct {
+	public static final field INSTANCE Lee/schimke/composeai/data/ambient/Material3AmbientProduct;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+}
+

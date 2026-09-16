@@ -1,0 +1,88 @@
+public final class ee/schimke/composeai/daemon/FakeClockOverrideExtension : ee/schimke/composeai/data/render/extensions/compose/AroundComposableExtension {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/FakeClockOverrideExtension$Companion;
+	public fun <init> (J)V
+	public fun AroundComposable (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ee/schimke/composeai/daemon/FakeClockOverrideExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/FakeClockPreviewOverrideExtension : ee/schimke/composeai/data/render/extensions/DataExtension {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun getDefaultConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun plan (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+	public synthetic fun plan (Ljava/lang/Object;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+}
+
+public final class ee/schimke/composeai/daemon/PlaceholderStateOverrideExtension : ee/schimke/composeai/data/render/extensions/compose/AroundComposableExtension {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/PlaceholderStateOverrideExtension$Companion;
+	public fun <init> (Z)V
+	public fun AroundComposable (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ee/schimke/composeai/daemon/PlaceholderStateOverrideExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/PlaceholderStatePreviewOverrideExtension : ee/schimke/composeai/daemon/AlwaysOnPreviewOverrideExtension, ee/schimke/composeai/data/render/extensions/DataExtension {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun getDefaultConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun plan (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+	public synthetic fun plan (Ljava/lang/Object;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewOverridesDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/PreviewOverridesDataProductRegistry$Companion;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public fun <init> ()V
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public fun getCapabilities ()Ljava/util/List;
+	public fun isKnown (Ljava/lang/String;)Z
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewOverridesDataProductRegistry$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/PreviewOverridesOverrideExtension : ee/schimke/composeai/data/render/extensions/compose/AroundComposableHook {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/PreviewOverridesOverrideExtension$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun Around (Lee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewOverridesOverrideExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewOverridesPreviewOverrideExtension : ee/schimke/composeai/daemon/AlwaysOnPreviewOverrideExtension, ee/schimke/composeai/data/render/extensions/DataExtension {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun getDefaultConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun plan (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+	public synthetic fun plan (Ljava/lang/Object;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+}
+

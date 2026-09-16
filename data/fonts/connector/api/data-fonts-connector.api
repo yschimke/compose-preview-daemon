@@ -1,0 +1,4 @@
+public final class ee/schimke/composeai/daemon/FontsUsedDataProductRegistry : ee/schimke/composeai/daemon/FileBackedDataProductRegistry {
+	public fun <init> (Ljava/io/File;)V
+}
+

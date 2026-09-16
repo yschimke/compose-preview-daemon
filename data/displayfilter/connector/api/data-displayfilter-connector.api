@@ -1,0 +1,46 @@
+public final class ee/schimke/composeai/daemon/DisplayFilterArtifactRecord {
+	public fun <init> (Lee/schimke/composeai/data/displayfilter/DisplayFilter;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Lee/schimke/composeai/data/displayfilter/DisplayFilter;Ljava/lang/String;Ljava/lang/String;)Lee/schimke/composeai/daemon/DisplayFilterArtifactRecord;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/DisplayFilterArtifactRecord;Lee/schimke/composeai/data/displayfilter/DisplayFilter;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/daemon/DisplayFilterArtifactRecord;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilter ()Lee/schimke/composeai/data/displayfilter/DisplayFilter;
+	public final fun getMediaType ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/DisplayFilterConfig {
+	public static final field FILTERS_PROP Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DisplayFilterConfig;
+	public final fun fromSystemProperties ()Ljava/util/List;
+	public final fun parseFilters (Ljava/lang/String;)Ljava/util/List;
+}
+
+public final class ee/schimke/composeai/daemon/DisplayFilterDataProducer {
+	public static final field FILE_VARIANTS Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DisplayFilterDataProducer;
+	public static final field KIND_VARIANTS Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public final fun writeArtifacts (Ljava/io/File;Ljava/lang/String;Ljava/io/File;Ljava/util/List;Lokio/FileSystem;)Ljava/util/List;
+	public static synthetic fun writeArtifacts$default (Lee/schimke/composeai/daemon/DisplayFilterDataProducer;Ljava/io/File;Ljava/lang/String;Ljava/io/File;Ljava/util/List;Lokio/FileSystem;ILjava/lang/Object;)Ljava/util/List;
+}
+
+public final class ee/schimke/composeai/daemon/DisplayFilterDataProductRegistry : ee/schimke/composeai/daemon/FileBackedDataProductRegistry {
+	public fun <init> (Ljava/io/File;)V
+}
+
+public final class ee/schimke/composeai/daemon/DisplayFilterPostCaptureExtensions {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DisplayFilterPostCaptureExtensions;
+	public final fun getDefaults ()Ljava/util/List;
+}
+
+public final class ee/schimke/composeai/daemon/DisplayFilterPostCapturePipelineKt {
+	public static final fun displayFilterArtifacts (Lee/schimke/composeai/data/render/extensions/DataProductStore;)Lee/schimke/composeai/data/displayfilter/DisplayFilterArtifacts;
+	public static final fun runDisplayFilterPostCapturePipeline (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/RenderImageArtifact;Ljava/io/File;Ljava/util/List;Ljava/util/List;Lee/schimke/composeai/data/render/extensions/DataExtensionTarget;)Lee/schimke/composeai/data/render/extensions/DataProductStore;
+	public static synthetic fun runDisplayFilterPostCapturePipeline$default (Ljava/lang/String;Lee/schimke/composeai/data/render/extensions/RenderImageArtifact;Ljava/io/File;Ljava/util/List;Ljava/util/List;Lee/schimke/composeai/data/render/extensions/DataExtensionTarget;ILjava/lang/Object;)Lee/schimke/composeai/data/render/extensions/DataProductStore;
+}
+

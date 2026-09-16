@@ -8,6 +8,7 @@
 plugins {
   id("composeai.base-conventions")
   id("composeai.maven-publishing")
+  id("composeai.abi-validation")
   alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.compose.multiplatform)
   alias(libs.plugins.compose.compiler)

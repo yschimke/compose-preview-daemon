@@ -1,0 +1,154 @@
+public final class ee/schimke/composeai/daemon/DeviceBackgroundDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/DeviceBackgroundDataProductRegistry$Companion;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public fun <init> (Lee/schimke/composeai/daemon/PreviewIndex;)V
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public fun getCapabilities ()Ljava/util/List;
+	public fun isKnown (Ljava/lang/String;)Z
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/DeviceBackgroundDataProductRegistry$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/DeviceBackgroundExtension : ee/schimke/composeai/data/render/extensions/compose/AroundComposableExtension {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+	public fun AroundComposable (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ee/schimke/composeai/daemon/DeviceClipDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/DeviceClipDataProductRegistry$Companion;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public fun <init> (Lee/schimke/composeai/daemon/PreviewIndex;)V
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public fun getCapabilities ()Ljava/util/List;
+	public fun isKnown (Ljava/lang/String;)Z
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/DeviceClipDataProductRegistry$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/DeviceClipExtension : ee/schimke/composeai/data/render/extensions/compose/AroundComposableExtension {
+	public static final field $stable I
+	public fun <init> (Lee/schimke/composeai/daemon/DeviceClipShape;)V
+	public fun AroundComposable (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class ee/schimke/composeai/daemon/DeviceClipShape {
+}
+
+public final class ee/schimke/composeai/daemon/DeviceClipShape$Circle : ee/schimke/composeai/daemon/DeviceClipShape {
+	public static final field $stable I
+	public fun <init> (DDD)V
+	public final fun component1 ()D
+	public final fun component2 ()D
+	public final fun component3 ()D
+	public final fun copy (DDD)Lee/schimke/composeai/daemon/DeviceClipShape$Circle;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/DeviceClipShape$Circle;DDDILjava/lang/Object;)Lee/schimke/composeai/daemon/DeviceClipShape$Circle;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCenterXDp ()D
+	public final fun getCenterYDp ()D
+	public final fun getRadiusDp ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/PerfettoTraceDataProducer {
+	public static final field $stable I
+	public static final field ENABLED_PROP Ljava/lang/String;
+	public static final field FILE Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/PerfettoTraceDataProducer;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public final fun enabled ()Z
+	public final fun recorder (Ljava/lang/String;Ljava/lang/String;Z)Lee/schimke/composeai/daemon/PerfettoTraceDataProducer$Recorder;
+	public static synthetic fun recorder$default (Lee/schimke/composeai/daemon/PerfettoTraceDataProducer;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lee/schimke/composeai/daemon/PerfettoTraceDataProducer$Recorder;
+	public final fun writeArtifacts (Ljava/io/File;Ljava/lang/String;Lee/schimke/composeai/data/render/TracePayload;)V
+}
+
+public final class ee/schimke/composeai/daemon/PerfettoTraceDataProducer$Recorder {
+	public static final field $stable I
+	public fun <init> (Lee/schimke/composeai/data/render/PerfettoTraceDataProducer$Recorder;)V
+	public final fun beginSection (Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun beginSection$default (Lee/schimke/composeai/daemon/PerfettoTraceDataProducer$Recorder;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun endSection ()V
+	public final fun payload ()Lee/schimke/composeai/data/render/TracePayload;
+	public final fun record (Ljava/lang/String;Ljava/lang/String;JJI)V
+	public static synthetic fun record$default (Lee/schimke/composeai/daemon/PerfettoTraceDataProducer$Recorder;Ljava/lang/String;Ljava/lang/String;JJIILjava/lang/Object;)V
+	public final fun renderTrace ()Lee/schimke/composeai/data/render/RenderTrace;
+	public final fun section (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public static synthetic fun section$default (Lee/schimke/composeai/daemon/PerfettoTraceDataProducer$Recorder;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun write (Ljava/io/File;)V
+}
+
+public final class ee/schimke/composeai/daemon/PerfettoTraceDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field $stable I
+	public fun <init> (Ljava/io/File;Lokio/FileSystem;)V
+	public synthetic fun <init> (Ljava/io/File;Lokio/FileSystem;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public fun getCapabilities ()Ljava/util/List;
+	public fun isKnown (Ljava/lang/String;)Z
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/RenderTraceDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/RenderTraceDataProductRegistry$Companion;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public fun <init> ()V
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public fun getCapabilities ()Ljava/util/List;
+	public fun isKnown (Ljava/lang/String;)Z
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/RenderTraceDataProductRegistry$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/TestFailureDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/TestFailureDataProductRegistry$Companion;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public fun <init> ()V
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public fun getCapabilities ()Ljava/util/List;
+	public fun isKnown (Ljava/lang/String;)Z
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/TestFailureDataProductRegistry$Companion {
+}
+

@@ -1,0 +1,17 @@
+public final class ee/schimke/composeai/glimmer/GlimmerEnvironment : java/lang/Enum {
+	public static final field Busy Lee/schimke/composeai/glimmer/GlimmerEnvironment;
+	public static final field Dark Lee/schimke/composeai/glimmer/GlimmerEnvironment;
+	public static final field Light Lee/schimke/composeai/glimmer/GlimmerEnvironment;
+	public static final field VeniceCanalCats Lee/schimke/composeai/glimmer/GlimmerEnvironment;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/glimmer/GlimmerEnvironment;
+	public static fun values ()[Lee/schimke/composeai/glimmer/GlimmerEnvironment;
+}
+
+public final class ee/schimke/composeai/glimmer/GlimmerEnvironmentCompositor {
+	public static final field INSTANCE Lee/schimke/composeai/glimmer/GlimmerEnvironmentCompositor;
+	public final fun applyToPng (Ljava/io/File;Lee/schimke/composeai/glimmer/GlimmerEnvironment;Ljava/io/File;)Ljava/io/File;
+	public static synthetic fun applyToPng$default (Lee/schimke/composeai/glimmer/GlimmerEnvironmentCompositor;Ljava/io/File;Lee/schimke/composeai/glimmer/GlimmerEnvironment;Ljava/io/File;ILjava/lang/Object;)Ljava/io/File;
+	public final fun composite (Ljava/awt/image/BufferedImage;Lee/schimke/composeai/glimmer/GlimmerEnvironment;)Ljava/awt/image/BufferedImage;
+}
+
