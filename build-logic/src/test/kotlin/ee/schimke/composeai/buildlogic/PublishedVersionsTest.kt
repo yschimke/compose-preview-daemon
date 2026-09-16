@@ -91,34 +91,11 @@ class PublishedVersionsTest {
     )
   }
 
-  @Test
-  fun `the committed manifest covers every published module`() {
-    val repoRoot =
-      generateSequence(File(System.getProperty("user.dir")).absoluteFile) { it.parentFile }
-        .first { it.resolve("settings.gradle.kts").isFile && it.resolve("build-logic").isDirectory }
-    val manifestText = repoRoot.resolve("publishing-manifest.json").readText()
-    val settings = repoRoot.resolve("settings.gradle.kts").readText()
-    val projectDirs =
-      Regex("""project\("(:[^"]+)"\)\.projectDir = file\("([^"]+)"\)""")
-        .findAll(settings)
-        .associate { it.groupValues[1] to it.groupValues[2] }
-
-    var checked = 0
-    Regex("""^include\("(:[^"]+)"\)""", RegexOption.MULTILINE).findAll(settings).forEach { match ->
-      val path = match.groupValues[1]
-      val dir = repoRoot.resolve(projectDirs[path] ?: path.removePrefix(":").replace(':', '/'))
-      val buildFile = dir.resolve("build.gradle.kts")
-      if (!buildFile.isFile) return@forEach
-      if (!buildFile.readText().contains("composeai.maven-publishing\")")) return@forEach
-      val artifactId = path.removePrefix(":").replace(':', '-')
-      // A module missing here cannot be skipped, so the plan script publishes it every release --
-      // silently losing the saving rather than breaking. Caught at `check` instead.
-      assertTrue(
-        PublishedVersions.recordedVersion(artifactId, manifestText) != null,
-        "$artifactId is missing from publishing-manifest.json",
-      )
-      checked++
-    }
-    assertTrue(checked > 50, "expected to check the published modules, checked $checked")
-  }
+  // `the committed manifest covers every published module` lived here. It guarded against a
+  // module falling out of a hand-maintained list and being republished every release forever.
+  //
+  // There is no list to fall out of now: the plan asks Maven Central for whatever modules it
+  // discovers in `settings.gradle.kts`, and a coordinate Central has never seen resolves to
+  // "publish". What remains worth guarding is the discovery itself, which is why an unreadable
+  // build file is a hard error in `maven-publish-plan.sh` rather than a skip.
 }

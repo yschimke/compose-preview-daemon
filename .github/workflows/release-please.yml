@@ -72,11 +72,13 @@ jobs:
       SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
     # A called workflow's jobs may not request more than the calling job holds; anything omitted
     # here is `none` for every job in `release.yml`, and asking for more than `none` fails the
-    # whole run at startup, before a single job is created. `record-published` opens the manifest
-    # pull request, so it needs `pull-requests: write` -- and when that arrived without this line
+    # whole run at startup, before a single job is created. That is not hypothetical: when
+    # `record-published` arrived wanting `pull-requests: write` and this block did not grant it,
     # the next two pushes to main died as `startup_failure`, which is why v3.6.1 merged its release
-    # PR and was never tagged or published. Keep this in step with the job `permissions` blocks in
-    # `release.yml`.
+    # PR and was never tagged or published.
+    #
+    # `pull-requests: write` is gone with that job -- the publish plan reads its baseline from
+    # Maven Central now and writes nothing back. Keep this in step with the job `permissions`
+    # blocks in `release.yml`.
     permissions:
       contents: write
-      pull-requests: write

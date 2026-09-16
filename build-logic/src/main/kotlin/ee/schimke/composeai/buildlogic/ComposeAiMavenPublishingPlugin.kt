@@ -204,7 +204,14 @@ internal fun Project.platformPublishedVersion(): String =
   providers.environmentVariable("PLUGIN_VERSION").orNull?.takeIf { it.isNotBlank() }
     ?: nextPatchSnapshotVersion()
 
-/** The committed `publishing-manifest.json`, or an empty document when there is none. */
+/**
+ * `publishing-manifest.json`, or an empty document when there is none.
+ *
+ * NOT a committed file. The release job's publish plan resolves each coordinate's published version
+ * from Maven Central and writes it here (`--write-manifest`) before Gradle runs, so a module the
+ * release skips can name the version it is already published at. Outside a release the file is
+ * absent and nothing reads it: `publishedVersion` only consults it when `PLUGIN_VERSION` is set.
+ */
 internal fun Project.publishingManifestText(): String =
   generateSequence(rootDir) { it.parentFile }
     .map { it.resolve("publishing-manifest.json") }
