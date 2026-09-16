@@ -40,6 +40,20 @@ import kotlinx.serialization.json.Json
  * Version 1 manifests are **not** read. They describe a surface that no longer exists, and their
  * PNGs would paint a stage with nothing addressable on it; [supportsDesignPagesVersion] refuses
  * them so a stale delivery branch shows no pages rather than a page that does nothing.
+ *
+ * ## A page is a stack of layers, and 2 still covers it
+ *
+ * A page is no longer one drawing. It is, bottom to top: shared raster plates
+ * ([DesignPage.background], resolved through [DesignPagesManifest.assets]), the sanitized design
+ * SVG over them at [DesignPage.designBlend], and this catalog's renders in the holes it leaves at
+ * [DesignPage.renderBlend].
+ *
+ * That is a bigger change than it looks and it is still **version 2**, on purpose. Every field it
+ * adds carries a default that reproduces the old behaviour exactly — no plates, everything
+ * `source-over` — so a manifest written before any of it existed parses into the same stack it
+ * always described, and an older server reading a newer manifest ignores the plates rather than
+ * refusing the page. Bumping the version would instead make every already-published delivery branch
+ * unreadable on the day this released, to describe a superset of what they already say.
  */
 public const val DESIGN_PAGES_VERSION: Int = 2
 
@@ -64,6 +78,90 @@ public fun supportsDesignPagesVersion(version: Int): Boolean = version == DESIGN
 public val DesignPagesJson: Json = Json {
   ignoreUnknownKeys = true
   explicitNulls = false
+  /**
+   * An enum value this build does not know falls back to the property's default instead of failing
+   * the parse.
+   *
+   * Same reasoning as `ignoreUnknownKeys` one line up, applied to the other half of an additive
+   * change. A delivery branch is regenerated on its own schedule and can be newer than the server
+   * reading it, and every enum on this contract is a *closed allowlist* — [PageBlendMode] most of
+   * all, which exists precisely so a manifest cannot name a compositing mode a consumer has not
+   * vetted. Without this, one `"blend": "hue"` from a newer producer would throw, and the
+   * `runCatching` every reader wraps this in would drop **every page in the manifest** over one
+   * field on one layer. With it, that layer composites `source-over` — the backward-compatible
+   * default, and the one answer that is never a surprise — and the other thirty pages still draw.
+   *
+   * Coercion is not laxity: an unknown value is *refused*, it just degrades to the safe default
+   * rather than taking the surface down with it. It applies only where the property has a default,
+   * which on this contract is every enum-typed one.
+   */
+  coerceInputValues = true
+}
+
+/**
+ * How a layer composites with what is already painted beneath it — a **closed allowlist**, not a
+ * CSS passthrough.
+ *
+ * A design page is assembled from layers now rather than being one flat drawing: shared background
+ * plates underneath ([DesignPage.background]), the sanitized design SVG over them, and this
+ * catalog's own renders in the holes it leaves. The moment those are separate layers, *how* they
+ * combine stops being implicit — and it is not always `source-over`. The Material 3 Glimmer kit's
+ * Buttons sheet is the case that named this: its component sets are authored `mix-blend-mode:
+ * screen` over image backplates, so compositing them opaquely over a pale fallback fill washes the
+ * whole sheet toward white.
+ *
+ * **An enum, and never a string that reaches CSS.** The markup around these layers is inlined into
+ * a served page, and a manifest comes off a delivery branch this server did not write. A `blend`
+ * field carrying arbitrary text would be a style-injection route straight through the one surface
+ * the SVG sanitizer exists to guard. Every value here is one a consumer has vetted, and [css] — not
+ * the serial name, and never the manifest's own bytes — is what a renderer may emit.
+ *
+ * Adding a mode is deliberately a change to this file: a design system that needs `overlay` gets it
+ * by someone reasoning about it here, not by writing it into a JSON file on a branch.
+ */
+@Serializable
+public enum class PageBlendMode {
+  /**
+   * Ordinary painting: the layer covers what is under it. The default everywhere, and the value a
+   * manifest that says nothing means.
+   */
+  @SerialName("source-over") SOURCE_OVER,
+
+  /** What Figma authors as `screen` — the Glimmer kit's component sets. Never darkens. */
+  @SerialName("screen") SCREEN,
+
+  /** Figma's `multiply`. Never lightens; the usual shadow/ink plate. */
+  @SerialName("multiply") MULTIPLY,
+
+  /**
+   * Additive light.
+   *
+   * Distinct from [SCREEN] and not interchangeable with it, which is the whole reason the design
+   * layer and the render layer carry separate modes ([DesignPage.designBlend],
+   * [DesignPage.renderBlend]). Figma's Buttons page *authors* screen blending; an emissive capture
+   * of the same components is additive radiance. Compositing each the way it was actually produced
+   * is what makes the two lanes comparable pixel for pixel — forcing one mode on both would make
+   * the diff a measurement of the mistake.
+   */
+  @SerialName("plus-lighter") PLUS_LIGHTER;
+
+  /**
+   * The CSS `mix-blend-mode` keyword for this mode.
+   *
+   * Separate from the serial name on purpose. The wire spells the default `source-over`, after the
+   * Porter-Duff operator, because that is what it *is* and what a non-CSS consumer (a Skia or
+   * Canvas compositor) needs to hear; CSS spells the same thing `normal`. Mapping here rather than
+   * at each call site means a renderer emits a vetted keyword without ever touching the manifest's
+   * own bytes.
+   */
+  public val css: String
+    get() =
+      when (this) {
+        SOURCE_OVER -> "normal"
+        SCREEN -> "screen"
+        MULTIPLY -> "multiply"
+        PLUS_LIGHTER -> "plus-lighter"
+      }
 }
 
 /** How a node on the page was linked to code. */
@@ -295,6 +393,172 @@ public data class PageImage(
 }
 
 /**
+ * A **shared raster asset** — a backplate stored once in the bundle and referenced by however many
+ * pages place it.
+ *
+ * ## Why a design page needs one at all
+ *
+ * A specimen sheet's heavy imagery and its addressable drawing pull in opposite directions. The
+ * drawing has to stay an SVG — the node ids are the whole join, so a consumer can hide the design's
+ * own rendering of a component and put a catalog render in its place. The imagery is photographic
+ * or gradient backplate, which inlines into that SVG as base64 and blows past the page-size cap.
+ *
+ * Until now the only lever was to delete the backdrop (`excludeNodes` in the importer), and for a
+ * backdrop-dependent sheet that is not a size optimisation, it is a correctness bug: the Glimmer
+ * kit's Buttons page composites `screen`-blended component sets over five image backplates, and
+ * with the plates pruned those components land on a pale fallback fill and wash toward white. The
+ * page got smaller by losing the thing the retained drawing was drawn against.
+ *
+ * Storing the plate *beside* the SVG rather than inside it separates the two concerns: the page
+ * keeps every node id and stays interactive, the bytes are carried once, and a plate repeated
+ * across sections or pages resolves to one stored object.
+ *
+ * ## Content-addressed, and why that is load-bearing
+ *
+ * [id] is the SHA-256 of the encoded bytes, which buys three things at once: **deduplication** is
+ * automatic (identical bytes have identical ids, so the five instances of one plate are one file),
+ * **cache keys are immutable** (a published URL for `<id>` can never mean different bytes, so a
+ * public server may serve it with an unbounded max-age), and **integrity is checkable** (a consumer
+ * that hashes what it read has already verified it).
+ *
+ * ## Inert formats only
+ *
+ * [format] admits raster only. An SVG here would be markup a consumer never walked, reintroducing —
+ * underneath the sanitized layer, where it is least visible — exactly what the sanitizer exists to
+ * stop. Same reasoning as the `data:image/svg+xml` refusal in the SVG lane: an allowlist that stops
+ * at the first hop is not one.
+ *
+ * [width], [height] and [bytes] are stated rather than discovered so a consumer can refuse an asset
+ * **before** decoding it. A 64 KB PNG declaring 40000×40000 is a decompression bomb, and finding
+ * that out from the decoder is finding it out too late; see [isWellFormed].
+ */
+@Serializable
+public data class PageAsset(
+  /** Lowercase hex SHA-256 of the encoded bytes. Also the basename under the assets directory. */
+  val id: String,
+  /** Path to the file, relative to the manifest — conventionally `assets/<id>.<ext>`. */
+  val uri: String,
+  /** One of [PNG], [JPEG], [WEBP]. Raster only; see the class comment. */
+  val format: String,
+  /** Decoded width in pixels, as stated by the producer. */
+  val width: Int,
+  /** Decoded height in pixels, as stated by the producer. */
+  val height: Int,
+  /** Encoded size in bytes, as stated by the producer. */
+  val bytes: Long,
+) {
+  /**
+   * Whether this record is one a consumer should even open the file for.
+   *
+   * Cheap, total, and deliberately checked against the **declaration** rather than the file: it
+   * runs before any I/O, so a bomb is refused without being decoded. A consumer still verifies the
+   * bytes it actually read (signature, real dimensions, the hash against [id]) — this is the first
+   * gate, not the only one.
+   *
+   * Path safety is NOT checked here, because "safe relative path" is a property of the consumer's
+   * filesystem and its staging root, not of the contract; every reader already has that check for
+   * the SVG lane and applies the same one here.
+   */
+  public val isWellFormed: Boolean
+    get() =
+      SHA256_HEX.matches(id) &&
+        uri.isNotBlank() &&
+        format.lowercase() in FORMATS &&
+        width in 1..MAX_ASSET_DIMENSION &&
+        height in 1..MAX_ASSET_DIMENSION &&
+        width.toLong() * height.toLong() <= MAX_ASSET_PIXELS &&
+        bytes in 1..MAX_ASSET_BYTES
+
+  public companion object {
+    public const val PNG: String = "png"
+    public const val JPEG: String = "jpeg"
+    public const val WEBP: String = "webp"
+
+    /** The inert raster formats a shared background may be. See the class comment. */
+    public val FORMATS: Set<String> = setOf(PNG, JPEG, WEBP)
+
+    /**
+     * Encoded-byte ceiling for one asset.
+     *
+     * Generous — a full-bleed backplate for a 5000px-wide specimen sheet is megabytes — but not
+     * absent, and separate from the SVG lane's own limit because the two fail differently: an
+     * oversized SVG costs parse time, an oversized raster costs decoded heap.
+     */
+    public const val MAX_ASSET_BYTES: Long = 24L * 1024 * 1024
+
+    /** Longest permitted side, decoded. Above this nothing is a backplate, it is a mistake. */
+    public const val MAX_ASSET_DIMENSION: Int = 16384
+
+    /**
+     * Total decoded pixels. The limit that actually bounds memory: 4 bytes a pixel makes this ~256
+     * MB decoded, and a pair of sides each under [MAX_ASSET_DIMENSION] can still multiply out to
+     * far more than a server should be asked to hold.
+     */
+    public const val MAX_ASSET_PIXELS: Long = 64L * 1024 * 1024
+
+    private val SHA256_HEX = Regex("[0-9a-f]{64}")
+  }
+}
+
+/**
+ * How a shared asset is **placed** on one page: where it sits, how it fills its box, and how it
+ * composites.
+ *
+ * Separate from [PageAsset] because the bytes and the placement have different lifetimes and
+ * different cardinalities — one stored plate, many placements, each with its own box. That split is
+ * what lets the Buttons page keep five backplates while carrying the imagery once.
+ *
+ * Coordinates are in the page's own space, the one [PageFrame] describes and the SVG's `viewBox`
+ * defines, so a placement lines up with the drawing above it without a consumer having to know the
+ * export's scale. This is also why the code, design and diff lanes cannot drift apart: they read
+ * the same placements in the same space, so switching lanes changes the component source and
+ * nothing beneath it.
+ */
+@Serializable
+public data class PageLayerPlacement(
+  /** [PageAsset.id] of the asset to draw. A placement naming no stored asset is dropped. */
+  val asset: String,
+  val x: Double = 0.0,
+  val y: Double = 0.0,
+  val width: Double,
+  val height: Double,
+  /** Authored layer opacity, `0.0`–`1.0`. Out-of-range values are clamped by [isWellFormed]. */
+  val opacity: Double = 1.0,
+  /** One of [COVER], [CONTAIN], [FILL] — how the asset fills a box of a different aspect ratio. */
+  val fit: String = COVER,
+  /** Corner radius in page units, for a plate the design clips. */
+  val radius: Double = 0.0,
+  /** Whether the asset is clipped to its box. Off only for a plate that deliberately bleeds. */
+  val clip: Boolean = true,
+  /** How this plate composites with whatever is already beneath it. See [PageBlendMode]. */
+  val blend: PageBlendMode = PageBlendMode.SOURCE_OVER,
+) {
+  /** Whether the box is drawable at all: finite, positive, and with a usable opacity and fit. */
+  public val isWellFormed: Boolean
+    get() =
+      asset.isNotBlank() &&
+        x.isFinite() &&
+        y.isFinite() &&
+        width.isFinite() &&
+        width > 0.0 &&
+        height.isFinite() &&
+        height > 0.0 &&
+        opacity.isFinite() &&
+        opacity in 0.0..1.0 &&
+        radius.isFinite() &&
+        radius >= 0.0 &&
+        fit.lowercase() in FITS
+
+  public companion object {
+    public const val COVER: String = "cover"
+    public const val CONTAIN: String = "contain"
+    public const val FILL: String = "fill"
+
+    public val FITS: Set<String> = setOf(COVER, CONTAIN, FILL)
+  }
+}
+
+/**
  * The page's coordinate space, read off the exported SVG's own `viewBox`.
  *
  * Taken from the export rather than computed from the node tree precisely so that the number a
@@ -333,6 +597,39 @@ public data class DesignPage(
    * because 499 stamped nodes is a fact repeated 499 times that a re-import can get half-right.
    */
   val inventory: Boolean = true,
+  /**
+   * Shared raster plates painted **beneath** the design SVG, in paint order — first is furthest
+   * back.
+   *
+   * The page's scene, not its content. Every lane draws these and draws them identically, so
+   * switching between the design lane, the code lane and the diff changes which components sit on
+   * the sheet and nothing about what they sit on. A component's own detail view deliberately does
+   * NOT inherit them: a backplate is page context, and baking it into each component capture is the
+   * flattening this whole mechanism exists to avoid.
+   *
+   * Empty for every page published before this field existed, and for every page that needs no
+   * plate — which is most of them.
+   */
+  val background: List<PageLayerPlacement> = emptyList(),
+  /**
+   * How the sanitized design SVG composites over [background].
+   *
+   * `screen` for a kit whose component sets are authored that way. Stated per page rather than
+   * inferred from the markup because the authored mode belongs to the *layer*, and the sanitizer
+   * deliberately does not promote a `mix-blend-mode` it finds inside the export into a claim about
+   * the whole sheet.
+   */
+  val designBlend: PageBlendMode = PageBlendMode.SOURCE_OVER,
+  /**
+   * How this catalog's injected renders composite over the same scene.
+   *
+   * Separate from [designBlend], and that separation is the point. Figma's Buttons page *authors*
+   * screen blending; a Glimmer capture of the same components is additive radiance
+   * ([PageBlendMode.PLUS_LIGHTER]). Compositing each the way it was actually produced is what makes
+   * the two lanes comparable; forcing one mode on both would turn the diff into a measurement of
+   * the mistake.
+   */
+  val renderBlend: PageBlendMode = PageBlendMode.SOURCE_OVER,
 ) {
   /**
    * Nodes with code behind them — the numerator of the page's coverage.
@@ -394,10 +691,84 @@ public data class DesignPagesManifest(
   /** The design-tool file the pages came from. */
   val fileKey: String,
   val pages: List<DesignPage> = emptyList(),
+  /**
+   * Bundle-local shared raster assets, keyed by content hash and referenced by
+   * [DesignPage.background] placements.
+   *
+   * A table on the manifest rather than bytes on the page, so imagery repeated across sections and
+   * pages is carried once. Empty for every manifest published before this field existed.
+   */
+  val assets: List<PageAsset> = emptyList(),
 ) {
   /** Whether this build understands the manifest's version. */
   public val isSupported: Boolean
     get() = supportsDesignPagesVersion(version)
+
+  /**
+   * The well-formed assets, by id — the only ones a placement may resolve to.
+   *
+   * Filtered here rather than at each call site so an asset that fails [PageAsset.isWellFormed] (a
+   * bad hash, an unknown format, a declared size past the caps) is invisible to every consumer at
+   * once, and a placement naming it resolves to nothing rather than to something unchecked. A
+   * duplicate id keeps the first record: ids are content hashes, so two records under one id
+   * disagree about bytes that cannot differ, and picking the later one would let a malformed
+   * trailing entry mask a good one.
+   */
+  public val assetsById: Map<String, PageAsset>
+    get() {
+      val byId = LinkedHashMap<String, PageAsset>()
+      for (asset in assets) if (asset.isWellFormed) byId.putIfAbsent(asset.id, asset)
+      return byId
+    }
+
+  /**
+   * [page]'s background placements that actually resolve — well-formed boxes naming a well-formed
+   * asset, in paint order.
+   *
+   * The one accessor a renderer should use. Dropping an unresolvable placement rather than failing
+   * the page is the same fail-soft posture the rest of this surface takes: a sheet missing one
+   * plate is worth drawing, and a sheet that refuses to draw because a plate went missing is not.
+   */
+  public fun backgroundFor(page: DesignPage): List<PageLayerPlacement> {
+    val byId = assetsById
+    return page.background.filter { it.isWellFormed && byId.containsKey(it.asset) }
+  }
+
+  /**
+   * Asset ids some page places. The reachable set.
+   *
+   * Reads the raw [DesignPage.background] rather than [backgroundFor], deliberately: an id named by
+   * a placement that is *currently* unresolvable is still referenced, and treating it as garbage
+   * would have a validator delete the file and then report the reference as dangling on the next
+   * run. Reachability is about what the manifest points at, not about what draws today.
+   */
+  public val referencedAssetIds: Set<String>
+    get() = pages.flatMapTo(LinkedHashSet()) { page -> page.background.map { it.asset } }
+
+  /**
+   * Assets no page places — what a garbage collector removes and what `--check` reports.
+   *
+   * An unreachable asset is not a correctness problem, it is weight: a delivery branch is
+   * append-only, so a plate that stops being placed would otherwise be carried forever by every
+   * later publish.
+   */
+  public val unreachableAssets: List<PageAsset>
+    get() {
+      val referenced = referencedAssetIds
+      return assets.filterNot { it.id in referenced }
+    }
+
+  /**
+   * Placements that name an asset this manifest does not carry — dangling references.
+   *
+   * The other half of `--check`, and the one that is a real defect: a page asking for bytes the
+   * bundle does not have draws a hole where the design put a backdrop.
+   */
+  public val danglingAssetRefs: List<String>
+    get() {
+      val known = assets.mapTo(HashSet(), PageAsset::id)
+      return pages.flatMap { page -> page.background.map { it.asset } }.filterNot { it in known }
+    }
 
   /**
    * The design ref for [node], deriving it when the producer didn't write one.
