@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.7.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.6.1...v3.7.0) (2026-09-16)
+
+
+### Features
+
+* **build:** gate the published ABI on every JVM and KMP module ([#130](https://github.com/yschimke/compose-preview-daemon/issues/130)) ([b77abcc](https://github.com/yschimke/compose-preview-daemon/commit/b77abcc9be9cd9f3a9288bc471b0a3a1e9fc3f14))
+
+
+### Chores
+
+* record published versions for v3.6.1 ([#133](https://github.com/yschimke/compose-preview-daemon/issues/133)) ([fd363fb](https://github.com/yschimke/compose-preview-daemon/commit/fd363fbb2840ea1e1612a4fb646506ad77a068a5))
+
 ## [3.6.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.6.0...v3.6.1) (2026-09-16)
 
 
