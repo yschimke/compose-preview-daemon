@@ -1,0 +1,424 @@
+public final class ee/schimke/composeai/daemon/DaemonMain {
+	public static final fun main ([Ljava/lang/String;)V
+	public static final fun runDaemon (Ljava/io/InputStream;Ljava/io/OutputStream;ZLkotlin/jvm/functions/Function1;)V
+}
+
+public final class ee/schimke/composeai/daemon/DesktopAccessibilityDataProducer {
+	public static final field $stable I
+	public static final field FILE_ATF Ljava/lang/String;
+	public static final field FILE_HIERARCHY Ljava/lang/String;
+	public static final field FILE_OVERLAY Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DesktopAccessibilityDataProducer;
+	public static final field KIND_ATF Ljava/lang/String;
+	public static final field KIND_HIERARCHY Ljava/lang/String;
+	public static final field KIND_OVERLAY Ljava/lang/String;
+	public static final field OVERLAY_EXTRA_NAME Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public final fun writeArtifacts (Ljava/io/File;Ljava/lang/String;Ljava/util/List;Ljava/io/File;Lokio/FileSystem;)V
+	public static synthetic fun writeArtifacts$default (Lee/schimke/composeai/daemon/DesktopAccessibilityDataProducer;Ljava/io/File;Ljava/lang/String;Ljava/util/List;Ljava/io/File;Lokio/FileSystem;ILjava/lang/Object;)V
+}
+
+public final class ee/schimke/composeai/daemon/DesktopAccessibilityDataProductRegistry : ee/schimke/composeai/daemon/FileBackedDataProductRegistry {
+	public static final field $stable I
+	public fun <init> (Ljava/io/File;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/DesktopAccessibilityNodeExtractor {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DesktopAccessibilityNodeExtractor;
+	public final fun extractNodes (Landroidx/compose/ui/semantics/SemanticsNode;)Ljava/util/List;
+}
+
+public final class ee/schimke/composeai/daemon/DesktopAccessibilityOverlay {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DesktopAccessibilityOverlay;
+	public final fun generate (Ljava/io/File;Ljava/util/List;Ljava/io/File;Lokio/FileSystem;)Ljava/io/File;
+	public static synthetic fun generate$default (Lee/schimke/composeai/daemon/DesktopAccessibilityOverlay;Ljava/io/File;Ljava/util/List;Ljava/io/File;Lokio/FileSystem;ILjava/lang/Object;)Ljava/io/File;
+}
+
+public class ee/schimke/composeai/daemon/DesktopHost : ee/schimke/composeai/daemon/RenderHost {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/DesktopHost$Companion;
+	public static final field RECORDINGS_DIR_PROP Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/UserClassLoaderHolder;Lkotlin/jvm/functions/Function1;Lee/schimke/composeai/daemon/DesktopHost$InteractiveSessionListener;)V
+	public synthetic fun <init> (Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/UserClassLoaderHolder;Lkotlin/jvm/functions/Function1;Lee/schimke/composeai/daemon/DesktopHost$InteractiveSessionListener;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun acquireInteractiveSession (Ljava/lang/String;Ljava/lang/ClassLoader;Ljava/lang/Boolean;Lkotlin/jvm/functions/Function0;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/daemon/InteractiveSession;
+	public fun acquireRecordingSession (Ljava/lang/String;Ljava/lang/String;Ljava/lang/ClassLoader;IFLee/schimke/composeai/daemon/protocol/PreviewOverrides;Z)Lee/schimke/composeai/daemon/RecordingSession;
+	public fun getAndroidSdk ()Ljava/lang/Integer;
+	public fun getBackendKind ()Lee/schimke/composeai/daemon/protocol/BackendKind;
+	public final fun getRenderThreadInterrupted ()Z
+	public fun getSupportedInteractiveControlKinds ()Ljava/util/Set;
+	public fun getSupportedOverrides ()Ljava/util/Set;
+	public fun getSupportedRecordingFormats ()Ljava/util/List;
+	public fun getSupportsInteractive ()Z
+	public fun getSupportsRecording ()Z
+	public fun getUserClassloaderHolder ()Lee/schimke/composeai/daemon/UserClassLoaderHolder;
+	public fun previewParameterRows (Ljava/lang/String;)Ljava/util/List;
+	public fun recordingScriptEventDescriptors ()Ljava/util/List;
+	public fun shutdown (J)V
+	public fun start ()V
+	public fun submit (Lee/schimke/composeai/daemon/RenderRequest;J)Lee/schimke/composeai/daemon/RenderResult;
+	public fun swapUserClassLoaders ()V
+}
+
+public final class ee/schimke/composeai/daemon/DesktopHost$Companion {
+}
+
+public abstract interface class ee/schimke/composeai/daemon/DesktopHost$InteractiveSessionListener {
+	public abstract fun onSessionLifecycle (Ljava/lang/String;Landroidx/compose/ui/ImageComposeScene;)V
+}
+
+public final class ee/schimke/composeai/daemon/DesktopInteractiveSession : ee/schimke/composeai/daemon/InteractiveSession {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/DesktopInteractiveSession$Companion;
+	public fun <init> (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/RenderEngine$SceneState;Lee/schimke/composeai/daemon/SandboxLifecycleStats;Ljava/util/concurrent/ExecutorService;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/RenderEngine$SceneState;Lee/schimke/composeai/daemon/SandboxLifecycleStats;Ljava/util/concurrent/ExecutorService;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun captureA11yFindings ()Ljava/util/List;
+	public fun captureProbeSemantics ()Ljava/util/List;
+	public fun close ()V
+	public fun dispatch (Lee/schimke/composeai/daemon/protocol/InteractiveInputParams;)V
+	public fun dispatchLifecycle (Ljava/lang/String;)Z
+	public fun dispatchLottieProgress (F)Z
+	public fun dispatchNavigation (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Float;Ljava/lang/String;)Z
+	public fun dispatchPreviewReload ()Z
+	public fun dispatchRemoteComposeChange (Lee/schimke/composeai/daemon/protocol/RemoteComposeChange;)Z
+	public fun dispatchSemanticsAction (Ljava/lang/String;Ljava/lang/String;)Z
+	public fun dispatchStateRecreate ()Z
+	public fun dispatchStateRestore (Ljava/lang/String;)Z
+	public fun dispatchStateSave (Ljava/lang/String;)Z
+	public fun dispatchUiAutomator (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;)Z
+	public fun findUiAutomatorEvidence (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;)Lee/schimke/composeai/daemon/protocol/UiAutomatorUnsupportedReason;
+	public fun getPreviewId ()Ljava/lang/String;
+	public fun isClosed ()Z
+	public fun render (JLjava/lang/Long;)Lee/schimke/composeai/daemon/RenderResult;
+}
+
+public final class ee/schimke/composeai/daemon/DesktopInteractiveSession$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/DesktopRecordingSession : ee/schimke/composeai/daemon/RecordingSession {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;IFZLee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/RenderEngine$SceneState;Ljava/io/File;Ljava/io/File;Lokio/FileSystem;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;IFZLee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/RenderEngine$SceneState;Ljava/io/File;Ljava/io/File;Lokio/FileSystem;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public fun encode (Lee/schimke/composeai/daemon/protocol/RecordingFormat;)Lee/schimke/composeai/daemon/EncodedRecording;
+	public fun getFps ()I
+	public fun getLive ()Z
+	public fun getPreviewId ()Ljava/lang/String;
+	public fun getRecordingId ()Ljava/lang/String;
+	public fun getScale ()F
+	public fun postInput (Lee/schimke/composeai/daemon/protocol/RecordingInputParams;)V
+	public fun postScript (Ljava/util/List;)V
+	public fun stop ()Lee/schimke/composeai/daemon/RecordingResult;
+}
+
+public final class ee/schimke/composeai/daemon/DesktopSemanticsWireframe {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DesktopSemanticsWireframe;
+	public final fun generate (Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsPayload;Ljava/io/File;ILokio/FileSystem;)Ljava/io/File;
+	public final fun generate (Lee/schimke/composeai/data/layoutinspector/WireframeModel;Ljava/io/File;Lokio/FileSystem;)Ljava/io/File;
+	public static synthetic fun generate$default (Lee/schimke/composeai/daemon/DesktopSemanticsWireframe;Lee/schimke/composeai/data/layoutinspector/ComposeSemanticsPayload;Ljava/io/File;ILokio/FileSystem;ILjava/lang/Object;)Ljava/io/File;
+	public static synthetic fun generate$default (Lee/schimke/composeai/daemon/DesktopSemanticsWireframe;Lee/schimke/composeai/data/layoutinspector/WireframeModel;Ljava/io/File;Lokio/FileSystem;ILjava/lang/Object;)Ljava/io/File;
+}
+
+public final class ee/schimke/composeai/daemon/DesktopTalkBackFocusOverlay {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DesktopTalkBackFocusOverlay;
+	public final fun overlayPngBytes ([BLjava/util/List;I)[B
+}
+
+public final class ee/schimke/composeai/daemon/FigmaSvgFidelity {
+	public static final field $stable I
+	public static final field FILE_COMPOSITE Ljava/lang/String;
+	public static final field FILE_SCORE Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/FigmaSvgFidelity;
+	public final fun enabled ()Z
+	public final fun write (Ljava/io/File;Ljava/io/File;Ljava/io/File;Lokio/FileSystem;)Lee/schimke/composeai/daemon/FigmaFidelity$Result;
+	public static synthetic fun write$default (Lee/schimke/composeai/daemon/FigmaSvgFidelity;Ljava/io/File;Ljava/io/File;Ljava/io/File;Lokio/FileSystem;ILjava/lang/Object;)Lee/schimke/composeai/daemon/FigmaFidelity$Result;
+}
+
+public final class ee/schimke/composeai/daemon/LottieProgressController {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/LottieProgressController;
+	public final fun clear (Ljava/lang/String;)V
+	public final fun progressFor (Ljava/lang/String;)Ljava/lang/Float;
+	public final fun remember (Ljava/lang/String;F)V
+	public final fun resetForTest ()V
+}
+
+public final class ee/schimke/composeai/daemon/LottieTimelineDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/LottieTimelineDataProductRegistry$Companion;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public fun <init> (Lee/schimke/composeai/daemon/PreviewIndex;)V
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public fun getCapabilities ()Ljava/util/List;
+	public fun isKnown (Ljava/lang/String;)Z
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/LottieTimelineDataProductRegistry$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/PreviewManifest {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/PreviewManifest$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lee/schimke/composeai/daemon/PreviewManifest;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/PreviewManifest;Ljava/util/List;ILjava/lang/Object;)Lee/schimke/composeai/daemon/PreviewManifest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPreviews ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/daemon/PreviewManifest$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/PreviewManifest$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/daemon/PreviewManifest;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/daemon/PreviewManifest;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewManifest$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewManifestEntry {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/PreviewManifestEntry$Companion;
+	public static final field WRAP_SANDBOX_HEIGHT_DP I
+	public static final field WRAP_SANDBOX_WIDTH_DP I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/PreviewParamsEntry;Lee/schimke/composeai/data/overrides/OverrideVariantSpec;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;Ljava/lang/Boolean;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/PreviewParamsEntry;Lee/schimke/composeai/data/overrides/OverrideVariantSpec;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;Ljava/lang/Boolean;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/Long;
+	public final fun component11 ()Ljava/lang/String;
+	public final fun component12 ()Ljava/lang/Boolean;
+	public final fun component13 ()Ljava/lang/Integer;
+	public final fun component14 ()Ljava/lang/String;
+	public final fun component15 ()Ljava/lang/Integer;
+	public final fun component16 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lee/schimke/composeai/daemon/PreviewParamsEntry;
+	public final fun component5 ()Lee/schimke/composeai/data/overrides/OverrideVariantSpec;
+	public final fun component6 ()Ljava/lang/Integer;
+	public final fun component7 ()Ljava/lang/Integer;
+	public final fun component8 ()Ljava/lang/Float;
+	public final fun component9 ()Ljava/lang/Boolean;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/PreviewParamsEntry;Lee/schimke/composeai/data/overrides/OverrideVariantSpec;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;Ljava/lang/Boolean;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;)Lee/schimke/composeai/daemon/PreviewManifestEntry;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/PreviewManifestEntry;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/PreviewParamsEntry;Lee/schimke/composeai/data/overrides/OverrideVariantSpec;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;Ljava/lang/Boolean;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/daemon/PreviewManifestEntry;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBackgroundColor ()Ljava/lang/Long;
+	public final fun getClassName ()Ljava/lang/String;
+	public final fun getDensity ()Ljava/lang/Float;
+	public final fun getDevice ()Ljava/lang/String;
+	public final fun getFunctionName ()Ljava/lang/String;
+	public final fun getHeightPx ()Ljava/lang/Integer;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getOutputBaseName ()Ljava/lang/String;
+	public final fun getOverrides ()Lee/schimke/composeai/data/overrides/OverrideVariantSpec;
+	public final fun getParams ()Lee/schimke/composeai/daemon/PreviewParamsEntry;
+	public final fun getPreviewParameterLimit ()Ljava/lang/Integer;
+	public final fun getPreviewParameterProviderClassName ()Ljava/lang/String;
+	public final fun getShowBackground ()Ljava/lang/Boolean;
+	public final fun getShowSystemUi ()Ljava/lang/Boolean;
+	public final fun getUiMode ()Ljava/lang/Integer;
+	public final fun getWidthPx ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public final fun resolved ()Lee/schimke/composeai/daemon/ResolvedRenderParams;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/daemon/PreviewManifestEntry$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/PreviewManifestEntry$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/daemon/PreviewManifestEntry;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/daemon/PreviewManifestEntry;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewManifestEntry$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewManifestRouter : ee/schimke/composeai/daemon/DesktopHost {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/PreviewManifestRouter$Companion;
+	public fun <init> (Lee/schimke/composeai/daemon/PreviewManifest;Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/UserClassLoaderHolder;)V
+	public synthetic fun <init> (Lee/schimke/composeai/daemon/PreviewManifest;Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/UserClassLoaderHolder;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun submit (Lee/schimke/composeai/daemon/RenderRequest;J)Lee/schimke/composeai/daemon/RenderResult;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewManifestRouter$Companion {
+	public final fun loadManifest (Ljava/io/File;Lokio/FileSystem;)Lee/schimke/composeai/daemon/PreviewManifest;
+	public static synthetic fun loadManifest$default (Lee/schimke/composeai/daemon/PreviewManifestRouter$Companion;Ljava/io/File;Lokio/FileSystem;ILjava/lang/Object;)Lee/schimke/composeai/daemon/PreviewManifest;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewParamsEntry {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/PreviewParamsEntry$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;ZJLjava/lang/String;Ljava/lang/String;ZILjava/lang/String;Lee/schimke/composeai/daemon/CaptureGutterDto;Ljava/lang/String;I)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;ZJLjava/lang/String;Ljava/lang/String;ZILjava/lang/String;Lee/schimke/composeai/daemon/CaptureGutterDto;Ljava/lang/String;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component11 ()Z
+	public final fun component12 ()I
+	public final fun component13 ()Ljava/lang/String;
+	public final fun component14 ()Lee/schimke/composeai/daemon/CaptureGutterDto;
+	public final fun component15 ()Ljava/lang/String;
+	public final fun component16 ()I
+	public final fun component2 ()Ljava/lang/Integer;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component5 ()Ljava/lang/Integer;
+	public final fun component6 ()Ljava/lang/Float;
+	public final fun component7 ()Z
+	public final fun component8 ()J
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;ZJLjava/lang/String;Ljava/lang/String;ZILjava/lang/String;Lee/schimke/composeai/daemon/CaptureGutterDto;Ljava/lang/String;I)Lee/schimke/composeai/daemon/PreviewParamsEntry;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/PreviewParamsEntry;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;ZJLjava/lang/String;Ljava/lang/String;ZILjava/lang/String;Lee/schimke/composeai/daemon/CaptureGutterDto;Ljava/lang/String;IILjava/lang/Object;)Lee/schimke/composeai/daemon/PreviewParamsEntry;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAssetPath ()Ljava/lang/String;
+	public final fun getBackgroundColor ()J
+	public final fun getCaptureGutter ()Lee/schimke/composeai/daemon/CaptureGutterDto;
+	public final fun getDensity ()Ljava/lang/Float;
+	public final fun getDevice ()Ljava/lang/String;
+	public final fun getHeightDp ()Ljava/lang/Integer;
+	public final fun getKind ()Ljava/lang/String;
+	public final fun getPreviewParameterLimit ()I
+	public final fun getPreviewParameterProviderClassName ()Ljava/lang/String;
+	public final fun getShowBackground ()Z
+	public final fun getShowSystemUi ()Z
+	public final fun getUiMode ()I
+	public final fun getWidthDp ()Ljava/lang/Integer;
+	public final fun getWrapSandboxHeightDp ()Ljava/lang/Integer;
+	public final fun getWrapSandboxWidthDp ()Ljava/lang/Integer;
+	public final fun getWrapperClassName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/daemon/PreviewParamsEntry$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/PreviewParamsEntry$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/daemon/PreviewParamsEntry;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/daemon/PreviewParamsEntry;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewParamsEntry$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/daemon/RenderEngine {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/RenderEngine$Companion;
+	public static final field FIGMA_SVG_LONG_RENDER_MODE Ljava/lang/String;
+	public static final field LOTTIE_GIF_RENDER_MODE Ljava/lang/String;
+	public static final field OUTPUT_DIR_PROP Ljava/lang/String;
+	public static final field SCROLL_GIF_RENDER_MODE Ljava/lang/String;
+	public static final field SCROLL_LONG_RENDER_MODE Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Ljava/io/File;Ljava/io/File;Lee/schimke/composeai/daemon/RenderEngine$PreviewContextCapture;Lee/schimke/composeai/daemon/PreviewOverrideExtensions;Lkotlin/jvm/functions/Function0;Lokio/FileSystem;Lkotlin/jvm/functions/Function2;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/io/File;Ljava/io/File;Lee/schimke/composeai/daemon/RenderEngine$PreviewContextCapture;Lee/schimke/composeai/daemon/PreviewOverrideExtensions;Lkotlin/jvm/functions/Function0;Lokio/FileSystem;Lkotlin/jvm/functions/Function2;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun render (Lee/schimke/composeai/daemon/RenderSpec;JLjava/lang/ClassLoader;Lee/schimke/composeai/daemon/SandboxLifecycleStats;)Lee/schimke/composeai/daemon/RenderResult;
+	public static synthetic fun render$default (Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/RenderSpec;JLjava/lang/ClassLoader;Lee/schimke/composeai/daemon/SandboxLifecycleStats;ILjava/lang/Object;)Lee/schimke/composeai/daemon/RenderResult;
+	public final fun renderOnce (Lee/schimke/composeai/daemon/RenderEngine$SceneState;JLee/schimke/composeai/daemon/SandboxLifecycleStats;Lee/schimke/composeai/daemon/PerfettoTraceDataProducer$Recorder;ZJ)Lee/schimke/composeai/daemon/RenderResult;
+	public static synthetic fun renderOnce$default (Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/RenderEngine$SceneState;JLee/schimke/composeai/daemon/SandboxLifecycleStats;Lee/schimke/composeai/daemon/PerfettoTraceDataProducer$Recorder;ZJILjava/lang/Object;)Lee/schimke/composeai/daemon/RenderResult;
+	public final fun setUp (Lee/schimke/composeai/daemon/RenderSpec;Ljava/lang/ClassLoader;ZLee/schimke/composeai/daemon/PerfettoTraceDataProducer$Recorder;Z)Lee/schimke/composeai/daemon/RenderEngine$SceneState;
+	public static synthetic fun setUp$default (Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/RenderSpec;Ljava/lang/ClassLoader;ZLee/schimke/composeai/daemon/PerfettoTraceDataProducer$Recorder;ZILjava/lang/Object;)Lee/schimke/composeai/daemon/RenderEngine$SceneState;
+	public final fun tearDown (Lee/schimke/composeai/daemon/RenderEngine$SceneState;)V
+}
+
+public final class ee/schimke/composeai/daemon/RenderEngine$Companion {
+	public final fun supportsLocaleTagOverride ()Z
+}
+
+public abstract interface class ee/schimke/composeai/daemon/RenderEngine$PreviewContextCapture {
+	public abstract fun shouldCapture (Ljava/lang/String;Ljava/lang/String;)Z
+}
+
+public final class ee/schimke/composeai/daemon/RenderEngine$SceneState {
+	public static final field $stable I
+	public final fun getClassLoader ()Ljava/lang/ClassLoader;
+	public final fun getDensity ()Landroidx/compose/ui/unit/Density;
+	public final fun getOutputFile ()Ljava/io/File;
+	public final fun getScene ()Landroidx/compose/ui/ImageComposeScene;
+	public final fun getSpec ()Lee/schimke/composeai/daemon/RenderSpec;
+}
+
+public final class ee/schimke/composeai/daemon/RenderEngineKt {
+	public static final fun captureGutterPx (Lee/schimke/composeai/daemon/RenderSpec;)Lee/schimke/composeai/renderer/PreviewCaptureGutter;
+}
+
+public final class ee/schimke/composeai/daemon/ResolvedRenderParams {
+	public static final field $stable I
+	public fun <init> (IIFZJLjava/lang/String;ZILjava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/String;ILee/schimke/composeai/daemon/CaptureGutterDto;)V
+	public synthetic fun <init> (IIFZJLjava/lang/String;ZILjava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/String;ILee/schimke/composeai/daemon/CaptureGutterDto;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component11 ()Lee/schimke/composeai/daemon/protocol/PreviewOverrides;
+	public final fun component12 ()Ljava/lang/String;
+	public final fun component13 ()Ljava/lang/String;
+	public final fun component14 ()Z
+	public final fun component15 ()Z
+	public final fun component16 ()Ljava/lang/String;
+	public final fun component17 ()I
+	public final fun component18 ()Lee/schimke/composeai/daemon/CaptureGutterDto;
+	public final fun component2 ()I
+	public final fun component3 ()F
+	public final fun component4 ()Z
+	public final fun component5 ()J
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Z
+	public final fun component8 ()I
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (IIFZJLjava/lang/String;ZILjava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/String;ILee/schimke/composeai/daemon/CaptureGutterDto;)Lee/schimke/composeai/daemon/ResolvedRenderParams;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/ResolvedRenderParams;IIFZJLjava/lang/String;ZILjava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/String;ILee/schimke/composeai/daemon/CaptureGutterDto;ILjava/lang/Object;)Lee/schimke/composeai/daemon/ResolvedRenderParams;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAssetPath ()Ljava/lang/String;
+	public final fun getBackgroundColor ()J
+	public final fun getCaptureGutter ()Lee/schimke/composeai/daemon/CaptureGutterDto;
+	public final fun getDensity ()F
+	public final fun getDevice ()Ljava/lang/String;
+	public final fun getHeightPx ()I
+	public final fun getKind ()Ljava/lang/String;
+	public final fun getOutputBaseName ()Ljava/lang/String;
+	public final fun getOverrides ()Lee/schimke/composeai/daemon/protocol/PreviewOverrides;
+	public final fun getPreviewParameterLimit ()I
+	public final fun getPreviewParameterProviderClassName ()Ljava/lang/String;
+	public final fun getShowBackground ()Z
+	public final fun getShowSystemUi ()Z
+	public final fun getUiMode ()I
+	public final fun getWidthPx ()I
+	public final fun getWrapHeight ()Z
+	public final fun getWrapWidth ()Z
+	public final fun getWrapperClassName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+

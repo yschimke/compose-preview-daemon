@@ -1,0 +1,38 @@
+public final class ee/schimke/composeai/daemon/KeyboardController {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/KeyboardController;
+	public final fun clearOverride ()V
+	public final fun getPressedKey ()Landroidx/compose/runtime/State;
+	public final fun getRequestedVisible ()Landroidx/compose/runtime/State;
+	public final fun getSoftInputVisible ()Landroidx/compose/runtime/State;
+	public final fun notifyImeVisibility (Z)V
+	public final fun notifyKeyDown (Ljava/lang/String;)V
+	public final fun notifyKeyUp (Ljava/lang/String;)V
+	public static synthetic fun notifyKeyUp$default (Lee/schimke/composeai/daemon/KeyboardController;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun resetForNewSession ()V
+	public final fun seed (Lee/schimke/composeai/daemon/protocol/KeyboardOverride;)V
+}
+
+public final class ee/schimke/composeai/daemon/KeyboardOverrideExtension : ee/schimke/composeai/data/render/extensions/compose/AroundComposableExtension {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/KeyboardOverrideExtension$Companion;
+	public fun <init> ()V
+	public fun <init> (Lee/schimke/composeai/daemon/protocol/KeyboardOverride;Z)V
+	public synthetic fun <init> (Lee/schimke/composeai/daemon/protocol/KeyboardOverride;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun AroundComposable (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+	public final fun isDeviceScoped ()Z
+}
+
+public final class ee/schimke/composeai/daemon/KeyboardOverrideExtension$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/KeyboardPreviewOverrideExtension : ee/schimke/composeai/data/render/extensions/DataExtension {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun getDefaultConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun plan (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+	public synthetic fun plan (Ljava/lang/Object;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+}
+
