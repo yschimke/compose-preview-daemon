@@ -37,9 +37,15 @@ tasks.register("ktfmtFormatAll") {
 }
 
 // The publish task list `release.yml` runs. One version line: every published module in this
-// build releases at the tag. (compose-ai-tools split its `data/` modules onto a second line to
-// avoid re-uploading 58 unchanged artifacts per release; here they are the bulk of the build and
-// change with the renderers, so one train is the honest shape until measured otherwise.)
+// build releases at the tag, and `:bom` releases alongside them describing that set.
+//
+// (compose-ai-tools split its `data/` modules onto a second line to avoid re-uploading 58
+// unchanged artifacts per release; here they are the bulk of the build and change with the
+// renderers, so one train is the honest shape until measured otherwise. It has now been measured:
+// a path-based `data` | `core` split is worth −28% of module-publications over v3.0.0..v3.5.0,
+// while publishing only the modules a release actually changed is worth −67%. The BOM is the
+// prerequisite for the second — it is what lets a consumer keep naming one version when the
+// modules behind it stop sharing one. See yschimke/compose-ai-tools#4772.)
 tasks.register("printPublishTasks") {
     group = "publishing"
     description = "Print the publish task path for each published module."
@@ -47,7 +53,10 @@ tasks.register("printPublishTasks") {
     val rootDirPath = rootDir
     val rows =
       subprojects
-        .filter { it.plugins.hasPlugin("composeai.maven-publishing") }
+        .filter {
+          it.plugins.hasPlugin("composeai.maven-publishing") ||
+            it.plugins.hasPlugin("composeai.maven-publishing-platform")
+        }
         .map { p ->
           "${p.path}:publishAndReleaseToMavenCentral" to
             p.projectDir.relativeTo(rootDirPath).invariantSeparatorsPath

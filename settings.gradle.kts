@@ -283,6 +283,11 @@ project(":svg-preview-runtime").projectDir = file("runtimes/svg")
 // assembled before the split) because it packages this build's outputs.
 include(":distribution")
 
+// The BOM. Constrains every published module to the version this build publishes it at, so a
+// consumer names one coordinate and gets an aligned set instead of pinning 69 versions by hand.
+// Last in the file because it describes everything above it.
+include(":bom")
+
 rootProject.name = "compose-preview-daemon"
 
 // Project paths carrying ktfmt, handed to the root build's `ktfmtCheckAll` / `ktfmtFormatAll`
@@ -301,3 +306,29 @@ val ktfmtProjectPaths = buildList {
 }
 
 System.setProperty("composeai.ktfmtProjectPaths", ktfmtProjectPaths.joinToString(","))
+
+// Project paths that publish to Maven Central, handed to `:bom` the same way — a closure-free
+// system property, safe under Isolated Projects.
+//
+// Read out of the build scripts rather than kept as a list here. A hand-kept list of 69 modules is
+// a thing that goes stale silently, and here going stale means a BOM that omits a coordinate (a
+// consumer pins it by hand and skews) or names one that was never published (resolution fails).
+// The build file is where the decision to publish is actually made, so that is what this reads.
+//
+// Matched with its closing quote (`composeai.maven-publishing")`) rather than as a bare substring:
+// `composeai.maven-publishing-platform` starts with the same 26 characters, so a prefix match pulls
+// `:bom` into the list of things the BOM constrains and it ends up constraining itself.
+val publishedProjectPaths = buildList {
+  fun visit(descriptor: org.gradle.api.initialization.ProjectDescriptor) {
+    if (
+      descriptor.buildFile.exists() &&
+        descriptor.buildFile.readText().contains("composeai.maven-publishing\")")
+    ) {
+      add(descriptor.path)
+    }
+    descriptor.children.forEach(::visit)
+  }
+  rootProject.children.forEach(::visit)
+}
+
+System.setProperty("composeai.publishedProjectPaths", publishedProjectPaths.joinToString(","))
