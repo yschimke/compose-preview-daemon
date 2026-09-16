@@ -1,3 +1,5 @@
+import ee.schimke.composeai.buildlogic.PublishedVersions
+
 plugins {
   // Same pair every published module carries. `base-conventions` is what gives this project its
   // ktfmt task, which the root build's `ktfmtFormatAll` / `ktfmtCheckAll` aggregates expect of
@@ -23,22 +25,45 @@ plugins {
 // `PublishedArtifactIdTest` in build-logic pins against the build files so a module that breaks the
 // convention fails the build rather than going missing from the BOM.
 //
-// Every constraint takes THIS project's version. That is correct only while the repository
-// publishes one version line — which is the invariant AGENTS.md states, and the thing the BOM
-// exists to let us revisit: once modules publish at the version they last changed at, this is the
-// artifact that tells a consumer which versions belong together, and the derivation below grows a
-// per-module lookup instead of `project.version`.
+// Each constraint takes that module's EFFECTIVE version, which on a release where only some
+// modules publish is not this project's version. `PublishedVersions.resolve` is the same function
+// `ComposeAiMavenPublishingPlugin` uses to set `project.version`, so the versions the BOM promises
+// and the versions the POMs name cannot disagree — if they did, the BOM would advertise a set the
+// artifacts contradict.
+//
+// Outside a release, and on a release that publishes everything, every module resolves to this
+// project's version and the BOM is a flat list at the tag.
 val publishedProjectPaths =
   providers.systemProperty("composeai.publishedProjectPaths").get().split(",").filter {
     it.isNotBlank()
   }
+
+val publishSet =
+  PublishedVersions.parsePublishSet(providers.gradleProperty("composeai.publishSet").orNull)
+
+val manifestText = providers.provider {
+  rootProject.layout.projectDirectory
+    .file("publishing-manifest.json")
+    .asFile
+    .takeIf { it.isFile }
+    ?.readText() ?: "{}"
+}
 
 dependencies {
   constraints {
     publishedProjectPaths
       .map { path -> path.removePrefix(":").replace(':', '-') }
       .sorted()
-      .forEach { artifactId -> api("ee.schimke.composeai:$artifactId:${project.version}") }
+      .forEach { artifactId ->
+        val version =
+          PublishedVersions.resolve(
+            artifactId = artifactId,
+            tagVersion = project.version.toString(),
+            publishSet = publishSet,
+            manifestText = manifestText.get(),
+          )
+        api("ee.schimke.composeai:$artifactId:$version")
+      }
   }
 }
 

@@ -144,55 +144,72 @@ private fun Project.configureAndroidLibraryPublication() {
 }
 
 /**
- * Which of the two Maven version lines this module publishes on.
+ * The artifact id this project publishes under, derived from its path.
  *
- * Everything under `data/` versions separately from everything else. That split is lopsided on purpose: 58 of the
- * 94 published modules live under `data/` and they change on roughly a third of releases, so
- * giving them their own line stops the largest and slowest-moving block of artifacts being
- * republished byte-identical on every release. Costed at −50.7% of module-publications in
- * `docs/design/RELEASE_TRAINS.md` § 5, against −61.6% for a five-way split that needs three more
- * version lines to get there.
- *
- * Derived from the module's directory rather than a list, for the same reason the guard enumerates
- * modules from the build files: a list is a thing that goes stale silently, and here going stale
- * means publishing a POM that names a sibling version which does not exist.
+ * `:daemon:core` -> `daemon-core`. Derived rather than read from the extension because `version`
+ * has to be set at apply time, long before the build script's `composeAiMavenPublishing {}` block
+ * has run. `PublishedArtifactIdTest` pins the two against each other on every `check`, so a module
+ * that publishes under some other name fails the build rather than silently taking the wrong
+ * version here.
  */
-internal fun Project.mavenTrain(): String =
-  if (projectDir.relativeTo(rootDir).invariantSeparatorsPath.startsWith("data/")) "data" else "core"
+internal fun Project.publishedArtifactId(): String = path.removePrefix(":").replace(':', '-')
 
 /**
  * The version this module publishes at.
  *
- * Each train takes **its own line's** version — `CORE_LINE_VERSION` / `DATA_LINE_VERSION` — which
- * is the release tag when that train publishes and the last version it actually reached Central at
- * when it does not. On a release where both trains change the three values are equal and this is a
- * no-op; on a split release they are not, and a module must carry the version its own line
- * publishes at rather than the tag's.
+ * Outside a release (`PLUGIN_VERSION` unset) everything is the next-patch snapshot and none of the
+ * rest applies.
  *
- * Cross-train POMs then come out right in **both** directions, because a module depending on
- * `project(":…")` across the trains gets that project's `version`: `renderer-desktop:2.9.0` names
- * `data-focus-core:2.7.0`, and `data-remotecompose-connector:2.9.0` names `daemon-core:2.7.0`.
+ * During a release the module takes the tag's version **if it is in the publish set**, and
+ * otherwise the version it last published at, read from `publishing-manifest.json`. The set is
+ * computed by `.github/scripts/maven-publish-plan.sh` and handed over as
+ * `-Pcomposeai.publishSet=<comma separated artifact ids>`; a release that omits the property
+ * publishes everything at the tag, which is the old behaviour and the safe default for a
+ * `workflow_dispatch` recovery run.
  *
- * Only the first direction used to hold. `core` took `PLUGIN_VERSION` — the raw tag — whether or
- * not the core train published, so on a data-only release every core module carried a version that
- * was never uploaded, and the data POMs naming those coordinates pinned it. That shipped in v2.2.1:
- * `data-remotecompose-connector:2.2.1` requires `daemon-core:2.2.1`, core having stayed at 2.2.0,
- * so the data line resolved for nobody and consumers bumping to it went red at dependency
- * resolution (yschimke/wear-m3-catalog#350). A skipped train has to stop stamping its tag onto the
- * one that shipped.
- *
- * **Both line versions are ignored unless `PLUGIN_VERSION` is set.** Outside a release all three
- * are absent and everything falls to the snapshot version; a stray `CORE_LINE_VERSION` in a
- * developer shell must not silently version half the build differently from the other half.
+ * Giving a skipped module its *recorded* version rather than the tag is the whole mechanism. A
+ * published POM names its project dependencies at their `project.version`, so a module built at
+ * the tag names its skipped dependencies at the versions those are actually on Central, and a
+ * consumer resolving it gets artifacts that exist. Stamping the tag onto a module that did not
+ * publish is precisely the break compose-ai-tools shipped in v2.2.1 — `data-remotecompose-connector:2.2.1`
+ * requiring a `daemon-core:2.2.1` that was never uploaded (yschimke/wear-m3-catalog#350).
  */
 internal fun Project.publishedVersion(): String {
   val pluginVersion =
     providers.environmentVariable("PLUGIN_VERSION").orNull?.takeIf { it.isNotBlank() }
       ?: return nextPatchSnapshotVersion()
-  val lineVariable = if (mavenTrain() == "data") "DATA_LINE_VERSION" else "CORE_LINE_VERSION"
-  return providers.environmentVariable(lineVariable).orNull?.takeIf { it.isNotBlank() }
-    ?: pluginVersion
+
+  return PublishedVersions.resolve(
+    artifactId = publishedArtifactId(),
+    tagVersion = pluginVersion,
+    publishSet =
+      PublishedVersions.parsePublishSet(providers.gradleProperty("composeai.publishSet").orNull),
+    manifestText = publishingManifestText(),
+  )
 }
+
+/**
+ * The version a *platform* publishes at: always the tag, never the manifest.
+ *
+ * `:bom` is the index of a release, not a member of it. A consumer resolving the BOM at the tag has
+ * to find it there whether or not any module changed, so it is never skipped and never carries a
+ * recorded version — it has no entry in `publishing-manifest.json` at all.
+ *
+ * Kept separate from [publishedVersion] rather than special-cased inside it. Routing the BOM
+ * through the module path is what broke it: its derived artifact id (`bom`) is absent from both the
+ * publish set and the manifest, so `PublishedVersions.resolve` threw and *every* release with a
+ * reduced publish set died during Gradle configuration, before `printPublishTasks` could run.
+ */
+internal fun Project.platformPublishedVersion(): String =
+  providers.environmentVariable("PLUGIN_VERSION").orNull?.takeIf { it.isNotBlank() }
+    ?: nextPatchSnapshotVersion()
+
+/** The committed `publishing-manifest.json`, or an empty document when there is none. */
+internal fun Project.publishingManifestText(): String =
+  generateSequence(rootDir) { it.parentFile }
+    .map { it.resolve("publishing-manifest.json") }
+    .firstOrNull(File::isFile)
+    ?.readText() ?: "{}"
 
 private fun Project.nextPatchSnapshotVersion(): String {
   val manifest =

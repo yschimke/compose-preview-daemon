@@ -38,27 +38,88 @@ jobs:
   publish-maven:
     name: Publish to Maven Central
     runs-on: ubuntu-latest
+    # `contents: write` for the manifest commit below, and `persist-credentials: true` so the push
+    # has a credential. Nothing else in this job writes to the repository.
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.tag }}
-          persist-credentials: false
+          fetch-depth: 0
+          persist-credentials: true
       - uses: ./.github/actions/setup
         with:
           cache-read-only: 'true'
       - name: Derive the version from the tag
         run: echo "PLUGIN_VERSION=${TAG_NAME#v}" >> "$GITHUB_ENV"
-      - name: Publish every module
+      # Which modules this release actually has to upload. A module is published when it changed
+      # since the tag IT last published at, when something it depends on is publishing, or when a
+      # shared build input moved. Everything else keeps the version it is already on Central at,
+      # and `:bom` records the whole set.
+      #
+      # `workflow_dispatch` publishes everything: a recovery re-run is exactly the case where the
+      # manifest may already describe the release being repaired, so the plan's baseline cannot be
+      # trusted and the old all-modules behaviour is the safe one.
+      - name: Plan the publish
+        id: plan
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "recovery run: publishing every module" >&2
+            echo "planned=false" >> "$GITHUB_OUTPUT"
+            echo "set=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git fetch --tags --quiet
+          plan=$(./.github/scripts/maven-publish-plan.sh --head "$TAG_NAME" | paste -sd, -)
+          echo "planned: ${plan:-<nothing>}" >&2
+          echo "planned=true" >> "$GITHUB_OUTPUT"
+          echo "set=$plan" >> "$GITHUB_OUTPUT"
+
+      - name: Publish
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          PUBLISH_SET: ${{ steps.plan.outputs.set }}
+          PLANNED: ${{ steps.plan.outputs.planned }}
         run: |
           set -euo pipefail
-          mapfile -t tasks < <(./gradlew --quiet printPublishTasks --no-configuration-cache | cut -f1)
-          ./gradlew "${tasks[@]}" --no-configuration-cache
+          args=(--no-configuration-cache)
+          # PLANNED is "false" only on the recovery path, where no plan ran and everything
+          # publishes. Otherwise the property is ALWAYS passed, including when the plan is empty:
+          # an absent property means "publish everything", an empty one means "publish nothing but
+          # the BOM", and collapsing the two would upload all 69 coordinates on exactly the
+          # releases that need none of them.
+          if [ "${PLANNED}" = "true" ]; then
+            args+=("-Pcomposeai.publishSet=${PUBLISH_SET}")
+          fi
+          mapfile -t tasks < <(./gradlew --quiet printPublishTasks "${args[@]}" | cut -f1)
+          ./gradlew "${tasks[@]}" "${args[@]}"
+
+      # The manifest is what the next release diffs against, so it is only truthful once the upload
+      # above has succeeded. Committed straight to the release tag's branch, the same way
+      # release-please already writes `.release-please-manifest.json` and the changelog.
+      - name: Record what published
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        env:
+          PUBLISH_SET: ${{ steps.plan.outputs.set }}
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/record-published.py \
+            --version "${TAG_NAME#v}" --modules "${PUBLISH_SET}"
+          if git diff --quiet -- publishing-manifest.json; then
+            echo "manifest unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add publishing-manifest.json
+          git commit -m "chore: record published versions for ${TAG_NAME}"
+          git push origin "HEAD:${{ github.event.repository.default_branch }}"
 
   sidecars:
     name: Package sidecars
