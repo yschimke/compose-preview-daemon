@@ -78,24 +78,6 @@ public fun supportsDesignPagesVersion(version: Int): Boolean = version == DESIGN
 public val DesignPagesJson: Json = Json {
   ignoreUnknownKeys = true
   explicitNulls = false
-  /**
-   * An enum value this build does not know falls back to the property's default instead of failing
-   * the parse.
-   *
-   * Same reasoning as `ignoreUnknownKeys` one line up, applied to the other half of an additive
-   * change. A delivery branch is regenerated on its own schedule and can be newer than the server
-   * reading it, and every enum on this contract is a *closed allowlist* — [PageBlendMode] most of
-   * all, which exists precisely so a manifest cannot name a compositing mode a consumer has not
-   * vetted. Without this, one `"blend": "hue"` from a newer producer would throw, and the
-   * `runCatching` every reader wraps this in would drop **every page in the manifest** over one
-   * field on one layer. With it, that layer composites `source-over` — the backward-compatible
-   * default, and the one answer that is never a surprise — and the other thirty pages still draw.
-   *
-   * Coercion is not laxity: an unknown value is *refused*, it just degrades to the safe default
-   * rather than taking the surface down with it. It applies only where the property has a default,
-   * which on this contract is every enum-typed one.
-   */
-  coerceInputValues = true
 }
 
 /**
@@ -118,6 +100,14 @@ public val DesignPagesJson: Json = Json {
  *
  * Adding a mode is deliberately a change to this file: a design system that needs `overlay` gets it
  * by someone reasoning about it here, not by writing it into a JSON file on a branch.
+ *
+ * An unrecognised value is a **parse failure for the whole manifest**, exactly as it is for
+ * [PageNodeLink] — the contract's one rule for its enums, not a special case invented here. That is
+ * the harsher outcome and the right one: the alternative is guessing what an unknown mode means
+ * while compositing a layer the reader will believe. A producer is expected to refuse an unvetted
+ * value before it is ever written (`design-pages.mjs` does), so a manifest carrying one is a
+ * hand-edit or a newer producer, and both are better surfaced than silently reinterpreted. An
+ * *additive* producer change carries new fields, which [DesignPagesJson] ignores.
  */
 @Serializable
 public enum class PageBlendMode {
