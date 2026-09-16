@@ -45,6 +45,42 @@ jobs:
             **/build/test-results/**
           retention-days: 7
 
+  # Android lint, which nothing enforced until now: `lintDebug` was green on nobody's machine and
+  # red on `main` for 102 `NewApi` errors (#136) plus 21 others (#137) before those landed, because
+  # the only thing that ran it was a contributor happening to run `check` locally. Both are fixed,
+  # so this is the gate that keeps them fixed.
+  #
+  # `lintDebug` rather than `lint` or `lintRelease`: it is the task every Android module in this
+  # build actually registers (17 of them — the rest are plain JVM or KMP and have no lint task at
+  # all), and naming the variant keeps the result independent of which variant AGP would otherwise
+  # pick. Unqualified so a new Android module is covered the day it is added.
+  #
+  # `--continue` for the same reason `module-unit-tests` uses it: lint aborts the build on the first
+  # module with errors, and one red module should not hide the other sixteen's results.
+  android-lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/buildfetch-cache
+        with:
+          ro-token: ${{ secrets.BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN_RO || secrets.BUILDFETCH_GRADLE_REMOTE_CACHE_TOKEN_RO }}
+      - name: Run Android lint
+        run: ./gradlew lintDebug --continue
+      - name: Upload lint reports on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-lint-reports
+          path: |
+            **/build/reports/lint-results-*.html
+            **/build/reports/lint-results-*.sarif
+            **/build/intermediates/lint_intermediate_text_report/**
+          retention-days: 7
+
   # The two sidecar archives a release ships, built on every PR so a packaging regression is
   # caught before the tag, and the Skiko-native check that guards the desktop one.
   sidecars:
