@@ -54,39 +54,60 @@ class ComposeAiMavenPublishingPlugin : Plugin<Project> {
       val artifactDescription =
         extension.description.orNull ?: error("composeAiMavenPublishing.description is required")
 
-      project.extensions.configure<MavenPublishBaseExtension> {
-        publishToMavenCentral(automaticRelease = true)
-        if (!project.version.toString().endsWith("SNAPSHOT")) {
-          signAllPublications()
+      project.configureComposeAiPublication(
+        artifactId = artifactId,
+        displayName = displayName,
+        artifactDescription = artifactDescription,
+        inceptionYear = extension.inceptionYear,
+      )
+    }
+  }
+}
+
+/**
+ * The coordinates, signing and POM metadata every artifact this repository publishes carries.
+ *
+ * Shared by [ComposeAiMavenPublishingPlugin] and [ComposeAiPlatformPublishingPlugin] rather than
+ * duplicated: the BOM is published to the same Central namespace by the same release job, and a
+ * platform whose POM disagreed with the modules it constrains — a different licence block, a
+ * different SCM URL — would be a second source of truth for the one thing consumers read off
+ * every one of these artifacts.
+ */
+internal fun Project.configureComposeAiPublication(
+  artifactId: String,
+  displayName: String,
+  artifactDescription: String,
+  inceptionYear: Property<String>,
+) {
+  extensions.configure<MavenPublishBaseExtension> {
+    publishToMavenCentral(automaticRelease = true)
+    if (!version.toString().endsWith("SNAPSHOT")) {
+      signAllPublications()
+    }
+    coordinates("ee.schimke.composeai", artifactId, version.toString())
+    pom {
+      name.set(displayName)
+      description.set(artifactDescription)
+      url.set("https://github.com/yschimke/compose-ai-tools")
+      this.inceptionYear.set(inceptionYear)
+      licenses {
+        license {
+          name.set("The Apache License, Version 2.0")
+          url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+          distribution.set("repo")
         }
-        coordinates("ee.schimke.composeai", artifactId, project.version.toString())
-        pom {
-          name.set(displayName)
-          description.set(artifactDescription)
-          url.set("https://github.com/yschimke/compose-ai-tools")
-          inceptionYear.set(extension.inceptionYear)
-          licenses {
-            license {
-              name.set("The Apache License, Version 2.0")
-              url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-              distribution.set("repo")
-            }
-          }
-          developers {
-            developer {
-              id.set("yschimke")
-              name.set("Yuri Schimke")
-              url.set("https://github.com/yschimke")
-            }
-          }
-          scm {
-            url.set("https://github.com/yschimke/compose-ai-tools")
-            connection.set("scm:git:https://github.com/yschimke/compose-ai-tools.git")
-            developerConnection.set(
-              "scm:git:ssh://git@github.com/yschimke/compose-ai-tools.git"
-            )
-          }
+      }
+      developers {
+        developer {
+          id.set("yschimke")
+          name.set("Yuri Schimke")
+          url.set("https://github.com/yschimke")
         }
+      }
+      scm {
+        url.set("https://github.com/yschimke/compose-ai-tools")
+        connection.set("scm:git:https://github.com/yschimke/compose-ai-tools.git")
+        developerConnection.set("scm:git:ssh://git@github.com/yschimke/compose-ai-tools.git")
       }
     }
   }
@@ -164,7 +185,7 @@ internal fun Project.mavenTrain(): String =
  * are absent and everything falls to the snapshot version; a stray `CORE_LINE_VERSION` in a
  * developer shell must not silently version half the build differently from the other half.
  */
-private fun Project.publishedVersion(): String {
+internal fun Project.publishedVersion(): String {
   val pluginVersion =
     providers.environmentVariable("PLUGIN_VERSION").orNull?.takeIf { it.isNotBlank() }
       ?: return nextPatchSnapshotVersion()
