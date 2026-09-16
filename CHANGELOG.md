@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.5.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.9...v3.5.0) (2026-09-16)
+
+
+### Features
+
+* **design-pages:** shared background assets and allowlisted blend modes ([#119](https://github.com/yschimke/compose-preview-daemon/issues/119)) ([c577939](https://github.com/yschimke/compose-preview-daemon/commit/c577939ca1870d3fbc5746bf0c4eab5b3cd787f8))
+
+
+### Bug Fixes
+
+* **deps:** update compose-preview-contracts to v2.19.0 ([#118](https://github.com/yschimke/compose-preview-daemon/issues/118)) ([58fc973](https://github.com/yschimke/compose-preview-daemon/commit/58fc973206e95c4d4525013780378e646b0f1a67))
+* **deps:** update dependency ee.schimke.composeai:third-party-rc-embedded-player to v1.63.0 ([#120](https://github.com/yschimke/compose-preview-daemon/issues/120)) ([e7e1b73](https://github.com/yschimke/compose-preview-daemon/commit/e7e1b730ef722253f5527ea9366122245a688a36))
+
 ## [3.4.9](https://github.com/yschimke/compose-preview-daemon/compare/v3.4.8...v3.4.9) (2026-09-15)
 
 
