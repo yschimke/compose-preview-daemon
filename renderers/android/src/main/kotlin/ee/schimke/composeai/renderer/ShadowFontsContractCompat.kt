@@ -85,7 +85,12 @@ class ShadowFontsContractCompat {
       val needsAxes = requiresVariableFace(variationSettings, key)
       val resolved: ResolvedFace? = GoogleFontCacheAccess.load(key, preferVariable = needsAxes)
       if (needsAxes && resolved != null && !resolved.variable) {
+        // Two records, deliberately. The diagnostic warns a human once per process on stderr; the
+        // registry answers the recorder, per resolution, so the fact reaches `fonts/used` and can
+        // be asserted against. A warning nobody can query is how the weight collapse of #114 stayed
+        // invisible through a render, `failOnFallback` and a visual diff.
         FontResolutionDiagnostics.recordAxesDropped(key, variationSettings.orEmpty())
+        GoogleFontFiles.recordAxesDropped(key, variationSettings.orEmpty())
       }
       val file: File? = resolved?.file
       if (file == null) {

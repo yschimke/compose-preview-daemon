@@ -119,10 +119,41 @@ object GoogleFontFiles {
    */
   private val resolved = java.util.concurrent.ConcurrentHashMap<String, File>()
 
+  /**
+   * Requests whose axes were filtered away, keyed like [resolved], valued with the settings asked
+   * for.
+   *
+   * Separate from [FontResolutionDiagnostics.recordAxesDropped], which warns once per process and
+   * writes to stderr. A warning is not a data product: it cannot be asserted against, and stderr is
+   * not on the sheet a consumer reads. This is the queryable half, and it is deliberately NOT
+   * deduplicated — the recorder asks per resolution.
+   */
+  private val axesDropped = java.util.concurrent.ConcurrentHashMap<String, String>()
+
   /** Publish the face [file] that a render just resolved for [key]. */
   internal fun record(key: GoogleFontKey, file: File) {
     resolved[key.fileName()] = file
   }
+
+  /**
+   * Publish that [key] was served a face with no `fvar` table although [variationSettings] named
+   * axes, so `Paint.setFontVariationSettings` dropped every one of them.
+   */
+  internal fun recordAxesDropped(key: GoogleFontKey, variationSettings: String) {
+    axesDropped[key.fileName()] = variationSettings
+  }
+
+  /**
+   * The `font-variation-settings` `(family, weight, italic)` asked for and did not get, or null
+   * when it asked for none or got them all.
+   *
+   * Reads only what this process recorded. There is no cache-directory fallback of the kind
+   * [cached] keeps, and there should not be: whether axes were dropped is a property of a
+   * RESOLUTION, not of a file on disk, so a face resolved before this process has no answer here
+   * and null is the honest one.
+   */
+  fun droppedVariationSettings(family: String, weight: Int, italic: Boolean): String? =
+    axesDropped[GoogleFontKey(family, weight, italic).fileName()]
 
   /**
    * The TTF `(family, weight, italic)` resolved to, or null when nothing has resolved it. Never
@@ -149,6 +180,7 @@ object GoogleFontFiles {
   /** Forget the recorded resolutions. Tests only. */
   internal fun resetForTest() {
     resolved.clear()
+    axesDropped.clear()
   }
 }
 
