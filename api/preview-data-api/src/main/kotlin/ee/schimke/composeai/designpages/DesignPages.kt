@@ -182,7 +182,9 @@ public enum class PageNodeConfidence {
 
 /** One addressable component node on the page, and the code it maps to. */
 @Serializable
-public data class PageNode(
+@ConsistentCopyVisibility
+public data class PageNode
+internal constructor(
   /**
    * The node's id in the design file — and the `data-node-id` attribute the export carries for it.
    *
@@ -272,6 +274,65 @@ public data class PageNode(
    */
   val cell: Boolean = false,
 ) {
+  /**
+   * Builds a [PageNode].
+   *
+   * The way to construct one: [PageNode]'s own constructor is `internal`, and with
+   * `@ConsistentCopyVisibility` so is its generated `copy`. Neither is public ABI any more, so
+   * adding a property here cannot remove a signature a precompiled consumer already calls -- which
+   * is exactly what `NoSuchMethodError: DesignPage.copy$default(...)` was.
+   *
+   * The rule that keeps that true: **a new property is always optional**, so it only ever adds a
+   * setter here and never a parameter to this constructor. A property that genuinely cannot have a
+   * default is a new type, not a new parameter.
+   */
+  public class Builder(nodeId: String) {
+    public var nodeId: String = nodeId
+    public var name: String = ""
+    public var depth: Int = 0
+    public var ref: String? = null
+    public var code: String? = null
+    public var previewId: String? = null
+    public var link: PageNodeLink = PageNodeLink.UNLINKED
+    public var confidence: PageNodeConfidence? = null
+    public var container: Boolean = false
+    public var type: String? = null
+    public var inventory: Boolean = true
+    public var cell: Boolean = false
+
+    public fun build(): PageNode =
+      PageNode(
+        nodeId,
+        name,
+        depth,
+        ref,
+        code,
+        previewId,
+        link,
+        confidence,
+        container,
+        type,
+        inventory,
+        cell,
+      )
+  }
+
+  /** This [PageNode] as a [Builder], for deriving a modified one. Replaces `copy`. */
+  public fun newBuilder(): Builder =
+    Builder(nodeId).also {
+      it.name = name
+      it.depth = depth
+      it.ref = ref
+      it.code = code
+      it.previewId = previewId
+      it.link = link
+      it.confidence = confidence
+      it.container = container
+      it.type = type
+      it.inventory = inventory
+      it.cell = cell
+    }
+
   /**
    * A component the design file marks as **private** — Figma's leading-dot convention, used for the
    * internal furniture of a sheet: `.Header`, `.Legend`, the swatch a specimen grid repeats.
@@ -367,7 +428,9 @@ public data class PageNode(
 
 /** The cached export of a page. */
 @Serializable
-public data class PageImage(
+@ConsistentCopyVisibility
+public data class PageImage
+internal constructor(
   /** Path to the SVG, relative to the manifest file. */
   val uri: String,
   /**
@@ -377,6 +440,28 @@ public data class PageImage(
    */
   val format: String = SVG,
 ) {
+  /**
+   * Builds a [PageImage].
+   *
+   * The way to construct one: [PageImage]'s own constructor is `internal`, and with
+   * `@ConsistentCopyVisibility` so is its generated `copy`. Neither is public ABI any more, so
+   * adding a property here cannot remove a signature a precompiled consumer already calls -- which
+   * is exactly what `NoSuchMethodError: DesignPage.copy$default(...)` was.
+   *
+   * The rule that keeps that true: **a new property is always optional**, so it only ever adds a
+   * setter here and never a parameter to this constructor. A property that genuinely cannot have a
+   * default is a new type, not a new parameter.
+   */
+  public class Builder(uri: String) {
+    public var uri: String = uri
+    public var format: String = SVG
+
+    public fun build(): PageImage = PageImage(uri, format)
+  }
+
+  /** This [PageImage] as a [Builder], for deriving a modified one. Replaces `copy`. */
+  public fun newBuilder(): Builder = Builder(uri).also { it.format = format }
+
   public companion object {
     public const val SVG: String = "svg"
   }
@@ -423,7 +508,9 @@ public data class PageImage(
  * that out from the decoder is finding it out too late; see [isWellFormed].
  */
 @Serializable
-public data class PageAsset(
+@ConsistentCopyVisibility
+public data class PageAsset
+internal constructor(
   /** Lowercase hex SHA-256 of the encoded bytes. Also the basename under the assets directory. */
   val id: String,
   /** Path to the file, relative to the manifest — conventionally `assets/<id>.<ext>`. */
@@ -437,6 +524,39 @@ public data class PageAsset(
   /** Encoded size in bytes, as stated by the producer. */
   val bytes: Long,
 ) {
+  /**
+   * Builds a [PageAsset].
+   *
+   * The way to construct one: [PageAsset]'s own constructor is `internal`, and with
+   * `@ConsistentCopyVisibility` so is its generated `copy`. Neither is public ABI any more, so
+   * adding a property here cannot remove a signature a precompiled consumer already calls -- which
+   * is exactly what `NoSuchMethodError: DesignPage.copy$default(...)` was.
+   *
+   * The rule that keeps that true: **a new property is always optional**, so it only ever adds a
+   * setter here and never a parameter to this constructor. A property that genuinely cannot have a
+   * default is a new type, not a new parameter.
+   */
+  public class Builder(
+    id: String,
+    uri: String,
+    format: String,
+    width: Int,
+    height: Int,
+    bytes: Long,
+  ) {
+    public var id: String = id
+    public var uri: String = uri
+    public var format: String = format
+    public var width: Int = width
+    public var height: Int = height
+    public var bytes: Long = bytes
+
+    public fun build(): PageAsset = PageAsset(id, uri, format, width, height, bytes)
+  }
+
+  /** This [PageAsset] as a [Builder], for deriving a modified one. Replaces `copy`. */
+  public fun newBuilder(): Builder = Builder(id, uri, format, width, height, bytes).also {}
+
   /**
    * Whether this record is one a consumer should even open the file for.
    *
@@ -505,7 +625,9 @@ public data class PageAsset(
  * nothing beneath it.
  */
 @Serializable
-public data class PageLayerPlacement(
+@ConsistentCopyVisibility
+public data class PageLayerPlacement
+internal constructor(
   /** [PageAsset.id] of the asset to draw. A placement naming no stored asset is dropped. */
   val asset: String,
   val x: Double = 0.0,
@@ -523,6 +645,46 @@ public data class PageLayerPlacement(
   /** How this plate composites with whatever is already beneath it. See [PageBlendMode]. */
   val blend: PageBlendMode = PageBlendMode.SOURCE_OVER,
 ) {
+  /**
+   * Builds a [PageLayerPlacement].
+   *
+   * The way to construct one: [PageLayerPlacement]'s own constructor is `internal`, and with
+   * `@ConsistentCopyVisibility` so is its generated `copy`. Neither is public ABI any more, so
+   * adding a property here cannot remove a signature a precompiled consumer already calls -- which
+   * is exactly what `NoSuchMethodError: DesignPage.copy$default(...)` was.
+   *
+   * The rule that keeps that true: **a new property is always optional**, so it only ever adds a
+   * setter here and never a parameter to this constructor. A property that genuinely cannot have a
+   * default is a new type, not a new parameter.
+   */
+  public class Builder(asset: String, width: Double, height: Double) {
+    public var asset: String = asset
+    public var width: Double = width
+    public var height: Double = height
+    public var x: Double = 0.0
+    public var y: Double = 0.0
+    public var opacity: Double = 1.0
+    public var fit: String = COVER
+    public var radius: Double = 0.0
+    public var clip: Boolean = true
+    public var blend: PageBlendMode = PageBlendMode.SOURCE_OVER
+
+    public fun build(): PageLayerPlacement =
+      PageLayerPlacement(asset, x, y, width, height, opacity, fit, radius, clip, blend)
+  }
+
+  /** This [PageLayerPlacement] as a [Builder], for deriving a modified one. Replaces `copy`. */
+  public fun newBuilder(): Builder =
+    Builder(asset, width, height).also {
+      it.x = x
+      it.y = y
+      it.opacity = opacity
+      it.fit = fit
+      it.radius = radius
+      it.clip = clip
+      it.blend = blend
+    }
+
   /** Whether the box is drawable at all: finite, positive, and with a usable opacity and fit. */
   public val isWellFormed: Boolean
     get() =
@@ -554,11 +716,32 @@ public data class PageLayerPlacement(
  * Taken from the export rather than computed from the node tree precisely so that the number a
  * consumer lays its stage out with is the number the picture was drawn at.
  */
-@Serializable public data class PageFrame(val width: Double, val height: Double)
+@Serializable
+@ConsistentCopyVisibility
+public data class PageFrame internal constructor(val width: Double, val height: Double) {
+  /**
+   * Builds a [PageFrame]. See [DesignPage.Builder] for why the constructor is not public.
+   *
+   * A frame is a width and a height and will not grow, but it carries a Builder anyway: a rule with
+   * exceptions is a rule someone has to remember, and the type that broke was also once obviously
+   * closed.
+   */
+  public class Builder(width: Double, height: Double) {
+    public var width: Double = width
+    public var height: Double = height
+
+    public fun build(): PageFrame = PageFrame(width, height)
+  }
+
+  /** This [PageFrame] as a [Builder], for deriving a modified one. Replaces `copy`. */
+  public fun newBuilder(): Builder = Builder(width, height)
+}
 
 /** One imported page. */
 @Serializable
-public data class DesignPage(
+@ConsistentCopyVisibility
+public data class DesignPage
+internal constructor(
   /** Stable slug, unique within the manifest; also the cached SVG's basename. */
   val id: String,
   /** The page's name in the design file. */
@@ -622,6 +805,61 @@ public data class DesignPage(
   val renderBlend: PageBlendMode = PageBlendMode.SOURCE_OVER,
 ) {
   /**
+   * Builds a [DesignPage].
+   *
+   * The way to construct one: [DesignPage]'s own constructor is `internal`, and with
+   * `@ConsistentCopyVisibility` so is its generated `copy`. Neither is public ABI any more, so
+   * adding a property here cannot remove a signature a precompiled consumer already calls -- which
+   * is exactly what `NoSuchMethodError: DesignPage.copy$default(...)` was.
+   *
+   * The rule that keeps that true: **a new property is always optional**, so it only ever adds a
+   * setter here and never a parameter to this constructor. A property that genuinely cannot have a
+   * default is a new type, not a new parameter.
+   */
+  public class Builder(
+    id: String,
+    name: String,
+    nodeId: String,
+    frame: PageFrame,
+    image: PageImage,
+  ) {
+    public var id: String = id
+    public var name: String = name
+    public var nodeId: String = nodeId
+    public var frame: PageFrame = frame
+    public var image: PageImage = image
+    public var nodes: List<PageNode> = emptyList()
+    public var inventory: Boolean = true
+    public var background: List<PageLayerPlacement> = emptyList()
+    public var designBlend: PageBlendMode = PageBlendMode.SOURCE_OVER
+    public var renderBlend: PageBlendMode = PageBlendMode.SOURCE_OVER
+
+    public fun build(): DesignPage =
+      DesignPage(
+        id,
+        name,
+        nodeId,
+        frame,
+        image,
+        nodes,
+        inventory,
+        background,
+        designBlend,
+        renderBlend,
+      )
+  }
+
+  /** This [DesignPage] as a [Builder], for deriving a modified one. Replaces `copy`. */
+  public fun newBuilder(): Builder =
+    Builder(id, name, nodeId, frame, image).also {
+      it.nodes = nodes
+      it.inventory = inventory
+      it.background = background
+      it.designBlend = designBlend
+      it.renderBlend = renderBlend
+    }
+
+  /**
    * Nodes with code behind them — the numerator of the page's coverage.
    *
    * Empty for a page that is not an [inventory], together with [coverageGaps] and [coverageTotal]:
@@ -674,7 +912,9 @@ public data class DesignPage(
 
 /** A committed design-page import. */
 @Serializable
-public data class DesignPagesManifest(
+@ConsistentCopyVisibility
+public data class DesignPagesManifest
+internal constructor(
   val version: Int,
   /** Design source. Only Figma exposes a page-level read API today. */
   val source: String = "figma",
@@ -690,6 +930,37 @@ public data class DesignPagesManifest(
    */
   val assets: List<PageAsset> = emptyList(),
 ) {
+  /**
+   * Builds a [DesignPagesManifest].
+   *
+   * The way to construct one: [DesignPagesManifest]'s own constructor is `internal`, and with
+   * `@ConsistentCopyVisibility` so is its generated `copy`. Neither is public ABI any more, so
+   * adding a property here cannot remove a signature a precompiled consumer already calls -- which
+   * is exactly what `NoSuchMethodError: DesignPage.copy$default(...)` was.
+   *
+   * The rule that keeps that true: **a new property is always optional**, so it only ever adds a
+   * setter here and never a parameter to this constructor. A property that genuinely cannot have a
+   * default is a new type, not a new parameter.
+   */
+  public class Builder(version: Int, fileKey: String) {
+    public var version: Int = version
+    public var fileKey: String = fileKey
+    public var source: String = "figma"
+    public var pages: List<DesignPage> = emptyList()
+    public var assets: List<PageAsset> = emptyList()
+
+    public fun build(): DesignPagesManifest =
+      DesignPagesManifest(version, source, fileKey, pages, assets)
+  }
+
+  /** This [DesignPagesManifest] as a [Builder], for deriving a modified one. Replaces `copy`. */
+  public fun newBuilder(): Builder =
+    Builder(version, fileKey).also {
+      it.source = source
+      it.pages = pages
+      it.assets = assets
+    }
+
   /** Whether this build understands the manifest's version. */
   public val isSupported: Boolean
     get() = supportsDesignPagesVersion(version)
