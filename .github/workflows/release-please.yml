@@ -70,5 +70,13 @@ jobs:
       SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
       SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
       SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+    # A called workflow's jobs may not request more than the calling job holds; anything omitted
+    # here is `none` for every job in `release.yml`, and asking for more than `none` fails the
+    # whole run at startup, before a single job is created. `record-published` opens the manifest
+    # pull request, so it needs `pull-requests: write` -- and when that arrived without this line
+    # the next two pushes to main died as `startup_failure`, which is why v3.6.1 merged its release
+    # PR and was never tagged or published. Keep this in step with the job `permissions` blocks in
+    # `release.yml`.
     permissions:
       contents: write
+      pull-requests: write
