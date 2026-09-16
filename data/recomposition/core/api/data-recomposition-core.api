@@ -1,0 +1,127 @@
+public final class ee/schimke/composeai/data/recomposition/InvalidationReason : java/lang/Enum {
+	public static final field BOTH Lee/schimke/composeai/data/recomposition/InvalidationReason;
+	public static final field PARAMETER_CHANGE Lee/schimke/composeai/data/recomposition/InvalidationReason;
+	public static final field STATE_READ Lee/schimke/composeai/data/recomposition/InvalidationReason;
+	public static final field UNKNOWN Lee/schimke/composeai/data/recomposition/InvalidationReason;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/data/recomposition/InvalidationReason;
+	public static fun values ()[Lee/schimke/composeai/data/recomposition/InvalidationReason;
+}
+
+public final class ee/schimke/composeai/data/recomposition/RecompositionBounds {
+	public static final field Companion Lee/schimke/composeai/data/recomposition/RecompositionBounds$Companion;
+	public fun <init> (IIII)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun copy (IIII)Lee/schimke/composeai/data/recomposition/RecompositionBounds;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/recomposition/RecompositionBounds;IIIIILjava/lang/Object;)Lee/schimke/composeai/data/recomposition/RecompositionBounds;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHeight ()I
+	public final fun getWidth ()I
+	public final fun getX ()I
+	public final fun getY ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/data/recomposition/RecompositionBounds$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lee/schimke/composeai/data/recomposition/RecompositionBounds$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/data/recomposition/RecompositionBounds;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/data/recomposition/RecompositionBounds;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/recomposition/RecompositionBounds$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/recomposition/RecompositionNode {
+	public static final field Companion Lee/schimke/composeai/data/recomposition/RecompositionNode$Companion;
+	public fun <init> (Ljava/lang/String;ILee/schimke/composeai/data/recomposition/InvalidationReason;Lee/schimke/composeai/data/recomposition/RecompositionBounds;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILee/schimke/composeai/data/recomposition/InvalidationReason;Lee/schimke/composeai/data/recomposition/RecompositionBounds;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Lee/schimke/composeai/data/recomposition/InvalidationReason;
+	public final fun component4 ()Lee/schimke/composeai/data/recomposition/RecompositionBounds;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/Integer;
+	public final fun component7 ()Ljava/lang/Integer;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;ILee/schimke/composeai/data/recomposition/InvalidationReason;Lee/schimke/composeai/data/recomposition/RecompositionBounds;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)Lee/schimke/composeai/data/recomposition/RecompositionNode;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/recomposition/RecompositionNode;Ljava/lang/String;ILee/schimke/composeai/data/recomposition/InvalidationReason;Lee/schimke/composeai/data/recomposition/RecompositionBounds;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/data/recomposition/RecompositionNode;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBounds ()Lee/schimke/composeai/data/recomposition/RecompositionBounds;
+	public final fun getCount ()I
+	public final fun getFunctionName ()Ljava/lang/String;
+	public final fun getNodeId ()Ljava/lang/String;
+	public final fun getReason ()Lee/schimke/composeai/data/recomposition/InvalidationReason;
+	public final fun getSourceColumn ()Ljava/lang/Integer;
+	public final fun getSourceFile ()Ljava/lang/String;
+	public final fun getSourceLine ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/data/recomposition/RecompositionNode$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lee/schimke/composeai/data/recomposition/RecompositionNode$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/data/recomposition/RecompositionNode;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/data/recomposition/RecompositionNode;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/recomposition/RecompositionNode$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/recomposition/RecompositionPayload {
+	public static final field Companion Lee/schimke/composeai/data/recomposition/RecompositionPayload$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Long;
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/List;)Lee/schimke/composeai/data/recomposition/RecompositionPayload;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/recomposition/RecompositionPayload;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/List;ILjava/lang/Object;)Lee/schimke/composeai/data/recomposition/RecompositionPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInputSeq ()Ljava/lang/Long;
+	public final fun getMode ()Ljava/lang/String;
+	public final fun getNodes ()Ljava/util/List;
+	public final fun getSinceFrameStreamId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/data/recomposition/RecompositionPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lee/schimke/composeai/data/recomposition/RecompositionPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/data/recomposition/RecompositionPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/data/recomposition/RecompositionPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/recomposition/RecompositionPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/recomposition/RecompositionProduct {
+	public static final field INSTANCE Lee/schimke/composeai/data/recomposition/RecompositionProduct;
+	public static final field KIND Ljava/lang/String;
+	public static final field MODE_DELTA Ljava/lang/String;
+	public static final field MODE_SNAPSHOT Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+}
+

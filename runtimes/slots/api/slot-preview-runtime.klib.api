@@ -1,0 +1,134 @@
+// Klib ABI Dump
+// Targets: [wasmJs]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <ee.schimke.composeai:slot-preview-runtime>
+final enum class ee.schimke.composeai.preview.slots/PreviewSlotScope : kotlin/Enum<ee.schimke.composeai.preview.slots/PreviewSlotScope> { // ee.schimke.composeai.preview.slots/PreviewSlotScope|null[0]
+    enum entry Box // ee.schimke.composeai.preview.slots/PreviewSlotScope.Box|null[0]
+    enum entry Column // ee.schimke.composeai.preview.slots/PreviewSlotScope.Column|null[0]
+    enum entry Lazy // ee.schimke.composeai.preview.slots/PreviewSlotScope.Lazy|null[0]
+    enum entry Row // ee.schimke.composeai.preview.slots/PreviewSlotScope.Row|null[0]
+    enum entry Unknown // ee.schimke.composeai.preview.slots/PreviewSlotScope.Unknown|null[0]
+
+    final val entries // ee.schimke.composeai.preview.slots/PreviewSlotScope.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<ee.schimke.composeai.preview.slots/PreviewSlotScope> // ee.schimke.composeai.preview.slots/PreviewSlotScope.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): ee.schimke.composeai.preview.slots/PreviewSlotScope // ee.schimke.composeai.preview.slots/PreviewSlotScope.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<ee.schimke.composeai.preview.slots/PreviewSlotScope> // ee.schimke.composeai.preview.slots/PreviewSlotScope.values|values#static(){}[0]
+}
+
+final enum class ee.schimke.composeai.preview.slots/PreviewSlotSizing : kotlin/Enum<ee.schimke.composeai.preview.slots/PreviewSlotSizing> { // ee.schimke.composeai.preview.slots/PreviewSlotSizing|null[0]
+    enum entry Fill // ee.schimke.composeai.preview.slots/PreviewSlotSizing.Fill|null[0]
+    enum entry Fixed // ee.schimke.composeai.preview.slots/PreviewSlotSizing.Fixed|null[0]
+    enum entry Hug // ee.schimke.composeai.preview.slots/PreviewSlotSizing.Hug|null[0]
+    enum entry Unspecified // ee.schimke.composeai.preview.slots/PreviewSlotSizing.Unspecified|null[0]
+
+    final val entries // ee.schimke.composeai.preview.slots/PreviewSlotSizing.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<ee.schimke.composeai.preview.slots/PreviewSlotSizing> // ee.schimke.composeai.preview.slots/PreviewSlotSizing.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): ee.schimke.composeai.preview.slots/PreviewSlotSizing // ee.schimke.composeai.preview.slots/PreviewSlotSizing.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<ee.schimke.composeai.preview.slots/PreviewSlotSizing> // ee.schimke.composeai.preview.slots/PreviewSlotSizing.values|values#static(){}[0]
+}
+
+abstract interface ee.schimke.composeai.preview.slots/PreviewSlotHost { // ee.schimke.composeai.preview.slots/PreviewSlotHost|null[0]
+    abstract fun Content(ee.schimke.composeai.preview.slots/PreviewSlotInfo, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlotHost.Content|Content(ee.schimke.composeai.preview.slots.PreviewSlotInfo;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    open fun onPositioned(ee.schimke.composeai.preview.slots/PreviewSlotInfo, androidx.compose.ui.geometry/Rect) // ee.schimke.composeai.preview.slots/PreviewSlotHost.onPositioned|onPositioned(ee.schimke.composeai.preview.slots.PreviewSlotInfo;androidx.compose.ui.geometry.Rect){}[0]
+}
+
+final class ee.schimke.composeai.preview.slots/PreviewSlotConstraints { // ee.schimke.composeai.preview.slots/PreviewSlotConstraints|null[0]
+    constructor <init>(ee.schimke.composeai.preview.slots/PreviewSlotSizing = ..., ee.schimke.composeai.preview.slots/PreviewSlotSizing = ..., ee.schimke.composeai.preview.slots/PreviewSlotPadding = ...) // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.<init>|<init>(ee.schimke.composeai.preview.slots.PreviewSlotSizing;ee.schimke.composeai.preview.slots.PreviewSlotSizing;ee.schimke.composeai.preview.slots.PreviewSlotPadding){}[0]
+
+    final val horizontal // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.horizontal|{}horizontal[0]
+        final fun <get-horizontal>(): ee.schimke.composeai.preview.slots/PreviewSlotSizing // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.horizontal.<get-horizontal>|<get-horizontal>(){}[0]
+    final val padding // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.padding|{}padding[0]
+        final fun <get-padding>(): ee.schimke.composeai.preview.slots/PreviewSlotPadding // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.padding.<get-padding>|<get-padding>(){}[0]
+    final val vertical // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.vertical|{}vertical[0]
+        final fun <get-vertical>(): ee.schimke.composeai.preview.slots/PreviewSlotSizing // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.vertical.<get-vertical>|<get-vertical>(){}[0]
+
+    final fun component1(): ee.schimke.composeai.preview.slots/PreviewSlotSizing // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.component1|component1(){}[0]
+    final fun component2(): ee.schimke.composeai.preview.slots/PreviewSlotSizing // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.component2|component2(){}[0]
+    final fun component3(): ee.schimke.composeai.preview.slots/PreviewSlotPadding // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.component3|component3(){}[0]
+    final fun copy(ee.schimke.composeai.preview.slots/PreviewSlotSizing = ..., ee.schimke.composeai.preview.slots/PreviewSlotSizing = ..., ee.schimke.composeai.preview.slots/PreviewSlotPadding = ...): ee.schimke.composeai.preview.slots/PreviewSlotConstraints // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.copy|copy(ee.schimke.composeai.preview.slots.PreviewSlotSizing;ee.schimke.composeai.preview.slots.PreviewSlotSizing;ee.schimke.composeai.preview.slots.PreviewSlotPadding){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // ee.schimke.composeai.preview.slots/PreviewSlotConstraints.toString|toString(){}[0]
+}
+
+final class ee.schimke.composeai.preview.slots/PreviewSlotInfo { // ee.schimke.composeai.preview.slots/PreviewSlotInfo|null[0]
+    constructor <init>(kotlin/String, ee.schimke.composeai.preview.slots/PreviewSlotScope, kotlin/Boolean, ee.schimke.composeai.preview.slots/PreviewSlotConstraints) // ee.schimke.composeai.preview.slots/PreviewSlotInfo.<init>|<init>(kotlin.String;ee.schimke.composeai.preview.slots.PreviewSlotScope;kotlin.Boolean;ee.schimke.composeai.preview.slots.PreviewSlotConstraints){}[0]
+
+    final val constraints // ee.schimke.composeai.preview.slots/PreviewSlotInfo.constraints|{}constraints[0]
+        final fun <get-constraints>(): ee.schimke.composeai.preview.slots/PreviewSlotConstraints // ee.schimke.composeai.preview.slots/PreviewSlotInfo.constraints.<get-constraints>|<get-constraints>(){}[0]
+    final val name // ee.schimke.composeai.preview.slots/PreviewSlotInfo.name|{}name[0]
+        final fun <get-name>(): kotlin/String // ee.schimke.composeai.preview.slots/PreviewSlotInfo.name.<get-name>|<get-name>(){}[0]
+    final val scope // ee.schimke.composeai.preview.slots/PreviewSlotInfo.scope|{}scope[0]
+        final fun <get-scope>(): ee.schimke.composeai.preview.slots/PreviewSlotScope // ee.schimke.composeai.preview.slots/PreviewSlotInfo.scope.<get-scope>|<get-scope>(){}[0]
+    final val scrolling // ee.schimke.composeai.preview.slots/PreviewSlotInfo.scrolling|{}scrolling[0]
+        final fun <get-scrolling>(): kotlin/Boolean // ee.schimke.composeai.preview.slots/PreviewSlotInfo.scrolling.<get-scrolling>|<get-scrolling>(){}[0]
+
+    final fun component1(): kotlin/String // ee.schimke.composeai.preview.slots/PreviewSlotInfo.component1|component1(){}[0]
+    final fun component2(): ee.schimke.composeai.preview.slots/PreviewSlotScope // ee.schimke.composeai.preview.slots/PreviewSlotInfo.component2|component2(){}[0]
+    final fun component3(): kotlin/Boolean // ee.schimke.composeai.preview.slots/PreviewSlotInfo.component3|component3(){}[0]
+    final fun component4(): ee.schimke.composeai.preview.slots/PreviewSlotConstraints // ee.schimke.composeai.preview.slots/PreviewSlotInfo.component4|component4(){}[0]
+    final fun copy(kotlin/String = ..., ee.schimke.composeai.preview.slots/PreviewSlotScope = ..., kotlin/Boolean = ..., ee.schimke.composeai.preview.slots/PreviewSlotConstraints = ...): ee.schimke.composeai.preview.slots/PreviewSlotInfo // ee.schimke.composeai.preview.slots/PreviewSlotInfo.copy|copy(kotlin.String;ee.schimke.composeai.preview.slots.PreviewSlotScope;kotlin.Boolean;ee.schimke.composeai.preview.slots.PreviewSlotConstraints){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // ee.schimke.composeai.preview.slots/PreviewSlotInfo.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // ee.schimke.composeai.preview.slots/PreviewSlotInfo.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // ee.schimke.composeai.preview.slots/PreviewSlotInfo.toString|toString(){}[0]
+}
+
+final class ee.schimke.composeai.preview.slots/PreviewSlotPadding { // ee.schimke.composeai.preview.slots/PreviewSlotPadding|null[0]
+    constructor <init>(kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...) // ee.schimke.composeai.preview.slots/PreviewSlotPadding.<init>|<init>(kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+
+    final val bottomDp // ee.schimke.composeai.preview.slots/PreviewSlotPadding.bottomDp|{}bottomDp[0]
+        final fun <get-bottomDp>(): kotlin/Float // ee.schimke.composeai.preview.slots/PreviewSlotPadding.bottomDp.<get-bottomDp>|<get-bottomDp>(){}[0]
+    final val endDp // ee.schimke.composeai.preview.slots/PreviewSlotPadding.endDp|{}endDp[0]
+        final fun <get-endDp>(): kotlin/Float // ee.schimke.composeai.preview.slots/PreviewSlotPadding.endDp.<get-endDp>|<get-endDp>(){}[0]
+    final val startDp // ee.schimke.composeai.preview.slots/PreviewSlotPadding.startDp|{}startDp[0]
+        final fun <get-startDp>(): kotlin/Float // ee.schimke.composeai.preview.slots/PreviewSlotPadding.startDp.<get-startDp>|<get-startDp>(){}[0]
+    final val topDp // ee.schimke.composeai.preview.slots/PreviewSlotPadding.topDp|{}topDp[0]
+        final fun <get-topDp>(): kotlin/Float // ee.schimke.composeai.preview.slots/PreviewSlotPadding.topDp.<get-topDp>|<get-topDp>(){}[0]
+
+    final fun component1(): kotlin/Float // ee.schimke.composeai.preview.slots/PreviewSlotPadding.component1|component1(){}[0]
+    final fun component2(): kotlin/Float // ee.schimke.composeai.preview.slots/PreviewSlotPadding.component2|component2(){}[0]
+    final fun component3(): kotlin/Float // ee.schimke.composeai.preview.slots/PreviewSlotPadding.component3|component3(){}[0]
+    final fun component4(): kotlin/Float // ee.schimke.composeai.preview.slots/PreviewSlotPadding.component4|component4(){}[0]
+    final fun copy(kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ..., kotlin/Float = ...): ee.schimke.composeai.preview.slots/PreviewSlotPadding // ee.schimke.composeai.preview.slots/PreviewSlotPadding.copy|copy(kotlin.Float;kotlin.Float;kotlin.Float;kotlin.Float){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // ee.schimke.composeai.preview.slots/PreviewSlotPadding.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // ee.schimke.composeai.preview.slots/PreviewSlotPadding.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // ee.schimke.composeai.preview.slots/PreviewSlotPadding.toString|toString(){}[0]
+}
+
+final const val ee.schimke.composeai.preview.slots/SLOT_TAG_PREFIX // ee.schimke.composeai.preview.slots/SLOT_TAG_PREFIX|{}SLOT_TAG_PREFIX[0]
+    final fun <get-SLOT_TAG_PREFIX>(): kotlin/String // ee.schimke.composeai.preview.slots/SLOT_TAG_PREFIX.<get-SLOT_TAG_PREFIX>|<get-SLOT_TAG_PREFIX>(){}[0]
+
+final val ee.schimke.composeai.preview.slots/LocalPreviewBackgroundCleared // ee.schimke.composeai.preview.slots/LocalPreviewBackgroundCleared|{}LocalPreviewBackgroundCleared[0]
+    final fun <get-LocalPreviewBackgroundCleared>(): androidx.compose.runtime/ProvidableCompositionLocal<kotlin/Boolean> // ee.schimke.composeai.preview.slots/LocalPreviewBackgroundCleared.<get-LocalPreviewBackgroundCleared>|<get-LocalPreviewBackgroundCleared>(){}[0]
+final val ee.schimke.composeai.preview.slots/LocalPreviewSlotHost // ee.schimke.composeai.preview.slots/LocalPreviewSlotHost|{}LocalPreviewSlotHost[0]
+    final fun <get-LocalPreviewSlotHost>(): androidx.compose.runtime/ProvidableCompositionLocal<ee.schimke.composeai.preview.slots/PreviewSlotHost?> // ee.schimke.composeai.preview.slots/LocalPreviewSlotHost.<get-LocalPreviewSlotHost>|<get-LocalPreviewSlotHost>(){}[0]
+final val ee.schimke.composeai.preview.slots/LocalSlotMode // ee.schimke.composeai.preview.slots/LocalSlotMode|{}LocalSlotMode[0]
+    final fun <get-LocalSlotMode>(): androidx.compose.runtime/ProvidableCompositionLocal<kotlin/Boolean> // ee.schimke.composeai.preview.slots/LocalSlotMode.<get-LocalSlotMode>|<get-LocalSlotMode>(){}[0]
+final val ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotConstraints$stableprop // ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotConstraints$stableprop|#static{}ee_schimke_composeai_preview_slots_PreviewSlotConstraints$stableprop[0]
+final val ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotInfo$stableprop // ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotInfo$stableprop|#static{}ee_schimke_composeai_preview_slots_PreviewSlotInfo$stableprop[0]
+final val ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotPadding$stableprop // ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotPadding$stableprop|#static{}ee_schimke_composeai_preview_slots_PreviewSlotPadding$stableprop[0]
+
+final fun (androidx.compose.foundation.layout/BoxScope).ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, androidx.compose.ui/Modifier?, kotlin/Boolean, ee.schimke.composeai.preview.slots/PreviewSlotConstraints, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot@androidx.compose.foundation.layout.BoxScope(kotlin.String;androidx.compose.ui.Modifier?;kotlin.Boolean;ee.schimke.composeai.preview.slots.PreviewSlotConstraints;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun (androidx.compose.foundation.layout/BoxScope).ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, androidx.compose.ui/Modifier?, kotlin/Boolean, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot@androidx.compose.foundation.layout.BoxScope(kotlin.String;androidx.compose.ui.Modifier?;kotlin.Boolean;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun (androidx.compose.foundation.layout/ColumnScope).ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, androidx.compose.ui/Modifier?, kotlin/Boolean, ee.schimke.composeai.preview.slots/PreviewSlotConstraints, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot@androidx.compose.foundation.layout.ColumnScope(kotlin.String;androidx.compose.ui.Modifier?;kotlin.Boolean;ee.schimke.composeai.preview.slots.PreviewSlotConstraints;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun (androidx.compose.foundation.layout/ColumnScope).ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, androidx.compose.ui/Modifier?, kotlin/Boolean, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot@androidx.compose.foundation.layout.ColumnScope(kotlin.String;androidx.compose.ui.Modifier?;kotlin.Boolean;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun (androidx.compose.foundation.layout/RowScope).ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, androidx.compose.ui/Modifier?, kotlin/Boolean, ee.schimke.composeai.preview.slots/PreviewSlotConstraints, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot@androidx.compose.foundation.layout.RowScope(kotlin.String;androidx.compose.ui.Modifier?;kotlin.Boolean;ee.schimke.composeai.preview.slots.PreviewSlotConstraints;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun (androidx.compose.foundation.layout/RowScope).ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, androidx.compose.ui/Modifier?, kotlin/Boolean, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot@androidx.compose.foundation.layout.RowScope(kotlin.String;androidx.compose.ui.Modifier?;kotlin.Boolean;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun (androidx.compose.foundation.lazy/LazyItemScope).ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, androidx.compose.ui/Modifier?, ee.schimke.composeai.preview.slots/PreviewSlotConstraints, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot@androidx.compose.foundation.lazy.LazyItemScope(kotlin.String;androidx.compose.ui.Modifier?;ee.schimke.composeai.preview.slots.PreviewSlotConstraints;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun (androidx.compose.foundation.lazy/LazyItemScope).ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, androidx.compose.ui/Modifier?, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot@androidx.compose.foundation.lazy.LazyItemScope(kotlin.String;androidx.compose.ui.Modifier?;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, androidx.compose.ui/Modifier?, ee.schimke.composeai.preview.slots/PreviewSlotConstraints, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot(kotlin.String;androidx.compose.ui.Modifier?;ee.schimke.composeai.preview.slots.PreviewSlotConstraints;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, androidx.compose.ui/Modifier?, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot(kotlin.String;androidx.compose.ui.Modifier?;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, ee.schimke.composeai.preview.slots/PreviewSlotScope, androidx.compose.ui/Modifier?, kotlin/Boolean, ee.schimke.composeai.preview.slots/PreviewSlotConstraints, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot(kotlin.String;ee.schimke.composeai.preview.slots.PreviewSlotScope;androidx.compose.ui.Modifier?;kotlin.Boolean;ee.schimke.composeai.preview.slots.PreviewSlotConstraints;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.preview.slots/PreviewSlot(kotlin/String, ee.schimke.composeai.preview.slots/PreviewSlotScope, androidx.compose.ui/Modifier?, kotlin/Boolean, kotlin/Function2<androidx.compose.runtime/Composer, kotlin/Int, kotlin/Unit>, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/PreviewSlot|PreviewSlot(kotlin.String;ee.schimke.composeai.preview.slots.PreviewSlotScope;androidx.compose.ui.Modifier?;kotlin.Boolean;kotlin.Function2<androidx.compose.runtime.Composer,kotlin.Int,kotlin.Unit>;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.preview.slots/SlotPlaceholder(kotlin/String, androidx.compose.ui/Modifier?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int) // ee.schimke.composeai.preview.slots/SlotPlaceholder|SlotPlaceholder(kotlin.String;androidx.compose.ui.Modifier?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotConstraints$stableprop_getter(): kotlin/Int // ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotConstraints$stableprop_getter|ee_schimke_composeai_preview_slots_PreviewSlotConstraints$stableprop_getter(){}[0]
+final fun ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotInfo$stableprop_getter(): kotlin/Int // ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotInfo$stableprop_getter|ee_schimke_composeai_preview_slots_PreviewSlotInfo$stableprop_getter(){}[0]
+final fun ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotPadding$stableprop_getter(): kotlin/Int // ee.schimke.composeai.preview.slots/ee_schimke_composeai_preview_slots_PreviewSlotPadding$stableprop_getter|ee_schimke_composeai_preview_slots_PreviewSlotPadding$stableprop_getter(){}[0]
+final fun ee.schimke.composeai.preview.slots/slotTag(kotlin/String): kotlin/String // ee.schimke.composeai.preview.slots/slotTag|slotTag(kotlin.String){}[0]
+final fun ee.schimke.composeai.preview.slots/slotTag(kotlin/String, ee.schimke.composeai.preview.slots/PreviewSlotScope, kotlin/Boolean): kotlin/String // ee.schimke.composeai.preview.slots/slotTag|slotTag(kotlin.String;ee.schimke.composeai.preview.slots.PreviewSlotScope;kotlin.Boolean){}[0]

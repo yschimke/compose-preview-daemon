@@ -1,0 +1,57 @@
+public class ee/schimke/composeai/daemon/RecompositionDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/RecompositionDataProductRegistry$Companion;
+	public static final field KIND Ljava/lang/String;
+	public static final field MODE_DELTA Ljava/lang/String;
+	public static final field MODE_RECOMPOSITION_RENDER Ljava/lang/String;
+	public static final field MODE_SNAPSHOT Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+	public fun <init> ()V
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public fun getCapabilities ()Ljava/util/List;
+	protected fun installObserver (Landroidx/compose/ui/ImageComposeScene;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Landroidx/compose/runtime/tooling/CompositionObserverHandle;
+	public fun isKnown (Ljava/lang/String;)Z
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public final fun onRenderSceneLifecycle (Ljava/lang/String;Landroidx/compose/ui/ImageComposeScene;)V
+	public final fun onSessionLifecycle (Ljava/lang/String;Landroidx/compose/ui/ImageComposeScene;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/RecompositionDataProductRegistry$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/RecompositionExtensionContextKeys {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/RecompositionExtensionContextKeys;
+	public final fun getObservationSession ()Lee/schimke/composeai/data/render/extensions/ExtensionContextKey;
+}
+
+public abstract interface class ee/schimke/composeai/daemon/RecompositionObservationHandle {
+	public abstract fun dispose ()V
+}
+
+public abstract interface class ee/schimke/composeai/daemon/RecompositionObservationSession {
+	public abstract fun observe (Lkotlin/jvm/functions/Function1;)Lee/schimke/composeai/daemon/RecompositionObservationHandle;
+}
+
+public final class ee/schimke/composeai/daemon/RecompositionObserverExtension : ee/schimke/composeai/data/render/extensions/compose/CompositionObserverHook {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/RecompositionObserverExtension$Companion;
+	public static final field PAYLOAD_KEY Ljava/lang/String;
+	public fun <init> ()V
+	public fun Observe (Lee/schimke/composeai/data/render/extensions/compose/ExtensionComposeContext;Lee/schimke/composeai/data/render/extensions/compose/ExtensionCompositionSink;Landroidx/compose/runtime/Composer;I)V
+	public fun getConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getHooks ()Ljava/util/Set;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun getInputs ()Ljava/util/Set;
+	public fun getOutputs ()Ljava/util/Set;
+	public fun getTargets ()Ljava/util/Set;
+}
+
+public final class ee/schimke/composeai/daemon/RecompositionObserverExtension$Companion {
+}
+

@@ -1,0 +1,48 @@
+public final class ee/schimke/composeai/data/permissions/Material3PermissionsProduct {
+	public static final field INSTANCE Lee/schimke/composeai/data/permissions/Material3PermissionsProduct;
+	public static final field KIND Ljava/lang/String;
+	public static final field SCHEMA_VERSION I
+}
+
+public final class ee/schimke/composeai/data/permissions/PermissionGrantWire : java/lang/Enum {
+	public static final field Companion Lee/schimke/composeai/data/permissions/PermissionGrantWire$Companion;
+	public static final field DENIED Lee/schimke/composeai/data/permissions/PermissionGrantWire;
+	public static final field GRANTED Lee/schimke/composeai/data/permissions/PermissionGrantWire;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/data/permissions/PermissionGrantWire;
+	public static fun values ()[Lee/schimke/composeai/data/permissions/PermissionGrantWire;
+}
+
+public final class ee/schimke/composeai/data/permissions/PermissionGrantWire$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/permissions/PermissionsPayload {
+	public static final field Companion Lee/schimke/composeai/data/permissions/PermissionsPayload$Companion;
+	public fun <init> (Ljava/util/Map;Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/util/Map;Ljava/util/List;)Lee/schimke/composeai/data/permissions/PermissionsPayload;
+	public static synthetic fun copy$default (Lee/schimke/composeai/data/permissions/PermissionsPayload;Ljava/util/Map;Ljava/util/List;ILjava/lang/Object;)Lee/schimke/composeai/data/permissions/PermissionsPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getGrants ()Ljava/util/Map;
+	public final fun getQueried ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/data/permissions/PermissionsPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lee/schimke/composeai/data/permissions/PermissionsPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/data/permissions/PermissionsPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/data/permissions/PermissionsPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/data/permissions/PermissionsPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+

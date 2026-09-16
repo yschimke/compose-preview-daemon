@@ -1,0 +1,80 @@
+public final class ee/schimke/composeai/overrides/ControllerPreviewOverrideHost : ee/schimke/composeai/overrides/PreviewOverrideHost {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/overrides/ControllerPreviewOverrideHost;
+	public fun boolean (Ljava/lang/String;ZLjava/lang/Integer;Landroidx/compose/runtime/Composer;I)Z
+	public fun choice (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/List;Landroidx/compose/runtime/Composer;I)Ljava/lang/String;
+	public fun color-YGz6R6c (Ljava/lang/String;JLjava/lang/Integer;Landroidx/compose/runtime/Composer;I)J
+	public fun dp-BsltQPs (Ljava/lang/String;FLjava/lang/Integer;Landroidx/compose/runtime/Composer;I)F
+	public fun float (Ljava/lang/String;FLjava/lang/Integer;Landroidx/compose/runtime/Composer;I)F
+	public fun font (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/List;ZLandroidx/compose/runtime/Composer;I)Ljava/lang/String;
+	public fun int (Ljava/lang/String;ILjava/lang/Integer;Landroidx/compose/runtime/Composer;I)I
+	public fun string (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Landroidx/compose/runtime/Composer;I)Ljava/lang/String;
+}
+
+public abstract interface class ee/schimke/composeai/overrides/PreviewClock {
+	public abstract fun nowEpochMillis ()J
+}
+
+public final class ee/schimke/composeai/overrides/PreviewClockKt {
+	public static final fun fixedPreviewClock (J)Lee/schimke/composeai/overrides/PreviewClock;
+	public static final fun getLocalClock ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+}
+
+public final class ee/schimke/composeai/overrides/PreviewClock_jvmKt {
+	public static final fun getSystemPreviewClock ()Lee/schimke/composeai/overrides/PreviewClock;
+}
+
+public final class ee/schimke/composeai/overrides/PreviewOverrideController {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/overrides/PreviewOverrideController;
+	public final fun addChangeListener (Lkotlin/jvm/functions/Function0;)Lkotlin/jvm/functions/Function0;
+	public final fun beginRender (Ljava/lang/String;)V
+	public final fun clearDeclarations ()V
+	public final fun declarations ()Ljava/util/List;
+	public final fun getSeededValues ()Landroidx/compose/runtime/State;
+	public final fun record (Lee/schimke/composeai/data/overrides/PreviewOverrideDeclaration;)V
+	public final fun resetForNewSession ()V
+	public final fun set (Ljava/util/Map;)V
+	public final fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/daemon/protocol/PreviewOverrideValue;
+}
+
+public abstract interface class ee/schimke/composeai/overrides/PreviewOverrideHost {
+	public abstract fun boolean (Ljava/lang/String;ZLjava/lang/Integer;Landroidx/compose/runtime/Composer;I)Z
+	public fun choice (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/List;Landroidx/compose/runtime/Composer;I)Ljava/lang/String;
+	public abstract fun color-YGz6R6c (Ljava/lang/String;JLjava/lang/Integer;Landroidx/compose/runtime/Composer;I)J
+	public abstract fun dp-BsltQPs (Ljava/lang/String;FLjava/lang/Integer;Landroidx/compose/runtime/Composer;I)F
+	public abstract fun float (Ljava/lang/String;FLjava/lang/Integer;Landroidx/compose/runtime/Composer;I)F
+	public fun font (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/List;ZLandroidx/compose/runtime/Composer;I)Ljava/lang/String;
+	public abstract fun int (Ljava/lang/String;ILjava/lang/Integer;Landroidx/compose/runtime/Composer;I)I
+	public abstract fun string (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Landroidx/compose/runtime/Composer;I)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/overrides/PreviewOverrideHost$DefaultImpls {
+	public static fun choice (Lee/schimke/composeai/overrides/PreviewOverrideHost;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/List;Landroidx/compose/runtime/Composer;I)Ljava/lang/String;
+	public static fun font (Lee/schimke/composeai/overrides/PreviewOverrideHost;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/List;ZLandroidx/compose/runtime/Composer;I)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/overrides/PreviewOverrideHostKt {
+	public static final fun getLocalPreviewOverrideHost ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+	public static final fun previewOverrideBoolean (Ljava/lang/String;ZLjava/lang/Integer;Landroidx/compose/runtime/Composer;II)Z
+	public static final fun previewOverrideChoice (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Integer;Landroidx/compose/runtime/Composer;II)Ljava/lang/String;
+	public static final fun previewOverrideChoiceValues (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/Integer;Landroidx/compose/runtime/Composer;II)Ljava/lang/String;
+	public static final fun previewOverrideColor-3IgeMak (Ljava/lang/String;JLjava/lang/Integer;Landroidx/compose/runtime/Composer;II)J
+	public static final fun previewOverrideDp-uFdPcIQ (Ljava/lang/String;FLjava/lang/Integer;Landroidx/compose/runtime/Composer;II)F
+	public static final fun previewOverrideFloat (Ljava/lang/String;FLjava/lang/Integer;Landroidx/compose/runtime/Composer;II)F
+	public static final fun previewOverrideFont (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLjava/lang/Integer;Landroidx/compose/runtime/Composer;II)Ljava/lang/String;
+	public static final fun previewOverrideInt (Ljava/lang/String;ILjava/lang/Integer;Landroidx/compose/runtime/Composer;II)I
+	public static final fun previewOverrideString (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Landroidx/compose/runtime/Composer;II)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/overrides/PreviewOverrideOption_jvmKt {
+	public static final fun getDefaultPreviewOverrideHost ()Lee/schimke/composeai/overrides/PreviewOverrideHost;
+	public static final fun previewOverrideOption (Ljava/lang/String;Ljava/lang/String;)Lee/schimke/composeai/data/overrides/PreviewOverrideOption;
+	public static synthetic fun previewOverrideOption$default (Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/data/overrides/PreviewOverrideOption;
+}
+
+public final class ee/schimke/composeai/overrides/PreviewPlaceholderKt {
+	public static final fun getLocalPlaceholderActive ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+	public static final fun placeholderActive (ZLandroidx/compose/runtime/Composer;II)Z
+}
+

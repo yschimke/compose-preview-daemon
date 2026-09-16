@@ -1,0 +1,57 @@
+public final class ee/schimke/composeai/fonts/google/GoogleFontCache : ee/schimke/composeai/fonts/google/GoogleFontSource {
+	public fun <init> (Ljava/io/File;ZLkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Ljava/io/File;ZLkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/io/File;ZLkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)V
+	public fun load (Lee/schimke/composeai/fonts/google/GoogleFontKey;)Ljava/io/File;
+	public fun loadVariable (Ljava/lang/String;Z)Ljava/io/File;
+}
+
+public final class ee/schimke/composeai/fonts/google/GoogleFontKey {
+	public static final field Companion Lee/schimke/composeai/fonts/google/GoogleFontKey$Companion;
+	public fun <init> (Ljava/lang/String;IZ)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Z
+	public final fun copy (Ljava/lang/String;IZ)Lee/schimke/composeai/fonts/google/GoogleFontKey;
+	public static synthetic fun copy$default (Lee/schimke/composeai/fonts/google/GoogleFontKey;Ljava/lang/String;IZILjava/lang/Object;)Lee/schimke/composeai/fonts/google/GoogleFontKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun fileName ()Ljava/lang/String;
+	public final fun getItalic ()Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getWeight ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/fonts/google/GoogleFontKey$Companion {
+	public final fun slugify (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public abstract interface class ee/schimke/composeai/fonts/google/GoogleFontSource {
+	public abstract fun load (Lee/schimke/composeai/fonts/google/GoogleFontKey;)Ljava/io/File;
+	public fun loadVariable (Ljava/lang/String;Z)Ljava/io/File;
+	public static synthetic fun loadVariable$default (Lee/schimke/composeai/fonts/google/GoogleFontSource;Ljava/lang/String;ZILjava/lang/Object;)Ljava/io/File;
+}
+
+public final class ee/schimke/composeai/fonts/google/GoogleFontSource$DefaultImpls {
+	public static fun loadVariable (Lee/schimke/composeai/fonts/google/GoogleFontSource;Ljava/lang/String;Z)Ljava/io/File;
+	public static synthetic fun loadVariable$default (Lee/schimke/composeai/fonts/google/GoogleFontSource;Ljava/lang/String;ZILjava/lang/Object;)Ljava/io/File;
+}
+
+public final class ee/schimke/composeai/fonts/google/GoogleFontsKt {
+	public static final fun buildCssUrl (Lee/schimke/composeai/fonts/google/GoogleFontKey;)Ljava/lang/String;
+	public static final fun buildRangeCssUrl (Lee/schimke/composeai/fonts/google/GoogleFontKey;)Ljava/lang/String;
+	public static final fun downloadFromGoogleFonts (Lee/schimke/composeai/fonts/google/GoogleFontKey;Ljava/io/File;Lokio/FileSystem;)Z
+	public static synthetic fun downloadFromGoogleFonts$default (Lee/schimke/composeai/fonts/google/GoogleFontKey;Ljava/io/File;Lokio/FileSystem;ILjava/lang/Object;)Z
+	public static final fun downloadVariableFromGoogleFontsRepo (Ljava/lang/String;ZLjava/io/File;Lokio/FileSystem;)Z
+	public static synthetic fun downloadVariableFromGoogleFontsRepo$default (Ljava/lang/String;ZLjava/io/File;Lokio/FileSystem;ILjava/lang/Object;)Z
+	public static final fun extractFirstTruetypeUrl (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun googleFontsRepoFileUrl (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun googleFontsRepoMetadataUrl (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun googleFontsRepoSlug (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun hasFvarTable ([B)Z
+	public static final fun pickClosestTruetypeUrl (Ljava/lang/String;I)Ljava/lang/String;
+	public static final fun pickVariableFileName (Ljava/lang/String;Z)Ljava/lang/String;
+	public static final fun variableFileName (Ljava/lang/String;Z)Ljava/lang/String;
+}
+

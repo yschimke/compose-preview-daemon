@@ -1,0 +1,30 @@
+public final class ee/schimke/composeai/preview/lottie/LottiePreviewKt {
+	public static final field DEFAULT_LOTTIE_DURATION_MS I
+	public static final fun LottiePreview (Ljava/lang/String;Landroidx/compose/ui/Modifier;FLandroidx/compose/ui/layout/ContentScale;Landroidx/compose/runtime/Composer;II)V
+	public static final fun LottiePreview (Ljava/lang/String;Landroidx/compose/ui/Modifier;Landroidx/compose/ui/layout/ContentScale;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+	public static final fun getLocalLottieProgress ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+	public static final fun lottieIntrinsicDurationMillis (Ljava/lang/String;I)I
+	public static synthetic fun lottieIntrinsicDurationMillis$default (Ljava/lang/String;IILjava/lang/Object;)I
+	public static final fun lottieTimelineInfo (Ljava/lang/String;)Lee/schimke/composeai/preview/lottie/LottieTimelineInfo;
+}
+
+public final class ee/schimke/composeai/preview/lottie/LottieTimelineInfo {
+	public static final field $stable I
+	public fun <init> (FFIII)V
+	public final fun component1 ()F
+	public final fun component2 ()F
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun copy (FFIII)Lee/schimke/composeai/preview/lottie/LottieTimelineInfo;
+	public static synthetic fun copy$default (Lee/schimke/composeai/preview/lottie/LottieTimelineInfo;FFIIIILjava/lang/Object;)Lee/schimke/composeai/preview/lottie/LottieTimelineInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDurationFrames ()F
+	public final fun getDurationMillis ()I
+	public final fun getFrameRate ()F
+	public final fun getHeightPx ()I
+	public final fun getWidthPx ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+

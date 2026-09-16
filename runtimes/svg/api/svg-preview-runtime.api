@@ -1,0 +1,6 @@
+public final class ee/schimke/composeai/preview/svg/SvgPreviewKt {
+	public static final fun SvgPreview (Ljava/lang/String;Landroidx/compose/ui/Modifier;Landroidx/compose/ui/layout/ContentScale;Landroidx/compose/ui/graphics/ColorFilter;Landroidx/compose/runtime/Composer;II)V
+	public static final fun SvgPreview ([BLandroidx/compose/ui/Modifier;Ljava/lang/String;Landroidx/compose/ui/layout/ContentScale;Landroidx/compose/ui/graphics/ColorFilter;Landroidx/compose/runtime/Composer;II)V
+	public static final fun loadSvgAsset (Ljava/lang/String;)[B
+}
+

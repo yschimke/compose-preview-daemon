@@ -40,6 +40,10 @@ gradlePlugin {
       id = "composeai.kotlin-conventions"
       implementationClass = "ee.schimke.composeai.buildlogic.ComposeAiKotlinConventionsPlugin"
     }
+    register("composeAiAbiValidation") {
+      id = "composeai.abi-validation"
+      implementationClass = "ee.schimke.composeai.buildlogic.ComposeAiAbiValidationPlugin"
+    }
     register("composeAiMavenPublishing") {
       id = "composeai.maven-publishing"
       implementationClass = "ee.schimke.composeai.buildlogic.ComposeAiMavenPublishingPlugin"

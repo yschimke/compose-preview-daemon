@@ -1,0 +1,53 @@
+public final class ee/schimke/composeai/motion/ApngEncoder {
+	public static final field INSTANCE Lee/schimke/composeai/motion/ApngEncoder;
+	public final fun encodeFromPngFrames (Ljava/util/List;SSILjava/io/File;)V
+}
+
+public final class ee/schimke/composeai/motion/InteractionPointerEvent {
+	public fun <init> (IIZ)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()Z
+	public final fun copy (IIZ)Lee/schimke/composeai/motion/InteractionPointerEvent;
+	public static synthetic fun copy$default (Lee/schimke/composeai/motion/InteractionPointerEvent;IIZILjava/lang/Object;)Lee/schimke/composeai/motion/InteractionPointerEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAtMs ()I
+	public final fun getDown ()Z
+	public final fun getTarget ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/motion/InteractionScript {
+	public static final field INSTANCE Lee/schimke/composeai/motion/InteractionScript;
+	public final fun timeline (Lee/schimke/composeai/motion/MotionGesture;Ljava/util/List;III)Lee/schimke/composeai/motion/InteractionTimeline;
+}
+
+public final class ee/schimke/composeai/motion/InteractionScriptKt {
+	public static final field MAX_INTERACTION_DURATION_MS I
+	public static final field TAP_PRESS_MS I
+	public static final fun apngDelayFor (I)Lkotlin/Pair;
+}
+
+public final class ee/schimke/composeai/motion/InteractionTimeline {
+	public fun <init> (Ljava/util/List;I)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()I
+	public final fun copy (Ljava/util/List;I)Lee/schimke/composeai/motion/InteractionTimeline;
+	public static synthetic fun copy$default (Lee/schimke/composeai/motion/InteractionTimeline;Ljava/util/List;IILjava/lang/Object;)Lee/schimke/composeai/motion/InteractionTimeline;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCappedDurationMs ()I
+	public final fun getDurationMs ()I
+	public final fun getEvents ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/motion/MotionGesture : java/lang/Enum {
+	public static final field PRESS_AND_HOLD Lee/schimke/composeai/motion/MotionGesture;
+	public static final field TAP Lee/schimke/composeai/motion/MotionGesture;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/motion/MotionGesture;
+	public static fun values ()[Lee/schimke/composeai/motion/MotionGesture;
+}
+

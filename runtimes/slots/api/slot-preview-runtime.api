@@ -1,0 +1,111 @@
+public final class ee/schimke/composeai/preview/slots/PreviewBackgroundKt {
+	public static final fun getLocalPreviewBackgroundCleared ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+}
+
+public final class ee/schimke/composeai/preview/slots/PreviewSlotConstraints {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Lee/schimke/composeai/preview/slots/PreviewSlotSizing;Lee/schimke/composeai/preview/slots/PreviewSlotSizing;Lee/schimke/composeai/preview/slots/PreviewSlotPadding;)V
+	public synthetic fun <init> (Lee/schimke/composeai/preview/slots/PreviewSlotSizing;Lee/schimke/composeai/preview/slots/PreviewSlotSizing;Lee/schimke/composeai/preview/slots/PreviewSlotPadding;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lee/schimke/composeai/preview/slots/PreviewSlotSizing;
+	public final fun component2 ()Lee/schimke/composeai/preview/slots/PreviewSlotSizing;
+	public final fun component3 ()Lee/schimke/composeai/preview/slots/PreviewSlotPadding;
+	public final fun copy (Lee/schimke/composeai/preview/slots/PreviewSlotSizing;Lee/schimke/composeai/preview/slots/PreviewSlotSizing;Lee/schimke/composeai/preview/slots/PreviewSlotPadding;)Lee/schimke/composeai/preview/slots/PreviewSlotConstraints;
+	public static synthetic fun copy$default (Lee/schimke/composeai/preview/slots/PreviewSlotConstraints;Lee/schimke/composeai/preview/slots/PreviewSlotSizing;Lee/schimke/composeai/preview/slots/PreviewSlotSizing;Lee/schimke/composeai/preview/slots/PreviewSlotPadding;ILjava/lang/Object;)Lee/schimke/composeai/preview/slots/PreviewSlotConstraints;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHorizontal ()Lee/schimke/composeai/preview/slots/PreviewSlotSizing;
+	public final fun getPadding ()Lee/schimke/composeai/preview/slots/PreviewSlotPadding;
+	public final fun getVertical ()Lee/schimke/composeai/preview/slots/PreviewSlotSizing;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class ee/schimke/composeai/preview/slots/PreviewSlotHost {
+	public abstract fun Content (Lee/schimke/composeai/preview/slots/PreviewSlotInfo;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+	public fun onPositioned (Lee/schimke/composeai/preview/slots/PreviewSlotInfo;Landroidx/compose/ui/geometry/Rect;)V
+}
+
+public final class ee/schimke/composeai/preview/slots/PreviewSlotHost$DefaultImpls {
+	public static fun onPositioned (Lee/schimke/composeai/preview/slots/PreviewSlotHost;Lee/schimke/composeai/preview/slots/PreviewSlotInfo;Landroidx/compose/ui/geometry/Rect;)V
+}
+
+public final class ee/schimke/composeai/preview/slots/PreviewSlotInfo {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Lee/schimke/composeai/preview/slots/PreviewSlotScope;ZLee/schimke/composeai/preview/slots/PreviewSlotConstraints;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lee/schimke/composeai/preview/slots/PreviewSlotScope;
+	public final fun component3 ()Z
+	public final fun component4 ()Lee/schimke/composeai/preview/slots/PreviewSlotConstraints;
+	public final fun copy (Ljava/lang/String;Lee/schimke/composeai/preview/slots/PreviewSlotScope;ZLee/schimke/composeai/preview/slots/PreviewSlotConstraints;)Lee/schimke/composeai/preview/slots/PreviewSlotInfo;
+	public static synthetic fun copy$default (Lee/schimke/composeai/preview/slots/PreviewSlotInfo;Ljava/lang/String;Lee/schimke/composeai/preview/slots/PreviewSlotScope;ZLee/schimke/composeai/preview/slots/PreviewSlotConstraints;ILjava/lang/Object;)Lee/schimke/composeai/preview/slots/PreviewSlotInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConstraints ()Lee/schimke/composeai/preview/slots/PreviewSlotConstraints;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getScope ()Lee/schimke/composeai/preview/slots/PreviewSlotScope;
+	public final fun getScrolling ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/preview/slots/PreviewSlotKt {
+	public static final field SLOT_TAG_PREFIX Ljava/lang/String;
+	public static final fun PreviewSlot (Landroidx/compose/foundation/layout/BoxScope;Ljava/lang/String;Landroidx/compose/ui/Modifier;ZLee/schimke/composeai/preview/slots/PreviewSlotConstraints;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewSlot (Landroidx/compose/foundation/layout/BoxScope;Ljava/lang/String;Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewSlot (Landroidx/compose/foundation/layout/ColumnScope;Ljava/lang/String;Landroidx/compose/ui/Modifier;ZLee/schimke/composeai/preview/slots/PreviewSlotConstraints;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewSlot (Landroidx/compose/foundation/layout/ColumnScope;Ljava/lang/String;Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewSlot (Landroidx/compose/foundation/layout/RowScope;Ljava/lang/String;Landroidx/compose/ui/Modifier;ZLee/schimke/composeai/preview/slots/PreviewSlotConstraints;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewSlot (Landroidx/compose/foundation/layout/RowScope;Ljava/lang/String;Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewSlot (Landroidx/compose/foundation/lazy/LazyItemScope;Ljava/lang/String;Landroidx/compose/ui/Modifier;Lee/schimke/composeai/preview/slots/PreviewSlotConstraints;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewSlot (Landroidx/compose/foundation/lazy/LazyItemScope;Ljava/lang/String;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewSlot (Ljava/lang/String;Landroidx/compose/ui/Modifier;Lee/schimke/composeai/preview/slots/PreviewSlotConstraints;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewSlot (Ljava/lang/String;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewSlot (Ljava/lang/String;Lee/schimke/composeai/preview/slots/PreviewSlotScope;Landroidx/compose/ui/Modifier;ZLee/schimke/composeai/preview/slots/PreviewSlotConstraints;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewSlot (Ljava/lang/String;Lee/schimke/composeai/preview/slots/PreviewSlotScope;Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun SlotPlaceholder (Ljava/lang/String;Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
+	public static final fun getLocalPreviewSlotHost ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+	public static final fun getLocalSlotMode ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+	public static final fun slotTag (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun slotTag (Ljava/lang/String;Lee/schimke/composeai/preview/slots/PreviewSlotScope;Z)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/preview/slots/PreviewSlotPadding {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (FFFF)V
+	public synthetic fun <init> (FFFFILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()F
+	public final fun component2 ()F
+	public final fun component3 ()F
+	public final fun component4 ()F
+	public final fun copy (FFFF)Lee/schimke/composeai/preview/slots/PreviewSlotPadding;
+	public static synthetic fun copy$default (Lee/schimke/composeai/preview/slots/PreviewSlotPadding;FFFFILjava/lang/Object;)Lee/schimke/composeai/preview/slots/PreviewSlotPadding;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBottomDp ()F
+	public final fun getEndDp ()F
+	public final fun getStartDp ()F
+	public final fun getTopDp ()F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/preview/slots/PreviewSlotScope : java/lang/Enum {
+	public static final field Box Lee/schimke/composeai/preview/slots/PreviewSlotScope;
+	public static final field Column Lee/schimke/composeai/preview/slots/PreviewSlotScope;
+	public static final field Lazy Lee/schimke/composeai/preview/slots/PreviewSlotScope;
+	public static final field Row Lee/schimke/composeai/preview/slots/PreviewSlotScope;
+	public static final field Unknown Lee/schimke/composeai/preview/slots/PreviewSlotScope;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/slots/PreviewSlotScope;
+	public static fun values ()[Lee/schimke/composeai/preview/slots/PreviewSlotScope;
+}
+
+public final class ee/schimke/composeai/preview/slots/PreviewSlotSizing : java/lang/Enum {
+	public static final field Fill Lee/schimke/composeai/preview/slots/PreviewSlotSizing;
+	public static final field Fixed Lee/schimke/composeai/preview/slots/PreviewSlotSizing;
+	public static final field Hug Lee/schimke/composeai/preview/slots/PreviewSlotSizing;
+	public static final field Unspecified Lee/schimke/composeai/preview/slots/PreviewSlotSizing;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lee/schimke/composeai/preview/slots/PreviewSlotSizing;
+	public static fun values ()[Lee/schimke/composeai/preview/slots/PreviewSlotSizing;
+}
+

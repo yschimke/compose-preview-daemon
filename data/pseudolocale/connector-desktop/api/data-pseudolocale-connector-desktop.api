@@ -1,0 +1,26 @@
+public final class ee/schimke/composeai/daemon/PseudolocaleOverrideExtensionDesktop : ee/schimke/composeai/data/render/extensions/compose/AroundComposableExtension {
+	public static final field $stable I
+	public static final field Companion Lee/schimke/composeai/daemon/PseudolocaleOverrideExtensionDesktop$Companion;
+	public fun <init> (Lee/schimke/composeai/data/pseudolocale/Pseudolocale;)V
+	public fun AroundComposable (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class ee/schimke/composeai/daemon/PseudolocaleOverrideExtensionDesktop$Companion {
+	public final fun getID-6nMuUE8 ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/PseudolocalePreviewOverrideExtensionDesktop : ee/schimke/composeai/daemon/AlwaysOnPreviewOverrideExtension, ee/schimke/composeai/data/render/extensions/DataExtension {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun getDefaultConstraints ()Lee/schimke/composeai/data/render/extensions/DataExtensionConstraints;
+	public fun getId-6nMuUE8 ()Ljava/lang/String;
+	public fun plan (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+	public synthetic fun plan (Ljava/lang/Object;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
+}
+
+public final class ee/schimke/composeai/daemon/PseudolocaleResourceCache {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/PseudolocaleResourceCache;
+	public final fun clearStringResourcesCacheBestEffort ()Z
+}
+

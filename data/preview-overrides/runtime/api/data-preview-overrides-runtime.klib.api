@@ -1,0 +1,57 @@
+// Klib ABI Dump
+// Targets: [wasmJs]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <ee.schimke.composeai:data-preview-overrides-runtime>
+abstract fun interface ee.schimke.composeai.overrides/PreviewClock { // ee.schimke.composeai.overrides/PreviewClock|null[0]
+    abstract fun nowEpochMillis(): kotlin/Long // ee.schimke.composeai.overrides/PreviewClock.nowEpochMillis|nowEpochMillis(){}[0]
+}
+
+abstract interface ee.schimke.composeai.overrides/PreviewOverrideHost { // ee.schimke.composeai.overrides/PreviewOverrideHost|null[0]
+    abstract fun boolean(kotlin/String, kotlin/Boolean, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int): kotlin/Boolean // ee.schimke.composeai.overrides/PreviewOverrideHost.boolean|boolean(kotlin.String;kotlin.Boolean;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    abstract fun color(kotlin/String, androidx.compose.ui.graphics/Color, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int): androidx.compose.ui.graphics/Color // ee.schimke.composeai.overrides/PreviewOverrideHost.color|color(kotlin.String;androidx.compose.ui.graphics.Color;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    abstract fun dp(kotlin/String, androidx.compose.ui.unit/Dp, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int): androidx.compose.ui.unit/Dp // ee.schimke.composeai.overrides/PreviewOverrideHost.dp|dp(kotlin.String;androidx.compose.ui.unit.Dp;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    abstract fun float(kotlin/String, kotlin/Float, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int): kotlin/Float // ee.schimke.composeai.overrides/PreviewOverrideHost.float|float(kotlin.String;kotlin.Float;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    abstract fun int(kotlin/String, kotlin/Int, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int): kotlin/Int // ee.schimke.composeai.overrides/PreviewOverrideHost.int|int(kotlin.String;kotlin.Int;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    abstract fun string(kotlin/String, kotlin/String, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int): kotlin/String // ee.schimke.composeai.overrides/PreviewOverrideHost.string|string(kotlin.String;kotlin.String;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    open fun choice(kotlin/String, kotlin/String, kotlin/Int?, kotlin.collections/List<ee.schimke.composeai.overrides/PreviewOverrideOption>, androidx.compose.runtime/Composer?, kotlin/Int): kotlin/String // ee.schimke.composeai.overrides/PreviewOverrideHost.choice|choice(kotlin.String;kotlin.String;kotlin.Int?;kotlin.collections.List<ee.schimke.composeai.overrides.PreviewOverrideOption>;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+    open fun font(kotlin/String, kotlin/String, kotlin/Int?, kotlin.collections/List<kotlin/String>, kotlin/Boolean, androidx.compose.runtime/Composer?, kotlin/Int): kotlin/String // ee.schimke.composeai.overrides/PreviewOverrideHost.font|font(kotlin.String;kotlin.String;kotlin.Int?;kotlin.collections.List<kotlin.String>;kotlin.Boolean;androidx.compose.runtime.Composer?;kotlin.Int){}[0]
+}
+
+final class ee.schimke.composeai.overrides/PreviewOverrideOption { // ee.schimke.composeai.overrides/PreviewOverrideOption|null[0]
+    constructor <init>(kotlin/String, kotlin/String) // ee.schimke.composeai.overrides/PreviewOverrideOption.<init>|<init>(kotlin.String;kotlin.String){}[0]
+
+    final val label // ee.schimke.composeai.overrides/PreviewOverrideOption.label|{}label[0]
+        final fun <get-label>(): kotlin/String // ee.schimke.composeai.overrides/PreviewOverrideOption.label.<get-label>|<get-label>(){}[0]
+    final val value // ee.schimke.composeai.overrides/PreviewOverrideOption.value|{}value[0]
+        final fun <get-value>(): kotlin/String // ee.schimke.composeai.overrides/PreviewOverrideOption.value.<get-value>|<get-value>(){}[0]
+}
+
+final val ee.schimke.composeai.overrides/DefaultPreviewOverrideHost // ee.schimke.composeai.overrides/DefaultPreviewOverrideHost|{}DefaultPreviewOverrideHost[0]
+    final fun <get-DefaultPreviewOverrideHost>(): ee.schimke.composeai.overrides/PreviewOverrideHost // ee.schimke.composeai.overrides/DefaultPreviewOverrideHost.<get-DefaultPreviewOverrideHost>|<get-DefaultPreviewOverrideHost>(){}[0]
+final val ee.schimke.composeai.overrides/LocalClock // ee.schimke.composeai.overrides/LocalClock|{}LocalClock[0]
+    final fun <get-LocalClock>(): androidx.compose.runtime/ProvidableCompositionLocal<ee.schimke.composeai.overrides/PreviewClock> // ee.schimke.composeai.overrides/LocalClock.<get-LocalClock>|<get-LocalClock>(){}[0]
+final val ee.schimke.composeai.overrides/LocalPlaceholderActive // ee.schimke.composeai.overrides/LocalPlaceholderActive|{}LocalPlaceholderActive[0]
+    final fun <get-LocalPlaceholderActive>(): androidx.compose.runtime/ProvidableCompositionLocal<kotlin/Boolean?> // ee.schimke.composeai.overrides/LocalPlaceholderActive.<get-LocalPlaceholderActive>|<get-LocalPlaceholderActive>(){}[0]
+final val ee.schimke.composeai.overrides/LocalPreviewOverrideHost // ee.schimke.composeai.overrides/LocalPreviewOverrideHost|{}LocalPreviewOverrideHost[0]
+    final fun <get-LocalPreviewOverrideHost>(): androidx.compose.runtime/ProvidableCompositionLocal<ee.schimke.composeai.overrides/PreviewOverrideHost> // ee.schimke.composeai.overrides/LocalPreviewOverrideHost.<get-LocalPreviewOverrideHost>|<get-LocalPreviewOverrideHost>(){}[0]
+final val ee.schimke.composeai.overrides/SystemPreviewClock // ee.schimke.composeai.overrides/SystemPreviewClock|{}SystemPreviewClock[0]
+    final fun <get-SystemPreviewClock>(): ee.schimke.composeai.overrides/PreviewClock // ee.schimke.composeai.overrides/SystemPreviewClock.<get-SystemPreviewClock>|<get-SystemPreviewClock>(){}[0]
+final val ee.schimke.composeai.overrides/ee_schimke_composeai_overrides_PreviewOverrideOption$stableprop // ee.schimke.composeai.overrides/ee_schimke_composeai_overrides_PreviewOverrideOption$stableprop|#static{}ee_schimke_composeai_overrides_PreviewOverrideOption$stableprop[0]
+
+final fun ee.schimke.composeai.overrides/ee_schimke_composeai_overrides_PreviewOverrideOption$stableprop_getter(): kotlin/Int // ee.schimke.composeai.overrides/ee_schimke_composeai_overrides_PreviewOverrideOption$stableprop_getter|ee_schimke_composeai_overrides_PreviewOverrideOption$stableprop_getter(){}[0]
+final fun ee.schimke.composeai.overrides/fixedPreviewClock(kotlin/Long): ee.schimke.composeai.overrides/PreviewClock // ee.schimke.composeai.overrides/fixedPreviewClock|fixedPreviewClock(kotlin.Long){}[0]
+final fun ee.schimke.composeai.overrides/placeholderActive(kotlin/Boolean, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int): kotlin/Boolean // ee.schimke.composeai.overrides/placeholderActive|placeholderActive(kotlin.Boolean;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.overrides/previewOverrideBoolean(kotlin/String, kotlin/Boolean, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int): kotlin/Boolean // ee.schimke.composeai.overrides/previewOverrideBoolean|previewOverrideBoolean(kotlin.String;kotlin.Boolean;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.overrides/previewOverrideChoice(kotlin/String, kotlin/String, kotlin.collections/List<ee.schimke.composeai.overrides/PreviewOverrideOption>, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int): kotlin/String // ee.schimke.composeai.overrides/previewOverrideChoice|previewOverrideChoice(kotlin.String;kotlin.String;kotlin.collections.List<ee.schimke.composeai.overrides.PreviewOverrideOption>;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.overrides/previewOverrideChoice(kotlin/String, kotlin/String, kotlin.collections/List<kotlin/String>, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int): kotlin/String // ee.schimke.composeai.overrides/previewOverrideChoice|previewOverrideChoice(kotlin.String;kotlin.String;kotlin.collections.List<kotlin.String>;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.overrides/previewOverrideColor(kotlin/String, androidx.compose.ui.graphics/Color, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int): androidx.compose.ui.graphics/Color // ee.schimke.composeai.overrides/previewOverrideColor|previewOverrideColor(kotlin.String;androidx.compose.ui.graphics.Color;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.overrides/previewOverrideDp(kotlin/String, androidx.compose.ui.unit/Dp, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int): androidx.compose.ui.unit/Dp // ee.schimke.composeai.overrides/previewOverrideDp|previewOverrideDp(kotlin.String;androidx.compose.ui.unit.Dp;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.overrides/previewOverrideFloat(kotlin/String, kotlin/Float, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int): kotlin/Float // ee.schimke.composeai.overrides/previewOverrideFloat|previewOverrideFloat(kotlin.String;kotlin.Float;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.overrides/previewOverrideFont(kotlin/String, kotlin/String, kotlin.collections/List<kotlin/String>?, kotlin/Boolean, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int): kotlin/String // ee.schimke.composeai.overrides/previewOverrideFont|previewOverrideFont(kotlin.String;kotlin.String;kotlin.collections.List<kotlin.String>?;kotlin.Boolean;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.overrides/previewOverrideInt(kotlin/String, kotlin/Int, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int): kotlin/Int // ee.schimke.composeai.overrides/previewOverrideInt|previewOverrideInt(kotlin.String;kotlin.Int;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]
+final fun ee.schimke.composeai.overrides/previewOverrideOption(kotlin/String, kotlin/String = ...): ee.schimke.composeai.overrides/PreviewOverrideOption // ee.schimke.composeai.overrides/previewOverrideOption|previewOverrideOption(kotlin.String;kotlin.String){}[0]
+final fun ee.schimke.composeai.overrides/previewOverrideString(kotlin/String, kotlin/String, kotlin/Int?, androidx.compose.runtime/Composer?, kotlin/Int, kotlin/Int): kotlin/String // ee.schimke.composeai.overrides/previewOverrideString|previewOverrideString(kotlin.String;kotlin.String;kotlin.Int?;androidx.compose.runtime.Composer?;kotlin.Int;kotlin.Int){}[0]

@@ -1,0 +1,200 @@
+public final class ee/schimke/composeai/renderer/xr/client/StreamFrame {
+	public fun <init> (JIILjava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()J
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (JIILjava/lang/String;Ljava/lang/String;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+	public static synthetic fun copy$default (Lee/schimke/composeai/renderer/xr/client/StreamFrame;JIILjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDataBase64 ()Ljava/lang/String;
+	public final fun getEncoding ()Ljava/lang/String;
+	public final fun getHeight ()I
+	public final fun getSeq ()J
+	public final fun getWidth ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrCompositeBinary {
+	public static final field INSTANCE Lee/schimke/composeai/renderer/xr/client/XrCompositeBinary;
+	public final fun currentPlatform ()Ljava/lang/String;
+	public final fun resolve (Lkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;)Ljava/io/File;
+	public static synthetic fun resolve$default (Lee/schimke/composeai/renderer/xr/client/XrCompositeBinary;Lkotlin/jvm/functions/Function1;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/io/File;
+	public final fun resolveMaterials (Ljava/io/File;Lkotlin/jvm/functions/Function1;)Ljava/io/File;
+	public static synthetic fun resolveMaterials$default (Lee/schimke/composeai/renderer/xr/client/XrCompositeBinary;Ljava/io/File;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/io/File;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrRenderServer : ee/schimke/composeai/renderer/xr/client/XrRenderServerHandle {
+	public static final field Companion Lee/schimke/composeai/renderer/xr/client/XrRenderServer$Companion;
+	public fun close ()V
+	public fun getCapabilities ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getHandshake ()Lee/schimke/composeai/renderer/xr/client/XrServerHandshake;
+	public fun isAlive ()Z
+	public fun render (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+	public fun stop (Ljava/lang/String;)V
+	public fun updatePanels (Ljava/lang/String;Lkotlinx/serialization/json/JsonArray;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrRenderServer$Companion {
+	public final fun start (Ljava/io/File;Ljava/io/File;II)Lee/schimke/composeai/renderer/xr/client/XrRenderServer;
+	public static synthetic fun start$default (Lee/schimke/composeai/renderer/xr/client/XrRenderServer$Companion;Ljava/io/File;Ljava/io/File;IIILjava/lang/Object;)Lee/schimke/composeai/renderer/xr/client/XrRenderServer;
+	public final fun startIfAvailable (Ljava/lang/String;)Lee/schimke/composeai/renderer/xr/client/XrRenderServer;
+	public static synthetic fun startIfAvailable$default (Lee/schimke/composeai/renderer/xr/client/XrRenderServer$Companion;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/renderer/xr/client/XrRenderServer;
+}
+
+public abstract interface class ee/schimke/composeai/renderer/xr/client/XrRenderServerFactory {
+	public static final field Companion Lee/schimke/composeai/renderer/xr/client/XrRenderServerFactory$Companion;
+	public abstract fun start ()Lee/schimke/composeai/renderer/xr/client/XrRenderServerHandle;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrRenderServerFactory$Companion {
+	public final fun getNative ()Lee/schimke/composeai/renderer/xr/client/XrRenderServerFactory;
+}
+
+public abstract interface class ee/schimke/composeai/renderer/xr/client/XrRenderServerHandle : java/lang/AutoCloseable {
+	public abstract fun getCapabilities ()Lkotlinx/serialization/json/JsonObject;
+	public fun isAlive ()Z
+	public abstract fun render (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+	public static synthetic fun render$default (Lee/schimke/composeai/renderer/xr/client/XrRenderServerHandle;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+	public abstract fun stop (Ljava/lang/String;)V
+	public abstract fun updatePanels (Ljava/lang/String;Lkotlinx/serialization/json/JsonArray;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrRenderServerHandle$DefaultImpls {
+	public static fun isAlive (Lee/schimke/composeai/renderer/xr/client/XrRenderServerHandle;)Z
+	public static synthetic fun render$default (Lee/schimke/composeai/renderer/xr/client/XrRenderServerHandle;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrRenderService {
+	public static final field DEFAULT_SESSION_ID Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/renderer/xr/client/XrRenderService;
+	public static final field MIN_SUPPORTED_XR_RENDER_SERVICE_VERSION I
+	public static final field SERVER_NAME Ljava/lang/String;
+	public static final field XR_RENDER_SERVICE_VERSION I
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrRenderService$Capability {
+	public static final field DATA_PRODUCTS Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/renderer/xr/client/XrRenderService$Capability;
+	public static final field MULTI_SESSION Ljava/lang/String;
+	public static final field RENDER Ljava/lang/String;
+	public static final field SPATIAL_SCENE_VERSION Ljava/lang/String;
+	public static final field STREAM_FRAME Ljava/lang/String;
+	public static final field UPDATE_PANELS Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrRenderService$ErrorCode {
+	public static final field INSTANCE Lee/schimke/composeai/renderer/xr/client/XrRenderService$ErrorCode;
+	public static final field INTERNAL_ERROR I
+	public static final field INVALID_PARAMS I
+	public static final field NO_SESSION I
+	public static final field PARSE_ERROR I
+	public static final field UNKNOWN_METHOD I
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrRenderService$Method {
+	public static final field EXIT Ljava/lang/String;
+	public static final field INITIALIZE Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/renderer/xr/client/XrRenderService$Method;
+	public static final field RENDER Ljava/lang/String;
+	public static final field RENDER_ALIAS Ljava/lang/String;
+	public static final field SHUTDOWN Ljava/lang/String;
+	public static final field STOP Ljava/lang/String;
+	public static final field UPDATE_PANELS Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrRenderService$Notification {
+	public static final field INSTANCE Lee/schimke/composeai/renderer/xr/client/XrRenderService$Notification;
+	public static final field STREAM_FRAME Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrRenderService$Param {
+	public static final field DATA Ljava/lang/String;
+	public static final field ENCODING Ljava/lang/String;
+	public static final field ENVIRONMENT Ljava/lang/String;
+	public static final field FRAME_STREAM_ID Ljava/lang/String;
+	public static final field HEIGHT Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/renderer/xr/client/XrRenderService$Param;
+	public static final field OUT Ljava/lang/String;
+	public static final field PANELS Ljava/lang/String;
+	public static final field SCENE Ljava/lang/String;
+	public static final field SCENE_DIR Ljava/lang/String;
+	public static final field SEQ Ljava/lang/String;
+	public static final field SESSION_ID Ljava/lang/String;
+	public static final field WIDTH Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrRenderService$Result {
+	public static final field CAPABILITIES Ljava/lang/String;
+	public static final field HEIGHT Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/renderer/xr/client/XrRenderService$Result;
+	public static final field OK Ljava/lang/String;
+	public static final field SEQ Ljava/lang/String;
+	public static final field SERVER_INFO Ljava/lang/String;
+	public static final field SESSION_ID Ljava/lang/String;
+	public static final field WIDTH Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrServerClient : java/lang/AutoCloseable {
+	public static final field Companion Lee/schimke/composeai/renderer/xr/client/XrServerClient$Companion;
+	public fun close ()V
+	public final fun exit ()V
+	public final fun initialize-LRDsOJo (J)Lee/schimke/composeai/renderer/xr/client/XrServerHandshake;
+	public static synthetic fun initialize-LRDsOJo$default (Lee/schimke/composeai/renderer/xr/client/XrServerClient;JILjava/lang/Object;)Lee/schimke/composeai/renderer/xr/client/XrServerHandshake;
+	public final fun isAlive ()Z
+	public final fun render-B8UsjHI (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;J)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+	public static synthetic fun render-B8UsjHI$default (Lee/schimke/composeai/renderer/xr/client/XrServerClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;JILjava/lang/Object;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+	public final fun stop (Ljava/lang/String;)V
+	public final fun updatePanels-SxA4cEA (Ljava/lang/String;Lkotlinx/serialization/json/JsonArray;J)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+	public static synthetic fun updatePanels-SxA4cEA$default (Lee/schimke/composeai/renderer/xr/client/XrServerClient;Ljava/lang/String;Lkotlinx/serialization/json/JsonArray;JILjava/lang/Object;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrServerClient$Companion {
+	public final fun spawn (Ljava/io/File;Ljava/io/File;II)Lee/schimke/composeai/renderer/xr/client/XrServerClient;
+	public static synthetic fun spawn$default (Lee/schimke/composeai/renderer/xr/client/XrServerClient$Companion;Ljava/io/File;Ljava/io/File;IIILjava/lang/Object;)Lee/schimke/composeai/renderer/xr/client/XrServerClient;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrServerException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrServerHandshake {
+	public static final field Companion Lee/schimke/composeai/renderer/xr/client/XrServerHandshake$Companion;
+	public fun <init> (Ljava/lang/String;ILjava/lang/Integer;Lkotlinx/serialization/json/JsonObject;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Lkotlinx/serialization/json/JsonObject;
+	public final fun copy (Ljava/lang/String;ILjava/lang/Integer;Lkotlinx/serialization/json/JsonObject;)Lee/schimke/composeai/renderer/xr/client/XrServerHandshake;
+	public static synthetic fun copy$default (Lee/schimke/composeai/renderer/xr/client/XrServerHandshake;Ljava/lang/String;ILjava/lang/Integer;Lkotlinx/serialization/json/JsonObject;ILjava/lang/Object;)Lee/schimke/composeai/renderer/xr/client/XrServerHandshake;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCapabilities ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getServerName ()Ljava/lang/String;
+	public final fun getServiceVersion ()I
+	public final fun getSpatialSceneVersion ()Ljava/lang/Integer;
+	public final fun has (Ljava/lang/String;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrServerHandshake$Companion {
+	public final fun parse (Lkotlinx/serialization/json/JsonObject;)Lee/schimke/composeai/renderer/xr/client/XrServerHandshake;
+}
+
+public final class ee/schimke/composeai/renderer/xr/client/XrSessionManager : java/lang/AutoCloseable {
+	public fun <init> ()V
+	public fun <init> (Lee/schimke/composeai/renderer/xr/client/XrRenderServerFactory;)V
+	public synthetic fun <init> (Lee/schimke/composeai/renderer/xr/client/XrRenderServerFactory;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public final fun close (Ljava/lang/String;)V
+	public final fun getActiveCount ()I
+	public final fun isOpen (Ljava/lang/String;)Z
+	public final fun open (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+	public static synthetic fun open$default (Lee/schimke/composeai/renderer/xr/client/XrSessionManager;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+	public final fun structure (Ljava/lang/String;)Lkotlinx/serialization/json/JsonElement;
+	public final fun updatePanels (Ljava/lang/String;Lkotlinx/serialization/json/JsonArray;)Lee/schimke/composeai/renderer/xr/client/StreamFrame;
+}
+

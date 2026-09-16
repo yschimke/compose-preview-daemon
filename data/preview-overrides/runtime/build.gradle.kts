@@ -30,6 +30,7 @@
 plugins {
   id("composeai.base-conventions")
   id("composeai.maven-publishing")
+  id("composeai.abi-validation")
   // KGP-multiplatform and the compose-compiler plugin are already on the buildscript classpath via
   // the Compose bundle, so `alias(libs.plugins…)` errors with "already on the classpath with an
   // unknown version" — apply them by id (mirrors `:slot-preview-runtime`).
