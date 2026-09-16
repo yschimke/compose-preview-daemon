@@ -1878,15 +1878,17 @@ public class JsonRpcServer(
       }
     val outcome = extensions.enable(params.ids)
     val result =
-      ExtensionsEnableResult(
-        newlyEnabled = outcome.newlyEnabled,
-        pulledIn = outcome.pulledIn,
-        alreadyEnabled = outcome.alreadyEnabled,
-        unknown = outcome.unknown,
-        dataProducts = extensions.publicDataProductCapabilities(),
-        dataExtensions = extensions.publicDataExtensionDescriptors(),
-        previewExtensions = extensions.publicPreviewExtensionDescriptors(),
-      )
+      ExtensionsEnableResult.Builder()
+        .also {
+          it.newlyEnabled = outcome.newlyEnabled
+          it.pulledIn = outcome.pulledIn
+          it.alreadyEnabled = outcome.alreadyEnabled
+          it.unknown = outcome.unknown
+          it.dataProducts = extensions.publicDataProductCapabilities()
+          it.dataExtensions = extensions.publicDataExtensionDescriptors()
+          it.previewExtensions = extensions.publicPreviewExtensionDescriptors()
+        }
+        .build()
     sendResponse(req.id, encode(ExtensionsEnableResult.serializer(), result))
   }
 

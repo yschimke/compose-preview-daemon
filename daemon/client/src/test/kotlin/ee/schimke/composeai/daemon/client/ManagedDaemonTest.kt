@@ -289,18 +289,19 @@ class ManagedDaemonTest {
   }
 
   private fun descriptor() =
-    DaemonLaunchDescriptor(
-      schemaVersion = 2,
-      modulePath = ":app",
-      variant = "desktop",
-      enabled = true,
-      mainClass = "ee.schimke.composeai.daemon.DaemonMain",
-      classpath = listOf("/runtime/daemon.jar"),
-      jvmArgs = emptyList(),
-      systemProperties = emptyMap(),
-      workingDirectory = "/work",
-      manifestPath = "",
-    )
+    DaemonLaunchDescriptor.Builder(
+        schemaVersion = 2,
+        modulePath = ":app",
+        variant = "desktop",
+        enabled = true,
+        mainClass = "ee.schimke.composeai.daemon.DaemonMain",
+        classpath = listOf("/runtime/daemon.jar"),
+        jvmArgs = emptyList(),
+        systemProperties = emptyMap(),
+        workingDirectory = "/work",
+        manifestPath = "",
+      )
+      .build()
 
   private class RecordingListener : ManagedDaemon.Listener {
     val transitions = CopyOnWriteArrayList<Pair<ManagedDaemon.State, ManagedDaemon.State>>()

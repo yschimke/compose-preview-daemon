@@ -43,12 +43,15 @@ class SeedEvidenceCaptureTest {
   @Test
   fun capture() {
     val seed =
-      ee.schimke.composeai.daemon.protocol.RemoteComposeOverride(
-        namedValues =
-          mapOf(
-            "fill" to ee.schimke.composeai.daemon.protocol.RemoteNamedValue.ColorValue("#FF42A5F5")
-          )
-      )
+      ee.schimke.composeai.daemon.protocol.RemoteComposeOverride.Builder()
+        .also {
+          it.namedValues =
+            mapOf(
+              "fill" to
+                ee.schimke.composeai.daemon.protocol.RemoteNamedValue.ColorValue("#FF42A5F5")
+            )
+        }
+        .build()
     val extension = RemoteComposeOverrideExtension(seed)
     rule.setContent {
       extension.Around(

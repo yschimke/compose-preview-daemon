@@ -140,7 +140,14 @@ class GestureStateControllerTest {
 
   @Test
   fun `set applies enabled and showHints, null restores defaults`() {
-    GestureStateController.set(GestureOverride(enabled = false, showHints = true))
+    GestureStateController.set(
+      GestureOverride.Builder()
+        .also {
+          it.enabled = false
+          it.showHints = true
+        }
+        .build()
+    )
     assertFalse(GestureStateController.enabled())
     assertTrue(GestureStateController.hintsShownState.value)
     assertTrue(GestureStateController.snapshot().hintsShown)
@@ -168,9 +175,9 @@ class GestureStateControllerTest {
 
   @Test
   fun `enabled falls back to override default when no handler registered`() {
-    GestureStateController.set(GestureOverride(enabled = false))
+    GestureStateController.set(GestureOverride.Builder().also { it.enabled = false }.build())
     assertFalse(GestureStateController.enabled())
-    GestureStateController.set(GestureOverride(enabled = true))
+    GestureStateController.set(GestureOverride.Builder().also { it.enabled = true }.build())
     assertTrue(GestureStateController.enabled())
   }
 
@@ -222,7 +229,7 @@ class GestureStateControllerTest {
     ) {}
     GestureStateController.recordDetected(GestureStateController.SDK_ACTION_PRIMARY) {}
     GestureStateController.invoke(GestureKindOverride.PRIMARY)
-    GestureStateController.set(GestureOverride(showHints = true))
+    GestureStateController.set(GestureOverride.Builder().also { it.showHints = true }.build())
     GestureStateController.armDetection(true)
 
     GestureStateController.resetForNewSession()

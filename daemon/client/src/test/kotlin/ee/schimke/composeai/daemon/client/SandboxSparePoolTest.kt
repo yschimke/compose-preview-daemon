@@ -40,18 +40,19 @@ class SandboxSparePoolTest {
       ),
     variant: String = "android",
   ) =
-    DaemonLaunchDescriptor(
-      schemaVersion = 2,
-      modulePath = ":catalog",
-      variant = variant,
-      enabled = true,
-      mainClass = "ee.schimke.composeai.daemon.DaemonMain",
-      classpath = classpath,
-      jvmArgs = jvmArgs,
-      systemProperties = systemProperties,
-      workingDirectory = "/tmp",
-      manifestPath = "/catalog/previews.json",
-    )
+    DaemonLaunchDescriptor.Builder(
+        schemaVersion = 2,
+        modulePath = ":catalog",
+        variant = variant,
+        enabled = true,
+        mainClass = "ee.schimke.composeai.daemon.DaemonMain",
+        classpath = classpath,
+        jvmArgs = jvmArgs,
+        systemProperties = systemProperties,
+        workingDirectory = "/tmp",
+        manifestPath = "/catalog/previews.json",
+      )
+      .build()
 
   private fun awaitWarm(pool: SandboxSparePool, count: Int) {
     val deadline = System.currentTimeMillis() + 5_000
@@ -111,7 +112,7 @@ class SandboxSparePoolTest {
     val on17 = pool.spareCommand(descriptor(), archiveSlot = 0, javaFeatureVersion = 17)
     assertThat(on17.any { it.contains("TrimNativeHeap") }).isFalse()
     // A launcher the pool did not pick, or a descriptor that already decides, is left alone.
-    val other = descriptor().copy(javaLauncher = "/opt/jdk/bin/java")
+    val other = descriptor().newBuilder().also { it.javaLauncher = "/opt/jdk/bin/java" }.build()
     assertThat(
         pool.spareCommand(other, 0, javaFeatureVersion = 21).any { it.contains("TrimNativeHeap") }
       )
@@ -261,13 +262,15 @@ class SandboxSparePoolTest {
     assertThat(launch.descriptor.systemProperties[DaemonProperties.Names.SANDBOX_WORKER_SPARES])
       .isEqualTo("40007")
 
-    val desktop = factory.withReservedSpares(d.copy(variant = "desktop"))
+    val desktop = factory.withReservedSpares(d.newBuilder().also { it.variant = "desktop" }.build())
     assertThat(desktop.spareEligible).isFalse()
-    assertThat(desktop.descriptor).isEqualTo(d.copy(variant = "desktop"))
+    assertThat(desktop.descriptor).isEqualTo(d.newBuilder().also { it.variant = "desktop" }.build())
 
     val single =
       factory.withReservedSpares(
-        d.copy(systemProperties = mapOf(DaemonProperties.Names.SANDBOX_COUNT to "1"))
+        d.newBuilder()
+          .also { it.systemProperties = mapOf(DaemonProperties.Names.SANDBOX_COUNT to "1") }
+          .build()
       )
     assertThat(single.spareEligible).isFalse()
     pool.close()

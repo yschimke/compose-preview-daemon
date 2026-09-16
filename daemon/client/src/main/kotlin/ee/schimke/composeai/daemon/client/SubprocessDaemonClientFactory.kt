@@ -48,11 +48,14 @@ public class SubprocessDaemonClientFactory(
     val ports = pool.reserve(descriptor, workers)
     if (ports.isEmpty()) return Launch(descriptor, spareEligible = true)
     return Launch(
-      descriptor.copy(
-        systemProperties =
-          descriptor.systemProperties +
-            (DaemonProperties.Names.SANDBOX_WORKER_SPARES to ports.joinToString(","))
-      ),
+      descriptor
+        .newBuilder()
+        .also {
+          it.systemProperties =
+            descriptor.systemProperties +
+              (DaemonProperties.Names.SANDBOX_WORKER_SPARES to ports.joinToString(","))
+        }
+        .build(),
       spareEligible = true,
     )
   }

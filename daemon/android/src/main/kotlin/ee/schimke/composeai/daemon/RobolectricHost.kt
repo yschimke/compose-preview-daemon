@@ -3097,10 +3097,12 @@ open class RobolectricHost(
                               touchOverlay = start.touchOverlay,
                               focus =
                                 start.focusTabIndex?.let {
-                                  ee.schimke.composeai.daemon.protocol.FocusOverride(
-                                    tabIndex = it,
-                                    pressed = start.focusPressed,
-                                  )
+                                  ee.schimke.composeai.daemon.protocol.FocusOverride.Builder()
+                                    .also { b ->
+                                      b.tabIndex = it
+                                      b.pressed = start.focusPressed
+                                    }
+                                    .build()
                                 },
                               namedOverrides = HeldNamedOverrides.decode(start.namedOverrides),
                             )

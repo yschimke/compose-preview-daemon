@@ -28,7 +28,7 @@ class FocusDataProductTest {
 
   @Test
   fun `focus override extension declares around-composable hook in OuterEnvironment phase`() {
-    val extension = FocusOverrideExtension(FocusOverride(tabIndex = 0))
+    val extension = FocusOverrideExtension(FocusOverride.Builder().also { it.tabIndex = 0 }.build())
     val hook: AroundComposableHook = extension
 
     assertEquals(DataExtensionId(Material3FocusProduct.KIND), extension.id)
@@ -42,7 +42,11 @@ class FocusDataProductTest {
   fun `planner returns extension when focus override present`() {
     val planner = FocusPreviewOverrideExtension()
     val planned =
-      planner.plan(PreviewOverrides(focus = FocusOverride(direction = FocusDirection.Next)))
+      planner.plan(
+        PreviewOverrides(
+          focus = FocusOverride.Builder().also { it.direction = FocusDirection.Next }.build()
+        )
+      )
     assertTrue("expected planner to produce a hook", planned is AroundComposableHook)
     assertEquals(DataExtensionId(Material3FocusProduct.KIND), planned!!.id)
   }
@@ -68,8 +72,23 @@ class FocusDataProductTest {
 
   @Test
   fun `controller set propagates state and clear resets it`() {
-    FocusController.set(FocusOverride(tabIndex = 2, overlay = true))
-    assertEquals(FocusOverride(tabIndex = 2, overlay = true), FocusController.current())
+    FocusController.set(
+      FocusOverride.Builder()
+        .also {
+          it.tabIndex = 2
+          it.overlay = true
+        }
+        .build()
+    )
+    assertEquals(
+      FocusOverride.Builder()
+        .also {
+          it.tabIndex = 2
+          it.overlay = true
+        }
+        .build(),
+      FocusController.current(),
+    )
 
     FocusController.set(null)
     assertNull(FocusController.current())

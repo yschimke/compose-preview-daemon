@@ -64,9 +64,15 @@ public fun OverrideVariantSpec.toPreviewOverrides(): PreviewOverrides? {
   val named = toNamedOverrides().takeIf { it.isNotEmpty() }
   val focus =
     when (interaction) {
-      OverrideVariantInteraction.Focused -> FocusOverride(tabIndex = interactionIndex)
+      OverrideVariantInteraction.Focused ->
+        FocusOverride.Builder().also { it.tabIndex = interactionIndex }.build()
       OverrideVariantInteraction.Pressed ->
-        FocusOverride(tabIndex = interactionIndex, pressed = true)
+        FocusOverride.Builder()
+          .also {
+            it.tabIndex = interactionIndex
+            it.pressed = true
+          }
+          .build()
       // Host-driven; see the KDoc.
       OverrideVariantInteraction.Hovered -> null
       null -> null

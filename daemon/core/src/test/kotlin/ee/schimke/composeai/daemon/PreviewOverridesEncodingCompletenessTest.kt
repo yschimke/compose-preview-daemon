@@ -98,8 +98,20 @@ class PreviewOverridesEncodingCompletenessTest {
       themeProvider = "com.example.BrandDarkThemeCatalog",
       wallpaper = WallpaperOverride(seedColor = "#FF8800"),
       ambient = AmbientOverride(state = AmbientStateOverride.AMBIENT),
-      gestures = GestureOverride(showHints = true, invoke = GestureKindOverride.PRIMARY),
-      focus = FocusOverride(tabIndex = 2, direction = FocusDirection.Next),
+      gestures =
+        GestureOverride.Builder()
+          .also {
+            it.showHints = true
+            it.invoke = GestureKindOverride.PRIMARY
+          }
+          .build(),
+      focus =
+        FocusOverride.Builder()
+          .also {
+            it.tabIndex = 2
+            it.direction = FocusDirection.Next
+          }
+          .build(),
       touchOverlay = true,
       talkBack = true,
       keyboard = KeyboardOverride(visible = true, pressedKey = "a"),
@@ -107,7 +119,8 @@ class PreviewOverridesEncodingCompletenessTest {
         PermissionsOverride(
           grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
         ),
-      remoteCompose = RemoteComposeOverride(profile = RemoteComposeProfile.ANDROIDX),
+      remoteCompose =
+        RemoteComposeOverride.Builder().also { it.profile = RemoteComposeProfile.ANDROIDX }.build(),
       launcherWidget = LauncherWidgetOverride(cells = LauncherWidgetSize(width = 4, height = 2)),
       lottie = LottieOverride(progress = 0.42f),
       namedOverrides = mapOf("title" to PreviewOverrideValue.StringValue("Hello")),

@@ -34,7 +34,8 @@ class AndroidInteractiveFocusOverrideTest {
         host.acquireInteractiveSession(
           previewId = PREVIEW_ID,
           classLoader = AndroidInteractiveFocusOverrideTest::class.java.classLoader!!,
-          overrides = PreviewOverrides(focus = FocusOverride(tabIndex = 0)),
+          overrides =
+            PreviewOverrides(focus = FocusOverride.Builder().also { it.tabIndex = 0 }.build()),
         )
       try {
         val frame = session.render(requestId = RenderHost.nextRequestId())

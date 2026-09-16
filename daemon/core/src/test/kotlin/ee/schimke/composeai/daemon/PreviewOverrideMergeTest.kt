@@ -116,13 +116,34 @@ class PreviewOverrideMergeTest {
     val merged =
       mergePreviewOverrides(
         base,
-        PreviewOverrides(focus = FocusOverride(direction = FocusDirection.Next, step = 1)),
+        PreviewOverrides(
+          focus =
+            FocusOverride.Builder()
+              .also {
+                it.direction = FocusDirection.Next
+                it.step = 1
+              }
+              .build()
+        ),
       )
 
-    assertEquals(FocusOverride(direction = FocusDirection.Next, step = 1), merged.focus)
+    assertEquals(
+      FocusOverride.Builder()
+        .also {
+          it.direction = FocusDirection.Next
+          it.step = 1
+        }
+        .build(),
+      merged.focus,
+    )
     val extensionOverrides = merged.toExtensionOverrides()
     assertEquals(
-      FocusOverride(direction = FocusDirection.Next, step = 1),
+      FocusOverride.Builder()
+        .also {
+          it.direction = FocusDirection.Next
+          it.step = 1
+        }
+        .build(),
       extensionOverrides?.focus,
     )
 
@@ -170,7 +191,13 @@ class PreviewOverrideMergeTest {
         inspectionMode = null,
       )
 
-    val override = GestureOverride(showHints = true, invoke = GestureKindOverride.PRIMARY)
+    val override =
+      GestureOverride.Builder()
+        .also {
+          it.showHints = true
+          it.invoke = GestureKindOverride.PRIMARY
+        }
+        .build()
     val merged = mergePreviewOverrides(base, PreviewOverrides(gestures = override))
 
     assertEquals(override, merged.gestures)
@@ -222,10 +249,12 @@ class PreviewOverrideMergeTest {
       )
 
     val override =
-      RemoteComposeOverride(
-        profile = RemoteComposeProfile.ANDROIDX,
-        namedValues = mapOf("score" to RemoteNamedValue.FloatValue(0.5f)),
-      )
+      RemoteComposeOverride.Builder()
+        .also {
+          it.profile = RemoteComposeProfile.ANDROIDX
+          it.namedValues = mapOf("score" to RemoteNamedValue.FloatValue(0.5f))
+        }
+        .build()
     val merged = mergePreviewOverrides(base, PreviewOverrides(remoteCompose = override))
 
     assertEquals(override, merged.remoteCompose)
@@ -545,8 +574,8 @@ class PreviewOverrideMergeTest {
       themeProvider = "com.example.BrandDark",
       wallpaper = WallpaperOverride(seedColor = "#3366FF"),
       ambient = AmbientOverride(state = AmbientStateOverride.AMBIENT),
-      gestures = GestureOverride(enabled = true),
-      focus = FocusOverride(tabIndex = 2),
+      gestures = GestureOverride.Builder().also { it.enabled = true }.build(),
+      focus = FocusOverride.Builder().also { it.tabIndex = 2 }.build(),
       touchOverlay = true,
       talkBack = true,
       keyboard = KeyboardOverride(visible = true),
@@ -554,7 +583,8 @@ class PreviewOverrideMergeTest {
         PermissionsOverride(
           grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
         ),
-      remoteCompose = RemoteComposeOverride(profile = RemoteComposeProfile.ANDROIDX),
+      remoteCompose =
+        RemoteComposeOverride.Builder().also { it.profile = RemoteComposeProfile.ANDROIDX }.build(),
       launcherWidget = LauncherWidgetOverride(cells = LauncherWidgetSize(width = 4, height = 2)),
       lottie = LottieOverride(progress = 0.5f),
       namedOverrides = mapOf("label" to PreviewOverrideValue.StringValue("base")),
