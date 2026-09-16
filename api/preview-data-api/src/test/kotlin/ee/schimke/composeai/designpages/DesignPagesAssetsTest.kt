@@ -2,8 +2,10 @@ package ee.schimke.composeai.designpages
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlinx.serialization.SerializationException
 
 /**
  * Pins the **layer** half of [DesignPagesManifest]: shared raster backplates, where a page places
@@ -151,14 +153,18 @@ class DesignPagesAssetsTest {
   // --- the blend allowlist --------------------------------------------------
 
   /**
-   * The point of the enum. A mode this build has not vetted must not reach a renderer — and it must
-   * not take the other thirty pages down with it either, which is what an uncoerced parse would do
-   * from inside the `runCatching` every reader wraps this in.
+   * The point of the enum, and the contract's one rule for all of them: an unrecognised value is a
+   * parse failure for the WHOLE manifest, exactly as it is for `link`.
+   *
+   * The harsher outcome and the right one. Reinterpreting an unknown mode as `source-over` would
+   * composite a layer the reader believes is authored — and every reader wraps this parse in
+   * `runCatching`, so the failure degrades to "this catalog serves no pages", which is visible,
+   * rather than to a sheet that quietly lies about how it was drawn.
    */
   @Test
-  fun `an unknown blend mode degrades to source-over rather than failing the manifest`() {
-    val manifest =
-      parse(
+  fun `an unknown blend mode fails the manifest rather than being reinterpreted`() {
+    for (bad in listOf("hue", "url(javascript:alert(1))", "normal")) {
+      val json =
         """
         {
           "version": 2, "fileKey": "k",
@@ -167,18 +173,14 @@ class DesignPagesAssetsTest {
               "id": "p", "name": "P", "nodeId": "1:2",
               "frame": { "width": 10.0, "height": 10.0 },
               "image": { "uri": "p.svg" },
-              "designBlend": "hue",
-              "renderBlend": "url(javascript:alert(1))"
+              "designBlend": "$bad"
             }
           ]
         }
         """
           .trimIndent()
-      )
-
-    val page = manifest.pages.single()
-    assertEquals(PageBlendMode.SOURCE_OVER, page.designBlend)
-    assertEquals(PageBlendMode.SOURCE_OVER, page.renderBlend)
+      assertFailsWith<SerializationException>("blend \"$bad\" must not parse") { parse(json) }
+    }
   }
 
   /**
