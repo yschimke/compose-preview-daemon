@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.reflect.ComposableMethod
 import androidx.compose.runtime.reflect.asComposableMethod
@@ -492,9 +493,13 @@ private object CatalogPreviewStrategy : PreviewRenderStrategy {
           runCatching { catalogRowsFor(token) }.getOrDefault(emptyList())
         }
       }
-    // Emit the resolved-token sidecar (issue #2167) once per sheet, alongside the PNG. Keyed by
-    // `preview.id` so it fires on first composition only — the render composes exactly once.
-    remember(preview.id) { CatalogTokenSidecar.write(preview.id, preview.params.catalogTokens) }
+    // Emit the resolved-token sidecar (issue #2167) alongside the PNG. `SideEffect` rather than
+    // `remember`: a write is not a cached value, and Compose may compose speculatively and discard
+    // the result, which would leave a sidecar on disk for a sheet that was never drawn.
+    // `SideEffect`
+    // runs only when a composition is successfully applied. The write is a whole-file overwrite
+    // keyed by preview id, so the repeat on a recomposition is a no-op rather than a duplicate.
+    SideEffect { CatalogTokenSidecar.write(preview.id, preview.params.catalogTokens) }
     CatalogSpecimenSheet(
       colours =
         rows.filterIsInstance<CatalogRow.Swatch>().map { row ->
@@ -613,7 +618,7 @@ private fun WearThemeSpecimen(previewId: String, themeName: String, loader: Clas
   // Same resolved-token sidecar as the mobile sheet, so design-parity's catalog-export maps a Wear
   // theme onto a Figma variable mode exactly like a phone one. Wear M3 has no `Shapes` analogue on
   // `MaterialTheme`, so this carries colours + type only.
-  remember(previewId) {
+  SideEffect {
     CatalogTokenSidecar.writeResolved(
       previewId,
       themeName,
@@ -668,7 +673,7 @@ private fun WearThemeSpecimen(previewId: String, themeName: String, loader: Clas
  * for a dark theme too; the swatches carry the theme's colours, the samples its type scale.
  */
 @Composable
-private fun ThemeSpecimen(previewId: String, themeName: String) {
+internal fun ThemeSpecimen(previewId: String, themeName: String) {
   val scheme = MaterialTheme.colorScheme
   val typography = MaterialTheme.typography
   val shapes = MaterialTheme.shapes
@@ -738,9 +743,10 @@ private fun ThemeSpecimen(previewId: String, themeName: String) {
   // Emit the resolved-token sidecar (issue #2179) once per sheet, alongside the PNG — the live
   // `MaterialTheme` values above, captured *inside* the theme's composition (the differentiator
   // from the reflection-only `@ColorCatalog` / `@TypographyCatalog` sidecars). Keyed by theme so
-  // design-parity's `catalog-export` maps each onto a Figma variable mode. `remember(previewId)`
-  // fires on first composition only — the render composes exactly once.
-  remember(previewId) {
+  // design-parity's `catalog-export` maps each onto a Figma variable mode. `SideEffect` rather than
+  // `remember` for the same reason as the sheet above: a discarded composition must not leave a
+  // sidecar behind, and the overwrite makes a repeat harmless.
+  SideEffect {
     CatalogTokenSidecar.writeResolved(
       previewId,
       themeName,

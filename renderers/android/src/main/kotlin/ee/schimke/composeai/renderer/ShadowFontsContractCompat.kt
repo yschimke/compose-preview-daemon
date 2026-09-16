@@ -1,3 +1,11 @@
+// `RestrictedApi`: this file is a Robolectric **shadow of `androidx.core`'s** font contract, so
+// reaching a `@RestrictTo` member of that library is what the file is for. `FontRequest
+// .variationSettings` is the only place Compose puts the requested `fvar` axes — the shadow cannot
+// learn that a caller needs a variable face any other way — and it is already read defensively
+// (`runCatching`) so an older `androidx.core` on a consumer's classpath degrades instead of
+// throwing. Scoped to this file so the check keeps running everywhere else in the module.
+@file:Suppress("RestrictedApi")
+
 package ee.schimke.composeai.renderer
 
 import android.content.Context

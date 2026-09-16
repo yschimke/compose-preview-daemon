@@ -87,6 +87,11 @@ class FigmaSvgSharedBoundsScrollClipTest {
     System.clearProperty("roborazzi.test.record")
   }
 
+  // `UnusedContentLambdaTargetStateParameter`: the content deliberately does not branch on the
+  // target state. `targetState` is a constant here — the `AnimatedContent` exists only to supply
+  // the `AnimatedVisibilityScope` that `sharedBounds` requires (`this@AnimatedContent` below), not
+  // to animate between two states. Reading the parameter would change nothing.
+  @Suppress("UnusedContentLambdaTargetStateParameter")
   @Test
   fun `a height-limited scroll container under sharedBounds clips its below-fold children`() {
     val svg =
