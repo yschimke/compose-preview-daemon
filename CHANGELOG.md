@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.8.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.8.1...v3.8.2) (2026-09-17)
+
+
+### Bug Fixes
+
+* **figma-svg:** draw Glimmer surfaces and brush painters as SVG primitives ([#148](https://github.com/yschimke/compose-preview-daemon/issues/148)) ([b0ff851](https://github.com/yschimke/compose-preview-daemon/commit/b0ff8516479d59c4f3be428543581db89adc4fc8))
+
+
+### Documentation
+
+* **compat:** test the next Compose line at runtime, the way a consumer does ([#150](https://github.com/yschimke/compose-preview-daemon/issues/150)) ([a0565dc](https://github.com/yschimke/compose-preview-daemon/commit/a0565dc83ea95a353163c65bf0b90b3bd252620f))
+
 ## [3.8.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.8.0...v3.8.1) (2026-09-17)
 
 
