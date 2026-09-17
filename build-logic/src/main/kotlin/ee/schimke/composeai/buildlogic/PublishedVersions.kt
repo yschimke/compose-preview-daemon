@@ -4,7 +4,7 @@ package ee.schimke.composeai.buildlogic
  * Which version each coordinate carries on a release where only some modules publish.
  *
  * A pure function over the three inputs a release has — the tag's version, the set of modules that
- * are publishing, and the committed record of what everything last published at — so the two
+ * are publishing, and the record of what everything last published at — so the two
  * callers cannot drift. `ComposeAiMavenPublishingPlugin` uses it to set `project.version`, which is
  * what a POM names its project dependencies at; `:bom` uses it to pin every constraint. If those
  * two ever disagreed the BOM would promise a set that the POMs contradict.
@@ -30,7 +30,7 @@ object PublishedVersions {
     if (publishSet == null || artifactId in publishSet) return tagVersion
     return recordedVersion(artifactId, manifestText)
       ?: error(
-        "$artifactId is not in the publish set and has no entry in publishing-manifest.json, " +
+        "'$artifactId' is not in the publish set and has no entry in publishing-manifest.json, " +
           "so there is no version it can safely carry. Add it to the manifest, or publish it."
       )
   }
