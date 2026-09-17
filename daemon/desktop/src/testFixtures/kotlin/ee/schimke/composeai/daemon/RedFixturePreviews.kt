@@ -66,7 +66,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.graphics.painter.BrushPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.input.key.Key
@@ -280,12 +280,21 @@ private fun PrivateRedSquare() {
  * in the top-left. The layout-inspector names the node `Image`, which the exporter classifies as
  * opaque — so the export must emit it as an `<image>` layer and crop the green region out of the
  * captured frame into `figma-raster/`. Used by [RenderEngineTest.figmaSvgExportRastersOpaqueImage].
+ *
+ * The painter is a **radial** brush on purpose, and a flat `ColorPainter` will not do. Opaque by
+ * name is no longer enough to raster a node as of contracts 3.1.1: a painter fill the token model
+ * flattens — a `ColorPainter`, or a `BrushPainter` over a linear gradient — is emitted as SVG
+ * instead, which is the point of that fix. A radial brush resolves to no `LayoutInspectorGradient`,
+ * so this node still takes the raster path the test is here to exercise: that the crop lands on the
+ * Image's own pixels rather than the screen behind it. Both stops are the same green, so every
+ * pixel of the square is the colour the test samples.
  */
 @Composable
 fun OpaqueImageSquare() {
+  val green = Color(0xFF2E7D32)
   Box(modifier = Modifier.fillMaxSize().background(Color(0xFFEF5350))) {
     Image(
-      painter = ColorPainter(Color(0xFF2E7D32)),
+      painter = BrushPainter(Brush.radialGradient(listOf(green, green))),
       contentDescription = null,
       modifier = Modifier.size(32.dp),
     )

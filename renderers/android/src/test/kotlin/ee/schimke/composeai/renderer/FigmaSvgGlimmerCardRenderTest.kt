@@ -48,6 +48,7 @@ import java.io.File
 import java.nio.file.Files
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -200,24 +201,23 @@ class FigmaSvgGlimmerCardRenderTest {
   }
 
   /**
-   * The header is still an `<image>` here, and that is a **separate**, emitter-side gap.
+   * A node the opaque-by-name rule matches, whose paint the token model fully flattened, is emitted
+   * as SVG rather than rastered.
    *
-   * The token side is right — the test above pins the four `<linearGradient>` coordinates the
-   * painter resolves — but `FigmaSvgModel.toLayer` checks its opaque-by-name rule
-   * (`DEFAULT_RASTER_COMPONENTS`, which holds `"Image"`) *before* it looks at whether the node's
-   * paint has a vector form, and `androidx.compose.foundation.Image`'s node resolves to its
-   * measure-policy class, `ImageKt`. `"ImageKt".contains("Image")` is true, so the node rasters
-   * however well the token model understands it. That ordering lives in `compose-preview-contracts`
-   * and is not this repository's to change.
+   * This was the emitter-side half of the Glimmer gap, and it inverted with contracts 3.1.1.
+   * `FigmaSvgModel.toLayer` used to check its opaque-by-name rule (`DEFAULT_RASTER_COMPONENTS`,
+   * which holds `"Image"`) *before* looking at whether the node's paint had a vector form — and
+   * `androidx.compose.foundation.Image`'s node resolves to its measure-policy class, `ImageKt`, so
+   * `"ImageKt".contains("Image")` rastered the header however well the token model understood it.
    *
-   * The published `glimmer-catalog` SVG does *not* hit it: its nodes resolve no source info and
-   * read `ReusableComposeNode`, so the header falls through to the unvectorisable-paint check that
-   * the resolved gradient now satisfies. Which is exactly why this is pinned rather than left as a
-   * comment — the behaviour differs by whether source info resolved, and a contracts fix should
-   * make this test fail.
+   * Both halves of the name match still hold here, which is what makes the assertion meaningful:
+   * the component *is* opaque by name, and the gradient is emitted anyway. The published
+   * `glimmer-catalog` SVG never hit the bug — its nodes resolve no source info and read
+   * `ReusableComposeNode` — so this render, where source info *does* resolve, is the only place the
+   * ordering is observable (yschimke/compose-preview-contracts#82).
    */
   @Test
-  fun `the emitter still rasters a node named Image however vectorisable its paint`() {
+  fun `a flattened painter fill is emitted as SVG even on a node named Image`() {
     val export = export("glimmer-card-raster-gap") { GlimmerCard() }
     val header = export.layout.node { it.tokens?.backgroundGradient != null }
 
@@ -225,11 +225,15 @@ class FigmaSvgGlimmerCardRenderTest {
       "the header node is opaque by name (component=${header.component})",
       header.component.contains("Image"),
     )
-    assertTrue(
-      "opaque-by-name still wins over a resolved gradient — fix the ordering in " +
-        "compose-preview-contracts' FigmaSvgModel.toLayer, then invert this assertion:\n" +
+    assertFalse(
+      "a resolved gradient must outrank opaque-by-name — contracts 3.1.1 reordered " +
+        "FigmaSvgModel.toLayer:\n" +
         export.svg,
       export.svg.contains("<image"),
+    )
+    assertTrue(
+      "and the header is painted by the gradient the painter resolved:\n" + export.svg,
+      export.svg.contains("fill=\"url(#gf-"),
     )
   }
 
