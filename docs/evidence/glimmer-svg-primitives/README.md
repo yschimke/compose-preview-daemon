@@ -41,14 +41,14 @@ What still differs from `render.png`:
 
 - **Text shaping**, unchanged and unrelated: the exported face is subset with its `GPOS`/`kern`
   stripped, so a browser lays the runs out unkerned. It is most of the residual 2%.
-- **The header artwork is still an `<image>`.** The gradient itself resolves — the test pins all
-  four `<linearGradient>` coordinates — but `FigmaSvgModel.toLayer` checks its opaque-by-name rule
-  before it looks at whether a node's paint has a vector form, and `Image`'s node resolves to
-  `ImageKt`. That ordering lives in `compose-preview-contracts`;
-  `the emitter still rasters a node named Image however vectorisable its paint` pins it so a fix
-  there is noticed here. The published catalog does not hit it — its nodes carry no source info and
-  read `ReusableComposeNode`, so the header falls through to the check the resolved gradient now
-  satisfies.
+- **The header artwork was an `<image>`, and is now the gradient itself** (fixed in contracts
+  3.1.1, yschimke/compose-preview-contracts#82, pinned here by
+  `a flattened painter fill is emitted as SVG even on a node named Image`). `FigmaSvgModel.toLayer`
+  used to check its opaque-by-name rule before looking at whether a node's paint had a vector form,
+  and `Image`'s node resolves to `ImageKt`. The images on this page predate that fix, so the header
+  in `svg-after.png` is still the raster crop. The published catalog never hit it — its nodes carry
+  no source info and read `ReusableComposeNode`, so the header fell through to the check the
+  resolved gradient satisfies.
 - **The card's soft edge** is absent, by design. Glimmer records background and border into a
   `GraphicsLayer` and blurs both with a two-pass `RuntimeShader` (2dp→8dp at idle); there is no SVG
   form for that, so the crisp stroke Glimmer strokes underneath is emitted instead. The fixture's

@@ -295,6 +295,15 @@ coil3 = "3.5.0"
 # A point pin, deliberately: a range would let a contract change arrive without a pull request.
 composeai-contracts = "3.0.0"
 
+# …and one coordinate ahead of the rest, because contracts releases are no longer all-or-nothing.
+# Since its 3.1.0 a release there publishes only the modules it changed, and a skipped module's POM
+# names the version it is already published at rather than the tag — so `3.1.1` exists for
+# `data-layoutinspector-core` alone and resolving the other seven at it is a 404. Mixing is exactly
+# what that design intends: 3.1.1's POM names `daemon-protocol` at 3.0.0, which is the pin above.
+# `ee.schimke.composeai:bom` is published at every tag and constrains each coordinate at its real
+# version; adopting it here would replace both refs with one knob.
+composeai-contracts-layoutinspector = "3.1.1"
+
 # The Remote Compose players, published by yschimke/rc-players (the CMP player stack, the vendored
 # AndroidX embedded player, and the Wasm browser bundle). They were project deps here until the
 # stack was extracted into a repository of its own; that repository consumes `data-fonts-google` and
@@ -323,7 +332,7 @@ composeai-daemon-protocol = { module = "ee.schimke.composeai:daemon-protocol", v
 composeai-daemon-devices = { module = "ee.schimke.composeai:daemon-devices", version.ref = "composeai-contracts" }
 composeai-daemon-bta = { module = "ee.schimke.composeai:daemon-bta", version.ref = "composeai-contracts" }
 composeai-data-render-core = { module = "ee.schimke.composeai:data-render-core", version.ref = "composeai-contracts" }
-composeai-data-layoutinspector-core = { module = "ee.schimke.composeai:data-layoutinspector-core", version.ref = "composeai-contracts" }
+composeai-data-layoutinspector-core = { module = "ee.schimke.composeai:data-layoutinspector-core", version.ref = "composeai-contracts-layoutinspector" }
 composeai-data-theme-core = { module = "ee.schimke.composeai:data-theme-core", version.ref = "composeai-contracts" }
 composeai-data-preview-overrides-core = { module = "ee.schimke.composeai:data-preview-overrides-core", version.ref = "composeai-contracts" }
 composeai-common-io = { module = "ee.schimke.composeai:common-io", version.ref = "composeai-contracts" }
