@@ -217,13 +217,23 @@ Two practical consequences:
 
 The renderer takes Compose `compileOnly` so the consumer's versions win at runtime (mechanism 1
 above), which means the committed catalog cannot answer "does this still work on the line our
-consumers are moving to". `scripts/experiments/compose-next.init.gradle.kts` forces the whole
-Compose stack onto one coherent newer line so the suite can be run against it:
+consumers are moving to". `scripts/experiments/compose-next.init.gradle.kts` forces the Compose
+stack onto one coherent newer line so the suite can be run against it:
 
 ```
 scripts/agent-gradle.sh --init-script scripts/experiments/compose-next.init.gradle.kts \
   :renderer-android:testDebugUnitTest
 ```
+
+**Runtime-only is the question that matters, and it is the default.** Because Compose is
+`compileOnly` here, the published AAR's bytecode is *linked* against the older line and then
+*executes* against whatever the consumer resolved — so what can break is binary compatibility,
+`AbstractMethodError` and `NoSuchMethodError`. Asking that means leaving the compile classpaths on
+the committed BOM and moving only `*RuntimeClasspath`, which is `-PcomposeNextScope=runtime`.
+Forcing the compile classpaths too (`-PcomposeNextScope=all`) recompiles everything against the new
+line and asks a different, weaker question: whether the sources still build. Worth running before
+adopting a newer line as the compile target, but it is not the consumer's shape and a green `all`
+run on its own does not say the published artefact tolerates the new line.
 
 **Move the stack together or the result is noise.** Adding a library built against a newer Compose
 drags `ui` / `foundation` / `runtime` forward by conflict resolution while `material3` stays on
@@ -234,13 +244,21 @@ That failure is not evidence about the newer Compose. `material3` stable still t
 Compose, so pairing a 1.12 `foundation` means taking a `material3` alpha; read the candidate's POM
 for the `foundation` version it declares rather than guessing.
 
+**Verify the harness before trusting a green run.** A runtime-only force that never reaches the
+test JVM produces a green run that means nothing, so the script documents a control: drop
+`material3` from its `when`, leaving the other four forced, and the suite must go red with the
+`AbstractMethodError` above. That is the original incident, reproduced on demand. It has been
+checked against every result recorded here.
+
 ### Recorded results
 
-| Compose | material3 | result |
-| --- | --- | --- |
-| 1.12.1 | 1.5.0-alpha27 | `:renderer-android:testDebugUnitTest` green — 92 classes, 395 tests |
+| Compose | material3 | scope | `:renderer-android:testDebugUnitTest` |
+| --- | --- | --- | --- |
+| 1.12.1 | 1.5.0-alpha27 | `runtime` (compiled at 1.11.2) | green — 92 classes, 395 tests |
+| 1.12.1 | 1.5.0-alpha27 | `all` | green — 92 classes, 395 tests |
+| 1.12.1 | *not forced* | `runtime` | **red**, as designed — the control above |
 
-The 1.12 run covers the reflective reads that are most exposed to a Compose change, because they
+The 1.12 runs cover the reflective reads that are most exposed to a Compose change, because they
 reach past public API into element fields and the live node chain: `PainterElement`'s
 `painter` / `contentScale` / `alignment`, `BrushPainter.brush`, `Brush.intrinsicSize`, and the
 coordinator a draw-only node attaches to. `FigmaSvgGlimmerCardRenderTest` asserts exact emitted
