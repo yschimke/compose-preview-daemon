@@ -5,6 +5,7 @@ import androidx.compose.runtime.tooling.CompositionGroup
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.ModifierInfo
@@ -1280,6 +1281,7 @@ internal object ComposeLayoutInspector {
       sources = sources,
       density = density,
       fontScale = fontScale,
+      glimmerContentColor = null,
     )
   }
 
@@ -1288,6 +1290,13 @@ internal object ComposeLayoutInspector {
     sources: LayoutSourceIndex,
     density: Float,
     fontScale: Float,
+    // The Glimmer content colour in force at this node: what the nearest `Modifier.surface` /
+    // `Modifier.contentColorProvider` **above** it provides. Glimmer's `Icon` tints itself with
+    // `currentContentColor()`, an ancestor traversal, and its tint rides on an element that
+    // publishes no inspectable properties at all — so the colour has to be threaded down the walk
+    // rather than read off the icon's own chain. Null means "no Glimmer provider above", which is
+    // every non-Glimmer tree.
+    glimmerContentColor: Color?,
   ): LayoutInspectorNode {
     val rootCoords = rootCoordinates ?: coordinates
     val source = sources.sourceFor(raw)
@@ -1307,7 +1316,17 @@ internal object ComposeLayoutInspector {
     // Reflective + best-effort: any failure (or a bitmap/gradient/transformed painter) yields null
     // and the node simply rasters as before.
     val modifiers = modifierInfo
-    val children = children.map { it.toWireNode(rootCoords, sources, density, fontScale) }
+    // A provider on *this* node's chain covers its descendants, not itself, so it is resolved
+    // before the children are walked and after this node's own tint is read from
+    // [glimmerContentColor]. Compose modifier order is outer→inner, so the last provider on the
+    // chain is the nearest one to the content.
+    val providedContentColor =
+      modifiers.asReversed().firstNotNullOfOrNull { info ->
+        GlimmerSurface.providedContentColor(info.modifier, info.coordinates)
+      } ?: glimmerContentColor
+    val children = children.map {
+      it.toWireNode(rootCoords, sources, density, fontScale, providedContentColor)
+    }
     // An `Icon`/`Image`'s `ImageVector` (Tier 1). Failing that, a *leaf* node that paints its
     // chrome
     // via an imperative draw modifier (`Slider`/progress/`Checkbox`/`RadioButton` draw into a bare
@@ -1335,7 +1354,7 @@ internal object ComposeLayoutInspector {
     val captureW = if (boundsW > 0) boundsW else width
     val captureH = if (boundsH > 0) boundsH else height
     val vectorGraphic =
-      VectorGraphicExtractor.extract(this)
+      VectorGraphicExtractor.extract(this, glimmerContentColor)
         ?: if (children.isEmpty())
           DrawCaptureExtractor.extract(modifiers, captureW, captureH, density, fontScale)
         else null
@@ -2073,12 +2092,18 @@ internal object ComposeLayoutInspector {
    * fold together.
    */
   private object VectorGraphicExtractor {
-    fun extract(node: LayoutNodeFacade): LayoutInspectorVectorGraphic? = runCatching {
-      extractOrNull(node)
+    fun extract(
+      node: LayoutNodeFacade,
+      glimmerContentColor: Color?,
+    ): LayoutInspectorVectorGraphic? = runCatching {
+      extractOrNull(node, glimmerContentColor)
     }
       .getOrNull()
 
-    private fun extractOrNull(node: LayoutNodeFacade): LayoutInspectorVectorGraphic? {
+    private fun extractOrNull(
+      node: LayoutNodeFacade,
+      glimmerContentColor: Color?,
+    ): LayoutInspectorVectorGraphic? {
       // The `VectorPainter` an `Icon`/`Image` paints with rides in the node's draw modifier — as a
       // `Modifier.paint(painter)` `PainterElement` field, or (depending on the Compose version /
       // wrapping) nested a level inside it. Scan each modifier element's fields shallowly for the
@@ -2100,7 +2125,10 @@ internal object ComposeLayoutInspector {
       // represent as a flat SrcIn tint (a colour-matrix filter, an unusual blend mode) declines
       // vectorisation so the node rasters at full fidelity rather than emitting the wrong colour.
       val tint =
-        when (val t = resolveTint(painter, match.externalColorFilter)) {
+        when (
+          val t =
+            resolveTint(painter, match.externalColorFilter, match.glimmerTint(glimmerContentColor))
+        ) {
           UnsupportedTint -> return null
           NoTint -> null
           is SolidTint -> t.argb
@@ -2123,6 +2151,29 @@ internal object ComposeLayoutInspector {
         ?.takeIf { it.isNotBlank() }
       return LayoutInspectorVectorGraphic(vw, vh, painted, vectorName = name)
     }
+
+    /**
+     * `androidx.xr.glimmer.IconColorFilterElement` — the element Glimmer's `Icon` tints through.
+     * Matched by simple name like every other library-specific read here; the class is private to
+     * Glimmer, so there is nothing to reference.
+     */
+    private const val GLIMMER_ICON_COLOR_FILTER_ELEMENT = "IconColorFilterElement"
+
+    /**
+     * A `ColorProducer`'s value. Its single accessor carries the inline-class name mangle, so it is
+     * found by prefix rather than by name — the same read `LayoutTreeAccess` makes for a ripple
+     * node's colour producer.
+     */
+    private fun colorProducerColor(producer: Any): Color? =
+      producer.javaClass.methods
+        .firstOrNull { it.name.startsWith("invoke-") && it.parameterCount == 0 }
+        ?.let { method ->
+          runCatching {
+            method.isAccessible = true
+            (method.invoke(producer) as? Long)?.let { Color(it.toULong()) }
+          }
+            .getOrNull()
+        }
 
     private sealed interface TintResult
 
@@ -2151,7 +2202,18 @@ internal object ComposeLayoutInspector {
      * filter even when the owning paint modifier has no filter, recolouring source-painted vectors
      * to black (#3080).
      */
-    private fun resolveTint(painter: Any, externalColorFilter: Any?): TintResult {
+    private fun resolveTint(
+      painter: Any,
+      externalColorFilter: Any?,
+      glimmerTint: Color?,
+    ): TintResult {
+      // Glimmer resolves its icon tint into a layer `colorFilter` at draw time, so there is no
+      // filter object to read — the resolved colour arrives here directly and, being a plain
+      // `SrcIn` tint by construction, recolours the paths exactly as a Material filter would.
+      glimmerTint?.let { tint ->
+        if (!tint.isSpecified) return NoTint
+        return colorArgb(tint.value.toLong())?.let(::SolidTint) ?: UnsupportedTint
+      }
       val vector = runCatching { field(painter, "vector") }.getOrNull()
       val filter =
         externalColorFilter
@@ -2198,7 +2260,38 @@ internal object ComposeLayoutInspector {
      * the class hierarchy) up to a shallow depth rather than hard-code the path. Identity-tracked
      * to avoid cycles; confined to `androidx` objects so it never wanders into unrelated graphs.
      */
-    private data class VectorPainterMatch(val painter: Any, val externalColorFilter: Any?)
+    private data class VectorPainterMatch(
+      val painter: Any,
+      val externalColorFilter: Any?,
+      /**
+       * The `androidx.xr.glimmer` element that carries this icon's tint, when the painter was found
+       * on one.
+       *
+       * Glimmer's `Icon` does not hand `Modifier.paint` a `colorFilter` the way Material's does: it
+       * puts an `IconColorFilterElement` earlier in the chain, whose node records the content into
+       * a `GraphicsLayer` and sets the layer's `colorFilter` at draw time. The element is annotated
+       * `@Suppress("ModifierNodeInspectableProperties")` and publishes nothing, so there is no
+       * filter for [resolveTint] to read and every Glimmer icon vectorised in its *source* colours
+       * — black, for a Material `ImageVector`, on a surface that renders it white.
+       */
+      val glimmerTintElement: Any? = null,
+    ) {
+      /**
+       * The tint Glimmer's `Icon` resolves for this painter: its explicit `tint` `ColorProducer`
+       * when one was passed, else the content colour the nearest ancestor provider supplies — which
+       * is `Color.White` when nothing does, exactly as `currentContentColor()` defaults.
+       */
+      fun glimmerTint(glimmerContentColor: Color?): Color? {
+        val element = glimmerTintElement ?: return null
+        runCatching { field(element, "tint") }
+          .getOrNull()
+          ?.let { producer ->
+            return colorProducerColor(producer)
+          }
+        if (runCatching { field(element, "useContentColor") }.getOrNull() != true) return null
+        return glimmerContentColor ?: Color.White
+      }
+    }
 
     private fun findVectorPainter(
       o: Any?,
@@ -2212,6 +2305,11 @@ internal object ComposeLayoutInspector {
         return VectorPainterMatch(
           painter = o,
           externalColorFilter = runCatching { field(paintModifier, "colorFilter") }.getOrNull(),
+          // The chain is scanned outer→inner and Glimmer puts `IconColorFilterElement` before the
+          // `Modifier.paint` it tints, so the painter is reached *through* that element and it is
+          // the modifier this match was found on.
+          glimmerTintElement =
+            paintModifier.takeIf { it.javaClass.simpleName == GLIMMER_ICON_COLOR_FILTER_ELEMENT },
         )
       }
       if (!o.javaClass.name.startsWith("androidx")) return null

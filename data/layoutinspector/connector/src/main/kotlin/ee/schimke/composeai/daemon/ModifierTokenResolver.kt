@@ -1,15 +1,19 @@
 package ee.schimke.composeai.daemon
 
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierInfo
 import androidx.compose.ui.platform.InspectableValue
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import ee.schimke.composeai.data.layoutinspector.LayoutInspectorGradient
 import ee.schimke.composeai.data.layoutinspector.PlaceholderModifiers
@@ -141,6 +145,31 @@ internal object ModifierTokenResolver {
           }
         }
       }
+      // Glimmer (`androidx.xr.glimmer`) fills AND rings its containers from one modifier —
+      // `Modifier.surface(color, focusedColor, …, shape)`, a `DrawModifierNode` that draws both
+      // itself. Neither half reaches `Modifier.background` or `Modifier.border`, so before this
+      // every Glimmer `Card`/`Button`/`ListItem`/`TitleChip` resolved no paint token at all and
+      // exported as an empty layer: a white card with white-on-white text. [GlimmerSurface] carries
+      // the read, including the focus/press interpolation that only the live node knows; the
+      // shape comes from the ordinary shape pass below, which already sees the element's `shape`.
+      if (GlimmerSurface.isSurfaceElement(mod)) {
+        sawPaint = true
+        GlimmerSurface.paint(
+            element = mod,
+            node = GlimmerSurface.liveNode(info.coordinates),
+            minDimensionPx = minSidePx,
+            density = density,
+          )
+          ?.let { paint ->
+            if (backgroundColor == null && backgroundGradient == null) {
+              backgroundColor = paint.fillArgb
+            }
+            if (borderColor == null && borderGradient == null) {
+              borderGradient = paint.border
+              borderWidth = paint.borderWidthDp
+            }
+          }
+      }
       // `Modifier.paint(painter)` with a solid `ColorPainter` — Wear M3's `Button`/`Card`/
       // `FilledTonalButton`/`SwitchButton` fill their container this way (through the wear
       // `surface()` helper's `PainterElement`), NOT via `Modifier.background`, so a plain
@@ -151,6 +180,15 @@ internal object ModifierTokenResolver {
       if (name == "paint" || simpleName == "PainterElement") {
         sawPaint = true
         if (backgroundColor == null) backgroundColor = painterColorHex(elements, mod)
+        // A `BrushPainter` wrapping a linear gradient is the other painter whose paint has an exact
+        // vector form — the same `<linearGradient>` a brush `Modifier.background` already emits.
+        // It is how a catalog draws a stand-in header image (`Image(BrushPainter(…))`, the Glimmer
+        // kit's `Card` artwork), and with only the `ColorPainter` arm above it resolved no fill, so
+        // the export cropped the whole slot to an `<image>` — a rasterised two-stop gradient where
+        // four `<stop>`s say it exactly, and editably.
+        if (backgroundColor == null && backgroundGradient == null) {
+          backgroundGradient = painterGradient(elements, mod, sizeWidthPx, sizeHeightPx)
+        }
       }
       // `Modifier.defaultMinSize(minWidth, minHeight)` — an M3 `Badge` measures its background at
       // this min box even when its narrow content is placed smaller, so the figma-svg export grows
@@ -424,13 +462,18 @@ internal object ModifierTokenResolver {
     return name == "background" ||
       simpleName == "BackgroundElement" ||
       name == "paint" ||
-      simpleName == "PainterElement"
+      simpleName == "PainterElement" ||
+      // Glimmer's `Modifier.surface` is both halves at once — it draws the fill and the ring from
+      // the same node, so its coordinator is the painted box for either question.
+      GlimmerSurface.isSurfaceElement(modifier)
   }
 
   /** The ring half of [paintsContainer] — `Modifier.border`. */
   fun ringsContainer(modifier: Any): Boolean {
     val name = (modifier as? InspectableValue)?.nameFallback
-    return name == "border" || modifier.javaClass.simpleName.startsWith("BorderModifier")
+    return name == "border" ||
+      modifier.javaClass.simpleName.startsWith("BorderModifier") ||
+      GlimmerSurface.isSurfaceElement(modifier)
   }
 
   internal fun appliedClipsContent(coordinates: Any): Boolean =
@@ -441,10 +484,19 @@ internal object ModifierTokenResolver {
    * into the wire [LayoutInspectorGradient] (issue #2852).
    *
    * Compose's `LinearGradient` is internal, so `colors` / `stops` / `start` / `end` are taken
-   * reflectively. Offsets are normalised into `0..1` fractions of the node box — SVG's default
-   * gradient space — so the emitter needs no size arithmetic; `horizontalGradient` /
-   * `verticalGradient` encode "to the far edge" as `Float.POSITIVE_INFINITY`, which resolves to the
-   * edge (`1.0`).
+   * reflectively. Offsets are normalised into fractions of the node box — SVG's default
+   * `objectBoundingBox` gradient space — so the emitter needs no size arithmetic;
+   * `horizontalGradient` / `verticalGradient` encode "to the far edge" as
+   * `Float.POSITIVE_INFINITY`, which resolves to the edge (`1.0`).
+   *
+   * Coordinates **outside** `0..1` are emitted as they come out. A brush can put its endpoints past
+   * the box it is painted into — a catalog header gradient authored against a 1000px intrinsic and
+   * drawn over a 396×248 slot only ever shows the first third of its ramp — and clamping stretched
+   * the whole ramp across the box, publishing colours the render never reached. `objectBoundingBox`
+   * accepts coordinates beyond the unit square, so there is nothing to clamp for.
+   *
+   * The reduction also corrects for the box's aspect ratio rather than dividing each endpoint by
+   * its own extent; see [linearGradientOf] for why that is not the same thing.
    *
    * Returns null for a `SolidColor` (the flat-colour path already covers it) and for any
    * radial/sweep/shader brush, so those keep the raster fallback rather than being emitted as a
@@ -463,6 +515,124 @@ internal object ModifierTokenResolver {
         }
           .getOrNull()
         ?: return null
+    return linearGradientOf(brush, widthPx, heightPx)
+  }
+
+  /**
+   * Resolves a painter-based container fill whose painter is a `BrushPainter` over a linear
+   * gradient — `Image(BrushPainter(Brush.linearGradient(…)))`, the deterministic stand-in a design
+   * catalog draws where a real photograph would go (the Glimmer kit's `Card` header artwork is
+   * one). Before this it resolved no colour, so the export cropped the whole slot to an `<image>`:
+   * a rasterised four-stop ramp where four `<stop>`s say it exactly, and editably.
+   *
+   * The brush's endpoints are **absolute pixels in the painter's draw space**, and that space is
+   * not the node's box: `Brush.linearGradient`'s own `intrinsicSize` is the span between its
+   * endpoints, which `BrushPainter` forwards, so `Modifier.paint` scales the painter by
+   * `contentScale` and offsets it by `alignment` like any sized painter. The catalog header — a
+   * 1000px-square brush drawn `FillWidth` into a 396x248 slot — lands scaled to 396x396 and centred
+   * 74px above the slot's top, and reading the brush against the node box instead put the whole
+   * ramp 74px late. So the endpoints are mapped through the same geometry
+   * `androidx.compose.ui.draw.PainterNode` draws with before [linearGradientOf] normalises them.
+   *
+   * Everything else resolves nothing here and rasters exactly as before: a bitmap or vector
+   * painter, a radial/sweep/shader brush, a `colorFilter`, and a `Modifier.paint` alpha below 1
+   * (which scales every stop's opacity — representable, but not by this reduction).
+   */
+  internal fun painterGradient(
+    elements: Map<String, Any?>,
+    mod: Any,
+    widthPx: Int,
+    heightPx: Int,
+  ): LayoutInspectorGradient? {
+    // As in [painterColorHex]: a `colorFilter` re-tints the painter at draw time and no gradient
+    // token can reproduce that.
+    val colorFilter =
+      elements["colorFilter"]
+        ?: runCatching {
+          mod.javaClass.getDeclaredField("colorFilter").apply { isAccessible = true }.get(mod)
+        }
+          .getOrNull()
+    if (colorFilter != null) return null
+    val painter =
+      elements["painter"]
+        ?: runCatching {
+          mod.javaClass.getDeclaredField("painter").apply { isAccessible = true }.get(mod)
+        }
+          .getOrNull()
+        ?: return null
+    // Only a `BrushPainter`, matched by class: the whole reduction below rests on knowing that the
+    // painter's `onDraw` is a single `drawRect(brush)` over the size it is handed.
+    if (painter.javaClass.simpleName != "BrushPainter") return null
+    // `Modifier.paint`'s alpha multiplies every stop's opacity; folding it in is possible but is
+    // not what this does, so decline rather than publish an over-opaque ramp.
+    val alpha =
+      floatValue(elements["alpha"])
+        ?: runCatching {
+          mod.javaClass.getDeclaredField("alpha").apply { isAccessible = true }.getFloat(mod)
+        }
+          .getOrNull()
+        ?: 1f
+    if (alpha < 1f) return null
+    val brush = reflectedField(painter, "brush") ?: return null
+    val drawBox = painterDrawBox(brush, elements, mod, widthPx, heightPx) ?: return null
+    return linearGradientOf(brush, widthPx, heightPx, drawBox)
+  }
+
+  /**
+   * Where `Modifier.paint` puts the painter's draw space inside the node's box, as the offset of
+   * that space's origin from the node's top-left plus the size the painter is asked to draw at.
+   *
+   * This is `androidx.compose.ui.draw.PainterNode.draw`'s own arithmetic: an intrinsic dimension
+   * that is specified and finite is the source extent (else the destination's), `contentScale`
+   * turns the pair into a scale factor, and `alignment` centres the scaled box in the node's.
+   * Layout direction is taken as LTR — the resolver is not handed one, and only a start/end
+   * alignment under RTL would read differently.
+   */
+  private fun painterDrawBox(
+    brush: Any,
+    elements: Map<String, Any?>,
+    mod: Any,
+    widthPx: Int,
+    heightPx: Int,
+  ): PainterDrawBox? {
+    if (widthPx <= 0 || heightPx <= 0) return null
+    val dst = Size(widthPx.toFloat(), heightPx.toFloat())
+    val intrinsic = (brush as? Brush)?.intrinsicSize ?: return null
+    val srcWidth = intrinsic.width.takeIf { it.isFinite() && it > 0f } ?: dst.width
+    val srcHeight = intrinsic.height.takeIf { it.isFinite() && it > 0f } ?: dst.height
+    val src = Size(srcWidth, srcHeight)
+    val contentScale =
+      (elements["contentScale"] ?: reflectedField(mod, "contentScale")) as? ContentScale
+        ?: return null
+    val factor = contentScale.computeScaleFactor(src, dst)
+    val scaled = Size(src.width * factor.scaleX, src.height * factor.scaleY)
+    val alignment =
+      (elements["alignment"] ?: reflectedField(mod, "alignment")) as? Alignment ?: return null
+    val offset =
+      alignment.align(
+        IntSize(scaled.width.roundToInt(), scaled.height.roundToInt()),
+        IntSize(widthPx, heightPx),
+        LayoutDirection.Ltr,
+      )
+    return PainterDrawBox(offset.x.toFloat(), offset.y.toFloat(), scaled)
+  }
+
+  /** The painter's draw space inside the node box: its origin offset and the size it draws at. */
+  private class PainterDrawBox(val dx: Float, val dy: Float, val size: Size)
+
+  /**
+   * [linearGradient]'s brush half, for callers that already hold the brush.
+   *
+   * [drawBox] is where the brush's own coordinate space sits inside the node box, for a brush
+   * painted through a scaled/aligned painter rather than straight into the node's box. Null — the
+   * `Modifier.background` case — means the two coincide.
+   */
+  private fun linearGradientOf(
+    brush: Any,
+    widthPx: Int,
+    heightPx: Int,
+    drawBox: PainterDrawBox? = null,
+  ): LayoutInspectorGradient? {
     if (brush.javaClass.simpleName != "LinearGradient") return null
     val colors =
       (reflectedField(brush, "colors") as? List<*>)?.mapNotNull { colorWire(it) } ?: return null
@@ -473,19 +643,42 @@ internal object ModifierTokenResolver {
     val h = heightPx.toFloat().takeIf { it > 0f } ?: return null
     val start = reflectedField(brush, "start")
     val end = reflectedField(brush, "end")
+    // A brush resolves its own "far edge" against the size it is *drawn* at, which is the painter's
+    // scaled box when there is one and the node box otherwise.
+    val drawW = drawBox?.size?.width?.takeIf { it > 0f } ?: w
+    val drawH = drawBox?.size?.height?.takeIf { it > 0f } ?: h
+    val dx = drawBox?.dx ?: 0f
+    val dy = drawBox?.dy ?: 0f
+    val sx = offsetAxis(start, 0, 0f) + dx
+    val sy = offsetAxis(start, 1, 0f) + dy
+    // A non-finite endpoint component means "the far edge of the box" on *that* axis, so each one
+    // falls back to its own extent. `Brush.linearGradient(colors)` with no explicit endpoints
+    // stores `Offset.Infinite` — both axes infinite — which is the diagonal top-left →
+    // bottom-right gradient several samples use; falling back to 0 on Y flattened those to
+    // horizontal. `horizontalGradient`/`verticalGradient` leave the other axis finite at 0, so
+    // they are unaffected.
+    val vx = offsetAxis(end, 0, drawW) + dx - sx
+    val vy = offsetAxis(end, 1, drawH) + dy - sy
+    // The *pixel-space* gradient vector, re-expressed as the `objectBoundingBox` vector that
+    // reproduces it. Dividing each component by its own extent — the obvious reduction, and what
+    // this did before — is only correct when the gradient is axis-aligned or the box is square.
+    // `objectBoundingBox` scales the gradient's space by (width, height), and a non-uniform scale
+    // does not keep a direction perpendicular to its own iso-lines: a 45° brush over the Glimmer
+    // card's 396x248 header came out rotated, reading ~1.7x along the ramp at the wrong places.
+    //
+    // Solving `M⁻¹u / |u|² == v / |v|²` for the bounding-box vector `u`, with `M = diag(w, h)`,
+    // gives `u = (|v|² / (w²vx² + h²vy²)) * (w*vx, h*vy)` — which collapses back to the naive
+    // per-axis division exactly in the two cases where that was already right.
+    val skew = w * w * vx * vx + h * h * vy * vy
+    if (skew <= 0f) return null
+    val scale = (vx * vx + vy * vy) / skew
     return LayoutInspectorGradient(
       colors = colors,
       stops = stops,
-      startX = (offsetAxis(start, 0, 0f) / w).coerceIn(0f, 1f),
-      startY = (offsetAxis(start, 1, 0f) / h).coerceIn(0f, 1f),
-      // A non-finite endpoint component means "the far edge of the box" on *that* axis, so each
-      // one falls back to its own extent. `Brush.linearGradient(colors)` with no explicit
-      // endpoints stores `Offset.Infinite` — both axes infinite — which is the diagonal
-      // top-left → bottom-right gradient several samples use; falling back to 0 on Y flattened
-      // those to horizontal. `horizontalGradient`/`verticalGradient` leave the other axis finite
-      // at 0, so they are unaffected.
-      endX = (offsetAxis(end, 0, w) / w).coerceIn(0f, 1f),
-      endY = (offsetAxis(end, 1, h) / h).coerceIn(0f, 1f),
+      startX = sx / w,
+      startY = sy / h,
+      endX = sx / w + scale * w * vx,
+      endY = sy / h + scale * h * vy,
     )
   }
 
