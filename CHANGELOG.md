@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.8.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.8.0...v3.8.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* **build:** read the publish baseline from Maven Central, not from git ([#144](https://github.com/yschimke/compose-preview-daemon/issues/144)) ([20925fa](https://github.com/yschimke/compose-preview-daemon/commit/20925facad3af20f03ec54e070d85528e8682bf8))
+
+
+### Chores
+
+* record published versions for v3.8.0 ([#143](https://github.com/yschimke/compose-preview-daemon/issues/143)) ([ec6a151](https://github.com/yschimke/compose-preview-daemon/commit/ec6a15150268691bb8df05e4fba70f32afe98231))
+
 ## [3.8.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.7.0...v3.8.0) (2026-09-16)
 
 
