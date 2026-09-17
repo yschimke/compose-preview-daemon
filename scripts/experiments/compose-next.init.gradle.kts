@@ -22,9 +22,34 @@
 //   curl -s https://dl.google.com/dl/android/maven2/androidx/compose/material3/material3/\
 //     <version>/material3-<version>.pom | grep -A1 'foundation</artifactId>'
 //
-// Results are recorded in `docs/RENDERER_COMPATIBILITY.md` → "Verifying the renderer on the next
-// Compose line". This file is a probe, not part of any build: nothing references it, and CI does
-// not run it.
+// ## Which classpaths get moved, and why the default is `runtime`
+//
+//   -PcomposeNextScope=runtime   (default) only `*RuntimeClasspath`
+//   -PcomposeNextScope=all                 every configuration, compile classpaths included
+//
+// `runtime` is the shape a consumer actually produces, and it is the only one that tests what
+// ships. The renderer's Compose is `compileOnly`, so the published AAR's bytecode is *linked*
+// against the older line and then *executes* against whatever the consumer resolved. That is a
+// binary-compatibility question — `AbstractMethodError`, `NoSuchMethodError` — and the only way to
+// ask it is to leave the compile classpaths alone. Forcing them too recompiles everything against
+// the new line, which asks a different and much weaker question: whether the *sources* still build.
+//
+// `all` is still worth running, before adopting a newer line as the compile target rather than
+// merely tolerating it at runtime. It catches source-level breaks that `runtime` cannot see.
+//
+// ## Trusting a green run
+//
+// A green `runtime` run means nothing unless the force actually reaches the test JVM, so verify the
+// harness is sensitive before believing it: drop `material3` from the `when` below, leaving the
+// other four forced, and the suite must go red with
+//
+//   AbstractMethodError: … androidx.compose.material3.OutlinedTextFieldDefaults$$Lambda … does not
+//   define or inherit an implementation of the resolved method 'abstract void
+//   applyStyle(androidx.compose.foundation.style.CustomStyleScope)'
+//
+// which is the original incident, reproduced on demand. Results and that control are recorded in
+// `docs/RENDERER_COMPATIBILITY.md` → "Verifying the renderer on the next Compose line". This file
+// is a probe, not part of any build: nothing references it, and CI does not run it.
 
 val composeVersion = "1.12.1"
 
@@ -33,8 +58,16 @@ val composeVersion = "1.12.1"
 // alpha is the only coherent pairing for the 1.12 line.
 val material3Version = "1.5.0-alpha27"
 
+// An init script's receiver is `Gradle`, not `Project`, so the `-P` value is read off the start
+// parameters rather than through `findProperty`.
+val scope = startParameter.projectProperties["composeNextScope"] ?: "runtime"
+require(scope == "runtime" || scope == "all") {
+  "composeNextScope must be 'runtime' or 'all', was '$scope'"
+}
+
 allprojects {
   configurations.configureEach {
+    if (scope == "runtime" && !name.endsWith("RuntimeClasspath")) return@configureEach
     resolutionStrategy.eachDependency {
       when (requested.group) {
         "androidx.compose.ui",
