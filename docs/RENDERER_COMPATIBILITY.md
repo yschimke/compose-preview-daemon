@@ -213,6 +213,40 @@ Two practical consequences:
 2. **A catalog's CMP bump is a cross-repo change.** Land the host bump, release,
    and redeploy *before* the catalog regenerates against a newer line.
 
+## Verifying the renderer on the next Compose line
+
+The renderer takes Compose `compileOnly` so the consumer's versions win at runtime (mechanism 1
+above), which means the committed catalog cannot answer "does this still work on the line our
+consumers are moving to". `scripts/experiments/compose-next.init.gradle.kts` forces the whole
+Compose stack onto one coherent newer line so the suite can be run against it:
+
+```
+scripts/agent-gradle.sh --init-script scripts/experiments/compose-next.init.gradle.kts \
+  :renderer-android:testDebugUnitTest
+```
+
+**Move the stack together or the result is noise.** Adding a library built against a newer Compose
+drags `ui` / `foundation` / `runtime` forward by conflict resolution while `material3` stays on
+whatever the BOM pinned, and the *skew* then fails with `AbstractMethodError` somewhere unrelated —
+`androidx.compose.material3.OutlinedTextFieldDefaults` not implementing
+`androidx.compose.foundation.style.CustomStyle.applyStyle`, in the case that prompted this note.
+That failure is not evidence about the newer Compose. `material3` stable still targets an older
+Compose, so pairing a 1.12 `foundation` means taking a `material3` alpha; read the candidate's POM
+for the `foundation` version it declares rather than guessing.
+
+### Recorded results
+
+| Compose | material3 | result |
+| --- | --- | --- |
+| 1.12.1 | 1.5.0-alpha27 | `:renderer-android:testDebugUnitTest` green — 92 classes, 395 tests |
+
+The 1.12 run covers the reflective reads that are most exposed to a Compose change, because they
+reach past public API into element fields and the live node chain: `PainterElement`'s
+`painter` / `contentScale` / `alignment`, `BrushPainter.brush`, `Brush.intrinsicSize`, and the
+coordinator a draw-only node attaches to. `FigmaSvgGlimmerCardRenderTest` asserts exact emitted
+gradient coordinates and paint-box geometry, so a change in any of those shows up as a failure
+rather than as a silently different SVG.
+
 ## Known findings that still warrant a note
 
 ### A library declares a higher minSdk than the module
