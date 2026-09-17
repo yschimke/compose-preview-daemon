@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.8.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.8.2...v3.8.3) (2026-09-17)
+
+
+### Bug Fixes
+
+* **deps:** consume the contracts fix for flattened painter fills ([#152](https://github.com/yschimke/compose-preview-daemon/issues/152)) ([a9d2b99](https://github.com/yschimke/compose-preview-daemon/commit/a9d2b995f9c4bbb8d6d126ee950e1611e6c6ea4c))
+
 ## [3.8.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.8.1...v3.8.2) (2026-09-17)
 
 
