@@ -56,8 +56,8 @@ tasks.register("printPublishTasks") {
     // and the right default for a `workflow_dispatch` recovery run where the plan's baseline may
     // not be trustworthy.
     //
-    // `:bom` is never filtered out. It is the index of the release: a consumer resolving the BOM at
-    // the tag must find it there whether or not any module changed.
+    // The BOM indexes a changed coordinate map, not every GitHub release. An empty set leaves every
+    // constraint at its already-published version, so publishing a new, identical BOM wastes quota.
     // Absent and empty mean different things and must not be collapsed: absent is "no plan ran,
     // publish everything", empty is "the plan found nothing to publish". Deliberately mirrors
     // `PublishedVersions.parsePublishSet`, which the modules and `:bom` use -- the root build
@@ -79,8 +79,8 @@ tasks.register("printPublishTasks") {
         }
         .filter { p ->
           publishSet == null ||
-            p.path == ":bom" ||
-            p.path.removePrefix(":").replace(':', '-') in publishSet
+            (p.path == ":bom" && publishSet.isNotEmpty()) ||
+            (p.path != ":bom" && p.path.removePrefix(":").replace(':', '-') in publishSet)
         }
         .map { p ->
           "${p.path}:publishAndReleaseToMavenCentral" to

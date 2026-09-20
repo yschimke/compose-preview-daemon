@@ -98,21 +98,21 @@ jobs:
           args=(--no-configuration-cache)
           # PLANNED is "false" only on the recovery path, where no plan ran and everything
           # publishes. Otherwise the property is ALWAYS passed, including when the plan is empty:
-          # an absent property means "publish everything", an empty one means "publish nothing but
-          # the BOM", and collapsing the two would upload all 69 coordinates on exactly the
+          # an absent property means "publish everything", an empty one means "publish nothing",
+          # and collapsing the two would upload all 69 coordinates on exactly the
           # releases that need none of them.
           if [ "${PLANNED}" = "true" ]; then
             args+=("-Pcomposeai.publishSet=${PUBLISH_SET}")
           fi
           mapfile -t tasks < <(./gradlew --quiet printPublishTasks "${args[@]}" | cut -f1)
-          # An empty task list is never a legitimate outcome: `:bom` publishes on every release,
-          # whatever the plan says, so the list is at worst one entry long. Empty means
-          # `printPublishTasks` failed to resolve anything, and a bare `./gradlew` is not a no-op
-          # that fails loudly — this build declares no `defaultTasks`, so it runs `help`, exits 0,
-          # and the job goes green having uploaded nothing. compose-ai-tools shipped v1.56.0 and
-          # v1.56.1 as public GitHub Releases with no artifacts on Central that way, and this
-          # repository's selective publishing has never yet run for real.
+          # An empty task list is valid only for a planned-empty release. A bare `./gradlew` is not
+          # a no-op that fails loudly — this build declares no `defaultTasks`, so it runs `help` and
+          # exits 0 — therefore retain the failure for an unplanned/recovery release.
           if [ "${#tasks[@]}" -eq 0 ]; then
+            if [ "${PLANNED}" = "true" ]; then
+              echo "no Maven artifacts changed; skipping Central publication"
+              exit 0
+            fi
             echo "::error::no publish tasks resolved; refusing to run a bare ./gradlew" >&2
             exit 1
           fi
