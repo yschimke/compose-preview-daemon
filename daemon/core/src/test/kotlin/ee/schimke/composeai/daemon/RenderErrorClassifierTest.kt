@@ -42,6 +42,21 @@ class RenderErrorClassifierTest {
   }
 
   @Test
+  fun aSkikoNativeTheHostCannotLoadIsNotBlamedOnTheJars() {
+    listOf(
+        "org.jetbrains.skiko.LibraryLoadException: Failed to load libskiko\n" +
+          "java.lang.UnsatisfiedLinkError: /tmp/skiko/libskiko-linux-x64.so: libGL.so.1: " +
+          "cannot open shared object file: No such file or directory",
+        "org.jetbrains.skiko.LibraryLoadException: Failed to load libskiko\n" +
+          "java.lang.UnsatisfiedLinkError: /lib/x86_64-linux-gnu/libc.so.6: version " +
+          "`GLIBC_2.34' not found (required by /tmp/skiko/libskiko-linux-x64.so)",
+      )
+      .forEach {
+        assertTrue(it, RenderErrorClassifier.classify(it).kind != RenderErrorKind.CLASSPATH_SKEW)
+      }
+  }
+
+  @Test
   fun anUnrelatedUnsatisfiedLinkErrorIsNotBlamedOnSkiko() {
     val c =
       RenderErrorClassifier.classify(

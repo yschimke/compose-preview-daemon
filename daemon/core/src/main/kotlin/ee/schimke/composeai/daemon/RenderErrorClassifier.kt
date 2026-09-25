@@ -44,8 +44,14 @@ public object RenderErrorClassifier {
       // older native fails on the first missing entry point — for a text-drawing preview, a
       // `ParagraphKt._n…` method — and a render with no native at all cannot load it. Both look
       // like a crash in the preview, and neither is one.
-      (has("unsatisfiedlinkerror") && has("org.jetbrains.skia", "org.jetbrains.skiko")) ||
-        (has("libraryloadexception") && has("libskiko")) ->
+      //
+      // Only those two. A libskiko that is present but will not `dlopen` — a missing `libGL.so.1`,
+      // a GLIBC too old — also surfaces as an `UnsatisfiedLinkError` inside a Skiko
+      // `LibraryLoadException`, and it is a host problem the renderer's `NativeLoadDiagnosis`
+      // already explains; telling that user to swap Skiko jars would send them the wrong way.
+      !has("cannot open shared object file", "version `glibc_", "(required by") &&
+        ((has("unsatisfiedlinkerror") && has("org.jetbrains.skia.", "org.jetbrains.skiko.")) ||
+          has("cannot find libskiko")) ->
         Classification(
           RenderErrorKind.CLASSPATH_SKEW,
           "Skiko's bindings (skiko-awt) and its native library (skiko-awt-runtime-<os>-<arch>) " +
