@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.8.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.8.3...v3.8.4) (2026-09-25)
+
+
+### Bug Fixes
+
+* **daemon:** classify a Skiko bindings/native mismatch as classpath skew ([#158](https://github.com/yschimke/compose-preview-daemon/issues/158)) ([af03b87](https://github.com/yschimke/compose-preview-daemon/commit/af03b877e1f1d701766cc81d6e681c8482960c05))
+* **release:** skip empty Maven publications ([#155](https://github.com/yschimke/compose-preview-daemon/issues/155)) ([d55d1ca](https://github.com/yschimke/compose-preview-daemon/commit/d55d1caaca17c6cedd3e451493429811faf8088e))
+
+
+### Chores
+
+* **deps:** pin dependencies ([#156](https://github.com/yschimke/compose-preview-daemon/issues/156)) ([05b55f7](https://github.com/yschimke/compose-preview-daemon/commit/05b55f7786dbb7c29bedd5f63ea52b10d12b4537))
+* **deps:** update github-actions to v7 ([#157](https://github.com/yschimke/compose-preview-daemon/issues/157)) ([df29e25](https://github.com/yschimke/compose-preview-daemon/commit/df29e254d38cc1786ff79440b6defe06e20f2f0a))
+
 ## [3.8.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.8.2...v3.8.3) (2026-09-17)
 
 
