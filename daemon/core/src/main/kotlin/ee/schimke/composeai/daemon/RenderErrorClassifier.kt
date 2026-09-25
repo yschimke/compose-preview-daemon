@@ -39,6 +39,25 @@ public object RenderErrorClassifier {
     fun has(vararg needles: String): Boolean = needles.any { it in s }
 
     return when {
+      // Skiko's Kotlin bindings (`skiko-awt`) and its native library (`libskiko`, shipped in
+      // `skiko-awt-runtime-<os>-<arch>`) must be the same version. A newer binding calling into an
+      // older native fails on the first missing entry point — for a text-drawing preview, a
+      // `ParagraphKt._n…` method — and a render with no native at all cannot load it. Both look
+      // like a crash in the preview, and neither is one.
+      //
+      // Only those two. A libskiko that is present but will not `dlopen` — a missing `libGL.so.1`,
+      // a GLIBC too old — also surfaces as an `UnsatisfiedLinkError` inside a Skiko
+      // `LibraryLoadException`, and it is a host problem the renderer's `NativeLoadDiagnosis`
+      // already explains; telling that user to swap Skiko jars would send them the wrong way.
+      !has("cannot open shared object file", "version `glibc_", "(required by") &&
+        ((has("unsatisfiedlinkerror") && has("org.jetbrains.skia.", "org.jetbrains.skiko.")) ||
+          has("cannot find libskiko")) ->
+        Classification(
+          RenderErrorKind.CLASSPATH_SKEW,
+          "Skiko's bindings (skiko-awt) and its native library (skiko-awt-runtime-<os>-<arch>) " +
+            "are different versions, or the native is missing; put this host's " +
+            "skiko-awt-runtime on the classpath at the same version as skiko-awt.",
+        )
       has("implemented only in jetbrains fork") ||
         (has("nosuchmethoderror", "noclassdeffounderror") && has("androidx.compose")) ||
         (has("androidx.compose") && has("jvmstubs")) ->

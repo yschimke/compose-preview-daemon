@@ -20,6 +20,52 @@ class RenderErrorClassifierTest {
   }
 
   @Test
+  fun skikoBindingsAheadOfTheirNativeIsClasspathSkewWithASkikoSuggestion() {
+    val c =
+      RenderErrorClassifier.classify(
+        "java.lang.UnsatisfiedLinkError: 'int org.jetbrains.skia.paragraph.ParagraphKt" +
+          "._nGetUnresolvedCodepointsCount(long)'"
+      )
+    assertEquals(RenderErrorKind.CLASSPATH_SKEW, c.kind)
+    assertTrue(c.suggestion, c.suggestion!!.contains("skiko-awt-runtime"))
+  }
+
+  @Test
+  fun aMissingSkikoNativeIsClasspathSkew() {
+    val c =
+      RenderErrorClassifier.classify(
+        "org.jetbrains.skiko.LibraryLoadException: Cannot find libskiko-linux-x64.so.sha256, " +
+          "proper native dependency missing."
+      )
+    assertEquals(RenderErrorKind.CLASSPATH_SKEW, c.kind)
+    assertTrue(c.suggestion, c.suggestion!!.contains("skiko-awt-runtime"))
+  }
+
+  @Test
+  fun aSkikoNativeTheHostCannotLoadIsNotBlamedOnTheJars() {
+    listOf(
+        "org.jetbrains.skiko.LibraryLoadException: Failed to load libskiko\n" +
+          "java.lang.UnsatisfiedLinkError: /tmp/skiko/libskiko-linux-x64.so: libGL.so.1: " +
+          "cannot open shared object file: No such file or directory",
+        "org.jetbrains.skiko.LibraryLoadException: Failed to load libskiko\n" +
+          "java.lang.UnsatisfiedLinkError: /lib/x86_64-linux-gnu/libc.so.6: version " +
+          "`GLIBC_2.34' not found (required by /tmp/skiko/libskiko-linux-x64.so)",
+      )
+      .forEach {
+        assertTrue(it, RenderErrorClassifier.classify(it).kind != RenderErrorKind.CLASSPATH_SKEW)
+      }
+  }
+
+  @Test
+  fun anUnrelatedUnsatisfiedLinkErrorIsNotBlamedOnSkiko() {
+    val c =
+      RenderErrorClassifier.classify(
+        "java.lang.UnsatisfiedLinkError: no sqlitejdbc in java.library.path"
+      )
+    assertEquals(RenderErrorKind.RUNTIME, c.kind)
+  }
+
+  @Test
   fun newerSdkIsSdkMismatchWithAnSdkSuggestion() {
     val c =
       RenderErrorClassifier.classify("PackageParser: Requires newer sdk version #36 (current #35)")
