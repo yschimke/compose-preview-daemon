@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.9.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.8.4...v3.9.0) (2026-09-26)
+
+
+### Features
+
+* start daemon processes with a minimal environment ([#161](https://github.com/yschimke/compose-preview-daemon/issues/161)) ([13cfae7](https://github.com/yschimke/compose-preview-daemon/commit/13cfae77b8b668283f5ab6dcf61ee8aef9b60d53))
+
 ## [3.8.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.8.3...v3.8.4) (2026-09-25)
 
 
