@@ -7,6 +7,46 @@ public final class ee/schimke/composeai/daemon/client/AndroidSdk {
 	public static synthetic fun discover$default (Lee/schimke/composeai/daemon/client/AndroidSdk;Ljava/io/File;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/io/File;
 }
 
+public abstract class ee/schimke/composeai/daemon/client/ChildEnvironment {
+	public static final field Companion Lee/schimke/composeai/daemon/client/ChildEnvironment$Companion;
+	public abstract fun resolve (Ljava/util/Map;)Ljava/util/Map;
+}
+
+public final class ee/schimke/composeai/daemon/client/ChildEnvironment$Allowlist : ee/schimke/composeai/daemon/client/ChildEnvironment {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Set;Ljava/util/Set;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Set;Ljava/util/Set;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun component2 ()Ljava/util/Set;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Set;Ljava/util/Set;Ljava/util/Map;)Lee/schimke/composeai/daemon/client/ChildEnvironment$Allowlist;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/client/ChildEnvironment$Allowlist;Ljava/util/Set;Ljava/util/Set;Ljava/util/Map;ILjava/lang/Object;)Lee/schimke/composeai/daemon/client/ChildEnvironment$Allowlist;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExtra ()Ljava/util/Map;
+	public final fun getNames ()Ljava/util/Set;
+	public final fun getPrefixes ()Ljava/util/Set;
+	public fun hashCode ()I
+	public final fun keeps (Ljava/lang/String;)Z
+	public final fun plusExtra (Ljava/util/Map;)Lee/schimke/composeai/daemon/client/ChildEnvironment$Allowlist;
+	public final fun plusNames ([Ljava/lang/String;)Lee/schimke/composeai/daemon/client/ChildEnvironment$Allowlist;
+	public fun resolve (Ljava/util/Map;)Ljava/util/Map;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/client/ChildEnvironment$Companion {
+	public final fun getDEFAULT_NAMES ()Ljava/util/Set;
+	public final fun getDEFAULT_PREFIXES ()Ljava/util/Set;
+	public final fun getDefault ()Lee/schimke/composeai/daemon/client/ChildEnvironment;
+}
+
+public final class ee/schimke/composeai/daemon/client/ChildEnvironment$Inherit : ee/schimke/composeai/daemon/client/ChildEnvironment {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/client/ChildEnvironment$Inherit;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun resolve (Ljava/util/Map;)Ljava/util/Map;
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class ee/schimke/composeai/daemon/client/DaemonBackend {
 	public static final field Companion Lee/schimke/composeai/daemon/client/DaemonBackend$Companion;
 	public abstract fun getRequiredArtifacts ()Ljava/util/List;
@@ -332,6 +372,8 @@ public final class ee/schimke/composeai/daemon/client/SandboxSparePool : java/la
 	public static final field SANDBOX_WORKER_MAIN_CLASS Ljava/lang/String;
 	public static final field SPARE_HANDSHAKE_PREFIX Ljava/lang/String;
 	public fun <init> ()V
+	public fun <init> (Lee/schimke/composeai/daemon/client/SandboxSparePool$Config;Lee/schimke/composeai/daemon/client/ChildEnvironment;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lee/schimke/composeai/daemon/client/SandboxSparePool$Config;Lee/schimke/composeai/daemon/client/ChildEnvironment;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lee/schimke/composeai/daemon/client/SandboxSparePool$Config;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)V
 	public synthetic fun <init> (Lee/schimke/composeai/daemon/client/SandboxSparePool$Config;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close ()V
@@ -391,6 +433,8 @@ public final class ee/schimke/composeai/daemon/client/SubprocessDaemonClientFact
 	public fun <init> ()V
 	public fun <init> (Lee/schimke/composeai/daemon/client/SandboxSparePool;)V
 	public synthetic fun <init> (Lee/schimke/composeai/daemon/client/SandboxSparePool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lee/schimke/composeai/daemon/client/SandboxSparePool;Lee/schimke/composeai/daemon/client/ChildEnvironment;)V
+	public synthetic fun <init> (Lee/schimke/composeai/daemon/client/SandboxSparePool;Lee/schimke/composeai/daemon/client/ChildEnvironment;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun spawn (Lee/schimke/composeai/daemon/client/WorkspaceId;Lee/schimke/composeai/daemon/protocol/DaemonLaunchDescriptor;)Lee/schimke/composeai/daemon/client/DaemonSpawn;
 }
 

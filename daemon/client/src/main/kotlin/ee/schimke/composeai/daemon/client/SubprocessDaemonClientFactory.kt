@@ -22,6 +22,21 @@ public class SubprocessDaemonClientFactory(
    */
   private val sparePool: SandboxSparePool? = null
 ) : DaemonClientFactory {
+  /** See the secondary constructor. A property rather than a primary parameter to keep the ABI. */
+  private var environment: ChildEnvironment = ChildEnvironment.Default
+
+  /**
+   * @param environment the environment each daemon JVM starts with. [ChildEnvironment.Default] —
+   *   the allowlist — unless a caller needs something else; a jail command on the descriptor runs
+   *   under the same environment.
+   */
+  public constructor(
+    sparePool: SandboxSparePool? = null,
+    environment: ChildEnvironment,
+  ) : this(sparePool) {
+    this.environment = environment
+  }
+
   override fun spawn(workspaceId: WorkspaceId, descriptor: DaemonLaunchDescriptor): DaemonSpawn {
     require(descriptor.enabled) {
       "daemon disabled for ${descriptor.modulePath} — set composePreview { daemon { enabled = true } }"
@@ -102,6 +117,7 @@ public class SubprocessDaemonClientFactory(
         .redirectInput(ProcessBuilder.Redirect.PIPE)
         .redirectOutput(ProcessBuilder.Redirect.PIPE)
         .redirectError(ProcessBuilder.Redirect.PIPE)
+        .applyEnvironment(environment)
         .start()
     forwardStderr(process, "$workspaceId/${descriptor.modulePath}")
     descriptor.hardTtlSeconds?.let { ttl ->

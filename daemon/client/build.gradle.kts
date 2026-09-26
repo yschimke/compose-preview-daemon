@@ -46,6 +46,9 @@ tasks.named("check") { dependsOn("checkKotlinAbi") }
 // to reach the test JVM to rewrite them, and a system property set on Gradle's own JVM does not.
 tasks.withType<Test>().configureEach {
   System.getProperty("composeai.updateGolden")?.let { systemProperty("composeai.updateGolden", it) }
+  // A variable the test JVM has and a daemon child must not: ChildEnvironmentTest spawns real
+  // children and asserts it is gone.
+  environment("SERVE_TOKEN", "planted-by-daemon-client-tests")
 }
 
 dependencies {
