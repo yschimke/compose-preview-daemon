@@ -45,17 +45,24 @@ import kotlin.concurrent.withLock
 public class SandboxSparePool(
   private val config: Config = Config(),
   private val log: (String) -> Unit = { System.err.println("compose-ai-spares: $it") },
-  /** Seam for tests: how a spare JVM is launched. Production runs [ProcessBuilder]. */
+  /**
+   * Seam for tests: how a spare JVM is launched. Production runs [ProcessBuilder] with
+   * [ChildEnvironment.Default].
+   */
   private val launcher: (command: List<String>, workingDirectory: File) -> Process =
-    { command, dir ->
-      ProcessBuilder(command)
-        .directory(dir)
-        .redirectErrorStream(false)
-        .redirectOutput(ProcessBuilder.Redirect.PIPE)
-        .redirectError(ProcessBuilder.Redirect.PIPE)
-        .start()
-    },
+    processLauncher(ChildEnvironment.Default),
 ) : AutoCloseable {
+
+  /**
+   * A pool whose spare JVMs start with [environment] rather than [ChildEnvironment.Default]. A
+   * spare becomes a sandbox worker of whichever daemon adopts it, so it should get the same
+   * environment that daemon's factory gives it.
+   */
+  public constructor(
+    config: Config = Config(),
+    environment: ChildEnvironment,
+    log: (String) -> Unit = { System.err.println("compose-ai-spares: $it") },
+  ) : this(config, log, processLauncher(environment))
 
   public data class Config(
     /**
@@ -436,6 +443,19 @@ public class SandboxSparePool(
       )
 
     private val HANDSHAKE = Regex("""pid=(\d+) port=(\d+)""")
+
+    /** The production launcher: [ProcessBuilder], with [environment] applied. */
+    internal fun processLauncher(
+      environment: ChildEnvironment
+    ): (command: List<String>, workingDirectory: File) -> Process = { command, dir ->
+      ProcessBuilder(command)
+        .directory(dir)
+        .redirectErrorStream(false)
+        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+        .redirectError(ProcessBuilder.Redirect.PIPE)
+        .applyEnvironment(environment)
+        .start()
+    }
 
     internal fun parseHandshake(line: String): Pair<Long, Int>? {
       val m = HANDSHAKE.find(line) ?: return null
