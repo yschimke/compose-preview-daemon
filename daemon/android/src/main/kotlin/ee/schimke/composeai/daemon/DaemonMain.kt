@@ -699,7 +699,8 @@ fun main(args: Array<String>) {
   // `compileSources` when the VS Code workspace setting
   // `composePreview.daemon.compileInProcess` is on, so an active service still costs
   // nothing until that switch is flipped.
-  val btaCompileService = ee.schimke.composeai.daemon.bta.DefaultBtaCompileService.fromSysprops()
+  val btaCompileService =
+    ee.schimke.composeai.daemon.bta.DefaultBtaCompileService.fromSysprops(BtaSysprops::lookup)
   if (btaCompileService != null) {
     System.err.println(
       "compose-ai-tools daemon-android: in-process compile available (Kotlin Build Tools API " +

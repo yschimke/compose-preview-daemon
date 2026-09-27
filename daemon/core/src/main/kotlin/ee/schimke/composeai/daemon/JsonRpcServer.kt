@@ -3179,8 +3179,12 @@ public class JsonRpcServer(
             errors = outcome.errors,
             durationMs = durationMs,
           )
-        is ee.schimke.composeai.daemon.bta.BtaCompileService.Outcome.Fallback ->
+        is ee.schimke.composeai.daemon.bta.BtaCompileService.Outcome.Fallback -> {
+          // The wire result carries no reason, so say it here: a silent fallback is how a
+          // missing classpath directory kept every Android compile on Gradle unnoticed.
+          System.err.println("compose-ai-daemon: compileSources fell back: ${outcome.reason}")
           CompileSourcesResult(result = CompileResultKind.FALLBACK, durationMs = durationMs)
+        }
       }
     sendResponse(req.id, json.encodeToJsonElement(CompileSourcesResult.serializer(), result))
   }

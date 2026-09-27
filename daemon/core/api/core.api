@@ -41,6 +41,11 @@ public final class ee/schimke/composeai/daemon/AssertionVerdict$Passed : ee/schi
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ee/schimke/composeai/daemon/BtaSysprops {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/BtaSysprops;
+	public final fun lookup (Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class ee/schimke/composeai/daemon/BundleIrReplayStore {
 	public static final field BUNDLE_MANIFEST_PATH_PROP Ljava/lang/String;
 	public static final field FORMAT_PROTOLAYOUT Ljava/lang/String;
