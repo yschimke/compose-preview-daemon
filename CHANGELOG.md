@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.9.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.9.1...v3.9.2) (2026-09-27)
+
+
+### Bug Fixes
+
+* drop missing compile-classpath dirs so the in-process compile runs ([#165](https://github.com/yschimke/compose-preview-daemon/issues/165)) ([e00b314](https://github.com/yschimke/compose-preview-daemon/commit/e00b31421e698d9502567c15dabd1c60860ed114))
+
 ## [3.9.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.9.0...v3.9.1) (2026-09-27)
 
 
