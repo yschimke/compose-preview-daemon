@@ -230,6 +230,17 @@ public data class RenderSpec(
   val gutterTopDp: Int = 0,
   val gutterEndDp: Int = 0,
   val gutterBottomDp: Int = 0,
+  /**
+   * Data-product kinds a client asked for on this render — its subscriptions, the global attach
+   * set, and the kind a `data/fetch` re-render is fetching. Gates the on-demand post-capture
+   * processors ([PostCaptureGate.ON_DEMAND_KINDS], e.g. `compose/figma-svg`): one runs only when
+   * its kind is in this set.
+   *
+   * `null` — the default — means "not known", and every processor runs, as it did before the gate:
+   * a direct [RenderSpec] caller (tests, batch tooling) keeps the full artefact set. The daemon's
+   * `JsonRpcServer` always sends a concrete set, so an unsubscribed edit-loop render skips them.
+   */
+  val requestedDataKinds: Set<String>? = null,
 ) {
 
   /** True when no edge carries a gutter — the render then keeps its pre-gutter path verbatim. */

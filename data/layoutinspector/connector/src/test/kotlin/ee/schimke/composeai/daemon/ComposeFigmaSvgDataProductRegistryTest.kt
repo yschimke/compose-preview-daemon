@@ -66,6 +66,50 @@ class ComposeFigmaSvgDataProductRegistryTest {
     assertTrue("the prior variant artifact must remain isolated", lightSvg.exists())
   }
 
+  @Test
+  fun `a render that skipped the on-demand export re-renders on fetch instead of serving stale svg`() {
+    val previewId = "com.example.Preview"
+    val svg = writeSvg("preview", "stale")
+    val registry = ComposeFigmaSvgDataProductRegistry(rootDir)
+    val kind = ComposeFigmaSvgDataProducer.KIND
+
+    registry.onRender(
+      previewId,
+      RenderResult(
+        id = 1,
+        classLoaderHashCode = 0,
+        classLoaderName = "test",
+        outputBaseName = "preview",
+        metrics = mapOf("tookMs" to 5L, PostCaptureGate.skippedMetricKey(kind) to 0L),
+      ),
+    )
+    val skipped = registry.fetch(previewId, kind, params = null, inline = false)
+    assertEquals(DataProductRegistry.Outcome.RequiresRerender(mode = ""), skipped)
+    assertTrue(registry.attachmentsFor(previewId, setOf(kind)).isEmpty())
+
+    // The fetch-driven re-render requests the kind, so the export runs and the file is fresh.
+    registry.onRender(
+      previewId,
+      RenderResult(
+        id = 2,
+        classLoaderHashCode = 0,
+        classLoaderName = "test",
+        outputBaseName = "preview",
+        metrics = mapOf("tookMs" to 5L, PostCaptureGate.ranMetricKey(kind) to 42L),
+      ),
+    )
+    assertEquals(svg.absolutePath, fetchPath(registry, previewId))
+  }
+
+  @Test
+  fun `a missing export asks for a re-render`() {
+    val registry = ComposeFigmaSvgDataProductRegistry(rootDir)
+    assertEquals(
+      DataProductRegistry.Outcome.RequiresRerender(mode = ""),
+      registry.fetch("com.example.Missing", ComposeFigmaSvgDataProducer.KIND, null, false),
+    )
+  }
+
   private fun writeSvg(outputBaseName: String, marker: String): File =
     rootDir
       .resolve(outputBaseName)

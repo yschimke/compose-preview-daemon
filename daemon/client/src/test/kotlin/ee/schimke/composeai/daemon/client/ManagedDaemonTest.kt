@@ -2,6 +2,9 @@ package ee.schimke.composeai.daemon.client
 
 import com.google.common.truth.Truth.assertThat
 import ee.schimke.composeai.daemon.protocol.BackendKind
+import ee.schimke.composeai.daemon.protocol.CompileResultKind
+import ee.schimke.composeai.daemon.protocol.CompileSourcesParams
+import ee.schimke.composeai.daemon.protocol.CompileSourcesResult
 import ee.schimke.composeai.daemon.protocol.DaemonLaunchDescriptor
 import ee.schimke.composeai.daemon.protocol.InitializeResult
 import ee.schimke.composeai.daemon.protocol.Manifest
@@ -272,6 +275,26 @@ class ManagedDaemonTest {
     assertThat(params["workspaceRoot"]!!.jsonPrimitive.content).isEqualTo("/ws")
   }
 
+  @Test
+  fun `compileSources round-trips through the session`() {
+    val daemon = FakeDaemon()
+    daemons += daemon
+    val managed =
+      ManagedDaemon(
+        workspaceId = WorkspaceId.derive("ws", java.io.File("/ws")),
+        descriptor = descriptor(),
+        factory = { _, _ -> daemon.spawn() },
+      )
+    managed.start(workspaceRoot = "/ws")
+
+    val result =
+      managed.session.compileSources(CompileSourcesParams(sources = listOf("/ws/src/A.kt")))
+
+    assertThat(result.result).isEqualTo(CompileResultKind.OK)
+    assertThat(result.durationMs).isEqualTo(42L)
+    assertThat(daemon.compileSourcesParams!!["sources"].toString()).contains("/ws/src/A.kt")
+  }
+
   // ── scaffolding ────────────────────────────────────────────────────────────────────────────
 
   private fun managed(
@@ -354,6 +377,7 @@ class ManagedDaemonTest {
     private val fromDaemon = PipedInputStream(toClient, 1 shl 16)
 
     @Volatile var initializeParams: JsonObject? = null
+    @Volatile var compileSourcesParams: JsonObject? = null
     @Volatile var spawnCount: Int = 0
     @Volatile var shutdownCalls: Int = 0
 
@@ -410,6 +434,23 @@ class ManagedDaemonTest {
           val frame = readFrame(fromClient) ?: return
           val message = Json.parseToJsonElement(frame).jsonObject
           val method = message["method"]?.jsonPrimitive?.content ?: continue
+          if (method == "compileSources") {
+            compileSourcesParams = message["params"]?.jsonObject
+            writeFrame(
+              buildJsonObject {
+                put("jsonrpc", "2.0")
+                put("id", message["id"]!!.jsonPrimitive.long)
+                put(
+                  "result",
+                  Json.encodeToJsonElement(
+                    CompileSourcesResult.serializer(),
+                    CompileSourcesResult(result = CompileResultKind.OK, durationMs = 42L),
+                  ),
+                )
+              }
+            )
+            continue
+          }
           if (method != "initialize") continue
           initializeParams = message["params"]?.jsonObject
           if (notifyDuringHandshake) {

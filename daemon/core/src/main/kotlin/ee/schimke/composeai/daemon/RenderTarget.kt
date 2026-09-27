@@ -56,6 +56,11 @@ public sealed interface RenderTarget {
      * id, so a caller can render a row of the bare base id without minting a row id for it.
      */
     val previewParameterRow: String? = null,
+    /**
+     * Data-product kinds requested for this render; resolved onto [RenderSpec.requestedDataKinds].
+     * `null` runs every post-capture processor (see there).
+     */
+    val dataKinds: Set<String>? = null,
   ) : RenderTarget
 
   /** A fully resolved spec: nothing left to look up, render exactly this. */

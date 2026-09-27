@@ -1415,6 +1415,7 @@ open class RobolectricHost(
           previewParameterRow =
             preview.previewParameterRow?.takeIf { it.isNotBlank() } ?: base.previewParameterRow,
           outputBaseName = previewId,
+          requestedDataKinds = preview.dataKinds ?: base.requestedDataKinds,
         )
     return RenderTarget.Spec(spec)
   }

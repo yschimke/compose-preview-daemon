@@ -35,6 +35,32 @@ class ComposeSemanticsDataProductRegistryTest {
     assertTrue(!cap.requiresRerender)
   }
 
+  /** compose-preview-server#1166 — the routed lane writes under the manifest stem, not the id. */
+  @Test
+  fun `fetch follows the latest render's output base name`() {
+    val previewId = "com.example.WearPreview"
+    val file =
+      rootDir
+        .resolve("MainActivityKt.WearPreview_round")
+        .also { it.mkdirs() }
+        .resolve(ComposeSemanticsDataProducer.FILE)
+    file.writeText("""{"root":{"nodeId":"1","boundsInRoot":"0,0,64,64","label":"Hi"}}""")
+    val registry = ComposeSemanticsDataProductRegistry(rootDir)
+    registry.onRender(
+      previewId,
+      RenderResult(
+        id = 1,
+        classLoaderHashCode = 0,
+        classLoaderName = "test",
+        outputBaseName = "MainActivityKt.WearPreview_round",
+      ),
+    )
+
+    val outcome = registry.fetch(previewId, "compose/semantics", params = null, inline = false)
+    assertTrue(outcome is DataProductRegistry.Outcome.Ok)
+    assertEquals(file.absolutePath, (outcome as DataProductRegistry.Outcome.Ok).result.path)
+  }
+
   @Test
   fun `fetch returns path by default and payload when inline requested`() {
     val previewId = "com.example.SemanticsPreview"

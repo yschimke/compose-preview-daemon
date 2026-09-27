@@ -120,6 +120,7 @@ class PreviewManifestRouter(
         // every downstream consumer keyed by previewId is concerned.
         previewId = previewId,
         renderMode = preview.renderMode?.takeIf { it.isNotBlank() },
+        requestedDataKinds = preview.dataKinds,
         previewParameterRow = base.previewParameterProviderClassName?.let { row },
         // Unlike the desktop twin, an unset uiMode resolves to an explicit `LIGHT` rather than
         // staying null. Robolectric applies qualifiers incrementally (`setQualifiers("+…")` in

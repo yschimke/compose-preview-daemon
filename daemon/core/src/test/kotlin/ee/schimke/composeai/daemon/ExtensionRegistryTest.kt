@@ -86,6 +86,36 @@ class ExtensionRegistryTest {
     assertFalse(list[0].active)
   }
 
+  /** compose-preview-server#1166 — compose/semantics must be fetchable without an enable call. */
+  @Test
+  fun `default-enabled ids start public, fetchable and still disableable`() {
+    val semantics = RecordingRegistry("compose/semantics")
+    val other = RecordingRegistry("b/kind")
+    val registry =
+      ExtensionRegistry(
+        listOf(
+          Extension(id = "compose/semantics", dataProductRegistry = semantics),
+          Extension(id = "ext/b", dataProductRegistry = other),
+        ),
+        defaultEnabled = ExtensionRegistry.DEFAULT_ENABLED + "not/registered",
+      )
+
+    assertEquals(listOf("compose/semantics"), registry.publicIds().toList())
+    assertTrue(registry.isActive("compose/semantics"))
+    assertFalse(registry.isPubliclyEnabled("ext/b"))
+    assertEquals(
+      listOf("compose/semantics"),
+      registry.publicDataProductCapabilities().map { it.kind },
+    )
+    assertTrue(
+      registry.publicDataProducts().fetch("p", "compose/semantics", null, false)
+        is DataProductRegistry.Outcome.Ok
+    )
+
+    registry.disable(listOf("compose/semantics"))
+    assertFalse(registry.isPubliclyEnabled("compose/semantics"))
+  }
+
   @Test
   fun `enable publishes capabilities and activates the extension`() {
     val a = RecordingRegistry("a/kind")

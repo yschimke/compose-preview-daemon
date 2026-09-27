@@ -2,6 +2,8 @@ package ee.schimke.composeai.daemon.client
 
 import ee.schimke.composeai.daemon.protocol.ChangeType
 import ee.schimke.composeai.daemon.protocol.ClientCapabilities
+import ee.schimke.composeai.daemon.protocol.CompileSourcesParams
+import ee.schimke.composeai.daemon.protocol.CompileSourcesResult
 import ee.schimke.composeai.daemon.protocol.DataFetchParams
 import ee.schimke.composeai.daemon.protocol.DataFetchResult
 import ee.schimke.composeai.daemon.protocol.DataSubscribeParams
@@ -213,6 +215,25 @@ public class DaemonClient(
       response["result"]
         ?: error("history/list: no result — error=${response["error"]}, full=$response")
     return json.decodeFromJsonElement(HistoryListResult.serializer(), resultElem)
+  }
+
+  /** Drives `compileSources` — see [DaemonSession.compileSources]. */
+  override fun compileSources(
+    params: CompileSourcesParams,
+    timeout: Duration,
+  ): CompileSourcesResult {
+    val id = nextId.getAndIncrement()
+    val request =
+      JsonRpcRequest(
+        id = id,
+        method = "compileSources",
+        params = json.encodeToJsonElement(CompileSourcesParams.serializer(), params),
+      )
+    val response = sendAndAwait(id, request, timeout)
+    val resultElem =
+      response["result"]
+        ?: error("compileSources: no result — error=${response["error"]}, full=$response")
+    return json.decodeFromJsonElement(CompileSourcesResult.serializer(), resultElem)
   }
 
   /** Drives `history/read`. With [inline] = true the daemon returns base64 PNG bytes inline. */
