@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon
 
+import ee.schimke.composeai.daemon.protocol.DataProductAttachment
 import ee.schimke.composeai.daemon.protocol.DataProductCapability
 import ee.schimke.composeai.daemon.protocol.DataProductFacet
 import ee.schimke.composeai.daemon.protocol.DataProductTransport
@@ -25,6 +26,7 @@ import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 import javax.imageio.ImageIO
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
@@ -653,7 +655,9 @@ class ComposeFigmaSvgDataProductRegistry(
           transport = DataProductTransport.PATH,
           attachable = true,
           fetchable = true,
-          requiresRerender = false,
+          // On demand: a render only runs the export when a client asked for the kind
+          // (`PostCaptureGate`), so a fetch after an unsubscribed render re-renders for it.
+          requiresRerender = true,
           displayName = "Figma layered SVG",
           facets = listOf(DataProductFacet.ARTIFACT, DataProductFacet.IMAGE),
           mediaTypes = listOf(ComposeFigmaSvgProduct.MEDIA_TYPE_SVG),
@@ -664,6 +668,12 @@ class ComposeFigmaSvgDataProductRegistry(
   ) {
   private val latestOutputBaseNameByPreviewId = ConcurrentHashMap<String, String>()
 
+  /**
+   * Previews whose latest render skipped the on-demand export (see [PostCaptureGate]). Whatever SVG
+   * sits on disk for them predates that render, so a fetch must re-render rather than serve it.
+   */
+  private val skippedByPreviewId = ConcurrentHashMap.newKeySet<String>()
+
   override fun onRender(
     previewId: String,
     result: RenderResult,
@@ -673,7 +683,31 @@ class ComposeFigmaSvgDataProductRegistry(
     // Mode-specific renders (for example figma-svg-long) do not replace the viewport export, so a
     // result without a concrete output name must leave the latest viewport mapping intact.
     result.outputBaseName?.let { latestOutputBaseNameByPreviewId[previewId] = it }
+    if (PostCaptureGate.wasSkipped(result.metrics, ComposeFigmaSvgDataProducer.KIND)) {
+      skippedByPreviewId.add(previewId)
+    } else if (result.outputBaseName != null) {
+      skippedByPreviewId.remove(previewId)
+    }
   }
+
+  override fun fetch(
+    previewId: String,
+    kind: String,
+    params: JsonElement?,
+    inline: Boolean,
+  ): DataProductRegistry.Outcome =
+    if (kind == ComposeFigmaSvgDataProducer.KIND && previewId in skippedByPreviewId) {
+      missingOutcome(previewId, kind)
+    } else {
+      super.fetch(previewId, kind, params, inline)
+    }
+
+  override fun attachmentsFor(previewId: String, kinds: Set<String>): List<DataProductAttachment> =
+    if (previewId in skippedByPreviewId) emptyList() else super.attachmentsFor(previewId, kinds)
+
+  /** A missing (or stale) export is produced by re-rendering with the kind requested. */
+  override fun missingOutcome(previewId: String, kind: String): DataProductRegistry.Outcome =
+    DataProductRegistry.Outcome.RequiresRerender(mode = "")
 
   override fun fileFor(previewId: String, kind: String): File? =
     if (kind == ComposeFigmaSvgDataProducer.KIND)

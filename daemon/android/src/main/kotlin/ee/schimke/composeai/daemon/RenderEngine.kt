@@ -275,6 +275,9 @@ class RenderEngine(
     var decodedStillFrame: java.awt.image.BufferedImage? = null
     val startNs = System.nanoTime()
     val trace = PerfettoTraceDataProducer.recorder(spec.outputBaseName, backend = "android")
+    // Per-render work trace — which post-capture processors ran (and for how long) and which
+    // on-demand ones were skipped. Folded into the result's metrics; see [PostCaptureGate].
+    val postCaptureMetrics = LinkedHashMap<String, Long>()
     val slotTableCapture = PreviewSlotTableCapture()
     val themeFallbackCapture = MaterialThemeFallbackCapture()
     val wearThemeCapture = WearThemeCapture()
@@ -1138,6 +1141,12 @@ class RenderEngine(
               val productStore = RecordingDataProductStore()
               for (ext in builtDataArtifactExtensions) {
                 if (ext !is PostCaptureProcessor) continue
+                // On-demand processors (the multi-second `compose/figma-svg` export) run only when
+                // a client asked for their kind — see [PostCaptureGate].
+                if (!PostCaptureGate.shouldRun(ext.id.value, spec.requestedDataKinds)) {
+                  postCaptureMetrics[PostCaptureGate.skippedMetricKey(ext.id.value)] = 0L
+                  continue
+                }
                 System.err.println(
                   "compose-ai-daemon: [render] phase=dataArtifact.${ext.id}.start outputBaseName=${spec.outputBaseName}"
                 )
@@ -1154,10 +1163,12 @@ class RenderEngine(
                       )
                     )
                   }
+                  val extTookMs = (System.nanoTime() - extStartNs) / 1_000_000L
+                  postCaptureMetrics[PostCaptureGate.ranMetricKey(ext.id.value)] = extTookMs
                   System.err.println(
                     "compose-ai-daemon: [render] phase=dataArtifact.${ext.id}.done " +
                       "outputBaseName=${spec.outputBaseName} " +
-                      "tookMs=${(System.nanoTime() - extStartNs) / 1_000_000L}"
+                      "tookMs=$extTookMs"
                   )
                 } catch (t: Throwable) {
                   System.err.println(
@@ -1383,7 +1394,7 @@ class RenderEngine(
     )
 
     val tookMs = (System.nanoTime() - startNs) / 1_000_000L
-    val metrics = SandboxMeasurement.collect(sandboxStats, tookMs = tookMs)
+    val metrics = SandboxMeasurement.collect(sandboxStats, tookMs = tookMs) + postCaptureMetrics
     dataDir?.let(trace::write)
     val slotTables = slotTableCapture.snapshot()
     val rawPreviewContext =
@@ -2020,6 +2031,8 @@ class RenderEngine(
           wrapHeight = false,
           previewId = null,
           outputBaseName = tmpBase,
+          // This render exists to produce the layered SVG, so the on-demand export must run.
+          requestedDataKinds = spec.requestedDataKinds?.plus(ComposeFigmaSvgProduct.KIND),
         ),
       requestId = requestId,
       classLoader = classLoader,

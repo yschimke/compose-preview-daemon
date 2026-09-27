@@ -96,6 +96,7 @@ public final class ee/schimke/composeai/daemon/client/DaemonClient : ee/schimke/
 	public fun <init> (Ljava/io/InputStream;Ljava/io/OutputStream;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/io/InputStream;Ljava/io/OutputStream;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close ()V
+	public fun compileSources-HG0u8IE (Lee/schimke/composeai/daemon/protocol/CompileSourcesParams;J)Lee/schimke/composeai/daemon/protocol/CompileSourcesResult;
 	public fun dataFetch-9VgGkz4 (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;ZJ)Lee/schimke/composeai/daemon/protocol/DataFetchResult;
 	public fun dataSubscribe-SxA4cEA (Ljava/lang/String;Ljava/lang/String;J)Lee/schimke/composeai/daemon/protocol/DataSubscribeResult;
 	public fun dataUnsubscribe-SxA4cEA (Ljava/lang/String;Ljava/lang/String;J)Lee/schimke/composeai/daemon/protocol/DataSubscribeResult;
@@ -185,6 +186,8 @@ public abstract interface class ee/schimke/composeai/daemon/client/DaemonRuntime
 }
 
 public abstract interface class ee/schimke/composeai/daemon/client/DaemonSession : java/io/Closeable {
+	public abstract fun compileSources-HG0u8IE (Lee/schimke/composeai/daemon/protocol/CompileSourcesParams;J)Lee/schimke/composeai/daemon/protocol/CompileSourcesResult;
+	public static synthetic fun compileSources-HG0u8IE$default (Lee/schimke/composeai/daemon/client/DaemonSession;Lee/schimke/composeai/daemon/protocol/CompileSourcesParams;JILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/CompileSourcesResult;
 	public abstract fun dataFetch-9VgGkz4 (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;ZJ)Lee/schimke/composeai/daemon/protocol/DataFetchResult;
 	public static synthetic fun dataFetch-9VgGkz4$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;ZJILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/DataFetchResult;
 	public abstract fun dataSubscribe-SxA4cEA (Ljava/lang/String;Ljava/lang/String;J)Lee/schimke/composeai/daemon/protocol/DataSubscribeResult;
@@ -230,6 +233,7 @@ public abstract interface class ee/schimke/composeai/daemon/client/DaemonSession
 }
 
 public final class ee/schimke/composeai/daemon/client/DaemonSession$DefaultImpls {
+	public static synthetic fun compileSources-HG0u8IE$default (Lee/schimke/composeai/daemon/client/DaemonSession;Lee/schimke/composeai/daemon/protocol/CompileSourcesParams;JILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/CompileSourcesResult;
 	public static synthetic fun dataFetch-9VgGkz4$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;ZJILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/DataFetchResult;
 	public static synthetic fun dataSubscribe-SxA4cEA$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Ljava/lang/String;JILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/DataSubscribeResult;
 	public static synthetic fun dataUnsubscribe-SxA4cEA$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Ljava/lang/String;JILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/DataSubscribeResult;

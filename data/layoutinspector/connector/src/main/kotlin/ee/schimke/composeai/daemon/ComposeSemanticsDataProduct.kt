@@ -3347,9 +3347,27 @@ class ComposeSemanticsDataProductRegistry(private val rootDir: File) :
         )
       )
   ) {
+  // The producer keys its directory on the render's `outputBaseName`, which is the previewId on the
+  // renderNow lane but the manifest stem on the routed one (compose-preview-server#1166). Track the
+  // latest concrete output per preview, as the figma-svg registry does, so a fetch finds the file
+  // either way.
+  private val latestOutputBaseNameByPreviewId =
+    java.util.concurrent.ConcurrentHashMap<String, String>()
+
+  override fun onRender(
+    previewId: String,
+    result: RenderResult,
+    overrides: ee.schimke.composeai.daemon.protocol.PreviewOverrides?,
+    previewContext: ee.schimke.composeai.data.render.PreviewContext?,
+  ) {
+    result.outputBaseName?.let { latestOutputBaseNameByPreviewId[previewId] = it }
+  }
+
   override fun fileFor(previewId: String, kind: String): File? =
     if (kind == ComposeSemanticsDataProducer.KIND)
-      rootDir.resolve(previewId).resolve(ComposeSemanticsDataProducer.FILE)
+      rootDir
+        .resolve(latestOutputBaseNameByPreviewId[previewId] ?: previewId)
+        .resolve(ComposeSemanticsDataProducer.FILE)
     else null
 }
 

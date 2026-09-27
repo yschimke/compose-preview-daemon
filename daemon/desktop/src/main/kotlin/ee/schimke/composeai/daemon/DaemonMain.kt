@@ -255,7 +255,8 @@ fun runDaemon(
         dataRoot = dataRoot,
         composeTraceEnabled = composeTraceEnabled,
         displayFilterEnabled = DisplayFilterConfig.fromSystemProperties().isNotEmpty(),
-      )
+      ),
+      defaultEnabled = ExtensionRegistry.DEFAULT_ENABLED,
     )
 
   // Render engine consumes the registry's live override aggregator so `extensions/enable` mid-

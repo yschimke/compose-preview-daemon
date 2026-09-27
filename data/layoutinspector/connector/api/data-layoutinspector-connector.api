@@ -16,6 +16,8 @@ public final class ee/schimke/composeai/daemon/ComposeFigmaSvgDataProductRegistr
 	public static final field $stable I
 	public fun <init> (Ljava/io/File;Lokio/FileSystem;)V
 	public synthetic fun <init> (Ljava/io/File;Lokio/FileSystem;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
 	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
 }
 
@@ -65,6 +67,7 @@ public final class ee/schimke/composeai/daemon/ComposeSemanticsDataProductKt {
 public final class ee/schimke/composeai/daemon/ComposeSemanticsDataProductRegistry : ee/schimke/composeai/daemon/FileBackedDataProductRegistry {
 	public static final field $stable I
 	public fun <init> (Ljava/io/File;)V
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
 }
 
 public final class ee/schimke/composeai/daemon/ComposeSemanticsExtension : ee/schimke/composeai/data/render/extensions/PostCaptureProcessor {

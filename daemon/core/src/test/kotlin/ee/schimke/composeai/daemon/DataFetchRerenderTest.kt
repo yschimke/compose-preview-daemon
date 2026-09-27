@@ -140,6 +140,13 @@ class DataFetchRerenderTest {
       val target = producer.lastRenderTarget as? RenderTarget.Preview
       assertNotNull("producer should observe the host target", target)
       assertEquals("render target should carry the mode", "a11y", target!!.renderMode)
+      // The fetched kind rides on the target so an on-demand post-capture processor producing it
+      // (`PostCaptureGate`) runs on this re-render.
+      assertEquals(
+        "render target should request the fetched kind",
+        setOf("a11y/hierarchy"),
+        target.dataKinds,
+      )
       assertEquals(
         "the caller's overrides must thread into the re-render",
         UiMode.DARK,

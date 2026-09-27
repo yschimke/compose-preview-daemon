@@ -32,7 +32,16 @@ import kotlinx.serialization.json.JsonElement
  * lock and snapshots into an immutable view. This matches the JSON-RPC server's existing
  * concurrency shape (read thread + worker thread + watcher thread).
  */
-public class ExtensionRegistry(extensions: List<Extension>) {
+public class ExtensionRegistry(
+  extensions: List<Extension>,
+  /**
+   * Ids that start **publicly enabled** instead of inactive — the cheap products a client can
+   * assume without an `extensions/enable` round trip. Ids not in [extensions] are ignored (a
+   * backend may not register them, e.g. without a data root). A client can still [disable] them.
+   * See [DEFAULT_ENABLED].
+   */
+  defaultEnabled: Set<String> = emptySet(),
+) {
   private val byId: Map<String, Extension>
   private val lock = ReentrantReadWriteLock()
   private val publicIds = HashSet<String>()
@@ -52,6 +61,8 @@ public class ExtensionRegistry(extensions: List<Extension>) {
       }
     }
     detectCycle()
+    publicIds += defaultEnabled.filter { it in byId }
+    recomputeActive()
   }
 
   private fun detectCycle() {
@@ -315,6 +326,14 @@ public class ExtensionRegistry(extensions: List<Extension>) {
   }
 
   public companion object {
+    /**
+     * Extensions both daemons enable at startup. `compose/semantics` is produced on every render
+     * anyway and is the token-cheapest observation an agent has (`render_preview
+     * observe=semantics`, `diff_semantics`, crop by `ref`), so requiring an `extensions/enable`
+     * first only made `data/fetch` fail with "kind not advertised" (compose-preview-server#1166).
+     */
+    public val DEFAULT_ENABLED: Set<String> = setOf("compose/semantics")
+
     public val Empty: ExtensionRegistry = ExtensionRegistry(emptyList())
   }
 }

@@ -1105,10 +1105,20 @@ public class JsonRpcServer(
     previewId: String,
     overrides: PreviewOverrides?,
     mode: String? = null,
+    fetchedKind: String? = null,
   ): RenderTarget {
     val renderMode = mode?.takeIf { it.isNotEmpty() } ?: subscriptionDrivenRenderMode(previewId)
+    // What this render must produce: the preview's subscriptions, the global attach set, and the
+    // kind a fetch-driven re-render is after. Gates on-demand post-capture work
+    // (`PostCaptureGate`) — an unsubscribed edit-loop render skips the figma-svg export.
+    val dataKinds: Set<String> =
+      subscriptions.kindsFor(previewId) + globalAttachKinds + listOfNotNull(fetchedKind)
     if (overrides == null) {
-      return RenderTarget.Preview(previewId = previewId, renderMode = renderMode)
+      return RenderTarget.Preview(
+        previewId = previewId,
+        renderMode = renderMode,
+        dataKinds = dataKinds,
+      )
     }
     val deviceToken = overrides.device?.takeIf { it.isNotBlank() }
     val deviceSpec = deviceToken?.let { DeviceDimensions.resolve(it) }
@@ -1130,6 +1140,7 @@ public class JsonRpcServer(
           density = overrides.density ?: deviceSpec?.density,
         ),
       renderMode = renderMode,
+      dataKinds = dataKinds,
     )
   }
 
@@ -1600,7 +1611,7 @@ public class JsonRpcServer(
     // fetch
     // records its data products as if the default preview rendered.
     overrides?.let { hostIdToOverrides[hostId] = it }
-    val target = renderTargetFor(previewId, overrides, mode)
+    val target = renderTargetFor(previewId, overrides, mode, fetchedKind = params.kind)
     Thread(
         {
           // Submit goes through the same render thread as renderNow but on a worker so the

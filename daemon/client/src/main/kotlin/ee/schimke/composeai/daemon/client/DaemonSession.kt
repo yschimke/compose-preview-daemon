@@ -2,6 +2,8 @@ package ee.schimke.composeai.daemon.client
 
 import ee.schimke.composeai.daemon.protocol.ChangeType
 import ee.schimke.composeai.daemon.protocol.ClientCapabilities
+import ee.schimke.composeai.daemon.protocol.CompileSourcesParams
+import ee.schimke.composeai.daemon.protocol.CompileSourcesResult
 import ee.schimke.composeai.daemon.protocol.DataFetchResult
 import ee.schimke.composeai.daemon.protocol.DataSubscribeResult
 import ee.schimke.composeai.daemon.protocol.ExtensionsDisableResult
@@ -111,6 +113,17 @@ public interface DaemonSession : Closeable {
     mode: HistoryDiffMode = HistoryDiffMode.METADATA,
     timeout: Duration = 30.seconds,
   ): HistoryDiffResult
+
+  /**
+   * Stage-2 in-process compile: ask the daemon to compile [CompileSourcesParams.sources] with its
+   * Build Tools API service into the classes directory it loads, instead of a Gradle recompile.
+   * `FALLBACK` means the daemon has no in-process compiler for this module (or it was ineligible)
+   * and the caller should recompile through Gradle as before.
+   */
+  public fun compileSources(
+    params: CompileSourcesParams,
+    timeout: Duration = 120.seconds,
+  ): CompileSourcesResult
 
   public fun dataFetch(
     previewId: String,

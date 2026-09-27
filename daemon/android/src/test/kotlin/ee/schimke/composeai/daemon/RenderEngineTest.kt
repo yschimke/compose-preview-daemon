@@ -322,6 +322,89 @@ class RenderEngineTest {
     }
   }
 
+  /**
+   * compose-preview-server#1174 — the multi-second `compose/figma-svg` export is on demand. A
+   * render that did not request the kind skips it and says so in its work trace
+   * (`postCaptureSkipped.*`); a render that did runs it and records its wall-clock
+   * (`postCapture.*`). Always-on processors run either way.
+   */
+  @Test
+  fun figmaSvgExportRunsOnlyWhenRequested() {
+    val outputDir = tempFolder.newFolder("renders-figma-on-demand")
+    System.setProperty(RenderEngine.OUTPUT_DIR_PROP, outputDir.absolutePath)
+    System.setProperty("roborazzi.test.record", "true")
+    val kind = ComposeFigmaSvgDataProducer.KIND
+    val host = RobolectricHost()
+    host.start()
+    try {
+      fun render(base: String, kinds: Set<String>, device: String? = null) =
+        host.submit(
+          RenderRequest.Render(
+            target =
+              RenderTarget.Spec(
+                RenderSpec(
+                  className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+                  functionName = "SerifTextPreview",
+                  widthPx = 200,
+                  heightPx = 80,
+                  density = 1.0f,
+                  showBackground = true,
+                  outputBaseName = base,
+                  requestedDataKinds = kinds,
+                  device = device,
+                )
+              )
+          ),
+          timeoutMs = 120_000,
+        )
+      fun svgFor(base: String) =
+        outputDir.parentFile!!.resolve("data").resolve(base).resolve("compose-figma.svg")
+
+      val plain = render("figma-plain", emptySet()).metrics.orEmpty()
+      assertFalse(
+        "a plain render must not run the figma-svg export: $plain",
+        plain.containsKey(PostCaptureGate.ranMetricKey(kind)),
+      )
+      assertTrue(
+        "a plain render must record the skip: $plain",
+        PostCaptureGate.wasSkipped(plain, kind),
+      )
+      assertTrue(
+        "always-on processors still run: $plain",
+        plain.containsKey(PostCaptureGate.ranMetricKey(ComposeSemanticsDataProducer.KIND)),
+      )
+      assertFalse("no SVG for a plain render", svgFor("figma-plain").exists())
+
+      val requested = render("figma-requested", setOf(kind)).metrics.orEmpty()
+      assertTrue(
+        "a render requesting the kind must run the export: $requested",
+        requested.containsKey(PostCaptureGate.ranMetricKey(kind)),
+      )
+      assertFalse(PostCaptureGate.wasSkipped(requested, kind))
+      assertTrue("the SVG must be produced", svgFor("figma-requested").exists())
+
+      // compose-preview-server#1166 — `compose/semantics` is always produced, round Wear included,
+      // whether or not anything was requested: it is the agents' cheapest text observation.
+      val round = render("semantics-round", emptySet(), device = "id:wearos_small_round")
+      assertTrue(
+        "compose/semantics must run on a round Wear render: ${round.metrics}",
+        round.metrics
+          .orEmpty()
+          .containsKey(PostCaptureGate.ranMetricKey(ComposeSemanticsDataProducer.KIND)),
+      )
+      assertTrue(
+        "compose/semantics file must exist for a round Wear render",
+        outputDir.parentFile!!
+          .resolve("data")
+          .resolve("semantics-round")
+          .resolve(ComposeSemanticsDataProducer.FILE)
+          .exists(),
+      )
+    } finally {
+      host.shutdown()
+    }
+  }
+
   @Test
   fun figmaSvgExportStaysVectorOnlyWhenEmbeddingDisabled() {
     // The opt-out: `composeai.svg.embedFonts=false` turns embedding off, so the export stays

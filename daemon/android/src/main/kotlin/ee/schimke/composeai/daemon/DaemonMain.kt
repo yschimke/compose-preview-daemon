@@ -687,7 +687,8 @@ fun main(args: Array<String>) {
                 RecordingScriptDataExtensions.roadmapDescriptors,
           )
         }
-      }
+      },
+      defaultEnabled = ExtensionRegistry.DEFAULT_ENABLED,
     )
 
   // Stage-2 in-process compile service — same read path as :daemon:desktop's DaemonMain.
