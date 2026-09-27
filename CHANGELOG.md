@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.9.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.9.0...v3.9.1) (2026-09-27)
+
+
+### Performance
+
+* run the figma-svg export only when its kind is requested ([#163](https://github.com/yschimke/compose-preview-daemon/issues/163)) ([529eab6](https://github.com/yschimke/compose-preview-daemon/commit/529eab64afd9cee69d60b9860b9fdec71b765b58))
+
 ## [3.9.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.8.4...v3.9.0) (2026-09-26)
 
 
