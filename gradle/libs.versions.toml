@@ -269,7 +269,7 @@ material-kolor = "4.0.5"
 # subtree (see `settings.gradle.kts`) — the rest of the repo can keep
 # building under JDK 17. Kotlin 2.3.21 is supported per Metro's
 # compatibility table (`docs/compatibility.md` upstream).
-metro = "1.4.3"
+metro = "1.4.4"
 # HTTP client used by renderer image support and the Google Fonts resolver.
 okhttp = "5.5.0"
 # Coil — image loading. `compileOnly` in `:renderer-android` (see `CoilPreviewSupport`), which
