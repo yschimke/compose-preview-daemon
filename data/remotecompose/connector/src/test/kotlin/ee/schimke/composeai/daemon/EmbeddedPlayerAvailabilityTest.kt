@@ -30,8 +30,7 @@ class EmbeddedPlayerAvailabilityTest {
   /** A facade shaped like the real one, for the matching logic itself. */
   @Suppress("FunctionNaming", "unused")
   object FakeFacade {
-    @JvmStatic
-    fun ExperimentalRemoteDocumentPlayer(document: String, theme: Int, flags: Long) = Unit
+    @JvmStatic fun RcPlayer(document: String, theme: Int, flags: Long) = Unit
   }
 
   private val fakeParameters = listOf("java.lang.String", "int", "long")
@@ -54,10 +53,9 @@ class EmbeddedPlayerAvailabilityTest {
   /** Same name and parameters, but not the `public static void` an `invokestatic …(…)V` needs. */
   @Suppress("FunctionNaming", "unused")
   object WrongShapeFacade {
-    @JvmStatic
-    fun ExperimentalRemoteDocumentPlayer(document: String, theme: Int, flags: Long): String = ""
+    @JvmStatic fun RcPlayer(document: String, theme: Int, flags: Long): String = ""
 
-    @JvmStatic private fun ExperimentalRemoteDocumentPlayer(document: String, theme: Int) = Unit
+    @JvmStatic private fun RcPlayer(document: String, theme: Int) = Unit
   }
 
   @Test
@@ -80,7 +78,7 @@ class EmbeddedPlayerAvailabilityTest {
       invokedDescriptor(
         owner = EMBEDDED_PLAYER_FACADE.replace('.', '/'),
         method = EMBEDDED_PLAYER_ENTRY_POINT,
-        inClass = RemoteComposeIrReplay::class.java,
+        inClass = Class.forName("ee.schimke.composeai.daemon.RemoteComposeIrReplayKt"),
       )
     assertEquals(
       "the pinned parameter list must be what the compiled call site actually invokes",
