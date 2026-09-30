@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import ee.schimke.composeai.daemon.protocol.RemoteComposePlayerKind
 import ee.schimke.composeai.daemon.protocol.RemoteNamedValue
 import ee.schimke.composeai.data.render.IrSidecarChannel
-import ee.schimke.composeai.rcembedded.player.ExperimentalRemoteDocumentPlayer
 import java.time.Clock
 import java.time.ZoneId
 import kotlinx.coroutines.runBlocking
@@ -339,10 +338,10 @@ fun RemoteOverridablePreview(
   }
 
   if (embedded) {
-    ExperimentalRemoteDocumentPlayer(
+    EmbeddedRemoteDocumentPlayer(
       document = remoteDocument,
+      seededOverrides = seededOverrides,
       modifier = modifier,
-      namedColorOverrides = seededOverrides.toNamedColorOverrides(),
     )
   } else {
     RemoteDocumentPlayer(

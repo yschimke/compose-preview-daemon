@@ -2,20 +2,20 @@
 
 package ee.schimke.composeai.daemon
 
-import androidx.collection.MutableObjectIntMap
-import androidx.collection.ObjectIntMap
-import androidx.collection.emptyObjectIntMap
 import androidx.compose.remote.player.compose.RemoteDocumentPlayer
 import androidx.compose.remote.player.core.RemoteDocument
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import ee.schimke.composeai.daemon.protocol.RemoteComposePlayerKind
 import ee.schimke.composeai.daemon.protocol.RemoteNamedValue
 import ee.schimke.composeai.data.render.IrSidecarChannel
 import ee.schimke.composeai.data.render.extensions.IrReplayComposableProvider
-import ee.schimke.composeai.rcembedded.player.ExperimentalRemoteDocumentPlayer
-import java.lang.reflect.Modifier
+import ee.schimke.composeai.rcembedded.player.RcPlayer
+import ee.schimke.composeai.rcembedded.player.RcPlayerState
+import java.lang.reflect.Modifier as ReflectModifier
 
 /**
  * Replays a Remote Compose preview from a bundle's captured IR (schema v5): the serialized
@@ -51,13 +51,7 @@ class RemoteComposeIrReplay {
     val embedded = requested != RemoteComposePlayerKind.VIEW && isEmbeddedPlayerAvailable
 
     if (embedded) {
-      // The embedded player owns its own `RemoteContext` and applies the document itself, so there
-      // is no `init`/`StateUpdater` hook to seed through the way the view player has. Named colour
-      // overrides are the one seeded facet it accepts up front.
-      ExperimentalRemoteDocumentPlayer(
-        document = remoteDocument,
-        namedColorOverrides = seededOverrides.toNamedColorOverrides(),
-      )
+      EmbeddedRemoteDocumentPlayer(document = remoteDocument, seededOverrides = seededOverrides)
     } else {
       RemoteDocumentPlayer(
         document = remoteDocument.document,
@@ -73,44 +67,73 @@ class RemoteComposeIrReplay {
 }
 
 /**
- * The colour subset of the seeded named values, in the shape [ExperimentalRemoteDocumentPlayer]
- * takes (variable name -> ARGB int).
+ * Draws [document] through the vendored embedded player, seeding the colour subset of
+ * [seededOverrides] first. Both embedded call sites in this module go through here, so the one
+ * [RcPlayer] call it makes is the entry point [EMBEDDED_PLAYER_ENTRY_POINT_PARAMETERS] pins.
  *
- * This is deliberately *narrower* than [applyConnectorOverrides], which the view player gets: that
- * one also pushes string / float / int / dp / boolean seeds through the player's `StateUpdater`.
- * The embedded player exposes no equivalent seeding hook — it builds its own `RemoteContext` and
- * applies the document during composition — so non-colour overrides do **not** reach it. A render
- * that seeds them and then selects the embedded player will differ from the view player for that
- * reason alone, which is a property of the two players' APIs rather than a rendering divergence;
- * keep it in mind when reading a `rc-compare` row for a preview that carries knobs.
+ * The seeding is deliberately *narrower* than [applyConnectorOverrides], which the view player
+ * gets: that one also pushes string / float / int / dp / boolean seeds through the player's
+ * `StateUpdater`. Only colours are seeded here, matching what the embedded player accepted before
+ * rc-players 2.0.0 moved named-value seeding off the player call and onto [RcPlayerState]. A render
+ * that seeds non-colour values and then selects the embedded player will differ from the view
+ * player for that reason alone; keep it in mind when reading a `rc-compare` row for a preview that
+ * carries knobs.
+ *
+ * One [RcPlayerState] per document — the player installs its runtime state onto the document, so a
+ * new override set re-seeds the existing state rather than building a second one. A colour dropped
+ * from the seed set is restored to its authored default.
+ */
+@Composable
+internal fun EmbeddedRemoteDocumentPlayer(
+  document: RemoteDocument,
+  seededOverrides: Map<String, RemoteNamedValue>,
+  modifier: Modifier = Modifier,
+) {
+  val state = remember(document) { RcPlayerState(document.document) }
+  val seeded = remember(state) { mutableSetOf<String>() }
+  val colors = seededOverrides.toNamedColorOverrides()
+  // Seeded during composition, not in a SideEffect: the player reads these colours on its first
+  // frame, and `colorState(...)` writes are snapshot-backed. Returns the seeded names so the
+  // `remember` is not a Unit-returning mutation.
+  remember(state, colors) {
+    (seeded - colors.keys).forEach { state.clearOverride(it) }
+    colors.forEach { (name, argb) -> state.colorState(name).value = Color(argb) }
+    seeded.apply {
+      clear()
+      addAll(colors.keys)
+    }
+  }
+  RcPlayer(state = state, modifier = modifier)
+}
+
+/**
+ * The colour subset of the seeded named values (variable name -> ARGB int).
  *
  * Invalid hex is skipped rather than thrown, and a six-digit value is read as opaque — both through
  * the shared [rcColorToArgb], so the embedded player and the view player cannot disagree about what
  * the same seed means.
  */
-internal fun Map<String, RemoteNamedValue>.toNamedColorOverrides(): ObjectIntMap<String> {
-  val colors = entries.mapNotNull { (name, value) ->
-    val color = value as? RemoteNamedValue.ColorValue ?: return@mapNotNull null
-    val argb = rcColorToArgb(color.argb) ?: return@mapNotNull null
-    name to argb
-  }
-  if (colors.isEmpty()) return emptyObjectIntMap()
-  return MutableObjectIntMap<String>(colors.size).apply { colors.forEach { (n, v) -> put(n, v) } }
-}
+internal fun Map<String, RemoteNamedValue>.toNamedColorOverrides(): Map<String, Int> =
+  entries
+    .mapNotNull { (name, value) ->
+      val color = value as? RemoteNamedValue.ColorValue ?: return@mapNotNull null
+      val argb = rcColorToArgb(color.argb) ?: return@mapNotNull null
+      name to argb
+    }
+    .toMap()
 
-internal const val EMBEDDED_PLAYER_FACADE =
-  "ee.schimke.composeai.rcembedded.player.ExperimentalRemoteDocumentPlayerKt"
+internal const val EMBEDDED_PLAYER_FACADE = "ee.schimke.composeai.rcembedded.player.RcPlayerKt"
 
-internal const val EMBEDDED_PLAYER_ENTRY_POINT = "ExperimentalRemoteDocumentPlayer"
+internal const val EMBEDDED_PLAYER_ENTRY_POINT = "RcPlayer"
 
 /**
- * The parameter types of the [EMBEDDED_PLAYER_ENTRY_POINT] overload the two call sites in this
- * module compile down to, in declaration order.
+ * The parameter types of the [EMBEDDED_PLAYER_ENTRY_POINT] overload [EmbeddedRemoteDocumentPlayer]
+ * compiles down to, in declaration order.
  *
- * The tail — `Composer, int, int` — is Compose's own ABI (composer, changed mask, defaults mask); a
- * Kotlin call site that omits defaults still invokes this full method rather than a `$default`
- * bridge, which is why an argument-order change upstream is a *link* error at render time and not
- * something the compiler can see.
+ * The tail — `Composer, int, int, int` — is Compose's own ABI (composer, two changed masks for the
+ * eleven parameters, defaults mask); a Kotlin call site that omits defaults still invokes this full
+ * method rather than a `$default` bridge, which is why an argument-order change upstream is a
+ * *link* error at render time and not something the compiler can see.
  *
  * Pinned as strings rather than `Class` literals on purpose: the whole point is to answer "is the
  * method this code was compiled against actually on the runtime classpath" without loading a single
@@ -120,15 +143,19 @@ internal const val EMBEDDED_PLAYER_ENTRY_POINT = "ExperimentalRemoteDocumentPlay
  */
 internal val EMBEDDED_PLAYER_ENTRY_POINT_PARAMETERS: List<String> =
   listOf(
-    "androidx.compose.remote.player.core.RemoteDocument",
+    "ee.schimke.composeai.rcembedded.player.RcPlayerState",
     "androidx.compose.ui.Modifier",
-    "int",
-    "androidx.collection.ObjectIntMap",
     "ee.schimke.composeai.rcembedded.player.RcImageLoader",
     "kotlin.jvm.functions.Function1",
     "kotlin.jvm.functions.Function2",
     "kotlin.jvm.functions.Function3",
+    "ee.schimke.composeai.rcembedded.player.CustomPluginRegistry",
+    "androidx.collection.IntObjectMap",
+    "androidx.collection.IntObjectMap",
+    "androidx.compose.remote.player.core.platform.TypefaceResolver",
+    "int",
     "androidx.compose.runtime.Composer",
+    "int",
     "int",
     "int",
   )
@@ -176,8 +203,8 @@ internal fun declaresEntryPoint(facade: Class<*>, parameters: List<String>): Boo
     method.name == EMBEDDED_PLAYER_ENTRY_POINT &&
       method.parameterTypes.map { it.name } == parameters &&
       method.returnType == Void.TYPE &&
-      Modifier.isStatic(method.modifiers) &&
-      Modifier.isPublic(method.modifiers)
+      ReflectModifier.isStatic(method.modifiers) &&
+      ReflectModifier.isPublic(method.modifiers)
   }
 
 /**
