@@ -1,5 +1,35 @@
 # Changelog
 
+## [3.10.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.9.2...v3.10.0) (2026-09-30)
+
+
+### Features
+
+* seed every named-value override on the embedded Remote Compose player ([#183](https://github.com/yschimke/compose-preview-daemon/issues/183)) ([923a727](https://github.com/yschimke/compose-preview-daemon/commit/923a727d433fa2d57c44602c6e102aa87af8e082))
+
+
+### Bug Fixes
+
+* **deps:** update androidx ([#181](https://github.com/yschimke/compose-preview-daemon/issues/181)) ([44d0657](https://github.com/yschimke/compose-preview-daemon/commit/44d06578d49f10acd9cd73814774f60f85a3974a))
+* **deps:** update androidx-wear to v1.7.0 ([#176](https://github.com/yschimke/compose-preview-daemon/issues/176)) ([6533f58](https://github.com/yschimke/compose-preview-daemon/commit/6533f5859caa9b551c398bf95e8a20690b8e05f3))
+* **deps:** update compose-preview-contracts to v3.5.0 ([#170](https://github.com/yschimke/compose-preview-daemon/issues/170)) ([f1a6198](https://github.com/yschimke/compose-preview-daemon/commit/f1a61981b6fbcc92a8f1231f8a2552fdd1d07f75))
+* **deps:** update compose-preview-contracts to v3.7.0 ([#177](https://github.com/yschimke/compose-preview-daemon/issues/177)) ([75a7dc0](https://github.com/yschimke/compose-preview-daemon/commit/75a7dc082d50ece1b13658052c324e658340c469))
+* **deps:** update dependency com.android.tools.build:gradle to v9.4.1 ([#169](https://github.com/yschimke/compose-preview-daemon/issues/169)) ([a70333c](https://github.com/yschimke/compose-preview-daemon/commit/a70333c3bb33ce345e4696c304322dbe410738b2))
+* **deps:** update dependency ee.schimke.composeai:third-party-rc-embedded-player to v1.69.0 ([#171](https://github.com/yschimke/compose-preview-daemon/issues/171)) ([181506b](https://github.com/yschimke/compose-preview-daemon/commit/181506b7bf4df5f632207eea0d0cc62b828dac34))
+* **deps:** update dependency ee.schimke.composeai:third-party-rc-embedded-player to v1.70.0 ([#178](https://github.com/yschimke/compose-preview-daemon/issues/178)) ([8789630](https://github.com/yschimke/compose-preview-daemon/commit/87896304f989edf8cda44611b8fc2e061b8fd827))
+* **deps:** update dependency io.github.classgraph:classgraph to v4.8.196 ([#173](https://github.com/yschimke/compose-preview-daemon/issues/173)) ([b568fa8](https://github.com/yschimke/compose-preview-daemon/commit/b568fa8f30469b7147843b75660450d6a478e22b))
+* **deps:** update rc-players to v2 and seed embedded colours through RcPlayerState ([#182](https://github.com/yschimke/compose-preview-daemon/issues/182)) ([bccdac0](https://github.com/yschimke/compose-preview-daemon/commit/bccdac0d587dcd05103a83117e140fbc61b81a2a))
+* **deps:** update roborazzi to v1.75.0 ([#172](https://github.com/yschimke/compose-preview-daemon/issues/172)) ([f08e66b](https://github.com/yschimke/compose-preview-daemon/commit/f08e66b674d693d5bcd9aef8b1599bb566b10a31))
+* **deps:** update roborazzi to v1.76.0 ([#179](https://github.com/yschimke/compose-preview-daemon/issues/179)) ([75d9148](https://github.com/yschimke/compose-preview-daemon/commit/75d9148b27514d76643aaaff2f94e43ea62f253f))
+
+
+### Chores
+
+* **deps:** update agp to v9.4.1 ([#167](https://github.com/yschimke/compose-preview-daemon/issues/167)) ([2bf7eb3](https://github.com/yschimke/compose-preview-daemon/commit/2bf7eb3eb1729ac48f7e756235acc3f37928263e))
+* **deps:** update dependency dev.zacsweers.metro to v1.4.4 ([#168](https://github.com/yschimke/compose-preview-daemon/issues/168)) ([b4df16a](https://github.com/yschimke/compose-preview-daemon/commit/b4df16a3f191672b61863b1aa4754d493b0da4de))
+* **deps:** update github-actions ([#174](https://github.com/yschimke/compose-preview-daemon/issues/174)) ([d38656e](https://github.com/yschimke/compose-preview-daemon/commit/d38656e6875c87ad1d5fad32d8c270d38f1e36fa))
+* **deps:** update gradle to v9.8.0 ([#175](https://github.com/yschimke/compose-preview-daemon/issues/175)) ([25c8760](https://github.com/yschimke/compose-preview-daemon/commit/25c8760e6ca1f379c72ff6c0e2f29f441c576ee6))
+
 ## [3.9.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.9.1...v3.9.2) (2026-09-27)
 
 
