@@ -293,7 +293,7 @@ coil3 = "3.5.0"
 # here. This repository consumes them; it no longer owns these coordinates. A change to a contract
 # reaches this build only through a release there — see that repository's docs/VERSIONING.md.
 # A point pin, deliberately: a range would let a contract change arrive without a pull request.
-composeai-contracts = "3.5.0"
+composeai-contracts = "3.7.0"
 
 # …and one coordinate ahead of the rest, because contracts releases are no longer all-or-nothing.
 # Since its 3.1.0 a release there publishes only the modules it changed, and a skipped module's POM
@@ -302,7 +302,7 @@ composeai-contracts = "3.5.0"
 # what that design intends: 3.1.1's POM names `daemon-protocol` at 3.0.0, which is the pin above.
 # `ee.schimke.composeai:bom` is published at every tag and constrains each coordinate at its real
 # version; adopting it here would replace both refs with one knob.
-composeai-contracts-layoutinspector = "3.5.0"
+composeai-contracts-layoutinspector = "3.7.0"
 
 # The Remote Compose players, published by yschimke/rc-players (the CMP player stack, the vendored
 # AndroidX embedded player, and the Wasm browser bundle). They were project deps here until the
