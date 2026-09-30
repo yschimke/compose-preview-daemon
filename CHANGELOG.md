@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.10.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.10.0...v3.10.1) (2026-09-30)
+
+
+### Bug Fixes
+
+* **deps:** update rc-players to v2.0.3 ([#186](https://github.com/yschimke/compose-preview-daemon/issues/186)) ([0d8f99c](https://github.com/yschimke/compose-preview-daemon/commit/0d8f99c5e1d60c5b752fe1076ea019230bb361e8))
+
+
+### Chores
+
+* **deps:** bump compose-preview-contracts to 3.13.0 ([#185](https://github.com/yschimke/compose-preview-daemon/issues/185)) ([44a94f6](https://github.com/yschimke/compose-preview-daemon/commit/44a94f6cee1e093d514fa5cb0cb116c70b7786c1))
+
 ## [3.10.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.9.2...v3.10.0) (2026-09-30)
 
 
