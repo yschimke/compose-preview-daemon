@@ -39,7 +39,7 @@ roborazzi = "1.75.0"
 # androidx.tracing — atrace-level sections for the Android daemon's render phases (see
 # `AndroidxTraceSections` in :daemon:android). Version-pinned (not BOM-managed) because the daemon
 # ships it in the standalone lib-daemon-android sidecar where no BOM applies.
-androidx-tracing = "2.0.2"
+androidx-tracing = "2.0.3"
 classgraph = "4.8.196"
 # Stable BOM line — what samples use and what `composePreviewRender` /
 # `Compare previews` is exercised against. Renovate updates this freely;
@@ -125,7 +125,7 @@ wear-protolayout = "1.4.2"
 # 2D Home-Space fallback of these composables through the Android Robolectric
 # pipeline (see docs/design/XR_SPATIAL_PREVIEW.md). Alpha14 was published
 # 2026-05-19.
-xr-compose = "1.0.0-alpha17"
+xr-compose = "1.0.0-beta01"
 # The published `xr-composite` native compositor the CLI provisions on demand and
 # the Gradle plugin reads from the shared cache. Deliberately a PIN, not the repo's
 # own version: the compositor's C++ changed 13 times in this repo's life while 226
@@ -190,7 +190,7 @@ compose-remote = "1.0.0-alpha18"
 androidx-collection = "1.6.0"
 # `FontRequest` / `FontsContractCompat` — the downloadable-fonts provider API the vendored embedded
 # player's typeface resolver uses to service `google:` font prefixes.
-androidx-core = "1.19.0"
+androidx-core = "1.19.1"
 # Wear Compose Remote Material 3 — `androidx.wear.compose.remote:remote-material3`,
 # the Wear M3 widget layer on top of Remote Compose, used by `:samples:remotecompose`
 # and `:samples:wear-widget` (and, out of tree, by the `remote-m3` catalog in
