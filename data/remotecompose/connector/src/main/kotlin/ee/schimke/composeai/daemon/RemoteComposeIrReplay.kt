@@ -67,20 +67,16 @@ class RemoteComposeIrReplay {
 }
 
 /**
- * Draws [document] through the vendored embedded player, seeding the colour subset of
- * [seededOverrides] first. Both embedded call sites in this module go through here, so the one
- * [RcPlayer] call it makes is the entry point [EMBEDDED_PLAYER_ENTRY_POINT_PARAMETERS] pins.
+ * Draws [document] through the vendored embedded player, seeding [seededOverrides] first. Both
+ * embedded call sites in this module go through here, so the one [RcPlayer] call it makes is the
+ * entry point [EMBEDDED_PLAYER_ENTRY_POINT_PARAMETERS] pins.
  *
- * The seeding is deliberately *narrower* than [applyConnectorOverrides], which the view player
- * gets: that one also pushes string / float / int / dp / boolean seeds through the player's
- * `StateUpdater`. Only colours are seeded here, matching what the embedded player accepted before
- * rc-players 2.0.0 moved named-value seeding off the player call and onto [RcPlayerState]. A render
- * that seeds non-colour values and then selects the embedded player will differ from the view
- * player for that reason alone; keep it in mind when reading a `rc-compare` row for a preview that
- * carries knobs.
+ * Every named-value type is seeded, through [RcPlayerState]'s typed states, with the same mapping
+ * [applyConnectorOverrides] gives the view player's `StateUpdater` — see [reseed] — so a render
+ * that carries knobs means the same thing on either player.
  *
  * One [RcPlayerState] per document — the player installs its runtime state onto the document, so a
- * new override set re-seeds the existing state rather than building a second one. A colour dropped
+ * new override set re-seeds the existing state rather than building a second one. A value dropped
  * from the seed set is restored to its authored default.
  */
 @Composable
@@ -90,37 +86,92 @@ internal fun EmbeddedRemoteDocumentPlayer(
   modifier: Modifier = Modifier,
 ) {
   val state = remember(document) { RcPlayerState(document.document) }
+  val target = remember(state) { RcPlayerStateSeedTarget(state) }
   val seeded = remember(state) { mutableSetOf<String>() }
-  val colors = seededOverrides.toNamedColorOverrides()
-  // Seeded during composition, not in a SideEffect: the player reads these colours on its first
-  // frame, and `colorState(...)` writes are snapshot-backed. Returns the seeded names so the
+  // Seeded during composition, not in a SideEffect: the player reads these values on its first
+  // frame, and the typed-state writes are snapshot-backed. Returns the seeded names so the
   // `remember` is not a Unit-returning mutation.
-  remember(state, colors) {
-    (seeded - colors.keys).forEach { state.clearOverride(it) }
-    colors.forEach { (name, argb) -> state.colorState(name).value = Color(argb) }
+  remember(target, seededOverrides) {
+    val applied = target.reseed(previous = seeded, overrides = seededOverrides)
     seeded.apply {
       clear()
-      addAll(colors.keys)
+      addAll(applied)
     }
   }
   RcPlayer(state = state, modifier = modifier)
 }
 
+/** Where [reseed] writes: the typed setters of an embedded player's named-value state. */
+internal interface NamedValueSeedTarget {
+  fun setString(name: String, value: String)
+
+  fun setFloat(name: String, value: Float)
+
+  fun setInt(name: String, value: Int)
+
+  fun setBoolean(name: String, value: Boolean)
+
+  fun setColor(name: String, argb: Int)
+
+  /** Restores [name] to its authored default. */
+  fun clear(name: String)
+}
+
 /**
- * The colour subset of the seeded named values (variable name -> ARGB int).
+ * Seeds [overrides] into this target and returns the names it seeded, clearing any name in
+ * [previous] that is no longer seeded.
  *
- * Invalid hex is skipped rather than thrown, and a six-digit value is read as opaque — both through
- * the shared [rcColorToArgb], so the embedded player and the view player cannot disagree about what
- * the same seed means.
+ * The type mapping mirrors [applyConnectorOverrides] one for one — a dp is a float, and a colour
+ * goes through the shared [rcColorToArgb] so a six-digit value is opaque — so the two players
+ * cannot disagree about what a seed means. An unparseable colour is skipped rather than thrown, and
+ * counts as unseeded: a name that held a valid colour last time is restored rather than left stale.
  */
-internal fun Map<String, RemoteNamedValue>.toNamedColorOverrides(): Map<String, Int> =
-  entries
-    .mapNotNull { (name, value) ->
-      val color = value as? RemoteNamedValue.ColorValue ?: return@mapNotNull null
-      val argb = rcColorToArgb(color.argb) ?: return@mapNotNull null
-      name to argb
+internal fun NamedValueSeedTarget.reseed(
+  previous: Set<String>,
+  overrides: Map<String, RemoteNamedValue>,
+): Set<String> {
+  val applied = LinkedHashSet<String>()
+  for ((name, value) in overrides) {
+    when (value) {
+      is RemoteNamedValue.StringValue -> setString(name, value.value)
+      is RemoteNamedValue.FloatValue -> setFloat(name, value.value)
+      is RemoteNamedValue.IntValue -> setInt(name, value.value)
+      is RemoteNamedValue.DpValue -> setFloat(name, value.value)
+      is RemoteNamedValue.BooleanValue -> setBoolean(name, value.value)
+      is RemoteNamedValue.ColorValue -> {
+        val argb = rcColorToArgb(value.argb) ?: continue
+        setColor(name, argb)
+      }
     }
-    .toMap()
+    applied += name
+  }
+  (previous - applied).forEach { clear(it) }
+  return applied
+}
+
+private class RcPlayerStateSeedTarget(private val state: RcPlayerState) : NamedValueSeedTarget {
+  override fun setString(name: String, value: String) {
+    state.stringState(name).value = value
+  }
+
+  override fun setFloat(name: String, value: Float) {
+    state.floatState(name).value = value
+  }
+
+  override fun setInt(name: String, value: Int) {
+    state.intState(name).value = value
+  }
+
+  override fun setBoolean(name: String, value: Boolean) {
+    state.booleanState(name).value = value
+  }
+
+  override fun setColor(name: String, argb: Int) {
+    state.colorState(name).value = Color(argb)
+  }
+
+  override fun clear(name: String) = state.clearOverride(name)
+}
 
 internal const val EMBEDDED_PLAYER_FACADE = "ee.schimke.composeai.rcembedded.player.RcPlayerKt"
 
