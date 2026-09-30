@@ -40,7 +40,7 @@ roborazzi = "1.75.0"
 # `AndroidxTraceSections` in :daemon:android). Version-pinned (not BOM-managed) because the daemon
 # ships it in the standalone lib-daemon-android sidecar where no BOM applies.
 androidx-tracing = "2.0.2"
-classgraph = "4.8.195"
+classgraph = "4.8.196"
 # Stable BOM line — what samples use and what `composePreviewRender` /
 # `Compare previews` is exercised against. Renovate updates this freely;
 # the variant below (`compose-bom-compat`) is the older line that
