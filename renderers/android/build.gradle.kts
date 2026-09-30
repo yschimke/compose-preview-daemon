@@ -310,7 +310,7 @@ dependencies {
   // Legacy Wear Material's Picker/PickerGroup backs Horologist's TimePicker. Keep a real picker
   // in the figma-svg regression suite so lazy option placement, alpha and separator capture are
   // exercised together rather than approximated with a static Column.
-  testImplementation("androidx.wear.compose:compose-material:1.6.2")
+  testImplementation("androidx.wear.compose:compose-material:1.7.0")
   // TileScopeResourcesCompatTest exercises both the pre-1.6 no-scope path and the modern
   // scope-resource merge. Production remains compileOnly so consumers supply their Tiles version.
   testImplementation(libs.wear.protolayout)

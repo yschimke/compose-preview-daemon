@@ -114,7 +114,7 @@ activity-compose = "1.13.0"
 # 1.1.x is the current stable line; bump when the Glance team ships a 1.2.x with the planned
 # preview-DSL stabilisation.
 glance-appwidget = "1.2.0"
-wear-compose = "1.7.0-rc01"
+wear-compose = "1.7.0"
 wear-tiles = "1.6.2"
 wear-protolayout = "1.4.2"
 # Jetpack Compose for XR (`androidx.xr.compose`) — the spatial-UI toolkit
