@@ -1,4 +1,4 @@
-package ee.schimke.composeai.daemon
+package ee.schimke.composeai.daemon.remotecompose.androidx.view
 
 import ee.schimke.composeai.fonts.google.GoogleFontKey
 import ee.schimke.composeai.fonts.google.GoogleFontSource

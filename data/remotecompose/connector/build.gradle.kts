@@ -138,6 +138,11 @@ dependencies {
   testImplementation(libs.compose.remote.player.core)
   testImplementation(libs.compose.remote.creation.compose)
   testImplementation(libs.compose.remote.core)
+  // Every library a backend or the capture binds to, so `RemoteComposePlayersTest` can check their
+  // linkage against the line this module is built with.
+  testImplementation(libs.compose.remote.player.compose)
+  testImplementation(libs.compose.remote.player.view)
+  testImplementation(libs.rcplayer.embedded.android)
 
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.serialization.json)

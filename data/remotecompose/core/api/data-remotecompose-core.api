@@ -1,3 +1,16 @@
+public abstract interface class ee/schimke/composeai/data/remotecompose/NamedValueSeedTarget {
+	public fun clear (Ljava/lang/String;)V
+	public abstract fun setBoolean (Ljava/lang/String;Z)V
+	public abstract fun setColor (Ljava/lang/String;I)V
+	public abstract fun setFloat (Ljava/lang/String;F)V
+	public abstract fun setInt (Ljava/lang/String;I)V
+	public abstract fun setString (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class ee/schimke/composeai/data/remotecompose/NamedValueSeedTarget$DefaultImpls {
+	public static fun clear (Lee/schimke/composeai/data/remotecompose/NamedValueSeedTarget;Ljava/lang/String;)V
+}
+
 public final class ee/schimke/composeai/data/remotecompose/RemoteComposeDeclarationsPayload {
 	public static final field Companion Lee/schimke/composeai/data/remotecompose/RemoteComposeDeclarationsPayload$Companion;
 	public fun <init> ()V
@@ -91,6 +104,22 @@ public final class ee/schimke/composeai/data/remotecompose/RemoteComposeKnobDecl
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class ee/schimke/composeai/data/remotecompose/RemoteComposeLinkage {
+	public static final field INSTANCE Lee/schimke/composeai/data/remotecompose/RemoteComposeLinkage;
+	public final fun check (Ljava/lang/Class;Ljava/util/List;Ljava/util/List;)Lee/schimke/composeai/data/remotecompose/RemoteComposeLinkageReport;
+	public static synthetic fun check$default (Lee/schimke/composeai/data/remotecompose/RemoteComposeLinkage;Ljava/lang/Class;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lee/schimke/composeai/data/remotecompose/RemoteComposeLinkageReport;
+	public final fun getLIBRARY_PACKAGES ()Ljava/util/List;
+}
+
+public final class ee/schimke/composeai/data/remotecompose/RemoteComposeLinkageReport {
+	public fun <init> (IILjava/util/List;)V
+	public final fun getClasses ()I
+	public final fun getMissing ()Ljava/util/List;
+	public final fun getReferences ()I
+	public final fun isLinked ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class ee/schimke/composeai/data/remotecompose/RemoteComposePayload {
 	public static final field Companion Lee/schimke/composeai/data/remotecompose/RemoteComposePayload$Companion;
 	public static final field HOST_ACTION_BUFFER_SIZE I
@@ -131,5 +160,11 @@ public final class ee/schimke/composeai/data/remotecompose/RemoteComposeProduct 
 	public static final field INSTANCE Lee/schimke/composeai/data/remotecompose/RemoteComposeProduct;
 	public static final field KIND Ljava/lang/String;
 	public static final field SCHEMA_VERSION I
+}
+
+public final class ee/schimke/composeai/data/remotecompose/RemoteComposeSeedingKt {
+	public static final fun rcColorToArgb (Ljava/lang/String;)Ljava/lang/Integer;
+	public static final fun reseed (Lee/schimke/composeai/data/remotecompose/NamedValueSeedTarget;Ljava/util/Set;Ljava/util/Map;)Ljava/util/Set;
+	public static synthetic fun reseed$default (Lee/schimke/composeai/data/remotecompose/NamedValueSeedTarget;Ljava/util/Set;Ljava/util/Map;ILjava/lang/Object;)Ljava/util/Set;
 }
 
