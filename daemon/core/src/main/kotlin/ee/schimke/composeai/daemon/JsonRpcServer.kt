@@ -1231,7 +1231,8 @@ public class JsonRpcServer(
     // for every render, not just interactive ones: an unchanged render is an unchanged render.
     if (isUnchanged) interactiveIdleRun.merge(previewId, 1, Int::plus)
     else interactiveIdleRun.remove(previewId)
-    val outboundFinished = if (isUnchanged) finished.copy(unchanged = true) else finished
+    val outboundFinished =
+      if (isUnchanged) finished.newBuilder().also { it.unchanged = true }.build() else finished
     // A client can enqueue another save as soon as it receives this frame. That save must not
     // be drained by this render's later history/cleanup work.
     val discoveryBoundary = deferredDiscovery.currentSequence()
@@ -1529,13 +1530,15 @@ public class JsonRpcServer(
         "globalAttachKinds=${globalAttachKinds.sorted()} " +
         "attachments=${attachments.map { it.kind }}"
     )
-    return RenderFinishedParams(
-      id = previewId,
-      pngPath = pngPath,
-      tookMs = tookMs,
-      metrics = metrics,
-      dataProducts = attachments.takeIf { it.isNotEmpty() },
-    )
+    return RenderFinishedParams.Builder(id = previewId, pngPath = pngPath, tookMs = tookMs)
+      .also {
+        it.metrics = metrics
+        it.dataProducts = attachments.takeIf { list -> list.isNotEmpty() }
+        // What the render paid for (compose-preview-server#1181) — rebuilt from the keys the
+        // engine recorded into its metrics; null when the host recorded no trace.
+        it.workTrace = RenderWorkTraceMetrics.fromMetrics(result.metrics)
+      }
+      .build()
   }
 
   // --------------------------------------------------------------------------

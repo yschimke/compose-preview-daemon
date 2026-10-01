@@ -1,6 +1,7 @@
 package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.protocol.RenderMetrics
+import ee.schimke.composeai.daemon.protocol.RenderWorkTrace
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 import java.util.concurrent.CountDownLatch
@@ -1130,6 +1131,75 @@ class JsonRpcServerIntegrationTest {
         assertEquals(19L, params["tookMs"]?.jsonPrimitive?.longOrNull)
       },
     )
+  }
+
+  /**
+   * compose-preview-server#1181 — a result whose engine recorded a work trace into its metrics
+   * carries it to `renderFinished.workTrace` with the same content, in the order the work ran.
+   */
+  @Test
+  fun renderFinished_carries_work_trace_recorded_in_metrics() {
+    val hostMetrics = LinkedHashMap<String, Long>()
+    hostMetrics["tookMs"] = 40L
+    RenderWorkTraceMetrics.markRecorded(hostMetrics)
+    hostMetrics[PostCaptureGate.ranMetricKey("compose/semantics")] = 3L
+    hostMetrics[PostCaptureGate.skippedMetricKey("compose/figma-svg")] = 0L
+    hostMetrics[PostCaptureGate.ranMetricKey("layout/inspector")] = 7L
+    hostMetrics[RenderWorkTraceMetrics.dataKindMetricKey("uia/hierarchy")] = 2L
+    runRenderAndPollFinished(
+      host = FakeRenderHost(metricsToReturn = hostMetrics),
+      assertOnFinished = { params ->
+        val field = params["workTrace"]
+        assertNotNull("renderFinished.workTrace must be present: $params", field)
+        val decoded = json.decodeFromJsonElement(RenderWorkTrace.serializer(), field!!)
+        val expected =
+          RenderWorkTrace.Builder()
+            .also {
+              it.processors = listOf("compose/semantics", "layout/inspector")
+              it.dataKinds = listOf("compose/semantics", "layout/inspector", "uia/hierarchy")
+              it.stepMs =
+                mapOf("compose/semantics" to 3L, "layout/inspector" to 7L, "uia/hierarchy" to 2L)
+            }
+            .build()
+        assertEquals(expected, decoded)
+        // An on-demand processor the engine skipped is not reported as having run.
+        assertTrue("compose/figma-svg" !in decoded.processors.orEmpty())
+      },
+    )
+  }
+
+  /** A recorded trace in which nothing ran reports empty lists — "recorded, none ran". */
+  @Test
+  fun renderFinished_recorded_work_trace_with_nothing_run_reports_empty_lists() {
+    val hostMetrics = LinkedHashMap<String, Long>()
+    hostMetrics["tookMs"] = 5L
+    RenderWorkTraceMetrics.markRecorded(hostMetrics)
+    runRenderAndPollFinished(
+      host = FakeRenderHost(metricsToReturn = hostMetrics),
+      assertOnFinished = { params ->
+        val decoded =
+          json.decodeFromJsonElement(RenderWorkTrace.serializer(), params["workTrace"]!!)
+        assertEquals(emptyList<String>(), decoded.processors)
+        assertEquals(emptyList<String>(), decoded.dataKinds)
+        assertEquals(emptyMap<String, Long>(), decoded.stepMs)
+      },
+    )
+  }
+
+  /** A host that recorded no trace emits no `workTrace` at all — not an empty one. */
+  @Test
+  fun renderFinished_omits_work_trace_when_host_recorded_none() {
+    for (metrics in listOf(null, mapOf("tookMs" to 19L, "postCapture.compose/semantics" to 4L))) {
+      runRenderAndPollFinished(
+        host = FakeRenderHost(metricsToReturn = metrics),
+        assertOnFinished = { params ->
+          assertTrue(
+            "renderFinished.workTrace must be absent without a recorded trace: $params",
+            "workTrace" !in params,
+          )
+        },
+      )
+    }
   }
 
   /**

@@ -275,9 +275,12 @@ class RenderEngine(
     var decodedStillFrame: java.awt.image.BufferedImage? = null
     val startNs = System.nanoTime()
     val trace = PerfettoTraceDataProducer.recorder(spec.outputBaseName, backend = "android")
-    // Per-render work trace — which post-capture processors ran (and for how long) and which
-    // on-demand ones were skipped. Folded into the result's metrics; see [PostCaptureGate].
+    // Per-render work trace — which post-capture processors ran (and for how long), which
+    // on-demand ones were skipped, and which data kinds the other producers computed. Folded into
+    // the result's metrics, which carry it across the sandbox and worker hops to
+    // `renderFinished.workTrace`; see [PostCaptureGate] and [RenderWorkTraceMetrics].
     val postCaptureMetrics = LinkedHashMap<String, Long>()
+    RenderWorkTraceMetrics.markRecorded(postCaptureMetrics)
     val slotTableCapture = PreviewSlotTableCapture()
     val themeFallbackCapture = MaterialThemeFallbackCapture()
     val wearThemeCapture = WearThemeCapture()
@@ -1171,6 +1174,10 @@ class RenderEngine(
                       "tookMs=$extTookMs"
                   )
                 } catch (t: Throwable) {
+                  // It still ran, and the trace reports what the render paid for — a processor
+                  // that spent seconds before throwing is exactly the cost it exists to expose.
+                  postCaptureMetrics[PostCaptureGate.ranMetricKey(ext.id.value)] =
+                    (System.nanoTime() - extStartNs) / 1_000_000L
                   System.err.println(
                     "RenderEngine: ${ext.id} data write failed for ${spec.outputBaseName}: " +
                       "${t.javaClass.simpleName}: ${t.message}"
@@ -1189,6 +1196,7 @@ class RenderEngine(
               System.err.println(
                 "compose-ai-daemon: [render] phase=a11y.start outputBaseName=${spec.outputBaseName}"
               )
+              val a11yStartNs = System.nanoTime()
               try {
                 trace.section("a11y:dataProducts") {
                   val view = (resolvedSemanticsRoot.root as ViewRootForTest).view
@@ -1227,6 +1235,11 @@ class RenderEngine(
                     "compose-ai-daemon: [render] phase=a11y.done outputBaseName=${spec.outputBaseName} " +
                       "findings=${findings.findings.size} nodes=${hierarchy.nodes.size}"
                   )
+                  RenderWorkTraceMetrics.recordDataKinds(
+                    postCaptureMetrics,
+                    hierarchyExtension.outputs.map { it.kind },
+                    a11yStartNs,
+                  )
                 }
               } catch (t: Throwable) {
                 System.err.println(
@@ -1245,6 +1258,7 @@ class RenderEngine(
             // dispatch target. Always runs on the Android backend — independent of the a11y
             // opt-in. Wrapped in try/catch so a hierarchy failure does not strand the PNG.
             if (dataDir != null) {
+              val uiaStartNs = System.nanoTime()
               try {
                 trace.section("uia:hierarchy") {
                   val uiaExtension = UiAutomatorHierarchyExtension()
@@ -1268,6 +1282,11 @@ class RenderEngine(
                     previewId = spec.outputBaseName,
                     payload = payload,
                   )
+                  RenderWorkTraceMetrics.recordDataKinds(
+                    postCaptureMetrics,
+                    uiaExtension.outputs.map { it.kind },
+                    uiaStartNs,
+                  )
                 }
               } catch (t: Throwable) {
                 System.err.println(
@@ -1285,6 +1304,7 @@ class RenderEngine(
             if (dataDir != null) {
               val filters = DisplayFilterConfig.fromSystemProperties()
               if (filters.isNotEmpty()) {
+                val filtersStartNs = System.nanoTime()
                 try {
                   trace.section("displayfilter:variants") {
                     DisplayFilterDataProducer.writeArtifacts(
@@ -1294,6 +1314,11 @@ class RenderEngine(
                       filters = filters,
                     )
                   }
+                  RenderWorkTraceMetrics.recordDataKinds(
+                    postCaptureMetrics,
+                    listOf(DisplayFilterDataProducer.KIND_VARIANTS),
+                    filtersStartNs,
+                  )
                 } catch (t: Throwable) {
                   System.err.println(
                     "RenderEngine: displayfilter write failed for ${spec.outputBaseName}: " +
