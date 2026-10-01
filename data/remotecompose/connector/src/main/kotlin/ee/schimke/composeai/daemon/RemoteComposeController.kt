@@ -130,17 +130,14 @@ object RemoteComposeController {
   /**
    * Record which player `RemoteOverridablePreview` actually composed the document with.
    *
-   * The wrapper FQN cannot answer this: the selection is `player == EMBEDDED &&
-   * isEmbeddedPlayerAvailable`, and the second term is a property of the capturing app's classpath.
-   * A consumer shipping the connector without the optional embedded-player runtime draws through
-   * the view player with nothing in its annotations saying so, and a downstream reader that
-   * inferred otherwise would answer `?rcPlayer=cmp-android` with those view-player pixels. So the
-   * composable states it, and [RemoteComposeDeclarationsPayload.capturePlayer] carries it out.
+   * The wrapper FQN does not answer this on its own: a render can ask for the view player per call
+   * (`?rcPlayer=java`), and a reader inferring from the wrapper would answer
+   * `?rcPlayer=cmp-android` with those view-player pixels. So the composable states it, and
+   * [RemoteComposeDeclarationsPayload.capturePlayer] carries it out.
    *
    * Idempotent per player: a recomposition or a scroll capture re-records the same branch, because
-   * the condition depends on the classpath and the requested player rather than on anything that
-   * varies mid-pass. Two *different* players in one pass are kept apart on purpose — see
-   * [capturePlayerWires].
+   * the condition depends on the requested player rather than on anything that varies mid-pass. Two
+   * *different* players in one pass are kept apart on purpose — see [capturePlayerWires].
    */
   fun recordCapturePlayer(wire: String) {
     if (wire !in capturePlayerWires) capturePlayerWires = capturePlayerWires + wire

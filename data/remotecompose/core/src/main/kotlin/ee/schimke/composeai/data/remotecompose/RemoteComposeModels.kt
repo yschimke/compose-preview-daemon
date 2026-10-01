@@ -80,14 +80,13 @@ public data class RemoteComposeDeclarationsPayload(
    * The `rcPlayer` wire id of the player that actually drew this capture — `"cmp-android"` for the
    * embedded player, `"java"` for the view-backed one — or null when the capture recorded none.
    *
-   * Recorded rather than derived, because it cannot be derived. `RemoteOverridablePreview` selects
-   * the player as `player == EMBEDDED && isEmbeddedPlayerAvailable`, and that second term is a
-   * property of the capturing app's own classpath at render time: a consumer shipping the connector
-   * without the optional embedded-player runtime draws through the view player while its
-   * `@PreviewWrapper` says nothing at all. A reader inferring from the wrapper would then answer
-   * `?rcPlayer=cmp-android` with view-player pixels under a confident 200
-   * (compose-preview-server#233 answers *unknown* instead, which is safe but costs the clean
-   * default link — this is what lets it stop being unknown).
+   * Recorded rather than derived. The player a capture drew through depends on what that render
+   * asked for, which its `@PreviewWrapper` does not say, and in older connectors it also depended
+   * on the capturing app's classpath: a missing or reshaped embedded player fell back to the view
+   * player silently. A reader inferring from the wrapper would then answer `?rcPlayer=cmp-android`
+   * with view-player pixels under a confident 200 (compose-preview-server#233 answers *unknown*
+   * instead, which is safe but costs the clean default link — this is what lets it stop being
+   * unknown).
    *
    * Null and absent mean the same thing: not recorded. Never "the default one". A capture that drew
    * through more than one player also reads null, because no single answer would be true of it.

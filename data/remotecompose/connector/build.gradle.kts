@@ -127,10 +127,13 @@ dependencies {
   compileOnly(libs.compose.remote.player.compose)
   compileOnly(libs.compose.remote.player.core)
   compileOnly(libs.compose.remote.player.view)
-  // The embedded replay lane (`RemoteComposeIrReplay` → `ExperimentalRemoteDocumentPlayer`).
-  // `compileOnly` like the alpha players above: a consumer that doesn't ship the vendored player
-  // still loads this connector, and `isEmbeddedPlayerAvailable` gates the call site at runtime so
-  // selecting `player = embedded` there falls back to the view player instead of dying.
+  // The embedded player draws every capture and replay unless a render asks for the view player.
+  // `compileOnly` because `checkDependencyOwnership` keeps rc-players off this module's published
+  // runtime classpath: the consumer supplies it. There is deliberately no runtime availability
+  // check. A reflective gate used to fall back to the view player when the entry point drifted, and
+  // when rc-players 2.x reshaped `RcPlayer` consumers on connector 3.9.2 baked every Remote sticker
+  // through the wrong player with no error (yschimke/wear-m3-catalog#639). A missing or reshaped
+  // player is now a `NoClassDefFoundError` / `NoSuchMethodError` at render time.
   compileOnly(libs.rcplayer.embedded.android)
   testImplementation(libs.compose.remote.player.core)
   testImplementation(libs.compose.remote.creation.compose)
