@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.11.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.10.1...v3.11.0) (2026-10-01)
+
+
+### Features
+
+* report each render's work trace on renderFinished ([#189](https://github.com/yschimke/compose-preview-daemon/issues/189)) ([d63eb5f](https://github.com/yschimke/compose-preview-daemon/commit/d63eb5f8be14e9e3e07e51999068ba48535679f6))
+
+
+### Bug Fixes
+
+* **remotecompose:** call the embedded player directly, with no silent view-player fallback ([#188](https://github.com/yschimke/compose-preview-daemon/issues/188)) ([66d2047](https://github.com/yschimke/compose-preview-daemon/commit/66d204720b18e1ede9af26811cb899fd26fe57b4))
+
 ## [3.10.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.10.0...v3.10.1) (2026-09-30)
 
 
