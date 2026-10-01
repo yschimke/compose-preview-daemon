@@ -34,7 +34,8 @@ val composePreviewDaemonDesktop =
 
 // `:daemon:android` publishes its runtime classpath as a text descriptor (one absolute jar path
 // per line, ordered module jar → testFixtures → R.jar → full test runtime → android.jar) on a
-// consumable configuration carrying this attribute; see that module's `writeDaemonClasspath`.
+// consumable configuration carrying this attribute. `android-sidecar` is the list without the
+// consumer-supplied Remote Compose family; see that module's `writeSidecarClasspath`.
 val composePreviewDaemonAndroid =
   configurations.create("composePreviewDaemonAndroid") {
     isCanBeResolved = true
@@ -42,7 +43,7 @@ val composePreviewDaemonAndroid =
     attributes {
       attribute(
         Attribute.of("ee.schimke.composeai.daemon.harness.classpath", String::class.java),
-        "android",
+        "android-sidecar",
       )
     }
   }
@@ -164,6 +165,48 @@ val checkSkikoNativePackaging =
     stagedJars.from(stageRendererLibs, stageDaemonDesktopLibs)
   }
 
+/**
+ * Fails when the Android sidecar stages any Remote Compose class. `UserClassLoaderHolder` resolves
+ * `androidx.*` from the daemon's parent `-cp` first, so a copy staged here outranks the bundle's
+ * own and splits the family at render time (yschimke/wear-m3-catalog#652). Read off the class
+ * entries rather than the file names, because an AAR stages as an anonymous `NNNN-classes.jar`.
+ * `R.jar` is exempt: it carries every transitive AAR's resource ids, which no consumer line
+ * competes with.
+ */
+abstract class CheckAndroidSidecarRemoteCompose : DefaultTask() {
+  @get:InputFiles
+  @get:PathSensitive(PathSensitivity.RELATIVE)
+  abstract val stagedJars: ConfigurableFileCollection
+
+  @TaskAction
+  fun check() {
+    val offenders =
+      stagedJars.files
+        .flatMap { root -> root.listFiles()?.toList().orEmpty() }
+        .filter { it.name.endsWith(".jar") && !it.name.endsWith("-R.jar") }
+        .filter { jar ->
+          java.util.zip.ZipFile(jar).use { zip ->
+            zip.entries().asSequence().any {
+              it.name.startsWith("androidx/compose/remote/") ||
+                it.name.startsWith("androidx/wear/compose/remote/") ||
+                it.name.startsWith("ee/schimke/composeai/rcembedded/")
+            }
+          }
+        }
+    check(offenders.isEmpty()) {
+      "Android sidecar stages Remote Compose classes a consumer bundle must supply: " +
+        offenders.sortedBy { it.name }.joinToString { it.name }
+    }
+  }
+}
+
+val checkAndroidSidecarRemoteCompose =
+  tasks.register<CheckAndroidSidecarRemoteCompose>("checkAndroidSidecarRemoteCompose") {
+    description = "Checks that the Android sidecar stages no consumer-supplied Remote Compose."
+    group = "verification"
+    stagedJars.from(stageDaemonAndroidLibs)
+  }
+
 // The version is the release-please manifest's, or the tag's on a release — the same
 // `publishedVersion()` the published modules use, read off a module that carries it.
 val sidecarVersion = provider { project(":daemon:core").version.toString() }
@@ -171,6 +214,7 @@ val sidecarVersion = provider { project(":daemon:core").version.toString() }
 tasks.register<Zip>("packageAndroidDaemon") {
   description =
     "Packages the Android daemon runtime as a standalone archive for on-demand download."
+  dependsOn(checkAndroidSidecarRemoteCompose)
   archiveFileName.set(sidecarVersion.map { "compose-preview-android-daemon-$it.zip" })
   destinationDirectory.set(layout.buildDirectory.dir("distributions"))
   into("lib-daemon-android") { from(stageDaemonAndroidLibs) }
