@@ -27,9 +27,11 @@ import ee.schimke.composeai.daemon.protocol.RemoteComposePlayerKind
  * 1. a per-preview pin — `@PreviewWrapper(RemoteViewPreviewWrapper::class)` /
  *    `RemoteEmbeddedPreviewWrapper`, or an explicit `player =` argument to
  *    [RemoteOverridablePreview]. Named in the source, so it wins outright;
- * 2. a per-render request — `renderNow.overrides.remoteCompose.player`, which `serve`'s
- *    `?rcPlayer=` chips ride, read through [RemoteComposeController.player]. Honoured on the replay
- *    lane, where the request is what the caller is asking to see;
+ * 2. a per-render request — `renderNow.overrides.remoteCompose.playerId` (any player
+ *    [ee.schimke.composeai.daemon.remotecompose.RemoteComposePlayers] resolves, registered ones
+ *    included), then `.player` (the two built-ins), which `serve`'s `?rcPlayer=` chips ride, read
+ *    through [RemoteComposeController.playerId] / [RemoteComposeController.player]. Honoured on the
+ *    replay lane, where the request is what the caller is asking to see;
  * 3. this: [PROPERTY] on the render / daemon JVM, wired by the Gradle plugin from
  *    `-PcomposePreview.rcPlayer=view`, else [DEFAULT].
  *

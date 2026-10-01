@@ -95,6 +95,14 @@ class RemoteComposeLinkageException(what: String, val report: RemoteComposeLinka
   }
 }
 
+/** A request named a player nothing on this classpath answers to. */
+class RemoteComposeUnknownPlayerException(val playerId: String, val knownNames: List<String>) :
+  IllegalArgumentException(
+    "No Remote Compose player answers to '$playerId'. Known: ${knownNames.joinToString()}. A " +
+      "player beyond the built-ins must be on the classpath and registered under " +
+      "META-INF/services/${RemoteComposePlayerBackend::class.java.name}."
+  )
+
 /** The players this connector can draw with, each linkage-checked once per class loader. */
 object RemoteComposePlayers {
   private val builtIns: Map<RemoteComposePlayerKind, String> =
@@ -128,6 +136,30 @@ object RemoteComposePlayers {
     return checked
       .getOrPut(candidate.javaClass.name) { runCatching { verified(candidate) } }
       .getOrThrow()
+  }
+
+  /**
+   * The player a render asked for: [playerId] when set (any player [forId] resolves), else the
+   * built-in [kind], else [default] — the order `RemoteComposeOverride` documents for its
+   * `playerId` and `player` fields, with the build-wide setting last.
+   *
+   * An id nothing answers to throws [RemoteComposeUnknownPlayerException], naming every player that
+   * would have: what draws is part of the answer, so an unknown name is never swapped for the
+   * default.
+   */
+  fun resolve(
+    playerId: String?,
+    kind: RemoteComposePlayerKind?,
+    default: RemoteComposePlayerKind,
+  ): RemoteComposePlayerBackend {
+    val id = playerId?.takeIf { it.isNotBlank() } ?: return forKind(kind ?: default)
+    return forId(id) ?: throw RemoteComposeUnknownPlayerException(id, knownNames())
+  }
+
+  /** Every name some player answers to — canonical ids first, then aliases — for diagnostics. */
+  fun knownNames(): List<String> {
+    val players = candidates().toList()
+    return players.map { it.id } + players.flatMap { it.aliases }.sorted()
   }
 
   /** The linkage of [backend] against this classpath, without refusing anything. */

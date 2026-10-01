@@ -310,6 +310,12 @@ composeai-contracts-common-io = "3.13.0"
 # version; adopting it here would replace both refs with one knob.
 composeai-contracts-layoutinspector = "3.13.0"
 
+# `daemon-protocol` ahead of the rest: 3.15.0 adds `RemoteComposeOverride.playerId`, which the
+# connector reads. Its dependents above stay on 3.14.0 and resolve it at this version, which is safe
+# because a contracts release is binary-compatible with the last (its ABI-superset gate). Fold back
+# into `composeai-contracts` once that moves to 3.15.0 or later.
+composeai-contracts-protocol = "3.15.0"
+
 # The Remote Compose players, published by yschimke/rc-players (the CMP player stack, the vendored
 # AndroidX embedded player, and the Wasm browser bundle). They were project deps here until the
 # stack was extracted into a repository of its own; that repository consumes `data-fonts-google` and
@@ -334,7 +340,7 @@ rcplayers = "2.0.3"
 [libraries]
 
 # Wire contracts consumed from compose-preview-contracts (see `composeai-contracts`).
-composeai-daemon-protocol = { module = "ee.schimke.composeai:daemon-protocol", version.ref = "composeai-contracts" }
+composeai-daemon-protocol = { module = "ee.schimke.composeai:daemon-protocol", version.ref = "composeai-contracts-protocol" }
 composeai-daemon-devices = { module = "ee.schimke.composeai:daemon-devices", version.ref = "composeai-contracts" }
 composeai-daemon-bta = { module = "ee.schimke.composeai:daemon-bta", version.ref = "composeai-contracts" }
 composeai-data-render-core = { module = "ee.schimke.composeai:data-render-core", version.ref = "composeai-contracts" }
