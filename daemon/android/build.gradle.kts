@@ -17,6 +17,8 @@
 // Pre-1.0; expect API breakage across minor versions.
 
 import java.util.concurrent.Callable
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 
 plugins {
   id("composeai.base-conventions")
@@ -347,6 +349,33 @@ val writeDaemonClasspath =
     outputs.file(outputFileProvider)
   }
 
+// The same descriptor for the `compose-preview-android-daemon` sidecar, minus the Remote Compose
+// family. That family reaches the test runtime classpath only through this module's own
+// `testImplementation` lines; every production caller (`:data-remotecompose-connector`) links
+// against it `compileOnly`, so the consumer supplies it, like Compose itself. Shipping it anyway
+// put an alpha line on the daemon's PARENT `-cp`, where `UserClassLoaderHolder` resolves every
+// `androidx.*` class first: a bundle's own `remote-creation-compose` was never consulted, its
+// `remote-core` was, and the two halves of one family met at render time as a `NoSuchMethodError`
+// (yschimke/wear-m3-catalog#652). The harness keeps the unfiltered list its tests run against.
+val sidecarRuntimeClasspathFile =
+  layout.buildDirectory.file("daemon-harness/sidecar-runtime-classpath.txt")
+
+val writeSidecarClasspath =
+  tasks.register("writeSidecarClasspath") {
+    description =
+      "Writes the Android daemon sidecar's classpath: writeDaemonClasspath's list without the " +
+        "consumer-supplied Remote Compose family."
+    group = "distribution"
+    outputs.file(sidecarRuntimeClasspathFile)
+  }
+
+/** The Remote Compose artifacts a consumer brings, and the sidecar therefore must not. */
+fun isConsumerSuppliedRemoteCompose(id: ComponentIdentifier): Boolean =
+  id is ModuleComponentIdentifier &&
+    (id.group == "androidx.compose.remote" ||
+      id.group == "androidx.wear.compose.remote" ||
+      (id.group == "ee.schimke.composeai" && id.module.startsWith("third-party-rc-")))
+
 // AGP's SDK android.jar — needed on the spawned daemon's classpath so JUnit / Robolectric can
 // introspect annotations referencing `android.app.Application` etc. before sandbox bootstrap. The
 // gradle-plugin's `AndroidPreviewClasspath.buildTestClasspath` already does the same thing for
@@ -392,7 +421,18 @@ afterEvaluate {
   val unitTestRJarTask = tasks.findByName("processDebugUnitTestResources")
   val unitTestRJarFiles = unitTestRJarTask?.outputs?.files
   val bootClasspathProvider = androidBootClasspath
-  writeDaemonClasspath.configure {
+  val sidecarRuntimeJarsView =
+    testRuntimeCfg.incoming
+      .artifactView {
+        attributes { attribute(artifactTypeAttr, "jar") }
+        componentFilter { !isConsumerSuppliedRemoteCompose(it) }
+      }
+      .files
+  val sidecarRuntimeJars = project.files(Callable { sidecarRuntimeJarsView })
+  fun Task.writesClasspath(
+    testRuntimeJars: FileCollection,
+    outFile: Provider<RegularFile>,
+  ) {
     dependsOn(mainBundleTask, tfBundleTask)
     if (unitTestRJarTask != null) {
       dependsOn(unitTestRJarTask)
@@ -402,7 +442,6 @@ afterEvaluate {
       inputs.files(unitTestRJarFiles)
     }
     inputs.files(bootClasspathProvider)
-    val outFile = daemonRuntimeClasspathFile
     doLast {
       val all = linkedSetOf<String>()
       // Local module's main JAR + testFixtures JAR first so the daemon's `RenderEngine` and the
@@ -423,6 +462,10 @@ afterEvaluate {
         writeText(all.joinToString(System.lineSeparator()))
       }
     }
+  }
+  writeDaemonClasspath.configure { writesClasspath(testRuntimeJars, daemonRuntimeClasspathFile) }
+  writeSidecarClasspath.configure {
+    writesClasspath(sidecarRuntimeJars, sidecarRuntimeClasspathFile)
   }
 }
 
@@ -472,7 +515,23 @@ afterEvaluate {
   }
 }
 
-artifacts { add(daemonHarnessClasspathFile.name, writeDaemonClasspath) }
+// The sidecar's counterpart, consumed by `:distribution`'s `stageDaemonAndroidLibs`.
+val daemonSidecarClasspathFile =
+  configurations.create("daemonSidecarClasspathFile") {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+    attributes {
+      attribute(
+        Attribute.of("ee.schimke.composeai.daemon.harness.classpath", String::class.java),
+        "android-sidecar",
+      )
+    }
+  }
+
+artifacts {
+  add(daemonHarnessClasspathFile.name, writeDaemonClasspath)
+  add(daemonSidecarClasspathFile.name, writeSidecarClasspath)
+}
 
 composeAiMavenPublishing {
   coordinates(
