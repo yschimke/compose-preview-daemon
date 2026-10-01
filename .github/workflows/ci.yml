@@ -114,5 +114,9 @@ jobs:
           node-version: 20
       - name: Test automated Gradle launcher
         run: .github/scripts/test-agent-gradle.sh
+      # The plan only runs during a release, where both failure directions are quiet: too broad
+      # re-uploads every coordinate, too narrow skips a module Central cannot take a second time.
+      - name: Test the Maven publish plan
+        run: .github/scripts/test-maven-publish-plan.sh
       - run: node scripts/codegen/gen-spatial-scene.mjs --check
       - run: node scripts/codegen/gen-xr-render-service.mjs --check
