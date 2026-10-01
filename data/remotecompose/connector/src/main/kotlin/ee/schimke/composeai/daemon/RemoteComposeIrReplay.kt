@@ -15,7 +15,6 @@ import ee.schimke.composeai.data.render.IrSidecarChannel
 import ee.schimke.composeai.data.render.extensions.IrReplayComposableProvider
 import ee.schimke.composeai.rcembedded.player.RcPlayer
 import ee.schimke.composeai.rcembedded.player.RcPlayerState
-import java.lang.reflect.Modifier as ReflectModifier
 
 /**
  * Replays a Remote Compose preview from a bundle's captured IR (schema v5): the serialized
@@ -48,7 +47,7 @@ class RemoteComposeIrReplay {
     // asked — falls back to the build-wide RemoteComposePlayerSelection, whose own default is the
     // embedded player, matching what a capture bakes through and what the viewer opens on.
     val requested = RemoteComposeController.player.value ?: RemoteComposePlayerSelection.configured
-    val embedded = requested != RemoteComposePlayerKind.VIEW && isEmbeddedPlayerAvailable
+    val embedded = requested != RemoteComposePlayerKind.VIEW
 
     if (embedded) {
       EmbeddedRemoteDocumentPlayer(document = remoteDocument, seededOverrides = seededOverrides)
@@ -68,8 +67,9 @@ class RemoteComposeIrReplay {
 
 /**
  * Draws [document] through the vendored embedded player, seeding [seededOverrides] first. Both
- * embedded call sites in this module go through here, so the one [RcPlayer] call it makes is the
- * entry point [EMBEDDED_PLAYER_ENTRY_POINT_PARAMETERS] pins.
+ * embedded call sites in this module go through here, and call [RcPlayer] directly: a consumer
+ * whose embedded player is missing or reshaped fails loudly at render time rather than falling
+ * back.
  *
  * Every named-value type is seeded, through [RcPlayerState]'s typed states, with the same mapping
  * [applyConnectorOverrides] gives the view player's `StateUpdater` — see [reseed] — so a render
@@ -171,102 +171,6 @@ private class RcPlayerStateSeedTarget(private val state: RcPlayerState) : NamedV
   }
 
   override fun clear(name: String) = state.clearOverride(name)
-}
-
-internal const val EMBEDDED_PLAYER_FACADE = "ee.schimke.composeai.rcembedded.player.RcPlayerKt"
-
-internal const val EMBEDDED_PLAYER_ENTRY_POINT = "RcPlayer"
-
-/**
- * The parameter types of the [EMBEDDED_PLAYER_ENTRY_POINT] overload [EmbeddedRemoteDocumentPlayer]
- * compiles down to, in declaration order.
- *
- * The tail — `Composer, int, int, int` — is Compose's own ABI (composer, two changed masks for the
- * eleven parameters, defaults mask); a Kotlin call site that omits defaults still invokes this full
- * method rather than a `$default` bridge, which is why an argument-order change upstream is a
- * *link* error at render time and not something the compiler can see.
- *
- * Pinned as strings rather than `Class` literals on purpose: the whole point is to answer "is the
- * method this code was compiled against actually on the runtime classpath" without loading a single
- * one of those types, so a classpath missing them answers `false` instead of throwing. Kept honest
- * by `EmbeddedPlayerAvailabilityTest`, which reads this module's own compiled call site out of its
- * constant pool and asserts the descriptor there is the one this list spells.
- */
-internal val EMBEDDED_PLAYER_ENTRY_POINT_PARAMETERS: List<String> =
-  listOf(
-    "ee.schimke.composeai.rcembedded.player.RcPlayerState",
-    "androidx.compose.ui.Modifier",
-    "ee.schimke.composeai.rcembedded.player.RcImageLoader",
-    "kotlin.jvm.functions.Function1",
-    "kotlin.jvm.functions.Function2",
-    "kotlin.jvm.functions.Function3",
-    "ee.schimke.composeai.rcembedded.player.CustomPluginRegistry",
-    "androidx.collection.IntObjectMap",
-    "androidx.collection.IntObjectMap",
-    "androidx.compose.remote.player.core.platform.TypefaceResolver",
-    "int",
-    "androidx.compose.runtime.Composer",
-    "int",
-    "int",
-    "int",
-  )
-
-/**
- * Whether [EMBEDDED_PLAYER_FACADE] on [classLoader] declares the exact entry point this module was
- * compiled against.
- *
- * The ordinary answer is "did the consumer put `:third-party-rc-embedded-player` on the classpath",
- * and since that module moved out of `androidx.compose.remote.player.compose.embedded` into a
- * package nobody else publishes into, nothing can answer it falsely by shadowing.
- *
- * It resolves the *method* rather than the class anyway, because the two are not the same question
- * and the gap between them cost a production render lane. When the vendored player still lived in
- * upstream's package and androidx-main build 16130474 began publishing an embedded player of its
- * own — same fully-qualified names, a reshaped `ExperimentalRemoteDocumentPlayer` — `Class.forName`
- * happily returned upstream's class, the call failed to link, and `serve` disabled `remote-m3`'s
- * whole live render lane on the resulting `NoSuchMethodError` (preview.coo.ee, 22 Aug 2026). The
- * relocation is what makes that unrepeatable; this check is what keeps the failure graceful — a
- * fall back to the View-backed `RemoteDocumentPlayer` — if a consumer ever ships a drifted copy
- * anyway, e.g. a re-vendor whose entry point moved.
- */
-internal fun embeddedPlayerEntryPointPresent(classLoader: ClassLoader?): Boolean = runCatching {
-  declaresEntryPoint(
-    Class.forName(EMBEDDED_PLAYER_FACADE, false, classLoader),
-    EMBEDDED_PLAYER_ENTRY_POINT_PARAMETERS,
-  )
-}
-  .getOrDefault(false)
-
-/**
- * Whether [facade] declares [EMBEDDED_PLAYER_ENTRY_POINT] in the exact shape the call site links
- * against: `public static void` taking exactly [parameters].
- *
- * The modifiers and return type are checked alongside the signature because they are separately
- * load-bearing — the compiled call is an `invokestatic …(…)V`, so a same-named method that is
- * non-static, non-public or returns something else fails to link just as hard, with
- * `IncompatibleClassChangeError` / `IllegalAccessError` / `NoSuchMethodError` respectively. A
- * Kotlin top-level `@Composable fun` always compiles to `public static void` on its `…Kt` facade,
- * so this costs nothing today; it is here so the predicate answers the question it appears to
- * answer rather than a near neighbour of it.
- */
-internal fun declaresEntryPoint(facade: Class<*>, parameters: List<String>): Boolean =
-  facade.declaredMethods.any { method ->
-    method.name == EMBEDDED_PLAYER_ENTRY_POINT &&
-      method.parameterTypes.map { it.name } == parameters &&
-      method.returnType == Void.TYPE &&
-      ReflectModifier.isStatic(method.modifiers) &&
-      ReflectModifier.isPublic(method.modifiers)
-  }
-
-/**
- * Whether an embedded player this connector can actually call is on the runtime classpath. Resolved
- * once per JVM. A consumer that doesn't ship one — or ships one whose entry point has drifted —
- * silently falls back to the view player instead of dying with `NoClassDefFoundError` /
- * `NoSuchMethodError`, the same classloader gate `:daemon:android` uses before registering the
- * Remote Compose extension at all.
- */
-internal val isEmbeddedPlayerAvailable: Boolean by lazy {
-  embeddedPlayerEntryPointPresent(RemoteComposeIrReplay::class.java.classLoader)
 }
 
 /** Registers [RemoteComposeIrReplay] as the replay composable for `remotecompose` IR. */
