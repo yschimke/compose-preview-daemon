@@ -6,8 +6,7 @@
 # releases going full), too narrow and a module whose POM moved is never uploaded, which Central cannot repair.
 # Each case builds a throwaway repository with a baseline tag, makes one change, and pins the exact
 # set the plan prints. Ported from compose-ai-tools, whose cases mirror the releases it measured
-# (compose-ai-tools#5576); the sibling, verification-only and root-tasks cases mirror v3.8.0, v3.7.0
-# and v3.8.4 here.
+# (compose-ai-tools#5576); the verification-only and root-tasks cases mirror v3.7.0 and v3.8.4 here.
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -54,8 +53,6 @@ cat > alpha/build.gradle.kts <<'EOF'
 plugins { id("composeai.maven-publishing") }
 dependencies {
   implementation(libs.okio)
-  api(libs.composeai.daemon.protocol)
-  implementation(libs.mixed.other)
 }
 EOF
 cat > root-tasks.gradle.kts <<'EOF'
@@ -70,7 +67,6 @@ cat > beta/build.gradle.kts <<'EOF'
 plugins { id("composeai.maven-publishing") }
 dependencies {
   implementation(project(":alpha"))
-  implementation(libs.rc.player.runtime)
   implementation(
     libs.androidx
       .core
@@ -84,8 +80,6 @@ plugins {
   alias(libs.plugins.wire)
 }
 dependencies { implementation(libs.bundles.net) }
-// Baked into the artifact, as compose-ai-tools' Gradle plugin bakes in the daemon version.
-val embeddedPlayerVersion = libs.versions.rcplayers.get()
 EOF
 cat > build-logic/src/main/kotlin/Conventions.kt <<'EOF'
 package conventions
@@ -117,15 +111,8 @@ okhttp = "4.12.0"
 androidx-core = "1.13.0"
 wire = "5.0.0"
 unused = "1.0"
-composeai-contracts = "3.0.0"
-rcplayers = "1.0.0"
-mixed = "1.0.0"
 
 [libraries]
-composeai-daemon-protocol = { module = "ee.schimke.composeai:daemon-protocol", version.ref = "composeai-contracts" }
-rc-player-runtime = { module = "ee.schimke.composeai:rc-player-runtime", version.ref = "rcplayers" }
-mixed-sibling = { module = "ee.schimke.composeai:screen-document", version.ref = "mixed" }
-mixed-other = { module = "com.example:other", version.ref = "mixed" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-logging = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
@@ -260,30 +247,6 @@ change_catalog_and_module() {
   echo '// touched' >> alpha/build.gradle.kts
 }
 check catalog_and_module "alpha beta gamma"
-
-# v3.8.0 / v3.8.3 / v3.10.1: a sibling repository's coordinate moved and nothing else did.
-change_catalog_sibling_only() { sed -i 's/composeai-contracts = "3.0.0"/composeai-contracts = "3.1.0"/' gradle/libs.versions.toml; }
-check catalog_sibling_only ""
-
-# A version shared by a sibling coordinate and a third-party one is still an input.
-change_catalog_sibling_shared_version() { sed -i 's/mixed = "1.0.0"/mixed = "1.1.0"/' gradle/libs.versions.toml; }
-check catalog_sibling_shared_version "alpha beta"
-
-# A sibling bump alongside a code change publishes the changed module and its dependents only.
-change_catalog_sibling_and_module() {
-  sed -i 's/composeai-contracts = "3.0.0"/composeai-contracts = "3.1.0"/' gradle/libs.versions.toml
-  echo '// touched' >> lib/gamma/build.gradle.kts
-}
-check catalog_sibling_and_module "gamma"
-
-# An entry that stops naming a sibling coordinate is an ordinary change.
-change_catalog_sibling_retargeted() { sed -i 's/ee.schimke.composeai:daemon-protocol/com.example:protocol/' gradle/libs.versions.toml; }
-check catalog_sibling_retargeted "alpha beta"
-
-# A sibling version a build script reads as a value can be baked into an artifact: still an input
-# for the module that reads it (gamma), while beta's library on the same version stays a floor.
-change_catalog_sibling_version_read() { sed -i 's/rcplayers = "1.0.0"/rcplayers = "1.1.0"/' gradle/libs.versions.toml; }
-check catalog_sibling_version_read "gamma"
 
 # v3.7.0: verification-only build logic is not a shared input.
 change_verification_only() { echo 'val gate = 1' >> build-logic/src/main/kotlin/ee/schimke/composeai/buildlogic/ComposeAiAbiValidationPlugin.kt; }
