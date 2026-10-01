@@ -1,4 +1,4 @@
-package ee.schimke.composeai.daemon
+package ee.schimke.composeai.daemon.remotecompose.androidx
 
 import java.time.ZoneId
 import org.junit.Assert.assertEquals

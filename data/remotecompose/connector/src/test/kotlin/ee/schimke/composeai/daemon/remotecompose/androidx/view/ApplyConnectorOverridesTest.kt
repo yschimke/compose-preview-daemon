@@ -1,4 +1,4 @@
-package ee.schimke.composeai.daemon
+package ee.schimke.composeai.daemon.remotecompose.androidx.view
 
 import android.graphics.Bitmap
 import androidx.compose.remote.player.core.state.StateUpdater

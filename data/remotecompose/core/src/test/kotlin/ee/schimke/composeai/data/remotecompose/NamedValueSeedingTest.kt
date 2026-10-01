@@ -1,16 +1,16 @@
-package ee.schimke.composeai.daemon
+package ee.schimke.composeai.data.remotecompose
 
 import ee.schimke.composeai.daemon.protocol.RemoteNamedValue
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Tests for [reseed] — how [EmbeddedRemoteDocumentPlayer] seeds the embedded player's
- * `RcPlayerState`. The type mapping is pinned against the one [ApplyConnectorOverridesTest] pins
- * for the view player, so a knob means the same thing on either player; the rest pins the re-seed
- * behaviour a second render with a different override set relies on.
+ * Tests for [reseed] — what a seeded named value means to every player. The type mapping is the one
+ * the connector's View-player `ApplyConnectorOverridesTest` pins through a real `StateUpdater`, so
+ * a knob means the same thing on any player; the rest pins the re-seed behaviour a second render
+ * with a different override set relies on.
  */
-class EmbeddedSeedTest {
+class NamedValueSeedingTest {
 
   /** Records every setter call as a tag/name/value triple, and every clear as `clear`/name. */
   private class CapturingTarget : NamedValueSeedTarget {

@@ -2,35 +2,27 @@
 
 package ee.schimke.composeai.daemon
 
-import androidx.compose.remote.core.RemoteClock
-import androidx.compose.remote.core.SystemClock
-import androidx.compose.remote.creation.compose.capture.RemoteCreationDisplayInfo
-import androidx.compose.remote.creation.compose.capture.RemoteDensity
-import androidx.compose.remote.creation.compose.capture.RemoteDensityBehavior
-import androidx.compose.remote.creation.compose.capture.captureSingleRemoteDocument
 import androidx.compose.remote.creation.compose.layout.RemoteComposable
 import androidx.compose.remote.creation.profile.Profile
 import androidx.compose.remote.creation.profile.RcPlatformProfiles
-import androidx.compose.remote.player.compose.RemoteDocumentPlayer
-import androidx.compose.remote.player.core.RemoteDocument
-import androidx.compose.remote.player.core.state.StateUpdater
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewWrapperProvider
-import androidx.compose.ui.unit.LayoutDirection
 import ee.schimke.composeai.daemon.protocol.RemoteComposePlayerKind
-import ee.schimke.composeai.daemon.protocol.RemoteNamedValue
+import ee.schimke.composeai.daemon.remotecompose.RemoteComposeClock
+import ee.schimke.composeai.daemon.remotecompose.RemoteComposeDocumentSource
+import ee.schimke.composeai.daemon.remotecompose.RemoteComposePlayers
+import ee.schimke.composeai.daemon.remotecompose.androidx.capture.AndroidxRemoteCapture
+import ee.schimke.composeai.daemon.remotecompose.androidx.capture.captureAndroidxRemoteDocument
 import ee.schimke.composeai.data.render.IrSidecarChannel
-import java.time.Clock
-import java.time.ZoneId
 import kotlinx.coroutines.runBlocking
 
 /**
  * `PreviewWrapperProvider` that bridges `renderNow.overrides.remoteCompose.namedValues` into the
- * running `RemoteComposePlayer`'s `StateUpdater`. Applied as `@PreviewWrapper(
+ * player replaying the captured document. Applied as `@PreviewWrapper(
  * RemoteOverridablePreviewWrapper::class)` on a `@Preview`-annotated composable so the body stays
  * authoring-shaped (`Container { MyRemoteComponent() }`) — no `RemoteOverridablePreview(...)` /
  * `RemotePreview(...)` call inside the body. This is the canonical shape: preview authors swap one
@@ -41,9 +33,7 @@ import kotlinx.coroutines.runBlocking
  * and override [profile] — the tooling instantiates the wrapper via its no-arg ctor, so per-call
  * overrides aren't a thing the wrapper API supports today.
  *
- * See [RemoteOverridablePreview] for the underlying composable; the wrapper just forwards. See
- * [applyConnectorOverrides] for the leaf that resolves each [RemoteNamedValue] to the matching
- * `StateUpdater.setUserLocal*` setter.
+ * See [RemoteOverridablePreview] for the underlying composable; the wrapper just forwards.
  */
 open class RemoteOverridablePreviewWrapper : PreviewWrapperProvider {
   /** Remote-compose platform profile to capture the document against. Defaults to ANDROIDX. */
@@ -134,21 +124,23 @@ class RemoteViewPreviewWrapper : RemoteOverridablePreviewWrapper() {
 }
 
 /**
- * Composable that captures [content] via `captureSingleRemoteDocument`, hands the document to
- * `RemoteDocumentPlayer`, and installs an `init` callback that applies
- * [RemoteComposeController.namedValues] through the player's [StateUpdater]. Prefer the
- * annotation-only path through [RemoteOverridablePreviewWrapper]; this composable exists for
- * tooling/host code that needs to drive the bridge manually.
+ * Composable that captures [content] as a Remote Compose document and replays it through the
+ * selected [player], seeding [RemoteComposeController.namedValues] over the authored defaults.
+ * Prefer the annotation-only path through [RemoteOverridablePreviewWrapper]; this composable exists
+ * for tooling/host code that needs to drive the bridge manually.
+ *
+ * Both halves bind to the consumer's Remote Compose libraries, and both are checked before they
+ * run: the capture through `AndroidxRemoteCapture`, the player through
+ * [ee.schimke.composeai.daemon.remotecompose.RemoteComposePlayers]. Either refuses with a
+ * [ee.schimke.composeai.daemon.remotecompose.RemoteComposeLinkageException] naming what the
+ * consumer's version lacks, rather than failing mid-composition.
  *
  * The "USER:" domain prefix that `rememberNamedRemoteString` (and the rest of the `rememberNamed*`
- * family) uses on the writer side is the same prefix `StateUpdater.setUserLocal*` consumes, so a
- * binding declared with `rememberNamedRemoteString("label", "Tap me")` is reachable by passing the
- * bare `"label"` (no manual prefix) into the override map.
- *
- * `RemoteNamedValue.BooleanValue` has no `setUserLocalBoolean` counterpart in alpha010; we collapse
- * it to `setUserLocalInt(name, 0 | 1)` so consumer code that bound the same name to a
- * `rememberNamedRemoteInt` sees the toggled value. `RemoteNamedValue.DpValue` maps to
- * `setUserLocalFloat` (dp units are densitised float values once they reach the player).
+ * family) uses on the writer side is the same prefix the players' named-value overrides consume, so
+ * a binding declared with `rememberNamedRemoteString("label", "Tap me")` is reachable by passing
+ * the bare `"label"` (no manual prefix) into the override map. What each `RemoteNamedValue` kind
+ * means to a player is fixed in one place for every player:
+ * [ee.schimke.composeai.data.remotecompose.reseed].
  *
  * When the connector has no seeded overrides (the default in a vanilla `composePreviewRenderAll`
  * run) the loop is a no-op and the preview renders with each `rememberNamedRemote*`'s declared
@@ -177,66 +169,9 @@ fun RemoteOverridablePreview(
   // but it still describes the composition the capture ran in, so it is passed either way rather
   // than being made conditional on the lane.
   val fontScale = LocalDensity.current.fontScale
-  // Capture in `Legacy` density behavior — the library's own default, and the only value that
-  // describes what `remote-creation-compose` actually writes.
-  //
-  // `RemoteDensityBehavior.Legacy` is what both `RemoteCreationDisplayInfo` overloads default to,
-  // and what `CoreDocument.DEFAULT_DENSITY_BEHAVIOR` is. Its kdoc — "Values are interpreted as
-  // pixels" — accurately describes the document the creation library produces. Passing it is
-  // therefore not a workaround; it undoes an override that asserted something untrue about our own
-  // capture.
-  //
-  // The header is a single global flag, but the document it describes is MIXED, and the creation
-  // library's choice does not follow the flag — a document captured under `Dp` and one captured
-  // under `Pixels` are byte-identical. What it writes is fixed:
-  //
-  //   padding / spacedBy gaps / border width / clip radii   PIXELS (`RemoteDp.toPx()` at capture)
-  //   heightIn / widthIn                                    DP     (relies on core to scale)
-  //   height / width                                        EXACT_DP, self-describing
-  //
-  // And remote-core applies a DIFFERENT density predicate per op:
-  //
-  //   PaddingModifierOperation          updateVariables  scales when behavior == DP
-  //   RoundedClipRectModifierOperation  paint            scales when behavior == DP
-  //   DimensionInModifierOperation      updateVariables  scales when behavior != PIXELS
-  //   DimensionModifierOperation        —                never; branches on EXACT / EXACT_DP
-  //
-  // So no non-default flag is right for every op, and `Legacy` is right for all of them *as the
-  // library writes them*: padding and clip radii are left alone (already px) and `heightIn` is
-  // scaled (it is dp). `Dp` — what this used to declare — asserts that padding is dp, so core
-  // multiplied already-scaled pixels a second time. That is one bug, and it surfaced three times:
-  // the outlined card's border (wear-m3-catalog#89), the compact button's height (#90), and
-  // `RemoteButtonGroup`'s 4dp gap rendering at 8dp.
-  //
-  // What this costs: `Legacy` is safe and correct today, but it is the legacy track, and its own
-  // kdoc concedes that "historically some layout properties might have behaved differently" — the
-  // `!= PIXELS` predicate above is one of those. The forward-looking value is `Dp`, and it stays
-  // unusable until the creation library honours it. Tracked in #4735.
-  //
-  // The comment this replaces rejected `Legacy` because "Material3 button/card fills and the
-  // circular-progress indicator come out ~1/density too small". That description was wrong —
-  // measured across the 57-sticker `remote-catalog` sheet, `Legacy` renders 56 byte-identical to
-  // `Dp` and fixes the 57th. The symptom behind it was a player-side bug, not a serialisation one.
-  //
-  // `DOC_DENSITY_AT_GENERATION` is still stamped below: the alpha writer records DOC_WIDTH/HEIGHT
-  // in px and the behavior but not the density value, and the player needs it to resolve the
-  // dp-typed dimensions.
-  //
-  // None of the above changes under `RemoteCaptureDensity.HOST`. That setting picks what the
-  // conversions are written *as* — a constant, or an expression over `FLOAT_DENSITY` — while
-  // `densityBehavior` declares how the player should *interpret* what it finds. A `RemoteDp.toPx()`
-  // that used to emit the number 24 emits an expression evaluating to 24 at the capture density;
-  // it is still the pixel-typed payload `Legacy` describes, so the per-op predicates above still
-  // land the same way. What does change is that the value is no longer knowable without running
-  // the graph — see `RemoteDensitySelection` for who that matters to.
-  val displayInfo =
-    RemoteCreationDisplayInfo(
-      displayMetrics.widthPixels,
-      displayMetrics.heightPixels,
-      displayMetrics.densityDpi,
-      fontScale,
-      densityBehavior = RemoteDensityBehavior.Legacy,
-    )
+  // Refused by name, before the capture runs, when the consumer's creation library has moved
+  // under the call below — see `AndroidxRemoteCapture`.
+  AndroidxRemoteCapture.requireLinked()
   // Same capture pattern as upstream `RemotePreview` — `runBlocking` inside `remember` so the
   // document materialises once per (profile, content) pair without re-capturing across
   // recompositions. Collect the knobs the content declares during the capture (via the
@@ -245,36 +180,17 @@ fun RemoteOverridablePreview(
     remember(profile, content) {
       RemoteComposeController.collectingDeclarations {
         runBlocking {
-          // Which `RemoteDensity` the capture converts dp and sp through, and therefore whether
-          // the document that comes out can answer a `?fontScale=` request at all.
-          //
-          //   FIXED  `from(displayInfo)` folds `density` and `fontScale` into literal
-          //          `RemoteFloat` constants. Nothing downstream can move them.
-          //   HOST   `RemoteDensity.Host` binds density to `RemoteContext.FLOAT_DENSITY` and font
-          //          scale to `Rc.System.FONT_SIZE / 14 / density`; both resolve at paint time
-          //          from the variables every player already writes.
-          //
-          // The property is Kotlin-cased `Host`, not `HOST` — it is a companion `val` on
-          // `RemoteDensity`, not an enum constant, and the capital is the whole name.
-          //
-          // `RemoteDensitySelection` explains why this is a per-build setting defaulting to
-          // FIXED rather than a straight fix: HOST also defers *density*, so it changes what a
-          // captured `.rc` means about geometry, not only about text.
-          val remoteDensity =
-            when (captureDensity) {
-              RemoteCaptureDensity.HOST -> RemoteDensity.Host
-              RemoteCaptureDensity.FIXED -> RemoteDensity.from(displayInfo)
-            }
           val bytes =
-            captureSingleRemoteDocument(
-                context,
-                displayInfo,
-                remoteDensity,
-                LayoutDirection.Ltr,
-                profile = profile,
-                content = content,
-              )
-              .bytes
+            captureAndroidxRemoteDocument(
+              context,
+              displayMetrics.widthPixels,
+              displayMetrics.heightPixels,
+              displayMetrics.densityDpi,
+              fontScale,
+              captureDensity,
+              profile,
+              content,
+            )
           // The `Dp` capture keeps size modifiers in dp but the alpha writer doesn't record the
           // generation density *value* (only DOC_WIDTH/HEIGHT in px and the density behavior).
           // Stamp
@@ -301,11 +217,15 @@ fun RemoteOverridablePreview(
           // current preview id). Best-effort — never fail the render over IR capture. See
           // IrSidecarChannel.
           runCatching { IrSidecarChannel.offer(IrSidecarChannel.FORMAT_REMOTECOMPOSE, stamped) }
-          remoteDocumentForPreview(bytes)
+          RemoteComposeDocumentSource(
+            bytes,
+            if (android.os.Build.FINGERPRINT == "robolectric") RemoteComposeClock.ROBOLECTRIC_UPTIME
+            else RemoteComposeClock.SYSTEM,
+          )
         }
       }
     }
-  val remoteDocument = captured.first
+  val document = captured.first
   val declaredKnobs = captured.second
 
   // Re-record the captured knobs on EVERY render. The memoized capture above records them only once
@@ -327,73 +247,17 @@ fun RemoteOverridablePreview(
   // controller's `MutableState`, so a follow-up render with a new override re-runs the bridge.
   val seededOverrides = RemoteComposeController.namedValues.value
 
+  // Resolved (and linkage-checked) before anything draws: a player the consumer's libraries cannot
+  // satisfy is refused by name here, never swapped for the other one.
+  val backend = RemoteComposePlayers.forKind(player)
+
   // Recorded rather than left for a reader to derive from the wrapper — see
-  // [RemoteComposeController.recordCapturePlayer]. Asking for the embedded player is getting it:
-  // there is no silent fallback to the view player when it is missing or reshaped.
-  val embedded = player == RemoteComposePlayerKind.EMBEDDED
+  // [RemoteComposeController.recordCapturePlayer].
   androidx.compose.runtime.SideEffect {
-    RemoteComposeController.recordCapturePlayer(if (embedded) "cmp-android" else "java")
+    RemoteComposeController.recordCapturePlayer(backend.capturePlayerName)
   }
 
-  if (embedded) {
-    EmbeddedRemoteDocumentPlayer(
-      document = remoteDocument,
-      seededOverrides = seededOverrides,
-      modifier = modifier,
-    )
-  } else {
-    RemoteDocumentPlayer(
-      document = remoteDocument.document,
-      documentWidth = displayMetrics.widthPixels,
-      documentHeight = displayMetrics.heightPixels,
-      modifier = modifier,
-      init = { remotePlayer ->
-        applyConnectorOverrides(remotePlayer.stateUpdater, seededOverrides)
-        installGoogleFontTypefaceResolver(remotePlayer)
-      },
-    )
-  }
-}
-
-/**
- * Builds a player document whose time source is controllable by Robolectric's paused Android
- * looper. Remote Compose's default [SystemClock] reads `java.time.Clock` / `System.nanoTime()`, so
- * advancing Compose's test clock (or Robolectric's shadow looper) cannot move it and an animated
- * View-backed preview is captured at whatever real-time phase the render happens to reach.
- *
- * Production keeps the upstream clock unchanged. Under Robolectric, elapsed time starts at zero
- * when the document is created and advances only with `android.os.SystemClock.uptimeMillis()`. The
- * animated renderer advances that shadow clock alongside Compose's `mainClock`, giving both the
- * View-backed and Compose-backed players the same deterministic frame cadence.
- */
-private fun remoteDocumentForPreview(bytes: ByteArray): RemoteDocument =
-  if (android.os.Build.FINGERPRINT == "robolectric") {
-    RemoteDocument(bytes.inputStream(), RobolectricRemoteClock())
-  } else {
-    RemoteDocument(bytes)
-  }
-
-internal class RobolectricRemoteClock(
-  private val startUptimeMillis: Long = android.os.SystemClock.uptimeMillis(),
-  private val uptimeMillis: () -> Long = android.os.SystemClock::uptimeMillis,
-  private val clockZoneId: ZoneId = ZoneId.of("UTC"),
-) : RemoteClock {
-  private val snapshotClock = SystemClock(Clock.fixed(java.time.Instant.EPOCH, clockZoneId))
-
-  private fun elapsedMillis(): Long = (uptimeMillis() - startUptimeMillis).coerceAtLeast(0L)
-
-  override fun millis(): Long = elapsedMillis()
-
-  override fun nanoTime(): Long = elapsedMillis() * NANOS_PER_MILLISECOND
-
-  override fun getZoneId(): String = clockZoneId.id
-
-  override fun snapshot(epochMillis: Long?): RemoteClock.TimeSnapshot =
-    snapshotClock.snapshot(epochMillis ?: millis())
-
-  private companion object {
-    const val NANOS_PER_MILLISECOND = 1_000_000L
-  }
+  backend.Play(document = document, namedValues = seededOverrides, modifier = modifier)
 }
 
 // Remote Compose modern-header wire constants (big-endian). The header op is:
@@ -451,61 +315,4 @@ internal fun stampGenerationDensity(bytes: ByteArray, density: Float): ByteArray
   out[24] = densBits.toByte()
   System.arraycopy(bytes, 17, out, 25, bytes.size - 17)
   return out
-}
-
-/**
- * Pushes every entry of [overrides] through [updater] using the matching `setUserLocal*` setter for
- * the `RemoteNamedValue` variant. Internal but visible for tests; ordinary callers reach this via
- * [RemoteOverridablePreview] / [RemoteOverridablePreviewWrapper].
- *
- * **A string seed does not currently reach a replayed document.** Colour, float, dp and int seeds
- * all move pixels on the published `remote-m3` catalog (`rc.shaderColor`, `rc.progress`); a string
- * seed (`rc.label`, `rc.text`) comes back byte-identical to the un-overridden render. The
- * divergence is not in this function or its callers — every branch below is covered by
- * `ApplyConnectorOverridesTest`, and in the alpha player (1.0.0-alpha16) `setUserLocalString` →
- * `RemoteContext.setNamedStringOverride` → `overrideText` → `RemoteComposeState.overrideData` is
- * structurally identical to the float path that works, down to the same bounds guard and the same
- * `updateListeners` call. Whatever swallows it sits below that, in how the player re-resolves text
- * it has already laid out.
- *
- * Until it lands, the serve layer reports a string seed as un-applied rather than answering `200`
- * with unchanged pixels — see `CatalogLiveRouting.irReplayDroppedOverrideNames`, whose
- * `IrReplayDroppedOverridesTest` is what will fail (deliberately) on the day the player honours it.
- */
-internal fun applyConnectorOverrides(
-  updater: StateUpdater,
-  overrides: Map<String, RemoteNamedValue>,
-) {
-  for ((name, value) in overrides) {
-    when (value) {
-      is RemoteNamedValue.StringValue -> updater.setUserLocalString(name, value.value)
-      is RemoteNamedValue.FloatValue -> updater.setUserLocalFloat(name, value.value)
-      is RemoteNamedValue.IntValue -> updater.setUserLocalInt(name, value.value)
-      is RemoteNamedValue.DpValue -> updater.setUserLocalFloat(name, value.value)
-      is RemoteNamedValue.BooleanValue -> updater.setUserLocalInt(name, if (value.value) 1 else 0)
-      is RemoteNamedValue.ColorValue ->
-        rcColorToArgb(value.argb)?.let { updater.setUserLocalColor(name, it) }
-    }
-  }
-}
-
-/**
- * An rc colour string as an ARGB int: strip a leading `#` (or its URL-encoded `%23`), treat a
- * six-digit `#RRGGBB` as **opaque**, and accept only a resulting 8 hex digits. Null when it won't
- * parse.
- *
- * The wire model carries `argb` as an arbitrary string — a typo in a panel value would otherwise
- * crash the render path — so an unparseable colour is skipped by the callers rather than thrown.
- *
- * Prepending `FF` is the load-bearing part. Without it `#RRGGBB` becomes `0x00RRGGBB`, fully
- * transparent, so a six-digit seed *erases* what it was meant to recolour. Six digits is the
- * ordinary spelling of a colour — it is what a hand-typed `?rc.WearM3.primary=color:%23FF6F61`
- * carries, and what `ServeHost.themeReplayColors` publishes for a theme — and until now only the
- * cmp-jvm lane (`RcJvmServerRenderer.rcColorToArgb`, which this mirrors deliberately) read it that
- * way, leaving the two players disagreeing about the same request.
- */
-internal fun rcColorToArgb(raw: String): Int? {
-  val hex = raw.removePrefix("%23").removePrefix("#")
-  val opaque = if (hex.length == 6) "FF$hex" else hex
-  return opaque.takeIf { it.length == 8 }?.toLongOrNull(16)?.toInt()
 }

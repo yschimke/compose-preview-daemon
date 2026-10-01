@@ -1,6 +1,6 @@
 @file:Suppress("RestrictedApiAndroidX")
 
-package ee.schimke.composeai.daemon
+package ee.schimke.composeai.daemon.remotecompose.androidx.view
 
 import android.graphics.Typeface
 import android.view.ViewGroup
