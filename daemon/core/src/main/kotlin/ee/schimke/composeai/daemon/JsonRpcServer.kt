@@ -572,6 +572,23 @@ public class JsonRpcServer(
    */
   private val previewIdsWithOverridesInFlight = ConcurrentHashMap.newKeySet<String>()
 
+  /**
+   * Preview ids whose override-bearing render has sent `renderFinished` but is still recording
+   * history, so [previewIdsWithOverridesInFlight] is still set. A client that resubmits on
+   * `renderFinished`, as the coalescing contract tells it to, lands in this window; rejecting it
+   * there with `coalesced` would tell the client to wait for a `renderFinished` that never comes.
+   * Instead the request is parked in [overridesAfterFinish] and submitted when the window closes.
+   */
+  private val previewIdsFinishing = HashSet<String>()
+
+  /** The latest override-bearing request parked per preview id; see [previewIdsFinishing]. */
+  private val overridesAfterFinish = HashMap<String, PreviewOverrides>()
+
+  /**
+   * Guards [previewIdsFinishing], [overridesAfterFinish] and their hand-off to the in-flight set.
+   */
+  private val overridesFinishLock = Any()
+
   private val writerThread =
     Thread({ writerLoop() }, "compose-ai-daemon-writer").apply { isDaemon = false }
 
@@ -1009,28 +1026,60 @@ public class JsonRpcServer(
       // a fast drag fans out to N parallel sandbox renders that all serialise on the same slot.
       // No coalescing on plain (no-overrides) `renderNow` so the existing save-debounce loop is
       // unaffected.
-      if (overrides != null && !previewIdsWithOverridesInFlight.add(previewId)) {
-        rejected.add(
-          RejectedRender(
-            id = previewId,
-            reason = "coalesced: override-bearing render already in flight for this previewId",
-          )
-        )
-        continue
+      if (overrides != null) {
+        val admission =
+          synchronized(overridesFinishLock) {
+            when {
+              previewIdsWithOverridesInFlight.add(previewId) -> OverrideAdmission.SUBMIT
+              previewId in previewIdsFinishing -> {
+                // The in-flight render already sent renderFinished: run this one after it, with
+                // the latest overrides winning, rather than reject a correctly-timed resubmit.
+                overridesAfterFinish[previewId] = overrides
+                OverrideAdmission.AFTER_FINISH
+              }
+              else -> OverrideAdmission.COALESCED
+            }
+          }
+        when (admission) {
+          OverrideAdmission.SUBMIT -> {}
+          OverrideAdmission.AFTER_FINISH -> {
+            queued.add(previewId)
+            continue
+          }
+          OverrideAdmission.COALESCED -> {
+            rejected.add(
+              RejectedRender(
+                id = previewId,
+                reason = "coalesced: override-bearing render already in flight for this previewId",
+              )
+            )
+            continue
+          }
+        }
       }
-      val hostId = RenderHost.nextRequestId()
-      hostIdToPreviewId[hostId] = previewId
-      overrides?.let { hostIdToOverrides[hostId] = it }
-      acceptedAtMs[hostId] = now
-      inFlightRenders.add(hostId)
-      // Submit to host on a worker thread so we don't block the read loop.
-      // submit() returns when the host returns a result; the watcher thread
-      // demuxes the result back into renderFinished.
-      submitRenderAsync(hostId, overrides)
+      submitRender(previewId, overrides, acceptedAt = now)
       queued.add(previewId)
     }
     val result = RenderNowResult(queued = queued, rejected = rejected)
     sendResponse(req.id, encode(RenderNowResult.serializer(), result))
+  }
+
+  private enum class OverrideAdmission {
+    SUBMIT,
+    AFTER_FINISH,
+    COALESCED,
+  }
+
+  private fun submitRender(previewId: String, overrides: PreviewOverrides?, acceptedAt: Long) {
+    val hostId = RenderHost.nextRequestId()
+    hostIdToPreviewId[hostId] = previewId
+    overrides?.let { hostIdToOverrides[hostId] = it }
+    acceptedAtMs[hostId] = acceptedAt
+    inFlightRenders.add(hostId)
+    // Submit to host on a worker thread so we don't block the read loop.
+    // submit() returns when the host returns a result; the watcher thread
+    // demuxes the result back into renderFinished.
+    submitRenderAsync(hostId, overrides)
   }
 
   private fun submitRenderAsync(hostId: Long, overrides: PreviewOverrides? = null) {
@@ -1201,10 +1250,11 @@ public class JsonRpcServer(
     // `<previewId>.metrics.json` carries a `tookMs` entry) populate this; stub hosts return null
     // and we emit `tookMs = 0`. Other RenderMetrics fields (heap / native / sandbox-age) stay
     // null until B2.3 wires the cost-model collection path.
+    val renderOverrides = hostIdToOverrides.remove(result.id)
     try {
       extensions
         .activeDataProducts()
-        .onRender(previewId, result, hostIdToOverrides.remove(result.id), result.previewContext)
+        .onRender(previewId, result, renderOverrides, result.previewContext)
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: data product onRender failed for $previewId " +
@@ -1236,6 +1286,8 @@ public class JsonRpcServer(
     // A client can enqueue another save as soon as it receives this frame. That save must not
     // be drained by this render's later history/cleanup work.
     val discoveryBoundary = deferredDiscovery.currentSequence()
+    if (renderOverrides != null)
+      synchronized(overridesFinishLock) { previewIdsFinishing.add(previewId) }
     sendNotification("renderFinished", encode(RenderFinishedParams.serializer(), outboundFinished))
     // Live-frame streaming (`composestream/1`). The streaming layer is a *consumer* of the
     // renderFinished above, not a replacement for it: legacy clients keep painting via
@@ -1289,7 +1341,24 @@ public class JsonRpcServer(
     // render can't overwrite per-preview artifacts before this frame's sidecar is recorded. The
     // brief window where this flag stays set after renderFinished is covered by the serve host's
     // bounded coalesced-retry (ServeRenderHost), so no client loses a render to it.
-    previewIdsWithOverridesInFlight.remove(previewId)
+    // An override-bearing request that arrived in that window was parked rather than rejected; it
+    // takes over the in-flight slot here, so the next render still can't overtake it.
+    if (renderOverrides != null) {
+      val next =
+        synchronized(overridesFinishLock) {
+          previewIdsFinishing.remove(previewId)
+          overridesAfterFinish.remove(previewId).also {
+            if (it == null || shutdownRequested.get()) {
+              previewIdsWithOverridesInFlight.remove(previewId)
+            }
+          }
+        }
+      if (next != null && !shutdownRequested.get()) {
+        submitRender(previewId, next, acceptedAt = System.currentTimeMillis())
+      }
+    } else {
+      previewIdsWithOverridesInFlight.remove(previewId)
+    }
     // D3 — wake any `data/fetch` waiter that queued this render. The waiter re-invokes
     // `dataProducts.fetch` to materialise the payload. We complete the future regardless of
     // dedup (`unchanged: true`): the producer's payload may have changed even when the bytes
