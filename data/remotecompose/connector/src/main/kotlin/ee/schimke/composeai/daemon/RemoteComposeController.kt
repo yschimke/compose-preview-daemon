@@ -8,6 +8,7 @@ import ee.schimke.composeai.daemon.protocol.RemoteComposePlayerKind
 import ee.schimke.composeai.daemon.protocol.RemoteComposeProfile
 import ee.schimke.composeai.daemon.protocol.RemoteHostAction
 import ee.schimke.composeai.daemon.protocol.RemoteNamedValue
+import ee.schimke.composeai.daemon.remotecompose.RemoteComposePlayers
 import ee.schimke.composeai.data.remotecompose.RemoteComposeDeclarationsPayload
 import ee.schimke.composeai.data.remotecompose.RemoteComposeKnobDeclaration
 import ee.schimke.composeai.data.remotecompose.RemoteComposePayload
@@ -58,11 +59,16 @@ object RemoteComposeController {
   private val profileState: MutableState<RemoteComposeProfile?> = mutableStateOf(null)
 
   /**
-   * Which player replays a bundle's captured document ([RemoteComposeIrReplay]). Null means the
-   * default — the `remote-player-view`-backed `RemoteDocumentPlayer` — so a render that never sets
-   * this is byte-identical to before the embedded lane existed.
+   * Which built-in player replays a bundle's captured document ([RemoteComposeIrReplay]). Null
+   * leaves it to [playerIdState], then to the build-wide [RemoteComposePlayerSelection.configured].
    */
   private val playerState: MutableState<RemoteComposePlayerKind?> = mutableStateOf(null)
+
+  /**
+   * The player the override names by id — any player [RemoteComposePlayers] can resolve, built-in
+   * or registered. Outranks [playerState]; see [RemoteComposeOverride.playerId].
+   */
+  private val playerIdState: MutableState<String?> = mutableStateOf(null)
 
   // Editable named-value knobs the current render declared, keyed by name for dedup with first-seen
   // order preserved (a re-declaration during recomposition replaces the entry in place). Mirrors
@@ -110,6 +116,9 @@ object RemoteComposeController {
 
   val player: State<RemoteComposePlayerKind?>
     get() = playerState
+
+  val playerId: State<String?>
+    get() = playerIdState
 
   /**
    * The `rcPlayer` wire id of the player that actually drew the current capture, or null when
@@ -295,16 +304,19 @@ object RemoteComposeController {
     val namedValues = override?.namedValues ?: emptyMap()
     val profile = override?.profile
     val player = override?.player
+    val playerId = override?.playerId?.takeIf { it.isNotBlank() }
     val accepted = override?.acceptedHostActions?.toSet()
     val changed =
       namedValuesState.value != namedValues ||
         profileState.value != profile ||
         playerState.value != player ||
+        playerIdState.value != playerId ||
         acceptedActionPayloads != accepted
     if (!changed) return
     namedValuesState.value = namedValues
     profileState.value = profile
     playerState.value = player
+    playerIdState.value = playerId
     acceptedActionPayloads = accepted
     listeners.toList().forEach { it() }
   }
@@ -358,8 +370,22 @@ object RemoteComposeController {
    * view-backed and embedded players mid-session doesn't clear the state it seeded earlier.
    */
   fun setPlayer(player: RemoteComposePlayerKind?) {
-    if (playerState.value == player) return
+    // An id outranks the enum, so a toggle that left one in place would change nothing.
+    if (playerState.value == player && playerIdState.value == null) return
     playerState.value = player
+    playerIdState.value = null
+    listeners.toList().forEach { it() }
+  }
+
+  /**
+   * Replace just the replay player, by id — any player [RemoteComposePlayers.forId] resolves, built
+   * in or registered — with the same merge-don't-replace semantics as [setPlayer]. A blank id
+   * clears it.
+   */
+  fun setPlayerId(playerId: String?) {
+    val id = playerId?.takeIf { it.isNotBlank() }
+    if (playerIdState.value == id) return
+    playerIdState.value = id
     listeners.toList().forEach { it() }
   }
 
@@ -405,6 +431,7 @@ object RemoteComposeController {
     hostActionsState.value = emptyList()
     profileState.value = null
     playerState.value = null
+    playerIdState.value = null
     declarationsState.value = emptyMap()
     activePreviewId = null
     acceptedActionPayloads = null

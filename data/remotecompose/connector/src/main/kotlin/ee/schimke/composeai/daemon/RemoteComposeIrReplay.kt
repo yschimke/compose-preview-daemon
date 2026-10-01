@@ -31,12 +31,16 @@ class RemoteComposeIrReplay {
     val document = remember(bytes) { RemoteComposeDocumentSource(bytes) }
     // Which player draws is read from the controller rather than passed in: the daemon resolves
     // this composable reflectively against a fixed `(ByteArray)` signature (see the class doc), so
-    // there is no parameter to thread a choice through. A per-render request (`?rcPlayer=java` →
-    // RemoteComposePlayerKind.VIEW) is what the caller is asking to see, so it wins; null —
-    // nothing asked — falls back to the build-wide RemoteComposePlayerSelection, whose own default
-    // is the embedded player, matching what a capture bakes through and what the viewer opens on.
-    val requested = RemoteComposeController.player.value ?: RemoteComposePlayerSelection.configured
-    RemoteComposePlayers.forKind(requested)
+    // there is no parameter to thread a choice through. A per-render request is what the caller is
+    // asking to see, so it wins — by id (`playerId`, any registered player) before the built-in
+    // enum (`?rcPlayer=java` → RemoteComposePlayerKind.VIEW). Nothing asked falls back to the
+    // build-wide RemoteComposePlayerSelection, whose own default is the embedded player, matching
+    // what a capture bakes through and what the viewer opens on.
+    RemoteComposePlayers.resolve(
+        playerId = RemoteComposeController.playerId.value,
+        kind = RemoteComposeController.player.value,
+        default = RemoteComposePlayerSelection.configured,
+      )
       .Play(
         document = document,
         namedValues = RemoteComposeController.namedValues.value,
