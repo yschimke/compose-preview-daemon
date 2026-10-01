@@ -16,10 +16,17 @@
 #   4. the version catalog changed an entry its own build script uses (a catalog entry that a
 #      shared build file uses is rule 3 instead, and publishes everything).
 #
-# Rules 3 and 4 are ported from compose-ai-tools' copy of this script, with one addition measured
+# Rules 3 and 4 are ported from compose-ai-tools' copy of this script, with two additions measured
 # against this repository's releases since the plan landed (v3.6.0..v3.11.0, where 9 of 14 releases
 # published all 69 modules):
 #
+#   - SIBLING COORDINATES ARE FLOORS, NOT INPUTS. A catalog entry naming another
+#     `ee.schimke.composeai` coordinate (compose-preview-contracts, rc-players) is ignored by rules
+#     3 and 4. A bump of one changes no byte this repository builds, only the version its POMs
+#     name, and that version is a minimum: Gradle resolves the highest one in the graph, and
+#     consumers align the group through each repository's BOM. A module that needs the newer
+#     sibling changes its own code in the same release and publishes by rule 1. Three of the 9 full
+#     releases (v3.8.0, v3.8.3, v3.10.1) were sibling bumps and nothing else.
 #   - VERIFICATION-ONLY BUILD LOGIC IS NOT SHARED. The files in VERIFICATION_ONLY register checks
 #     (`checkKotlinAbi`, `checkDependencyOwnership`, `checkHttpServerFloor`) and reach no artifact.
 #
@@ -176,6 +183,9 @@ VERIFICATION_ONLY = {
     "build-logic/src/main/kotlin/ee/schimke/composeai/buildlogic/CheckHttpServerFloor.kt",
     "build-logic/src/main/kotlin/ee/schimke/composeai/buildlogic/ComposeAiAbiValidationPlugin.kt",
 }
+# The group every sibling repository publishes under. See "SIBLING COORDINATES" in the header.
+SIBLING_GROUP = "ee.schimke.composeai"
+
 SHARED = re.compile(r"^(build-logic/|gradle/|gradlew|settings\.gradle\.kts$|build\.gradle\.kts$)")
 NOT_SHARED = re.compile(r"^build-logic/src/(test|testFixtures|functionalTest|integrationTest)/")
 SHARED_KOTLIN = re.compile(r"^(build-logic/.*\.kts?|settings\.gradle\.kts|build\.gradle\.kts)$")
@@ -247,7 +257,66 @@ def catalog_changes(tag):
     for k in set(o) | set(n):
         if o.get(k) != n.get(k) or set(o.get(k) or ()) & moved_libs or set(n.get(k) or ()) & moved_libs:
             changed.add(f"bundles.{k}")
-    return changed
+    return changed - sibling_entries(old, new)
+
+
+def sibling_entries(old, new):
+    """Catalog entries that only ever name a sibling coordinate. See "SIBLING COORDINATES".
+
+    A library or plugin is a sibling when its coordinate is in SIBLING_GROUP at both revisions; a
+    version is one when every library and plugin that refers to it, at both revisions, is, AND no
+    build script reads it as a value (`libs.versions.foo`, `findVersion("foo")`). A version read as
+    a value can be baked into an artifact -- compose-ai-tools' Gradle plugin embeds the daemon
+    version it launches -- so it stays an input. A version also used by anything else stays an
+    input, and so does a bundle.
+    """
+    def coordinate(section, entry):
+        if isinstance(entry, str):
+            return entry
+        if not isinstance(entry, dict):
+            return ""
+        if section == "plugins":
+            return entry.get("id", "")
+        return entry.get("module") or f"{entry.get('group', '')}:{entry.get('name', '')}"
+
+    def is_sibling(section, entry):
+        c = coordinate(section, entry)
+        return c.startswith(SIBLING_GROUP + ":") or (section == "plugins" and c.startswith(SIBLING_GROUP + "."))
+
+    out = set()
+    refs = collections.defaultdict(list)
+    for cat in (old, new):
+        for section, prefix in (("libraries", ""), ("plugins", "plugins.")):
+            for k, e in cat.get(section, {}).items():
+                sib = is_sibling(section, e)
+                r = version_ref(e)
+                if r:
+                    refs[r].append(sib)
+                if sib:
+                    out.add(prefix + k)
+    for section, prefix in (("libraries", ""), ("plugins", "plugins.")):
+        for k in set(old.get(section, {})) | set(new.get(section, {})):
+            if prefix + k in out and not all(
+                is_sibling(section, cat.get(section, {}).get(k)) for cat in (old, new) if k in cat.get(section, {})
+            ):
+                out.discard(prefix + k)
+    out |= {f"versions.{r}" for r, sibs in refs.items() if sibs and all(sibs) and not read_as_value(r)}
+    return out
+
+
+def read_as_value(version):
+    """Does any build script read catalog version `version` itself, rather than through a library?"""
+    dotted = re.sub(r"[-_.]", ".", version)
+    accessor = re.compile(r"\blibs\.versions\." + re.escape(dotted) + r"(?![A-Za-z0-9_])", re.I)
+    by_name = re.compile(r'findVersion\(\s*"' + r"[-_.]".join(map(re.escape, re.split(r"[-_.]", version))) + '"', re.I)
+    for root, dirnames, names in os.walk("."):
+        dirnames[:] = [d for d in dirnames if d not in ("build", ".gradle", ".git", "node_modules")]
+        for n in names:
+            if n.endswith(".gradle.kts") or (n.endswith(".kt") and "build-logic" in root):
+                text = normalise_script(read(os.path.join(root, n)))
+                if accessor.search(text) or by_name.search(text):
+                    return True
+    return False
 
 def reference_patterns(entries):
     """Regexes that find a use of any of `entries` in a build script.
