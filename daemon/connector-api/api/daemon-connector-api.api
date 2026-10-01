@@ -1,0 +1,194 @@
+public abstract interface class ee/schimke/composeai/daemon/AlwaysOnPreviewOverrideExtension {
+}
+
+public abstract interface class ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field Companion Lee/schimke/composeai/daemon/DataProductRegistry$Companion;
+	public abstract fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	public abstract fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public abstract fun getCapabilities ()Ljava/util/List;
+	public fun isKnown (Ljava/lang/String;)Z
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/DataProductRegistry$Companion {
+	public final fun getEmpty ()Lee/schimke/composeai/daemon/DataProductRegistry;
+}
+
+public final class ee/schimke/composeai/daemon/DataProductRegistry$DefaultImpls {
+	public static fun isKnown (Lee/schimke/composeai/daemon/DataProductRegistry;Ljava/lang/String;)Z
+	public static fun onRender (Lee/schimke/composeai/daemon/DataProductRegistry;Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public static fun onRenderFailed (Lee/schimke/composeai/daemon/DataProductRegistry;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static fun onSubscribe (Lee/schimke/composeai/daemon/DataProductRegistry;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public static fun onUnsubscribe (Lee/schimke/composeai/daemon/DataProductRegistry;Ljava/lang/String;Ljava/lang/String;)V
+	public static fun renderModeFor (Lee/schimke/composeai/daemon/DataProductRegistry;Ljava/lang/String;)Ljava/lang/String;
+}
+
+public abstract interface class ee/schimke/composeai/daemon/DataProductRegistry$Outcome {
+}
+
+public final class ee/schimke/composeai/daemon/DataProductRegistry$Outcome$BudgetExceeded : ee/schimke/composeai/daemon/DataProductRegistry$Outcome {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$BudgetExceeded;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/DataProductRegistry$Outcome$FetchFailed : ee/schimke/composeai/daemon/DataProductRegistry$Outcome {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$FetchFailed;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$FetchFailed;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$FetchFailed;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getErrorKind ()Ljava/lang/String;
+	public final fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/DataProductRegistry$Outcome$NotAvailable : ee/schimke/composeai/daemon/DataProductRegistry$Outcome {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$NotAvailable;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/DataProductRegistry$Outcome$Ok : ee/schimke/composeai/daemon/DataProductRegistry$Outcome {
+	public fun <init> (Lee/schimke/composeai/daemon/protocol/DataFetchResult;)V
+	public final fun component1 ()Lee/schimke/composeai/daemon/protocol/DataFetchResult;
+	public final fun copy (Lee/schimke/composeai/daemon/protocol/DataFetchResult;)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$Ok;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$Ok;Lee/schimke/composeai/daemon/protocol/DataFetchResult;ILjava/lang/Object;)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$Ok;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getResult ()Lee/schimke/composeai/daemon/protocol/DataFetchResult;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/DataProductRegistry$Outcome$RequiresRerender : ee/schimke/composeai/daemon/DataProductRegistry$Outcome {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$RequiresRerender;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$RequiresRerender;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$RequiresRerender;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMode ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/DataProductRegistry$Outcome$Unknown : ee/schimke/composeai/daemon/DataProductRegistry$Outcome {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DataProductRegistry$Outcome$Unknown;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/DataProductRegistryKt {
+	public static final fun onRender (Lee/schimke/composeai/daemon/DataProductRegistry;Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;)V
+	public static final fun onRender (Lee/schimke/composeai/daemon/DataProductRegistry;Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)V
+}
+
+public abstract class ee/schimke/composeai/daemon/FileBackedDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
+	public static final field Companion Lee/schimke/composeai/daemon/FileBackedDataProductRegistry$Companion;
+	public fun <init> (Ljava/util/List;Lokio/FileSystem;)V
+	public synthetic fun <init> (Ljava/util/List;Lokio/FileSystem;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	protected fun allowInlineUpgrade (Ljava/lang/String;)Z
+	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
+	protected fun extras (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)Ljava/util/List;
+	public fun fetch (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;Z)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	protected abstract fun fileFor (Ljava/lang/String;Ljava/lang/String;)Ljava/io/File;
+	public final fun getCapabilities ()Ljava/util/List;
+	public fun isKnown (Ljava/lang/String;)Z
+	protected fun missingOutcome (Ljava/lang/String;Ljava/lang/String;)Lee/schimke/composeai/daemon/DataProductRegistry$Outcome;
+	public fun onRender (Ljava/lang/String;Lee/schimke/composeai/daemon/RenderResult;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;Lee/schimke/composeai/data/render/PreviewContext;)V
+	public fun onRenderFailed (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun onSubscribe (Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public fun onUnsubscribe (Ljava/lang/String;Ljava/lang/String;)V
+	protected fun readInlinePayload (Ljava/lang/String;Ljava/lang/String;Ljava/io/File;)Lkotlinx/serialization/json/JsonElement;
+	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/FileBackedDataProductRegistry$Companion {
+}
+
+public final class ee/schimke/composeai/daemon/PreviewOverrideExtensions {
+	public static final field Companion Lee/schimke/composeai/daemon/PreviewOverrideExtensions$Companion;
+	public fun <init> (Ljava/util/List;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljava/util/List;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getExtensions ()Ljava/util/List;
+	public final fun plan (Lee/schimke/composeai/daemon/protocol/PreviewOverrides;)Ljava/util/List;
+}
+
+public final class ee/schimke/composeai/daemon/PreviewOverrideExtensions$Companion {
+	public final fun getEmpty ()Lee/schimke/composeai/daemon/PreviewOverrideExtensions;
+}
+
+public final class ee/schimke/composeai/daemon/RenderArtifact {
+	public static final field Companion Lee/schimke/composeai/daemon/RenderArtifact$Companion;
+	public static final field PNG Ljava/lang/String;
+	public static final field SVG Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;[BLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;[BLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBytes ()[B
+	public final fun getMediaType ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class ee/schimke/composeai/daemon/RenderArtifact$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/RenderArtifact$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lee/schimke/composeai/daemon/RenderArtifact;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lee/schimke/composeai/daemon/RenderArtifact;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/daemon/RenderArtifact$Companion {
+	public final fun decode (Ljava/lang/String;)Lee/schimke/composeai/daemon/RenderArtifact;
+	public final fun encode (Lee/schimke/composeai/daemon/RenderArtifact;)Ljava/lang/String;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ee/schimke/composeai/daemon/RenderArtifactKt {
+	public static final fun bytesOrNull (Lee/schimke/composeai/daemon/RenderArtifact;Lokio/FileSystem;)[B
+	public static synthetic fun bytesOrNull$default (Lee/schimke/composeai/daemon/RenderArtifact;Lokio/FileSystem;ILjava/lang/Object;)[B
+	public static final fun pathOrNull (Lee/schimke/composeai/daemon/RenderArtifact;)Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/RenderResult {
+	public fun <init> (JILjava/lang/String;Lee/schimke/composeai/daemon/RenderArtifact;Ljava/util/Map;Lee/schimke/composeai/data/render/PreviewContext;Ljava/lang/String;Lee/schimke/composeai/data/render/RenderTrace;)V
+	public synthetic fun <init> (JILjava/lang/String;Lee/schimke/composeai/daemon/RenderArtifact;Ljava/util/Map;Lee/schimke/composeai/data/render/PreviewContext;Ljava/lang/String;Lee/schimke/composeai/data/render/RenderTrace;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lee/schimke/composeai/daemon/RenderArtifact;
+	public final fun component5 ()Ljava/util/Map;
+	public final fun component6 ()Lee/schimke/composeai/data/render/PreviewContext;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Lee/schimke/composeai/data/render/RenderTrace;
+	public final fun copy (JILjava/lang/String;Lee/schimke/composeai/daemon/RenderArtifact;Ljava/util/Map;Lee/schimke/composeai/data/render/PreviewContext;Ljava/lang/String;Lee/schimke/composeai/data/render/RenderTrace;)Lee/schimke/composeai/daemon/RenderResult;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/RenderResult;JILjava/lang/String;Lee/schimke/composeai/daemon/RenderArtifact;Ljava/util/Map;Lee/schimke/composeai/data/render/PreviewContext;Ljava/lang/String;Lee/schimke/composeai/data/render/RenderTrace;ILjava/lang/Object;)Lee/schimke/composeai/daemon/RenderResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArtifact ()Lee/schimke/composeai/daemon/RenderArtifact;
+	public final fun getArtifactJson ()Ljava/lang/String;
+	public final fun getClassLoaderHashCode ()I
+	public final fun getClassLoaderName ()Ljava/lang/String;
+	public final fun getId ()J
+	public final fun getMetrics ()Ljava/util/Map;
+	public final fun getOutputBaseName ()Ljava/lang/String;
+	public final fun getPreviewContext ()Lee/schimke/composeai/data/render/PreviewContext;
+	public final fun getTrace ()Lee/schimke/composeai/data/render/RenderTrace;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+

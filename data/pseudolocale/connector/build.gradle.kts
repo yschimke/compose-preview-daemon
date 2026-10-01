@@ -30,7 +30,7 @@ android {
 
 dependencies {
   api(project(":data-pseudolocale-core"))
-  api(project(":daemon:core"))
+  api(project(":daemon-connector-api"))
   api(libs.composeai.data.render.core)
   api(project(":data-render-compose"))
 

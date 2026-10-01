@@ -29,7 +29,7 @@ dependencies {
   api(project(":data-preview-overrides-runtime"))
 
   // DataProductRegistry, DataExtension, AroundComposableExtension.
-  api(project(":daemon:core"))
+  api(project(":daemon-connector-api"))
   api(libs.composeai.data.render.core)
   api(project(":data-render-compose"))
 

@@ -62,6 +62,9 @@ dependencies {
   // → `api`, not `implementation`. Pure-JVM (kotlinx-serialization only), safe on the daemon
   // classpath; the module has no dependency back on `:daemon:core`, so no cycle.
   api(libs.composeai.data.preview.overrides.core)
+  // The connector SPI (`DataProductRegistry`, `RenderResult`, …), split out so connectors can
+  // depend on it alone. `api`: the server, the registries and the render host are stated in it.
+  api(project(":daemon-connector-api"))
 
   // Okio-based file IO (`SystemFileSystem`) for data-product reads, history sidecars, bundle IR
   // replay, and forensics dumps. `implementation` — Okio stays an internal detail; daemon/core's

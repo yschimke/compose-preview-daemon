@@ -26,7 +26,7 @@ dependencies {
 
   // DataProductRegistry interface and DataProductCapability / DataProductExtra wire types —
   // re-exported via `api` for the same reason.
-  api(project(":daemon:core"))
+  api(project(":daemon-connector-api"))
 
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.serialization.json)

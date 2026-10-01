@@ -69,8 +69,8 @@ pins its public API in a committed dump under `api/`; `checkKotlinAbi` runs in C
 public-surface change is committed with `./gradlew updateKotlinAbi`.
 
 Apply the gate with `id("composeai.abi-validation")` in the module's `plugins {}` block — it sets
-the dump location and wires `checkKotlinAbi` into `check`, which KGP does not do. **51 of the 69
-published modules are gated**: every JVM and Kotlin Multiplatform one (48 + 3). The exceptions are
+the dump location and wires `checkKotlinAbi` into `check`, which KGP does not do. **52 of the 70
+published modules are gated**: every JVM and Kotlin Multiplatform one (49 + 3). The exceptions are
 not oversights:
 
 - the **17 Android modules** compile Kotlin through AGP's built-in support rather than the Kotlin

@@ -31,7 +31,7 @@ dependencies {
 
   // `DataProductRegistry` interface, `DataProductCapability` / `DataProductAttachment` wire
   // types — re-exported via `api` for the same reason `:data-a11y-connector` does.
-  api(project(":daemon:core"))
+  api(project(":daemon-connector-api"))
 
   // `RecordingScriptEventDescriptor` + `DataExtensionDescriptor` types.
   api(libs.composeai.data.render.core)

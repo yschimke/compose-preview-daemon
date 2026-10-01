@@ -8,7 +8,7 @@ plugins {
 
 dependencies {
   api(project(":data-fonts-core"))
-  api(project(":daemon:core"))
+  api(project(":daemon-connector-api"))
   testImplementation(libs.junit)
 }
 
