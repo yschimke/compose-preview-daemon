@@ -12,15 +12,35 @@
 #      a module skipped for three releases is compared against its own baseline, so nothing is
 #      ever missed by a gap), or
 #   2. a module it depends on is being published, or
-#   3. a shared build input changed, which can move every artifact at once.
+#   3. a shared build input changed, which can move every artifact at once, or
+#   4. the version catalog changed an entry its own build script uses (a catalog entry that a
+#      shared build file uses is rule 3 instead, and publishes everything).
+#
+# Rules 3 and 4 are ported from compose-ai-tools' copy of this script, with two additions measured
+# against this repository's releases since the plan landed (v3.6.0..v3.11.0, where 9 of 14 releases
+# published all 69 modules):
+#
+#   - SIBLING COORDINATES ARE FLOORS, NOT INPUTS. A catalog entry naming another
+#     `ee.schimke.composeai` coordinate (compose-preview-contracts, rc-players) is ignored by rules
+#     3 and 4. A bump of one changes no byte this repository builds, only the version its POMs
+#     name, and that version is a minimum: Gradle resolves the highest one in the graph, and
+#     consumers align the group through each repository's BOM. A module that needs the newer
+#     sibling changes its own code in the same release and publishes by rule 1. Three of the 9 full
+#     releases (v3.8.0, v3.8.3, v3.10.1) were sibling bumps and nothing else.
+#   - VERIFICATION-ONLY BUILD LOGIC IS NOT SHARED. The files in VERIFICATION_ONLY register checks
+#     (`checkKotlinAbi`, `checkDependencyOwnership`, `checkHttpServerFloor`) and reach no artifact.
+#
+# Rules 3 and 4 also skip `build-logic/src/test/**` and whole-line comment/whitespace edits to shared
+# Kotlin files. Release wiring lives in `root-tasks.gradle.kts`, outside the shared set, for the
+# same reason: it decides which tasks run, not what they build. Tested by
+# `test-maven-publish-plan.sh`.
 #
 # Rule 2 is what keeps the POMs honest, and it is deliberately coarser than it needs to be. A
-# published POM names its project dependencies at *their* `project.version`, so a module may only
-# be skipped while everything it depends on is also skipped; otherwise it would name a sibling
-# version that was never uploaded — exactly the break compose-ai-tools shipped in v2.2.1 and paid
-# for in yschimke/wear-m3-catalog#350. Propagating on any change rather than only on an ABI change
-# costs about 6 percentage points (73% -> 67%) and needs no assumption about binary compatibility;
-# tighten it only when the modules carry ABI dumps to prove the surface held.
+# skipped module keeps the version it is already published at (`PublishedVersions`), so a published
+# POM never names a sibling version that was not uploaded; rule 2 additionally republishes every
+# dependent so its POM names the newest sibling. Propagating on any change rather than only on an
+# ABI change costs about 6 percentage points (73% -> 67%) and needs no assumption about binary
+# compatibility.
 #
 # Every uncertainty resolves to "publish". Central refuses a second upload of a version, so an
 # unnecessary publish costs quota while a wrongly-skipped one is unrepairable.
@@ -67,7 +87,7 @@ done
 [ -z "$MANIFEST" ] || [ -f "$MANIFEST" ] || { echo "no manifest at $MANIFEST" >&2; exit 2; }
 
 python3 - "$HEAD_REF" "$MANIFEST" "$WRITE_MANIFEST" <<'PY'
-import json, re, subprocess, sys, collections, urllib.error, urllib.request
+import json, os, re, subprocess, sys, collections, urllib.error, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
 GROUP_PATH = "ee/schimke/composeai"
@@ -79,13 +99,7 @@ def git(*args):
     return subprocess.run(["git", *args], capture_output=True, text=True).stdout
 
 settings = open("settings.gradle.kts", encoding="utf-8").read()
-# `\s*=\s*` rather than a literal " = ": ktfmt wraps a long assignment onto the next line, and a
-# regex that missed one fell back to deriving the directory from the project path -- which does not
-# exist on disk, so the module vanished from the plan without a word. Found in rc-players, where two
-# projects are wrapped; none here is today, which is exactly why it would go unnoticed.
-dirs = dict(
-    re.findall(r'project\("(:[^"]+)"\)\.projectDir\s*=\s*file\("([^"]+)"\)', settings)
-)
+dirs = dict(re.findall(r'project\("(:[^"]+)"\)\.projectDir = file\("([^"]+)"\)', settings))
 paths = re.findall(r'^include\("(:[^"]+)"\)', settings, re.M)
 
 modules = {}   # artifactId -> directory
@@ -95,13 +109,8 @@ for p in paths:
     d = dirs.get(p, p.lstrip(":").replace(":", "/"))
     try:
         text = open(d + "/build.gradle.kts", encoding="utf-8").read()
-    except OSError as e:
-        # Never skip quietly. A module this script cannot read is a module it cannot classify, and
-        # a wrongly-skipped publish is the unrepairable direction -- Central refuses a second
-        # upload of a version. Failing here costs a red release job; guessing costs a coordinate
-        # that never shipped.
-        print(f"  cannot read {p}'s build file at {d}: {e}", file=sys.stderr)
-        sys.exit(2)
+    except OSError:
+        continue
     if 'composeai.maven-publishing")' not in text:
         continue
     aid = p.lstrip(":").replace(":", "-")
@@ -159,8 +168,254 @@ if write_manifest_path:
         )
         f.write("\n")
 
-# A shared build input can change any artifact, so it opens the gate for everything.
+
+# A shared build input can change any artifact, so it opens the gate for everything — with three
+# narrowings, each of which falls back to "everything" whenever it is unsure (compose-ai-tools#5576):
+#
+#   a. test-only paths under build-logic/ never reach a published artifact;
+#   b. an edit to a shared Kotlin file that only adds, removes or re-indents `//` comment lines and
+#      blank lines leaves every artifact byte-identical;
+#   c. a version-catalog change publishes the modules whose build scripts use a changed entry,
+#      rather than all of them — POMs name catalog versions, so those consumers must still publish.
+# Verification-only build logic: these files register checks and change no artifact.
+VERIFICATION_ONLY = {
+    "build-logic/src/main/kotlin/ee/schimke/composeai/buildlogic/CheckDependencyOwnership.kt",
+    "build-logic/src/main/kotlin/ee/schimke/composeai/buildlogic/CheckHttpServerFloor.kt",
+    "build-logic/src/main/kotlin/ee/schimke/composeai/buildlogic/ComposeAiAbiValidationPlugin.kt",
+}
+# The group every sibling repository publishes under. See "SIBLING COORDINATES" in the header.
+SIBLING_GROUP = "ee.schimke.composeai"
+
 SHARED = re.compile(r"^(build-logic/|gradle/|gradlew|settings\.gradle\.kts$|build\.gradle\.kts$)")
+NOT_SHARED = re.compile(r"^build-logic/src/(test|testFixtures|functionalTest|integrationTest)/")
+SHARED_KOTLIN = re.compile(r"^(build-logic/.*\.kts?|settings\.gradle\.kts|build\.gradle\.kts)$")
+CATALOG = "gradle/libs.versions.toml"
+
+def show(rev, path):
+    """`path` at `rev`, or None when it does not exist there."""
+    r = subprocess.run(["git", "show", f"{rev}:{path}"], capture_output=True, text=True)
+    return r.stdout if r.returncode == 0 else None
+
+def code_lines(text):
+    """The lines of a Kotlin file with blank lines, `//` comment lines and indentation dropped."""
+    return [s for s in (line.strip() for line in text.splitlines()) if s and not s.startswith("//")]
+
+def comment_only(tag, path):
+    """Did `path` change between `tag` and head in whole-line `//` comments and whitespace only?
+
+    Deliberately narrow. A trailing `// comment` after code, a `/* block */` comment and anything
+    else count as a real change. A raw string (`\"\"\"`) is the one place a line starting with `//`
+    is not a comment, so a file containing one is never judged comment-only.
+    """
+    old, new = show(tag, path), show(head, path)
+    if old is None or new is None or '"""' in old or '"""' in new:
+        return False
+    return code_lines(old) == code_lines(new)
+
+def load_catalog(rev):
+    raw = show(rev, CATALOG)
+    if raw is None:
+        return None
+    try:
+        import tomllib
+        data = tomllib.loads(raw)
+    except Exception:  # noqa: BLE001 - no tomllib, or a catalog it cannot read: publish everything
+        return None
+    if set(data) - {"versions", "libraries", "plugins", "bundles"}:
+        return None
+    if not all(isinstance(v, dict) for v in data.values()):
+        return None
+    return data
+
+def version_ref(entry):
+    if isinstance(entry, dict) and isinstance(entry.get("version"), dict):
+        return entry["version"].get("ref")
+    return None
+
+def catalog_changes(tag):
+    """Every catalog entry that moved between `tag` and head, or None when that is not certain.
+
+    Returned as accessor paths below `libs.`: `foo-bar`, `plugins.foo`, `bundles.foo`,
+    `versions.foo`. A changed version ref moves every library and plugin that uses it; a changed
+    library moves every bundle that contains it.
+    """
+    old, new = load_catalog(tag), load_catalog(head)
+    if old is None or new is None:
+        return None
+    ov, nv = old.get("versions", {}), new.get("versions", {})
+    refs = {k for k in set(ov) | set(nv) if ov.get(k) != nv.get(k)}
+    changed = {f"versions.{k}" for k in refs}
+    moved_libs = set()
+    for section, prefix in (("libraries", ""), ("plugins", "plugins.")):
+        o, n = old.get(section, {}), new.get(section, {})
+        for k in set(o) | set(n):
+            if o.get(k) != n.get(k) or version_ref(o.get(k)) in refs or version_ref(n.get(k)) in refs:
+                changed.add(prefix + k)
+                if section == "libraries":
+                    moved_libs.add(k)
+    o, n = old.get("bundles", {}), new.get("bundles", {})
+    for k in set(o) | set(n):
+        if o.get(k) != n.get(k) or set(o.get(k) or ()) & moved_libs or set(n.get(k) or ()) & moved_libs:
+            changed.add(f"bundles.{k}")
+    return changed - sibling_entries(old, new)
+
+
+def sibling_entries(old, new):
+    """Catalog entries that only ever name a sibling coordinate. See "SIBLING COORDINATES".
+
+    A library or plugin is a sibling when its coordinate is in SIBLING_GROUP at both revisions; a
+    version is one when every library and plugin that refers to it, at both revisions, is, AND no
+    build script reads it as a value (`libs.versions.foo`, `findVersion("foo")`). A version read as
+    a value can be baked into an artifact -- compose-ai-tools' Gradle plugin embeds the daemon
+    version it launches -- so it stays an input. A version also used by anything else stays an
+    input, and so does a bundle.
+    """
+    def coordinate(section, entry):
+        if isinstance(entry, str):
+            return entry
+        if not isinstance(entry, dict):
+            return ""
+        if section == "plugins":
+            return entry.get("id", "")
+        return entry.get("module") or f"{entry.get('group', '')}:{entry.get('name', '')}"
+
+    def is_sibling(section, entry):
+        c = coordinate(section, entry)
+        return c.startswith(SIBLING_GROUP + ":") or (section == "plugins" and c.startswith(SIBLING_GROUP + "."))
+
+    out = set()
+    refs = collections.defaultdict(list)
+    for cat in (old, new):
+        for section, prefix in (("libraries", ""), ("plugins", "plugins.")):
+            for k, e in cat.get(section, {}).items():
+                sib = is_sibling(section, e)
+                r = version_ref(e)
+                if r:
+                    refs[r].append(sib)
+                if sib:
+                    out.add(prefix + k)
+    for section, prefix in (("libraries", ""), ("plugins", "plugins.")):
+        for k in set(old.get(section, {})) | set(new.get(section, {})):
+            if prefix + k in out and not all(
+                is_sibling(section, cat.get(section, {}).get(k)) for cat in (old, new) if k in cat.get(section, {})
+            ):
+                out.discard(prefix + k)
+    out |= {f"versions.{r}" for r, sibs in refs.items() if sibs and all(sibs) and not read_as_value(r)}
+    return out
+
+
+def read_as_value(version):
+    """Does any build script read catalog version `version` itself, rather than through a library?"""
+    dotted = re.sub(r"[-_.]", ".", version)
+    accessor = re.compile(r"\blibs\.versions\." + re.escape(dotted) + r"(?![A-Za-z0-9_])", re.I)
+    by_name = re.compile(r'findVersion\(\s*"' + r"[-_.]".join(map(re.escape, re.split(r"[-_.]", version))) + '"', re.I)
+    for root, dirnames, names in os.walk("."):
+        dirnames[:] = [d for d in dirnames if d not in ("build", ".gradle", ".git", "node_modules")]
+        for n in names:
+            if n.endswith(".gradle.kts") or (n.endswith(".kt") and "build-logic" in root):
+                text = normalise_script(read(os.path.join(root, n)))
+                if accessor.search(text) or by_name.search(text):
+                    return True
+    return False
+
+def reference_patterns(entries):
+    """Regexes that find a use of any of `entries` in a build script.
+
+    Both the generated accessor (`libs.foo.bar`, with `-` and `_` mapped to `.` as Gradle does) and
+    the alias as a string (`findLibrary("foo-bar")`, `findVersion("foo")`). Case-insensitive, and a
+    longer alias sharing a prefix also matches: both only ever over-publish.
+    """
+    pats = []
+    for e in sorted(entries):
+        dotted = re.sub(r"[-_.]", ".", e)
+        pats.append(re.compile(r"\blibs\." + re.escape(dotted) + r"(?![A-Za-z0-9_])", re.I))
+        name = e.split(".", 1)[1] if e.split(".", 1)[0] in ("versions", "plugins", "bundles") else e
+        pats.append(re.compile('"' + r"[-_.]".join(map(re.escape, re.split(r"[-_.]", name))) + '"', re.I))
+    return pats
+
+def normalise_script(text):
+    # ktfmt may break an accessor chain across lines; `libs\n  .foo` is `libs.foo`.
+    return re.sub(r"\s*\.\s*", ".", text)
+
+def references(text, pats):
+    text = normalise_script(text)
+    return next((p.pattern for p in pats if p.search(text)), None)
+
+def read(path):
+    try:
+        return open(path, encoding="utf-8", errors="replace").read()
+    except OSError:
+        return ""
+
+def shared_catalog_use(pats):
+    """The shared build file that uses a changed catalog entry, if any. That entry can reach every
+    module (a convention plugin's dependency, a plugin on the root classpath), so it publishes all."""
+    files = ["settings.gradle.kts", "build.gradle.kts"]
+    for root, dirnames, names in os.walk("build-logic"):
+        dirnames[:] = [d for d in dirnames if d not in ("build", ".gradle")]
+        files += [os.path.join(root, n) for n in names if n.endswith((".kt", ".kts"))]
+    for f in files:
+        if NOT_SHARED.match(f):
+            continue
+        text = read(f)
+        if f == "settings.gradle.kts":
+            # `version("compose-remote", "1.0.0-SNAPSHOT")` in a catalog builder OVERRIDES that
+            # entry (snapshot mode only); it is a write, not a use of the catalog's value.
+            text = re.sub(r'\bversion\(\s*"[^"]*"\s*,', "version(", text)
+        hit = references(text, pats)
+        if hit:
+            return f"{f} ({hit})"
+    return None
+
+script_cache = {}
+def module_scripts(directory):
+    if directory not in script_cache:
+        texts = []
+        for root, dirnames, names in os.walk(directory):
+            dirnames[:] = [d for d in dirnames if d not in ("build", ".gradle", "node_modules")]
+            texts += [read(os.path.join(root, n)) for n in names if n.endswith(".gradle.kts")]
+        script_cache[directory] = "\n".join(texts)
+    return script_cache[directory]
+
+def uses_catalog_change(directory, pats):
+    text = module_scripts(directory)
+    # A script that reads a TOML file itself (a path in a string literal) is outside what the
+    # accessor scan can see. A mention in a comment is not a read, and would dirty every catalog
+    # change for no reason.
+    return re.search(r'\.toml"', text) is not None or references(text, pats) is not None
+
+def shared_verdict(tag, files):
+    """(publish everything?, catalog patterns to test each module against)."""
+    pats = None
+    for f in files:
+        if not SHARED.match(f):
+            continue
+        if NOT_SHARED.match(f):
+            print(f"  {tag}: {f} is test-only; not a shared input", file=sys.stderr)
+            continue
+        if f in VERIFICATION_ONLY:
+            print(f"  {tag}: {f} is verification-only; not a shared input", file=sys.stderr)
+            continue
+        if f == CATALOG:
+            changes = catalog_changes(tag)
+            if changes is None:
+                print(f"  {tag}: could not diff {CATALOG}; publishing every module", file=sys.stderr)
+                return True, None
+            print(f"  {tag}: catalog entries changed: {', '.join(sorted(changes)) or '<none>'}",
+                  file=sys.stderr)
+            pats = reference_patterns(changes)
+            hit = shared_catalog_use(pats) if pats else None
+            if hit:
+                print(f"  {tag}: a changed catalog entry is used by {hit}; publishing every module",
+                      file=sys.stderr)
+                return True, None
+            continue
+        if SHARED_KOTLIN.match(f) and comment_only(tag, f):
+            print(f"  {tag}: {f} changed only in comments or whitespace", file=sys.stderr)
+            continue
+        print(f"  {tag}: shared build input {f} changed", file=sys.stderr)
+        return True, None
+    return False, pats
 
 def changed_since(version, directory):
     """Did `directory` move between the tag for `version` and head?"""
@@ -169,20 +424,23 @@ def changed_since(version, directory):
                       capture_output=True).returncode != 0:
         print(f"  {directory}: no tag {tag}; publishing", file=sys.stderr)
         return True
-    out = git("diff", "--name-only", f"{tag}..{head}", "--", directory)
+    out = git("diff", "--no-renames", "--name-only", f"{tag}..{head}", "--", directory)
     return bool(out.strip())
 
 shared_changed = False
+catalog_pats = {}  # baseline version -> patterns for the catalog entries changed since it
 for version in sorted(set(recorded.values())):
     tag = f"v{version}"
     if subprocess.run(["git", "rev-parse", "--verify", "-q", tag + "^{commit}"],
                       capture_output=True).returncode != 0:
         shared_changed = True
         break
-    files = [f for f in git("diff", "--name-only", f"{tag}..{head}").split("\n") if f]
-    if any(SHARED.match(f) for f in files):
-        shared_changed = True
+    files = [f for f in git("diff", "--no-renames", "--name-only", f"{tag}..{head}").split("\n") if f]
+    shared_changed, pats = shared_verdict(tag, files)
+    if shared_changed:
         break
+    if pats:
+        catalog_pats[version] = pats
 
 if shared_changed:
     print("  a shared build input changed; publishing every module", file=sys.stderr)
@@ -196,6 +454,9 @@ for aid, directory in modules.items():
         print(f"  {aid}: never published; publishing", file=sys.stderr)
         dirty.add(aid)
     elif changed_since(recorded[aid], directory):
+        dirty.add(aid)
+    elif recorded[aid] in catalog_pats and uses_catalog_change(directory, catalog_pats[recorded[aid]]):
+        print(f"  {aid}: uses a changed catalog entry; publishing", file=sys.stderr)
         dirty.add(aid)
 
 # Rule 2: anything depending on a dirty module is dirty too, transitively.

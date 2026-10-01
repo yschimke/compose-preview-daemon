@@ -2,7 +2,7 @@ name: Release
 
 # Publishes every module to Maven Central at the tag's version and attaches the two sidecar
 # archives to the GitHub Release. One version line: the `data/*` modules release with the
-# renderers they change alongside (see the root build's `printPublishTasks`).
+# renderers they change alongside (see `printPublishTasks` in `root-tasks.gradle.kts`).
 
 on:
   workflow_call:
