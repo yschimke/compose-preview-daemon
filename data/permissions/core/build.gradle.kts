@@ -7,12 +7,12 @@ plugins {
 }
 
 dependencies {
-  // `daemon:core` carries `PreviewOverrides` and `PermissionsOverride` (the wire-shape the
-  // connector's planner reads from). Mirrors `:data-keyboard-core` / `:data-focus-core` /
-  // `:data-ambient-core` — the kind constant lives on a tiny JVM module so MCP clients in other
-  // languages can depend on the permissions product identity without dragging in the connector,
-  // Compose, or Robolectric.
-  api(project(":daemon:core"))
+  // `daemon-protocol` (compose-preview-contracts) carries `PreviewOverrides` and
+  // `PermissionsOverride` (the wire-shape the connector's planner reads from). Mirrors
+  // `:data-keyboard-core` / `:data-focus-core` / `:data-ambient-core` — the kind constant lives on
+  // a tiny JVM module so MCP clients in other languages can depend on the permissions product
+  // identity without dragging in the connector, Compose, or Robolectric.
+  api(libs.composeai.daemon.protocol)
   api(libs.kotlinx.serialization.json)
   testImplementation(libs.junit)
 }

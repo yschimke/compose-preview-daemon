@@ -10,11 +10,10 @@ dependencies {
   implementation(libs.composeai.common.io)
   // Filter matrices, ColorMatrix4x5, PostCaptureProcessor implementation, shared constants.
   api(project(":data-displayfilter-core"))
-  // DataProductRegistry, DataFetchResult / DataProductCapability wire types, the Extension class
-  // DaemonMain wires this into. Re-exported so daemon:android can depend on data-displayfilter-
-  // connector alone and still pick up DataProductRegistry transitively, mirroring data-a11y-
-  // connector's `api(project(":daemon:core"))`.
-  api(project(":daemon:core"))
+  // DataProductRegistry and the DataFetchResult / DataProductCapability wire types. Re-exported so
+  // daemon:android can depend on data-displayfilter-connector alone and still pick up
+  // DataProductRegistry transitively, as every other connector does.
+  api(project(":daemon-connector-api"))
   api(libs.kotlinx.serialization.json)
 
   testImplementation(libs.junit)

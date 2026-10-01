@@ -7,10 +7,10 @@ plugins {
 }
 
 dependencies {
-  // `daemon:core` carries the GestureKindOverride enum the payload mirrors. MCP clients in other
-  // languages already consume the protocol module; pulling `data-gestures-core` adds the gesture
-  // payload schema alongside.
-  api(project(":daemon:core"))
+  // `daemon-protocol` (compose-preview-contracts) carries the GestureKindOverride enum the payload
+  // mirrors. MCP clients in other languages already consume the protocol module; pulling
+  // `data-gestures-core` adds the gesture payload schema alongside.
+  api(libs.composeai.daemon.protocol)
   api(libs.kotlinx.serialization.json)
   testImplementation(libs.junit)
 }

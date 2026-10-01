@@ -10,7 +10,7 @@ android { namespace = "ee.schimke.composeai.data.resources.connector" }
 dependencies {
   implementation(libs.composeai.common.io)
   api(project(":data-resources-core"))
-  api(project(":daemon:core"))
+  api(project(":daemon-connector-api"))
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.serialization.json)
   testImplementation(libs.robolectric)

@@ -7,13 +7,12 @@ plugins {
 }
 
 dependencies {
-  // `daemon:core` carries `PreviewOverrides`, which `:data-keyboard-connector`'s planner reads via
-  // the protocol's optional `keyboard` field. Keeping the kind constant on a tiny JVM module
-  // mirrors
-  // `:data-focus-core` / `:data-ambient-core` so MCP clients in other languages can depend on the
-  // soft-keyboard product identity without dragging in the connector or any Compose / Robolectric
-  // runtime.
-  api(project(":daemon:core"))
+  // `daemon-protocol` (compose-preview-contracts) carries `PreviewOverrides`, which
+  // `:data-keyboard-connector`'s planner reads via the protocol's optional `keyboard` field.
+  // Keeping the kind constant on a tiny JVM module mirrors `:data-focus-core` /
+  // `:data-ambient-core` so MCP clients in other languages can depend on the soft-keyboard product
+  // identity without dragging in the connector or any Compose / Robolectric runtime.
+  api(libs.composeai.daemon.protocol)
   api(libs.kotlinx.serialization.json)
   testImplementation(libs.junit)
 }

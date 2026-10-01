@@ -10,7 +10,7 @@ plugins {
 
 // The BOM for everything this repository publishes.
 //
-// `compose-preview-daemon` publishes 69 coordinates on one version line. A consumer wanting three
+// `compose-preview-daemon` publishes 70 coordinates on one version line. A consumer wanting three
 // of them has to name three versions and keep them in step; get it wrong and the mismatch surfaces
 // as a `NoSuchMethodError` at render time rather than at resolution. Importing this platform
 // replaces all of that with one coordinate:

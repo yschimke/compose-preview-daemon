@@ -31,7 +31,7 @@ plugins {
 
 dependencies {
   api(project(":data-pseudolocale-core"))
-  api(project(":daemon:core"))
+  api(project(":daemon-connector-api"))
   api(project(":data-render-compose"))
   implementation(libs.jetbrains.compose.runtime)
   implementation(libs.jetbrains.compose.ui)

@@ -7,10 +7,10 @@ plugins {
 }
 
 dependencies {
-  // `daemon:core` carries the AmbientStateOverride enum the payload mirrors. MCP clients in other
-  // languages already consume the protocol module; pulling `data-ambient-core` adds the ambient
-  // payload schema alongside.
-  api(project(":daemon:core"))
+  // `daemon-protocol` (compose-preview-contracts) carries the AmbientStateOverride enum the payload
+  // mirrors. MCP clients in other languages already consume the protocol module; pulling
+  // `data-ambient-core` adds the ambient payload schema alongside.
+  api(libs.composeai.daemon.protocol)
   api(libs.kotlinx.serialization.json)
   testImplementation(libs.junit)
 }

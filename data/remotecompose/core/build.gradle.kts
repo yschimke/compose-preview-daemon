@@ -6,13 +6,13 @@ plugins {
 }
 
 dependencies {
-  // `daemon:core` carries `PreviewOverrides`, `RemoteComposeOverride`, `RemoteNamedValue`, and
-  // `RemoteHostAction` (the wire-shape the connector's planner reads from). Mirrors
-  // `:data-permissions-core` / `:data-keyboard-core` — the kind constant + payload class lives on a
-  // tiny JVM module so MCP clients in other languages can depend on the Remote Compose product
-  // identity without dragging in the connector, Compose, or the alpha `androidx.compose.remote.*`
-  // artifacts.
-  api(project(":daemon:core"))
+  // `daemon-protocol` (compose-preview-contracts) carries `PreviewOverrides`,
+  // `RemoteComposeOverride`, `RemoteNamedValue`, and `RemoteHostAction` (the wire-shape the
+  // connector's planner reads from). Mirrors `:data-permissions-core` / `:data-keyboard-core` — the
+  // kind constant + payload class lives on a tiny JVM module so MCP clients in other languages can
+  // depend on the Remote Compose product identity without dragging in the connector, Compose, or
+  // the alpha `androidx.compose.remote.*` artifacts.
+  api(libs.composeai.daemon.protocol)
   api(libs.kotlinx.serialization.json)
   testImplementation(libs.junit)
 }

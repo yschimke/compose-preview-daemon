@@ -44,7 +44,7 @@ dependencies {
   // DataProductRegistry interface, DataExtension, AroundComposableExtension. Re-exported via
   // `api` so the connector's planner / extension classes can be referenced from
   // `RobolectricHost`'s `previewOverrideExtensions` list.
-  api(project(":daemon:core"))
+  api(project(":daemon-connector-api"))
   api(libs.composeai.data.render.core)
   api(project(":data-render-compose"))
 

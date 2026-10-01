@@ -7,11 +7,11 @@ plugins {
 }
 
 dependencies {
-  // `daemon:core` is the protocol definitions module. WallpaperPayload references the
-  // protocol-level WallpaperPaletteStyle enum, so the core schema module needs it on the
-  // classpath. MCP clients in other languages already consume the protocol module; pulling
-  // `data-wallpaper-core` adds the wallpaper payload schema alongside.
-  api(project(":daemon:core"))
+  // `daemon-protocol` (compose-preview-contracts) is the protocol definitions module.
+  // WallpaperPayload references the protocol-level WallpaperPaletteStyle enum, so the core schema
+  // module needs it on the classpath. MCP clients in other languages already consume the protocol
+  // module; pulling `data-wallpaper-core` adds the wallpaper payload schema alongside.
+  api(libs.composeai.daemon.protocol)
   api(libs.kotlinx.serialization.json)
   testImplementation(libs.junit)
 }

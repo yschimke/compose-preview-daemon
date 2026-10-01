@@ -38,7 +38,7 @@ dependencies {
   // so
   // the planner / extension classes can be referenced from `DesktopHost`'s
   // `previewOverrideExtensions` list without a second project dep on the consumer.
-  api(project(":daemon:core"))
+  api(project(":daemon-connector-api"))
   api(project(":data-render-compose"))
 
   implementation(libs.jetbrains.compose.runtime)
