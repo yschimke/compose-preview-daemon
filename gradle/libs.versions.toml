@@ -293,7 +293,13 @@ coil3 = "3.5.0"
 # here. This repository consumes them; it no longer owns these coordinates. A change to a contract
 # reaches this build only through a release there — see that repository's docs/VERSIONING.md.
 # A point pin, deliberately: a range would let a contract change arrive without a pull request.
-composeai-contracts = "3.13.0"
+composeai-contracts = "3.14.0"
+
+# `common-io` on its own key for the same reason: it depends on no other contracts module, so a
+# release that changes only `daemon-protocol` (3.14.0, `RenderFinishedParams.workTrace`) skips it and
+# `common-io:3.14.0` does not exist. Fold it back into `composeai-contracts` once a release publishes
+# it again.
+composeai-contracts-common-io = "3.13.0"
 
 # …and one coordinate ahead of the rest, because contracts releases are no longer all-or-nothing.
 # Since its 3.1.0 a release there publishes only the modules it changed, and a skipped module's POM
@@ -335,7 +341,7 @@ composeai-data-render-core = { module = "ee.schimke.composeai:data-render-core",
 composeai-data-layoutinspector-core = { module = "ee.schimke.composeai:data-layoutinspector-core", version.ref = "composeai-contracts-layoutinspector" }
 composeai-data-theme-core = { module = "ee.schimke.composeai:data-theme-core", version.ref = "composeai-contracts" }
 composeai-data-preview-overrides-core = { module = "ee.schimke.composeai:data-preview-overrides-core", version.ref = "composeai-contracts" }
-composeai-common-io = { module = "ee.schimke.composeai:common-io", version.ref = "composeai-contracts" }
+composeai-common-io = { module = "ee.schimke.composeai:common-io", version.ref = "composeai-contracts-common-io" }
 
 # The vendored, locally patched AndroidX embedded player — the Android comparison lane. NOT a
 # supported API; pinned to one AndroidX alpha and versioned with the player stack rather than with

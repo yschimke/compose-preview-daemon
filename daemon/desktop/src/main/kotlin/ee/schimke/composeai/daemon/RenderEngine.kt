@@ -837,6 +837,12 @@ class RenderEngine(
     elapsedBeforeNs: Long = 0L,
   ): RenderResult {
     val startNs = System.nanoTime() - elapsedBeforeNs
+    // Per-render work trace — the post-capture processors that ran (and for how long) and the data
+    // kinds the other producers computed. Folded into the result's metrics and projected onto
+    // `renderFinished.workTrace`; see [RenderWorkTraceMetrics]. This engine runs every processor in
+    // `dataArtifactExtensions` unconditionally, so nothing is recorded as skipped.
+    val workTraceMetrics = LinkedHashMap<String, Long>()
+    RenderWorkTraceMetrics.markRecorded(workTraceMetrics)
 
     // Flush snapshot state written out-of-composition since the last render so the held scene
     // observes it before painting. The held-session scrub path mutates `lottieProgressState` from
@@ -924,6 +930,7 @@ class RenderEngine(
     // the PNG.
     val displayFilters = DisplayFilterConfig.fromSystemProperties()
     if (displayFilters.isNotEmpty()) {
+      val filtersStartNs = System.nanoTime()
       try {
         trace.section("displayfilter:variants") {
           DisplayFilterDataProducer.writeArtifacts(
@@ -933,6 +940,11 @@ class RenderEngine(
             filters = displayFilters,
           )
         }
+        RenderWorkTraceMetrics.recordDataKinds(
+          workTraceMetrics,
+          listOf(DisplayFilterDataProducer.KIND_VARIANTS),
+          filtersStartNs,
+        )
       } catch (t: Throwable) {
         System.err.println(
           "RenderEngine: displayfilter write failed for ${state.spec.outputBaseName}: " +
@@ -1003,6 +1015,7 @@ class RenderEngine(
         val productStore = RecordingDataProductStore()
         for (ext in dataArtifactExtensions) {
           if (ext !is PostCaptureProcessor) continue
+          val extStartNs = System.nanoTime()
           try {
             trace.section("dataArtifact:${ext.id}") {
               ext.process(
@@ -1020,6 +1033,10 @@ class RenderEngine(
               "RenderEngine: ${ext.id} data write failed for ${state.spec.outputBaseName}: " +
                 "${t.javaClass.simpleName}: ${t.message}"
             )
+          } finally {
+            // Recorded whether or not it threw: the trace reports what the render paid for.
+            workTraceMetrics[PostCaptureGate.ranMetricKey(ext.id.value)] =
+              (System.nanoTime() - extStartNs) / 1_000_000L
           }
         }
         // Desktop-only figma-svg fidelity harness (opt-in via -Dcomposeai.figma.fidelity=true): the
@@ -1051,6 +1068,7 @@ class RenderEngine(
     // `requiresRerender`, so a `data/fetch` for an a11y kind queues a `mode=a11y` re-render which
     // lands here. Wrapped in try/catch so an extraction / draw failure never strands the PNG.
     if (state.spec.renderMode == "a11y") {
+      val a11yStartNs = System.nanoTime()
       try {
         trace.section("a11y:overlay") {
           val root = state.scene.semanticsOwners.firstOrNull()?.unmergedRootSemanticsNode
@@ -1069,6 +1087,7 @@ class RenderEngine(
             pngFile = state.outputFile,
           )
         }
+        RenderWorkTraceMetrics.recordDataKinds(workTraceMetrics, DESKTOP_A11Y_KINDS, a11yStartNs)
       } catch (t: Throwable) {
         System.err.println(
           "RenderEngine: a11y overlay write failed for ${state.spec.outputBaseName}: " +
@@ -1078,7 +1097,7 @@ class RenderEngine(
     }
 
     val tookMs = (System.nanoTime() - startNs) / 1_000_000L
-    val metrics = SandboxMeasurement.collect(sandboxStats, tookMs = tookMs)
+    val metrics = SandboxMeasurement.collect(sandboxStats, tookMs = tookMs) + workTraceMetrics
     trace.write(dataDir)
     return RenderResult(
       id = requestId,
@@ -2264,6 +2283,16 @@ class RenderEngine(
   }
 
   companion object {
+    /**
+     * The kinds the desktop a11y step writes, in the order [DesktopAccessibilityDataProducer] does.
+     */
+    private val DESKTOP_A11Y_KINDS: List<String> =
+      listOf(
+        DesktopAccessibilityDataProducer.KIND_ATF,
+        DesktopAccessibilityDataProducer.KIND_HIERARCHY,
+        DesktopAccessibilityDataProducer.KIND_OVERLAY,
+      )
+
     /**
      * System property carrying the absolute path of the renders directory. Same name the Android
      * side uses; the gradle plugin's daemon launch descriptor sets it once at JVM start.

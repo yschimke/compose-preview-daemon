@@ -1745,6 +1745,16 @@ public final class ee/schimke/composeai/daemon/RenderTargetKt {
 	public static final fun previewIdOrNull (Lee/schimke/composeai/daemon/RenderTarget;)Ljava/lang/String;
 }
 
+public final class ee/schimke/composeai/daemon/RenderWorkTraceMetrics {
+	public static final field DATA_KIND_METRIC_PREFIX Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/RenderWorkTraceMetrics;
+	public static final field RECORDED_METRIC_KEY Ljava/lang/String;
+	public final fun dataKindMetricKey (Ljava/lang/String;)Ljava/lang/String;
+	public final fun fromMetrics (Ljava/util/Map;)Lee/schimke/composeai/daemon/protocol/RenderWorkTrace;
+	public final fun markRecorded (Ljava/util/Map;)V
+	public final fun recordDataKinds (Ljava/util/Map;Ljava/util/Collection;J)V
+}
+
 public final class ee/schimke/composeai/daemon/SandboxLifecycleStats {
 	public fun <init> ()V
 	public fun <init> (J)V

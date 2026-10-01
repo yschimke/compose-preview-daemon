@@ -14,7 +14,8 @@ package ee.schimke.composeai.daemon
  * `postCapture.<kind>` = wall-clock ms, and each on-demand processor it skipped as
  * `postCaptureSkipped.<kind>` = 0. Metrics survive the sandbox classloader and worker-process hops
  * and surface in the `render/trace` data product's `metrics` object, so a client can assert which
- * processors a render paid for. The key prefixes are stable.
+ * processors a render paid for. The key prefixes are stable. [RenderWorkTraceMetrics] projects the
+ * same keys onto `renderFinished.workTrace`.
  */
 public object PostCaptureGate {
 

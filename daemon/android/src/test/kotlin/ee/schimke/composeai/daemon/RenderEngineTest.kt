@@ -374,6 +374,22 @@ class RenderEngineTest {
         plain.containsKey(PostCaptureGate.ranMetricKey(ComposeSemanticsDataProducer.KIND)),
       )
       assertFalse("no SVG for a plain render", svgFor("figma-plain").exists())
+      // compose-preview-server#1181 — the same facts, as `renderFinished.workTrace` reports them
+      // once the metrics have crossed the sandbox classloader back to the host.
+      val plainTrace = RenderWorkTraceMetrics.fromMetrics(plain)
+      assertNotNull("a sandbox render must carry a work trace: $plain", plainTrace)
+      assertFalse(
+        "the trace must not list the skipped export: $plainTrace",
+        kind in plainTrace!!.processors.orEmpty(),
+      )
+      assertTrue(
+        "the trace must list the always-on processors: $plainTrace",
+        ComposeSemanticsDataProducer.KIND in plainTrace.processors.orEmpty(),
+      )
+      assertTrue(
+        "the trace must list the non-processor kinds computed: $plainTrace",
+        UiAutomatorDataProducer.KIND_HIERARCHY in plainTrace.dataKinds.orEmpty(),
+      )
 
       val requested = render("figma-requested", setOf(kind)).metrics.orEmpty()
       assertTrue(
@@ -382,6 +398,12 @@ class RenderEngineTest {
       )
       assertFalse(PostCaptureGate.wasSkipped(requested, kind))
       assertTrue("the SVG must be produced", svgFor("figma-requested").exists())
+      val requestedTrace = RenderWorkTraceMetrics.fromMetrics(requested)
+      assertTrue(
+        "the trace must list the requested export: $requestedTrace",
+        kind in requestedTrace?.processors.orEmpty(),
+      )
+      assertNotNull(requestedTrace!!.stepMs!![kind])
 
       // compose-preview-server#1166 — `compose/semantics` is always produced, round Wear included,
       // whether or not anything was requested: it is the agents' cheapest text observation.
