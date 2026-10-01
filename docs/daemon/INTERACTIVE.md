@@ -272,8 +272,11 @@ through the normal composition path as
 previewId that already has an override-bearing render in-flight, the new
 one is rejected with `reason = "coalesced: …"`. The panel / MCP client
 resubmits on the next `renderFinished` if the latest override values
-still differ from what was rendered. Plain (no-overrides) `renderNow`
-is unaffected.
+still differ from what was rendered. A resubmit that lands after
+`renderFinished` but before the daemon has finished recording that
+render's history is queued behind it, not rejected, so a client that
+resubmits on `renderFinished` is never left without a frame to wait for.
+Plain (no-overrides) `renderNow` is unaffected.
 
 **MCP surface.** The `render_preview` tool accepts the same `overrides`
 sub-object verbatim — see `mcp/src/main/kotlin/.../DaemonMcpServer.kt`.
