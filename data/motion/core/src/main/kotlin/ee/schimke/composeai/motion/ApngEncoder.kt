@@ -44,15 +44,18 @@ import javax.imageio.stream.MemoryCacheImageInputStream
  * performs that composition and the tests assert it.
  *
  * **Pixel format.** 8-bit RGB (colour type 2) when every pixel of every frame is opaque, otherwise
- * 8-bit RGBA (colour type 6). Each scanline picks the PNG filter with the smallest sum of absolute
- * residuals (the libpng heuristic), and the stream is deflated at [DEFLATE_LEVEL]. Ancillary chunks
- * of the source frames (`sRGB`, `gAMA`, `pHYs`, text) are not carried, as before.
+ * 8-bit RGBA (colour type 6). Each frame's rectangle is deflated at [DEFLATE_LEVEL] twice — once
+ * unfiltered, once with each scanline's filter picked by the libpng heuristic (smallest sum of
+ * absolute residuals) — and the smaller is kept. Flat UI colour compresses best unfiltered (about
+ * 25–30 % smaller on the measured captures), gradients and shadows with the adaptive filters, and
+ * one frame often holds both. Ancillary chunks of the source frames (`sRGB`, `gAMA`, `pHYs`, text)
+ * are not carried, as before.
  */
 object ApngEncoder {
 
   /**
-   * zlib level for frame data. Level 9 over 6 buys ~1–3 % on these captures at roughly twice the
-   * deflate time — still well under the time the frames took to render.
+   * zlib level for frame data. Level 9 over 6 buys 3–10 % on the measured captures for a few
+   * hundred milliseconds per capture — well under the time the frames took to render.
    */
   private const val DEFLATE_LEVEL = 9
 
@@ -260,12 +263,25 @@ object ApngEncoder {
   private fun rowEqual(a: IntArray, b: IntArray, offset: Int, length: Int): Boolean =
     java.util.Arrays.equals(a, offset, offset + length, b, offset, offset + length)
 
+  /** The smaller of [region]'s unfiltered and adaptively filtered zlib streams. */
+  private fun compress(
+    pixels: IntArray,
+    stride: Int,
+    region: Region,
+    hasAlpha: Boolean,
+  ): ByteArray {
+    val unfiltered = compress(pixels, stride, region, hasAlpha, adaptive = false)
+    val adaptive = compress(pixels, stride, region, hasAlpha, adaptive = true)
+    return if (adaptive.size < unfiltered.size) adaptive else unfiltered
+  }
+
   /** Filtered, deflated scanlines of [region] of the [stride]-wide ARGB [pixels]. */
   private fun compress(
     pixels: IntArray,
     stride: Int,
     region: Region,
     hasAlpha: Boolean,
+    adaptive: Boolean,
   ): ByteArray {
     val bpp = if (hasAlpha) 4 else 3
     val rowBytes = region.width * bpp
@@ -286,9 +302,14 @@ object ApngEncoder {
             raw[o++] = p.toByte()
             if (hasAlpha) raw[o++] = (p ushr 24).toByte()
           }
-          val filter = filterRow(raw, prior, bpp, candidates)
-          z.write(filter)
-          z.write(candidates[filter])
+          if (adaptive) {
+            val filter = filterRow(raw, prior, bpp, candidates)
+            z.write(filter)
+            z.write(candidates[filter])
+          } else {
+            z.write(0)
+            z.write(raw)
+          }
           val swap = prior
           prior = raw
           raw = swap
