@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.12.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.11.0...v3.12.0) (2026-10-02)
+
+
+### Features
+
+* **release:** only count build inputs that can change an artifact as shared ([#193](https://github.com/yschimke/compose-preview-daemon/issues/193)) ([60ee7cd](https://github.com/yschimke/compose-preview-daemon/commit/60ee7cdea0fda32df021c817096e744f2a705278))
+* **release:** treat sibling coordinates as floors in the publish plan ([#194](https://github.com/yschimke/compose-preview-daemon/issues/194)) ([aba8848](https://github.com/yschimke/compose-preview-daemon/commit/aba8848f366110b590ddb4b7bcae6f652f2f51af))
+* **remotecompose:** honour the wire's playerId on replay ([#195](https://github.com/yschimke/compose-preview-daemon/issues/195)) ([1fcd152](https://github.com/yschimke/compose-preview-daemon/commit/1fcd152d5ceb912621df5c4dd1346b2c7f99b532))
+* **remotecompose:** name players by implementation and add cmp-android, the CMP player on Android ([#199](https://github.com/yschimke/compose-preview-daemon/issues/199)) ([e87a03c](https://github.com/yschimke/compose-preview-daemon/commit/e87a03c45cc0c735f6b1c616dbde0d53bdaf39ad))
+* **remotecompose:** put players behind a linkage-checked backend seam ([#192](https://github.com/yschimke/compose-preview-daemon/issues/192)) ([bafcf72](https://github.com/yschimke/compose-preview-daemon/commit/bafcf72cef56489d193df43a7237081d2b80abc2))
+
+
+### Bug Fixes
+
+* **daemon:** queue an override render resubmitted on renderFinished ([#196](https://github.com/yschimke/compose-preview-daemon/issues/196)) ([48dec57](https://github.com/yschimke/compose-preview-daemon/commit/48dec575d5b97e473e42a064d3787c5f167b74d1))
+* **distribution:** stop shipping Remote Compose in the Android daemon sidecar ([#191](https://github.com/yschimke/compose-preview-daemon/issues/191)) ([b98980e](https://github.com/yschimke/compose-preview-daemon/commit/b98980e10e07b46e7deb46387a9d2f827bbe2568))
+* **renderer-desktop:** drive desktop scenes on the EDT to stop RectList corruption ([#198](https://github.com/yschimke/compose-preview-daemon/issues/198)) ([f997981](https://github.com/yschimke/compose-preview-daemon/commit/f997981f35990d0b27a87751814b9607d6beeaf7))
+
+
+### Refactoring
+
+* **daemon:** split the connector SPI into daemon-connector-api ([#197](https://github.com/yschimke/compose-preview-daemon/issues/197)) ([362b326](https://github.com/yschimke/compose-preview-daemon/commit/362b326c201025dae52eb85814d7765af5cce1e1))
+
 ## [3.11.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.10.1...v3.11.0) (2026-10-01)
 
 
