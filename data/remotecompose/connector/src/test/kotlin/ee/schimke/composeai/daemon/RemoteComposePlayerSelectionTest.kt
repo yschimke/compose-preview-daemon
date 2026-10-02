@@ -60,22 +60,32 @@ class RemoteComposePlayerSelectionTest {
 
   @Test
   fun `every spelling the pipeline uses for these two players is accepted`() {
-    // `?rcPlayer=cmp-android` in the viewer, `embedded` as the daemon player kind, `cmp` as the
-    // Gradle property's own short form — a value copied from any of them must select what it looks
-    // like it selects, and the same for `java` / `view`.
-    for (cmp in listOf("cmp", "cmp-android", "embedded", "CMP-Android", " Embedded ")) {
+    // The canonical id and the daemon player-kind spelling for each, plus `java` / `view`, which
+    // are on the wire in published links — a value copied from any of them must select what it
+    // looks like it selects.
+    for (cmp in listOf("androidx-embedded", "embedded", "AndroidX-Embedded", " Embedded ")) {
       assertEquals(
         "'$cmp' should select the embedded player",
         RemoteComposePlayerKind.EMBEDDED,
         RemoteComposePlayerSelection.fromWire(cmp),
       )
     }
-    for (view in listOf("view", "java", "JAVA", " View ")) {
+    for (view in listOf("androidx-view", "view", "java", "JAVA", " View ")) {
       assertEquals(
         "'$view' should select the view player",
         RemoteComposePlayerKind.VIEW,
         RemoteComposePlayerSelection.fromWire(view),
       )
+    }
+  }
+
+  @Test
+  fun `cmp-android names the CMP player, so it selects no capture player`() {
+    // It used to mean the embedded player. It now names rc-player-compose on Android, which only
+    // replays (through `playerId`), so a build-wide `-PcomposePreview.rcPlayer=cmp-android` is told
+    // so rather than quietly drawing with the AndroidX embedded player it no longer names.
+    for (name in listOf("cmp-android", "cmp", "CMP-Android")) {
+      assertNull(name, RemoteComposePlayerSelection.fromWire(name))
     }
   }
 

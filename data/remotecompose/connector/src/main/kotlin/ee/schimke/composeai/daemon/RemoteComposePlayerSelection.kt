@@ -63,46 +63,30 @@ object RemoteComposePlayerSelection {
    * The player [raw] names, or null when it names none — blank, unset, or a value neither player
    * answers to.
    *
-   * ## The names, and why there are several
+   * ## The names
    *
-   * `cmp-android` is a **misleading historical name** and the reason this doc block exists. It does
-   * not mean "the CMP player on Android": it names the vendored **AndroidX embedded** player
-   * (`third-party-rc-embedded-player`, upstream's `player-compose-embedded`). The genuine CMP
-   * player is a different codebase — `rc-player-compose`, with its own runtime — and the viewer
-   * lane that actually runs it is `cmp-wasm`. So the `cmp-` prefix spans two unrelated
-   * implementations, which is a trap for anyone reading a `?rcPlayer=` value and inferring what
-   * drew the pixels.
-   *
-   * The canonical name for each player is therefore its **implementation**:
-   * * `androidx-embedded` — the vendored AndroidX embedded player. Historical: `cmp`,
-   *   `cmp-android`, `embedded`.
+   * Every player is named after the implementation that draws, and `cmp-` means the CMP player
+   * (`rc-player-compose`) and nothing else. The full table, with the lanes that render outside this
+   * JVM, is in the rc-players README; the two this property can select are:
+   * * `androidx-embedded` — the vendored AndroidX embedded player
+   *   (`third-party-rc-embedded-player`, upstream's `player-compose-embedded`). Also `embedded`,
+   *   this module's own spelling.
    * * `androidx-view` — the `AndroidView`-hosted `RemoteComposePlayer` from `remote-player-view`.
-   *   Historical: `java`, `view`.
+   *   Also `java` and `view`, which are on the wire in published links and stay accepted.
    *
-   * Every historical spelling stays accepted, permanently and without deprecation: they are on the
-   * wire in published `?rcPlayer=` links, in `capturePlayer` sidecars and in served HTML
-   * attributes, so rejecting one would break a bookmark to prove a point. New names are what this
-   * repository *writes* in prose and what the viewer shows; old names are what it *reads*. Case-
-   * and whitespace-insensitive throughout.
-   *
-   * The viewer's other three lanes are deliberately **not** accepted here, because none is a
-   * render-time player this property can select:
-   * * `rcplayer-wasm` (historically `cmp-wasm`) — the rc-players CMP player, in the browser. This
-   *   is the lane that genuinely runs `rc-player-compose`, which is why the `cmp-` prefix on its
-   *   Android and JVM neighbours is so misleading.
-   * * `camaelon-js` (historically `js`) — the vendored TypeScript player, also in the browser, from
-   *   `camaelon/remotecompose-experiments`.
-   * * `androidx-embedded-jvm` (historically `cmp-jvm`) — the same vendored AndroidX player as
-   *   `androidx-embedded`, desktop-JVM cut, rendering in its own subprocess.
-   *
-   * A build asking for one of them should hear so rather than silently get the default.
+   * `cmp-android` is **not** one of them any more. It used to name the embedded player, which is
+   * not the CMP player, and it now names the CMP player on Android — a replay-only backend
+   * ([ee.schimke.composeai.daemon.remotecompose.rcplayer.CmpAndroidPlayerBackend]) reached through
+   * `RemoteComposeOverride.playerId`. A capture always draws through one of the two AndroidX
+   * players, so neither `cmp-android` nor the bare `cmp` selects anything here, and a build asking
+   * for one hears so rather than silently getting the default. The same goes for the lanes that
+   * never render in this JVM: `cmp-jvm`, `cmp-wasm` and `camaelon-js`. Case- and whitespace-
+   * insensitive throughout.
    */
   fun fromWire(raw: String?): RemoteComposePlayerKind? =
     when (raw?.trim()?.lowercase()) {
       // Canonical first, historical after — the order is documentation, not behaviour.
       "androidx-embedded",
-      "cmp",
-      "cmp-android",
       "embedded" -> RemoteComposePlayerKind.EMBEDDED
       "androidx-view",
       "java",
@@ -123,8 +107,8 @@ object RemoteComposePlayerSelection {
     if (selected == null && !raw.isNullOrBlank()) {
       System.err.println(
         "compose-preview: -D$PROPERTY=$raw names no render-time Remote Compose player; drawing " +
-          "with the default (androidx-embedded). Valid values: androidx-embedded (aka cmp, " +
-          "cmp-android, embedded), androidx-view (aka java, view)."
+          "with the default (androidx-embedded). Valid values: androidx-embedded (aka embedded), " +
+          "androidx-view (aka java, view). cmp-android, the CMP player, is replay-only."
       )
     }
     return selected ?: DEFAULT

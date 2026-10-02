@@ -77,8 +77,11 @@ public data class RemoteComposeDeclarationsPayload(
   val declarations: List<RemoteComposeKnobDeclaration> = emptyList()
 ) {
   /**
-   * The `rcPlayer` wire id of the player that actually drew this capture — `"cmp-android"` for the
-   * embedded player, `"java"` for the view-backed one — or null when the capture recorded none.
+   * The id of the player that actually drew this capture — `"androidx-embedded"` or
+   * `"androidx-view"` — or null when the capture recorded none. Captures written before the player
+   * names were corrected say `"cmp-android"` for the embedded player and `"java"` for the view one;
+   * readers map those two to the canonical ids. (`cmp-android` now names the CMP player, which
+   * never captures, so the old spelling in this field is unambiguous.)
    *
    * Recorded rather than derived. The player a capture drew through depends on what that render
    * asked for, which its `@PreviewWrapper` does not say, and in older connectors it also depended
