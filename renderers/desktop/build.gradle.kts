@@ -200,6 +200,9 @@ val forwardComposeSystemThemeTest =
       // "LayoutNode N not found in RectList"; on the production 1.11 line the same race only
       // corrupts the list silently, so this regression test is only a real gate here.
       includeTestsMatching("ee.schimke.composeai.renderer.DesktopUiThreadRectListRaceTest")
+      // Motion captures step the harness clock exactly; 1.12 reworked when the harness runs a frame
+      // (its idle path never does), so the frame-timing invariant is pinned on both lines.
+      includeTestsMatching("ee.schimke.composeai.renderer.DesktopAnimatedFrameTimingTest")
     }
     shouldRunAfter(tasks.test)
   }
