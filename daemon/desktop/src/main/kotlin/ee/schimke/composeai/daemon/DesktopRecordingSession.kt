@@ -21,6 +21,7 @@ import ee.schimke.composeai.io.SystemFileSystem
 import ee.schimke.composeai.previewdata.AccessibilityNode
 import ee.schimke.composeai.previewdata.TalkBackOverlayFrames
 import ee.schimke.composeai.previewdata.TalkBackTraversal
+import ee.schimke.composeai.renderer.DesktopUiThread
 import ee.schimke.composeai.renderer.encodePngData
 import java.awt.AlphaComposite
 import java.awt.RenderingHints
@@ -274,12 +275,16 @@ class DesktopRecordingSession(
     // captured live-tick failure, or when the scripted playback loop throws mid-render. Without
     // this wrapping a render-time exception would leak the Skia Surface for the JVM's lifetime.
     // engine.tearDown is idempotent, so the eventual close() call is still a no-op.
+    //
+    // Scene work runs on the EDT ([DesktopUiThread]), where Compose posts the scene's delayed
+    // RectManager dispatch. The live path stays off it: it only joins the tick thread, which itself
+    // hops onto the EDT per tick, so joining from the EDT would wait on a thread waiting on us.
     return try {
-      val r = if (live) stopLive() else stopScripted()
+      val r = if (live) stopLive() else DesktopUiThread.run { stopScripted() }
       result = r
       r
     } finally {
-      engine.tearDown(state)
+      DesktopUiThread.run { engine.tearDown(state) }
     }
   }
 
@@ -1034,22 +1039,28 @@ class DesktopRecordingSession(
         // previous screen. A burst of pointer *moves* renders nothing, so those still share one
         // projection — which is the case worth saving, since laying out per event would put a full
         // `scene.render()` between every move and push the recorder past its frame cadence.
-        var tickRoot: ComposeSemanticsNode? = null
-        var tickRootGeneration = -1L
-        while (true) {
-          val next = liveInputs.poll() ?: break
-          val scriptEvent = next.toScriptEvent(tMs)
-          if (tickRoot == null || tickRootGeneration != state.renderGeneration) {
-            tickRoot = engine.laidOutSemanticsRoot(state)
-            tickRootGeneration = state.renderGeneration
+        //
+        // One tick's scene work — dispatch, render, frame write — runs on the EDT
+        // ([DesktopUiThread]); the sleep below stays on this thread so other scenes get the EDT
+        // between ticks.
+        DesktopUiThread.run {
+          var tickRoot: ComposeSemanticsNode? = null
+          var tickRootGeneration = -1L
+          while (true) {
+            val next = liveInputs.poll() ?: break
+            val scriptEvent = next.toScriptEvent(tMs)
+            if (tickRoot == null || tickRootGeneration != state.renderGeneration) {
+              tickRoot = engine.laidOutSemanticsRoot(state)
+              tickRootGeneration = state.renderGeneration
+            }
+            scriptHandlers.dispatch(scriptEvent, ctx)
+            captureLiveEvent(scriptEvent, tickRoot)
           }
-          scriptHandlers.dispatch(scriptEvent, ctx)
-          captureLiveEvent(scriptEvent, tickRoot)
-        }
 
-        val image = renderRecordingFrame(tNanos)
-        writeFramePng(image, liveFrameCount, virtualTimeMs = tMs)
-        liveFrameCount++
+          val image = renderRecordingFrame(tNanos)
+          writeFramePng(image, liveFrameCount, virtualTimeMs = tMs)
+          liveFrameCount++
+        }
 
         // Sleep until the next frame boundary. If the render body overran (unlikely on desktop;
         // common on Android one day), `sleepFor` clamps to 0 — we just take the next frame
@@ -1168,7 +1179,7 @@ class DesktopRecordingSession(
           }
         }
       }
-      engine.tearDown(state)
+      DesktopUiThread.run { engine.tearDown(state) }
     }
     // When stopped is true, stop() already called engine.tearDown(state); a second call is safe
     // (RenderEngine.tearDown is idempotent) but unnecessary.

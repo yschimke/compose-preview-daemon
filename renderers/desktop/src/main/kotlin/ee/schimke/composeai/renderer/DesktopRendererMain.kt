@@ -111,6 +111,14 @@ import okio.Path.Companion.toPath
  * default).
  */
 fun main(args: Array<String>) {
+  // Every capture — still, scroll, focus, interaction, animation, Lottie, SVG — composes, lays out
+  // and draws on the EDT, the thread Compose Desktop posts `RectManager`'s delayed dispatch to.
+  // Driving the scene from this thread instead let that dispatch defragment the scene's RectList
+  // mid-placement ("LayoutNode N not found in RectList"); see [DesktopUiThread].
+  DesktopUiThread.run { renderMain(args) }
+}
+
+private fun renderMain(args: Array<String>) {
   // Before anything composes — including before the pooled worker's *first* request draws a frame,
   // since a worker calls this same `main()` per capture and the runtime latches the flag at the
   // first composition. Idempotent, so every subsequent pooled capture re-applies the same value for

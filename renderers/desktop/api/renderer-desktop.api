@@ -111,6 +111,12 @@ public final class ee/schimke/composeai/renderer/DesktopSettleClockKt {
 	public static final fun settleScene (Landroidx/compose/ui/ImageComposeScene;Lee/schimke/composeai/renderer/DesktopSettleClock;IZ)J
 }
 
+public final class ee/schimke/composeai/renderer/DesktopUiThread {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/renderer/DesktopUiThread;
+	public static final fun run (Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+}
+
 public final class ee/schimke/composeai/renderer/InteractionGestureKind : java/lang/Enum {
 	public static final field PRESS_AND_HOLD Lee/schimke/composeai/renderer/InteractionGestureKind;
 	public static final field TAP Lee/schimke/composeai/renderer/InteractionGestureKind;

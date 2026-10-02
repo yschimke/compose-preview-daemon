@@ -491,9 +491,16 @@ Applying `localeTag` means moving the **process-global** JVM default
 `androidx.compose.ui.text.intl.Locale.current`, which on desktop reads
 that default. One-shot renders are safe by construction — `DesktopHost`
 funnels them through its single `compose-ai-daemon-host` thread — but
-**held sessions are not**: each interactive session composes on its own
+**held sessions are not**: each interactive session is driven by its own
 `compose-ai-daemon-interactive-scene-<previewId>` executor, and recording
-sessions on their own playback / live-tick threads.
+sessions by their own playback / live-tick threads.
+
+(All of those threads now hand the scene work itself to the AWT event
+dispatch thread through `DesktopUiThread.run`, so compositions no longer
+overlap in time — see
+[RENDERER_COMPATIBILITY.md → Scene work runs on the EDT](../RENDERER_COMPATIBILITY.md#scene-work-runs-on-the-edt).
+The gate below is kept anyway: it costs one uncontended acquire per frame,
+and it is what keeps a future off-EDT region honest.)
 
 Every locale-scoped region therefore goes through
 `RenderEngine.withPreviewLocale` — `setUp`, `renderOnce`,
