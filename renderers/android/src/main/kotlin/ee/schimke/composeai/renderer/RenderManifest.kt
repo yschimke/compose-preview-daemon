@@ -143,6 +143,12 @@ data class AnimationCapture(
   val durationMs: Int,
   val frameIntervalMs: Int,
   val showCurves: Boolean = false,
+  /**
+   * The container `@AnimatedPreview(format = …)` asked for. The plugin's `AnimationCapture` already
+   * writes this key; GIF is both its default and this one, so a manifest that omits the key (an
+   * older plugin, or `encodeDefaults = false`) keeps rendering the GIF it always got.
+   */
+  val format: MotionFormat = MotionFormat.GIF,
 )
 
 /**

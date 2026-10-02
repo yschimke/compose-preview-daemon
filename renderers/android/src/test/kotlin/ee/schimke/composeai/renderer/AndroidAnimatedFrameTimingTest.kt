@@ -22,6 +22,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import ee.schimke.composeai.motion.ApngDecoder
+import ee.schimke.composeai.motion.ApngFrameDelay
 import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Files
@@ -29,6 +31,7 @@ import javax.imageio.ImageIO
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -85,6 +88,42 @@ class AndroidAnimatedFrameTimingTest {
   @Test
   fun `50ms animated frames advance the animation by 50ms`() {
     assertTracksTimeline(50, animatedPositions(frameIntervalMs = 50, durationMs = 1000))
+  }
+
+  @Test
+  fun `an APNG animated capture keeps the GIF's frames and declares each delay exactly`() {
+    setRuler()
+    val out = File(rootDir, "ruler-33.apng")
+    val handled =
+      handleAnimatedCapture(
+        rule = rule,
+        animation =
+          AnimationCapture(
+            durationMs = 660,
+            frameIntervalMs = 33,
+            showCurves = false,
+            format = MotionFormat.APNG,
+          ),
+        previewId = "Test.rulerApng",
+        isRound = false,
+        outputFile = out,
+        curveCapture = null,
+      )
+    assertTrue("the capture must claim the slot", handled)
+
+    val decoded = ApngDecoder.decode(out)
+    val frames = decoded.frames
+    assertEquals("acTL must count every encoded frame", apngDeclaredFrames(out), frames.size)
+    // The holds are exact rationals (1/2 s, 1 s) and the steps snap like an interaction capture's
+    // — 33 ms is 30 fps — rather than GIF's 1/100 s rounding.
+    assertEquals(
+      listOf(ApngFrameDelay(1, 2)) +
+        List(frames.size - 2) { ApngFrameDelay(1, 30) } +
+        ApngFrameDelay(1, 1),
+      frames.map { it.delay },
+    )
+    // Same frames, same clock as the GIF path: the ruler still tracks the timeline.
+    assertTracksTimeline(33, frames.map { barLeftEdge(it.image) })
   }
 
   @Test
@@ -201,6 +240,19 @@ class AndroidAnimatedFrameTimingTest {
     (0 until minOf(frame.width, LINEAR_TRAVEL_PX + BAR_PX)).first { x ->
       (frame.getRGB(x, 1) shr 16 and 0xFF) > 128
     }
+
+  private fun apngDeclaredFrames(file: File): Int {
+    val bytes = file.readBytes()
+    var i = 8
+    while (i + 8 <= bytes.size) {
+      val length = java.nio.ByteBuffer.wrap(bytes, i, 4).int
+      if (String(bytes, i + 4, 4, Charsets.US_ASCII) == "acTL") {
+        return java.nio.ByteBuffer.wrap(bytes, i + 8, 4).int
+      }
+      i += 12 + length
+    }
+    error("no acTL in ${file.name}")
+  }
 
   private fun gifFrames(gif: File): List<BufferedImage> {
     val reader = ImageIO.getImageReadersByFormatName("gif").next()
