@@ -287,6 +287,17 @@ capture steps 32 / 48 ms, averaging 33, and frame `n` is always within one tick 
 — closes exactly on frame 0's phase; any other span closes to within one tick.
 `DesktopAnimatedFrameTimingTest` pins both, on 1.11 and in `forwardComposeSystemThemeTest` on 1.12.
 
+Android had the same bug and takes the same fix. `RobolectricRenderTest`'s animated loop and
+`AndroidInteractionRenderer` both stepped `rule.mainClock.advanceTimeBy(frameIntervalMs)`, so a
+33 ms / 50 ms Android GIF moved 48 / 64 ms per frame (measured on a 1 px/ms ruler: 960 ms of motion
+in a 660 ms GIF). Both now go through `advanceMotionFrame` (`RobolectricRenderTest.kt`), which
+calls `advanceTimeBy(frameIntervalMs, ignoreFrameDuration = true)` and idles Robolectric's paused
+main looper by the same interval. Robolectric's Compose test clock behaves like the Skiko harness
+here. It does not render mid-tick: the captured frame is the animation at the last 16 ms tick at
+or before `t`, so a 33 ms capture also steps 32 / 48 ms (averaging 33) and stays within one tick
+of `t0 + n × frameIntervalMs`. `AndroidAnimatedFrameTimingTest` pins both capture paths
+([evidence](evidence/android-gif-frame-timing/README.md)).
+
 Two neighbours are deliberately left on whole frames: the one-tick `advanceTimeByFrame()` before
 frame 0 (it anchors frame 0) and the settle/idle walks (`DesktopSettleClock`, the focus and scroll
 settles), which want whole frames by design. The scroll GIF is scripted motion, not real time —
