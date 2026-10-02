@@ -175,7 +175,7 @@ fun renderInteractionPreview(
           val frame = captureMotionSurfacePngBytes()
           observeMotionRootBounds(bounds)
           collector.capture(frame, crop)
-          mainClock.advanceTimeBy(frameInterval.toLong())
+          advanceMotionFrame(frameInterval)
           elapsed += frameInterval
         }
 

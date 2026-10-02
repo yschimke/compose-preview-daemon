@@ -268,6 +268,32 @@ drives an `ImageComposeScene` directly off the EDT is.
 
 Remove the hop once CMP-10678 lands and the delayed dispatch follows the scene's own thread.
 
+### Motion captures advance the clock by the exact frame interval
+
+`@AnimatedPreview` and `@InteractionPreview` on desktop run under `runSkikoComposeUiTest` with
+`mainClock.autoAdvance = false` and step the clock once per captured frame. That step goes through
+`advanceMotionFrame` (`DesktopMotionCapture.kt`), which is
+`mainClock.advanceTimeBy(frameIntervalMs, ignoreFrameDuration = true)`. Without the flag
+`advanceTimeBy` rounds **up** to whole 16 ms frames: a 33 ms frame moved the animation 48 ms and a
+50 ms one 64 ms while the GIF still declared 33 / 50 ms, so every desktop animated GIF played
+≈1.45× / ≈1.28× too fast and a loop-length capture overran its loop
+([evidence](evidence/desktop-gif-frame-timing/README.md)).
+
+What the exact advance does **not** buy is sub-frame sampling. The harness only produces frames
+from its own 16 ms render loop (on CMP 1.12 the idle path is explicit that it never runs a frame),
+so the pixels captured at `t` are the animation as of the last tick at or before `t`: a 33 ms
+capture steps 32 / 48 ms, averaging 33, and frame `n` is always within one tick of
+`t0 + n × frameIntervalMs`. A capture whose span is a multiple of 16 ms — the shaders' 2000 ms loop
+— closes exactly on frame 0's phase; any other span closes to within one tick.
+`DesktopAnimatedFrameTimingTest` pins both, on 1.11 and in `forwardComposeSystemThemeTest` on 1.12.
+
+Two neighbours are deliberately left on whole frames: the one-tick `advanceTimeByFrame()` before
+frame 0 (it anchors frame 0) and the settle/idle walks (`DesktopSettleClock`, the focus and scroll
+settles), which want whole frames by design. The scroll GIF is scripted motion, not real time —
+each scroll step advances a fixed drive window — so its frame delays never claimed to be the
+clock's. Separately, GIF stores delays in centiseconds, so a 33 ms frame is written as 30 ms
+(`ScrollGifEncoder` truncates); APNG keeps the exact rate.
+
 ## Verifying the renderer on the next Compose line
 
 The renderer takes Compose `compileOnly` so the consumer's versions win at runtime (mechanism 1

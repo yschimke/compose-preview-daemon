@@ -189,6 +189,33 @@ internal fun MotionPreviewProviders(
 }
 
 /**
+ * Advances a motion capture's paused clock by exactly [intervalMs] — one captured frame's worth of
+ * animation time, the same number the encoder writes as that frame's delay.
+ *
+ * `MainTestClock.advanceTimeBy(ms)` rounds `ms` **up** to whole 16 ms frames unless it is passed
+ * `ignoreFrameDuration = true`. Stepping a capture through the rounding overload is what made every
+ * desktop animated GIF play fast: a 33 ms frame moved the animation 48 ms and a 50 ms frame moved
+ * it 64 ms, while the file still declared 33 / 50 ms (≈1.45× / ≈1.28× speed), and a loop-length
+ * capture overran its loop so it no longer closed on itself.
+ *
+ * Exact advance does not mean sub-frame sampling. The Skiko test harness only produces frames from
+ * its own 16 ms render loop (on CMP 1.12 the idle path explicitly never runs a frame), and nothing
+ * here renders on top of it, so the pixels captured at `t` are the animation as of the last 16 ms
+ * tick at or before `t`. What the exact advance buys is that the error stays inside that one tick
+ * instead of compounding: frame `n` shows the animation at `t0 + n × intervalMs` to within a frame,
+ * a 33 ms capture steps 32 / 48 ms averaging 33, and a capture whose span is a multiple of 16 ms
+ * (the shaders' 2000 ms loop) lands its next-after-last frame exactly on frame 0's phase. Every
+ * intermediate 16 ms tick still runs, so nothing is teleported past.
+ *
+ * The one-tick warm-up before the first capture stays on `advanceTimeByFrame()` deliberately: that
+ * is a whole frame by definition, and it is what anchors frame 0.
+ */
+@OptIn(ExperimentalTestApi::class)
+internal fun SkikoComposeUiTest.advanceMotionFrame(intervalMs: Int) {
+  mainClock.advanceTimeBy(intervalMs.toLong(), ignoreFrameDuration = true)
+}
+
+/**
  * Captures the complete Skiko scene, including popup/dialog owners that are not descendants of the
  * preview's main semantics root.
  *

@@ -39,8 +39,9 @@ private const val AUTO_DURATION_FALLBACK_MS = 1500
  * `mainClock`. With `mainClock.autoAdvance = false` the composition's animations (an
  * `InfiniteTransition`, a `LaunchedEffect` driving `withFrameNanos`, a tween) only progress when
  * the renderer advances time itself — so the capture is deterministic and infinite animations can't
- * hang it. The loop advances `mainClock` by [frameIntervalMs] across [durationMs], capturing the
- * root each step, then hands the frames to the shared [ScrollGifEncoder].
+ * hang it. The loop advances `mainClock` by exactly [frameIntervalMs] across [durationMs] (see
+ * [advanceMotionFrame] — the rounding overload made every GIF play fast), capturing the root each
+ * step, then hands the frames to the shared [ScrollGifEncoder].
  *
  * Unlike the scroll path there's no "no scrollable found" decline — any composable produces frames
  * (a static one just yields identical frames) — so this always writes [outputFile] or throws.
@@ -187,7 +188,7 @@ fun renderAnimatedPreview(
           val frame = captureMotionSurfacePngBytes()
           observeMotionRootBounds(bounds)
           collector.capture(frame, crop)
-          mainClock.advanceTimeBy(frameInterval.toLong())
+          advanceMotionFrame(frameInterval)
         }
       }
 
