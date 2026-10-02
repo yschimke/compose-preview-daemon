@@ -213,6 +213,61 @@ Two practical consequences:
 2. **A catalog's CMP bump is a cross-repo change.** Land the host bump, release,
    and redeploy *before* the catalog regenerates against a newer line.
 
+### Scene work runs on the EDT
+
+Every desktop capture drives its `ImageComposeScene` on the AWT event dispatch thread, through
+`DesktopUiThread.run` (`renderer-desktop`): `DesktopRendererMain.main` (so every one-shot and
+worker-pool capture — still, scroll, focus, interaction, animation, Lottie, SVG), `DesktopHost`'s
+render loop, each interactive session's executor (`UiThreadExecutorService`), and a recording's
+set-up, scripted playback, live ticks and tear-down. The driving threads keep their ordering and
+lifecycle; only the scene work hops. A `DesktopUiThread.run` on the EDT runs inline.
+
+**Why — confirmed.** Compose Multiplatform's `RectManager` debounces `dispatchCallbacks()` through
+`postDelayed`, which on desktop launches on skiko's `MainUIDispatcher`, the EDT, regardless of the
+thread that owns the scene (`Actuals.skiko.kt` carries `TODO CMP-7153`; tracked upstream as
+[CMP-10678](https://youtrack.jetbrains.com/issue/CMP-10678)). `dispatchCallbacks()` ends in
+`RectList.defragment()`, which compacts and swaps the list's backing arrays. Driven off the EDT, a
+layout pass that outlasts the 16 ms debounce has the EDT compacting the list while the render
+thread inserts into it; the insert is lost and the next lookup of that node throws
+`IllegalArgumentException: LayoutNode N not found in RectList`. Evidence:
+
+- `DesktopUiThreadRectListRaceTest` drives a churning tree (20 000 static leaves, 1 000 nodes
+  replaced per frame, ~20 ms placement) through `DesktopRendererMain.main`. With `main` off the EDT
+  it fails on Compose 1.12.0 and 1.12.0-rc01 with exactly that message in the `.error.json`
+  sidecar; on the EDT it passes. It runs on the forward line in `forwardComposeSystemThemeTest`.
+- Instrumented off-EDT, the RectList's backing array is swapped mid-placement in most frames, and
+  a stack sampler sees the EDT inside `RectManager.dispatchCallbacks` / `RectList.defragment` while
+  the render thread is placing. With the EDT parked for the duration, or the scene driven on it,
+  nothing is swapped, the list's live-entry count is constant frame to frame, and nothing throws.
+- On the repository's 1.11.1 the same race happens and loses entries (the live count drifts down by
+  up to ~170 of 22 004 between frames) but that line does not trip the precondition, so it shows up
+  only as stale bounds, not as a crash.
+
+**The incident it explains — consistent, not proven.** compose-ui-builder's
+`UiBuilderEditorChromePreview` failed once on CI with this message at a `placeRelative` in a
+`MultiMeasureLayout` placement block (Compose 1.12.0, which the renderer runs against through the
+consumer's graph), passed on re-run, and did not reproduce in 15 local renders. That is the race's
+signature — a large tree, node churn, a slow loaded runner — but the CI artifact holding the full
+stack trace was not reachable from the investigating sandbox, so the attribution rests on the
+message, the frame and the version. One other 1.12.0 bug produces the same message: the androidx
+fix "Do not recalculate rect when placing for alignment" (in androidx 1.12.1; CMP 1.12.0's
+`NodeCoordinator.placeSelf` still calls `recalculateRectIfDirty` while `isPlacingForAlignment`). It
+is single-threaded and fires when a parent reads a child's alignment lines during measure, so it
+would reproduce deterministically rather than once in many runs; if a crash with this message ever
+reproduces on the EDT, look there next.
+
+**Cost.** Scene work on one JVM is serialised on the EDT: two interactive sessions, or a session
+and a one-shot render, now take turns per hop rather than composing in parallel. A block must not
+wait on other EDT work (`runBlocking(Dispatchers.Swing)`, an `invokeAndWait` from elsewhere). The hop
+lends the EDT the caller's context class loader, uncaught-exception handler (where Compose reports
+a recomposition failure, and where a live recording latches it) and, as a ` [for <caller>]` name
+suffix, its identity, so per-thread bookkeeping keeps working. Compose's own desktop test harness already does
+this — `runComposeUiTest`'s `runOnUiThread` is `SwingUtilities.invokeAndWait` — which is also why
+consumer test suites built on it (compose-ui-builder's included) are not exposed; a test that
+drives an `ImageComposeScene` directly off the EDT is.
+
+Remove the hop once CMP-10678 lands and the delayed dispatch follows the scene's own thread.
+
 ## Verifying the renderer on the next Compose line
 
 The renderer takes Compose `compileOnly` so the consumer's versions win at runtime (mechanism 1

@@ -4,6 +4,7 @@ import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.protocol.DataExtensionDescriptor
 import ee.schimke.composeai.data.render.extensions.RecordingScriptDataExtensions
 import ee.schimke.composeai.io.composeAiCacheDir
+import ee.schimke.composeai.renderer.DesktopUiThread
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutionException
@@ -423,9 +424,16 @@ open class DesktopHost(
     // trips `Detected multithreaded access to SnapshotStateObserver` and the follow-on Skiko
     // SIGABRT in issue #1229. The session takes ownership of the executor and shuts it down on
     // [InteractiveSession.close]; on a setUp failure we shut it down here.
-    val sceneExecutor = Executors.newSingleThreadExecutor { r ->
-      Thread(r, "compose-ai-daemon-interactive-scene-$previewId").apply { isDaemon = true }
-    }
+    //
+    // Each task this executor runs then hops onto the EDT ([UiThreadExecutorService]): the session
+    // thread keeps the ordering and the lifecycle, the EDT does the scene work, so Compose's
+    // delayed RectManager dispatch (posted to the EDT) can never interleave with it.
+    val sceneExecutor =
+      UiThreadExecutorService(
+        Executors.newSingleThreadExecutor { r ->
+          Thread(r, "compose-ai-daemon-interactive-scene-$previewId").apply { isDaemon = true }
+        }
+      )
     val state =
       try {
         sceneExecutor
@@ -544,15 +552,16 @@ open class DesktopHost(
     // `acquireRecordingSession` at the wire layer (e.g. the panel / CLI flips the field per user
     // preference).
     val effectiveSpec = applyOverrides(baseSpec, overrides, recordingId)
-    val state =
+    val state = DesktopUiThread.run {
       engine.setUp(
         effectiveSpec,
         classLoader,
         inspectionMode = effectiveSpec.inspectionMode ?: false,
-        // Same as the interactive session: a recording walks its own timeline frame by frame, and
-        // a virtual settle clock would hold every `delay` it depends on.
+        // Same as the interactive session: a recording walks its own timeline frame by frame,
+        // and a virtual settle clock would hold every `delay` it depends on.
         settleEligible = false,
       )
+    }
     val recordingsRoot = recordingsRootDir()
     val framesDir = File(File(recordingsRoot, "frames"), recordingId)
     val encodedDir = File(recordingsRoot, "encoded")
@@ -673,7 +682,9 @@ open class DesktopHost(
           // thread, which surfaces it as `renderFailed` upstream.
           val result: Any =
             try {
-              dispatchRender(request)
+              // Scene work runs on the EDT, where Compose posts the scene's delayed RectManager
+              // dispatch — see [DesktopUiThread]. This thread stays the queue owner.
+              DesktopUiThread.run { dispatchRender(request) }
             } catch (t: Throwable) {
               // [RenderEngine] dispatches the @Composable via `Method.invoke`, which wraps
               // user-thrown exceptions in [java.lang.reflect.InvocationTargetException]. Unwrap

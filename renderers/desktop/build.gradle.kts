@@ -194,7 +194,13 @@ val forwardComposeSystemThemeTest =
     val testSourceSet = sourceSets.test.get()
     testClassesDirs = testSourceSet.output.classesDirs
     classpath = testSourceSet.output + sourceSets.main.get().output + composeForwardTestRuntime
-    filter { includeTestsMatching("ee.schimke.composeai.renderer.UiModeSystemThemeTest") }
+    filter {
+      includeTestsMatching("ee.schimke.composeai.renderer.UiModeSystemThemeTest")
+      // Compose 1.12 is where the EDT-dispatched RectManager defragment turns into a thrown
+      // "LayoutNode N not found in RectList"; on the production 1.11 line the same race only
+      // corrupts the list silently, so this regression test is only a real gate here.
+      includeTestsMatching("ee.schimke.composeai.renderer.DesktopUiThreadRectListRaceTest")
+    }
     shouldRunAfter(tasks.test)
   }
 
