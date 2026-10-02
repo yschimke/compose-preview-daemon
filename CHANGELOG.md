@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.12.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.12.0...v3.12.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* **ci:** open the next release PR only after the release is published ([#202](https://github.com/yschimke/compose-preview-daemon/issues/202)) ([1c785ff](https://github.com/yschimke/compose-preview-daemon/commit/1c785ffd95421e35d8df7500aa7e20b094e71a9a))
+* **renderer-desktop:** advance animated captures by the exact frame interval ([#203](https://github.com/yschimke/compose-preview-daemon/issues/203)) ([16899b8](https://github.com/yschimke/compose-preview-daemon/commit/16899b82ac25c2e58451d144ceb2d173a4f9842a))
+
+
+### CI
+
+* **release:** comment the Maven publish plan on the release PR ([#201](https://github.com/yschimke/compose-preview-daemon/issues/201)) ([4ea3d7d](https://github.com/yschimke/compose-preview-daemon/commit/4ea3d7deadfd27fc93208d255dfd7536c6458345))
+
 ## [3.12.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.11.0...v3.12.0) (2026-10-02)
 
 
