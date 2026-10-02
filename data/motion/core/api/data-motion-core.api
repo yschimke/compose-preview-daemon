@@ -1,6 +1,67 @@
+public final class ee/schimke/composeai/motion/ApngDecoder {
+	public static final field INSTANCE Lee/schimke/composeai/motion/ApngDecoder;
+	public final fun decode (Ljava/io/File;)Lee/schimke/composeai/motion/ApngDecoder$Animation;
+	public final fun decode ([B)Lee/schimke/composeai/motion/ApngDecoder$Animation;
+}
+
+public final class ee/schimke/composeai/motion/ApngDecoder$Animation {
+	public fun <init> (IIILjava/util/List;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (IIILjava/util/List;)Lee/schimke/composeai/motion/ApngDecoder$Animation;
+	public static synthetic fun copy$default (Lee/schimke/composeai/motion/ApngDecoder$Animation;IIILjava/util/List;ILjava/lang/Object;)Lee/schimke/composeai/motion/ApngDecoder$Animation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFrames ()Ljava/util/List;
+	public final fun getHeight ()I
+	public final fun getLoopCount ()I
+	public final fun getWidth ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/motion/ApngDecoder$Frame {
+	public fun <init> (Ljava/awt/image/BufferedImage;Lee/schimke/composeai/motion/ApngFrameDelay;Ljava/awt/Rectangle;)V
+	public final fun component1 ()Ljava/awt/image/BufferedImage;
+	public final fun component2 ()Lee/schimke/composeai/motion/ApngFrameDelay;
+	public final fun component3 ()Ljava/awt/Rectangle;
+	public final fun copy (Ljava/awt/image/BufferedImage;Lee/schimke/composeai/motion/ApngFrameDelay;Ljava/awt/Rectangle;)Lee/schimke/composeai/motion/ApngDecoder$Frame;
+	public static synthetic fun copy$default (Lee/schimke/composeai/motion/ApngDecoder$Frame;Ljava/awt/image/BufferedImage;Lee/schimke/composeai/motion/ApngFrameDelay;Ljava/awt/Rectangle;ILjava/lang/Object;)Lee/schimke/composeai/motion/ApngDecoder$Frame;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDelay ()Lee/schimke/composeai/motion/ApngFrameDelay;
+	public final fun getImage ()Ljava/awt/image/BufferedImage;
+	public final fun getRegion ()Ljava/awt/Rectangle;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class ee/schimke/composeai/motion/ApngEncoder {
 	public static final field INSTANCE Lee/schimke/composeai/motion/ApngEncoder;
+	public final fun encode (Ljava/util/List;Ljava/util/List;ILjava/io/File;)V
+	public final fun encode (Ljava/util/List;Ljava/util/List;ILjava/io/OutputStream;)V
+	public final fun encodeFromPngFrames (Ljava/util/List;Ljava/util/List;ILjava/io/File;)V
 	public final fun encodeFromPngFrames (Ljava/util/List;SSILjava/io/File;)V
+}
+
+public final class ee/schimke/composeai/motion/ApngFrameDelay {
+	public static final field Companion Lee/schimke/composeai/motion/ApngFrameDelay$Companion;
+	public fun <init> (II)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun copy (II)Lee/schimke/composeai/motion/ApngFrameDelay;
+	public static synthetic fun copy$default (Lee/schimke/composeai/motion/ApngFrameDelay;IIILjava/lang/Object;)Lee/schimke/composeai/motion/ApngFrameDelay;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDenominator ()I
+	public final fun getMillis ()D
+	public final fun getNumerator ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/motion/ApngFrameDelay$Companion {
+	public final fun ofFrameInterval (I)Lee/schimke/composeai/motion/ApngFrameDelay;
+	public final fun ofMillis (I)Lee/schimke/composeai/motion/ApngFrameDelay;
 }
 
 public final class ee/schimke/composeai/motion/InteractionPointerEvent {
