@@ -84,6 +84,10 @@ dependencies {
   // :daemon:desktop modules consume from this module's `api`.
   implementation(libs.classgraph)
 
+  // The APNG encoder the renderers' captures use; `ApngEncoder` here adapts it to the recording
+  // path's okio file system rather than keeping a second copy. A dependency-free JVM leaf.
+  implementation(project(":data-motion-core"))
+
   // Stage-2 in-process compile. `BtaCompileSession` +
   // `DefaultBtaCompileService.fromSysprops` link against the Build Tools API
   // unconditionally at daemon startup, so the API jar must be on the daemon JVM's

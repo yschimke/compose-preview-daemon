@@ -17,13 +17,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import ee.schimke.composeai.motion.ApngDecoder
 import ee.schimke.composeai.motion.MAX_INTERACTION_DURATION_MS
 import java.awt.image.BufferedImage
-import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.file.Files
-import java.util.zip.CRC32
 import javax.imageio.ImageIO
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -332,91 +331,29 @@ class AndroidInteractionCaptureTest {
  * Just enough APNG reading to assert on a capture: the declared frame count, the frame delay, and
  * the frames themselves as ordinary `BufferedImage`s.
  *
- * `ImageIO` decodes an APNG's first frame and stops — every later frame lives in `fdAT` chunks it
- * has no reader for — so a test that wants to see whether the pointer actually moved anything has
- * to split the container itself. Each frame is reassembled as a standalone PNG (the shared `IHDR`,
- * that frame's image data, `IEND`) and handed to `ImageIO`, which mirrors how the encoder built it.
+ * `ImageIO` decodes an APNG's first frame and stops, and every later frame is stored as only the
+ * rectangle that changed, so frames are composited by the shared [ApngDecoder] — the counterpart of
+ * the encoder that wrote them.
  */
 private object Apng {
 
-  private val SIGNATURE = byteArrayOf(-119, 80, 78, 71, 13, 10, 26, 10)
-
   fun declaredFrameCount(file: File): Int {
     val bytes = file.readBytes()
-    val acTl = chunks(bytes).first { it.type == "acTL" }
-    return ByteBuffer.wrap(bytes, acTl.dataOffset, 4).int
-  }
-
-  fun delay(file: File): Pair<Short, Short> {
-    val bytes = file.readBytes()
-    val fcTl = chunks(bytes).first { it.type == "fcTL" }
-    // fcTL: seq(4) w(4) h(4) xOff(4) yOff(4) delayNum(2) delayDen(2) …
-    val buf = ByteBuffer.wrap(bytes, fcTl.dataOffset + 20, 4)
-    return buf.short to buf.short
-  }
-
-  fun frames(file: File): List<BufferedImage> {
-    val bytes = file.readBytes()
-    val all = chunks(bytes)
-    val ihdr = all.first { it.type == "IHDR" }
-    val header = bytes.copyOfRange(ihdr.offset, ihdr.offset + 12 + ihdr.length)
-
-    val frames = mutableListOf<ByteArray>()
-    var pending: java.io.ByteArrayOutputStream? = null
-    for (c in all) {
-      when (c.type) {
-        "fcTL" -> {
-          pending?.let { frames += it.toByteArray() }
-          pending = java.io.ByteArrayOutputStream()
-        }
-        "IDAT" -> pending?.write(bytes, c.offset, 12 + c.length)
-        // An `fdAT` payload is an `IDAT` payload behind a 4-byte sequence number.
-        "fdAT" ->
-          pending?.write(
-            pngChunk("IDAT", bytes.copyOfRange(c.dataOffset + 4, c.dataOffset + c.length))
-          )
-      }
-    }
-    pending?.let { frames += it.toByteArray() }
-
-    val iend = pngChunk("IEND", ByteArray(0))
-    return frames.map { data ->
-      val png = SIGNATURE + header + data + iend
-      ByteArrayInputStream(png).use { ImageIO.read(it) }
-        ?: error("reassembled APNG frame did not decode")
-    }
-  }
-
-  private data class Chunk(val type: String, val offset: Int, val length: Int) {
-    /** Where this chunk's payload starts — past the 4-byte length and the 4-byte type. */
-    val dataOffset: Int
-      get() = offset + 8
-  }
-
-  private fun chunks(bytes: ByteArray): List<Chunk> {
-    val out = mutableListOf<Chunk>()
-    var i = SIGNATURE.size
+    var i = 8
     while (i + 8 <= bytes.size) {
       val length = ByteBuffer.wrap(bytes, i, 4).int
-      val type = String(bytes, i + 4, 4, Charsets.US_ASCII)
-      out += Chunk(type, i, length)
+      if (String(bytes, i + 4, 4, Charsets.US_ASCII) == "acTL") {
+        return ByteBuffer.wrap(bytes, i + 8, 4).int
+      }
       i += 12 + length
     }
-    return out
+    error("APNG has no acTL chunk: ${file.absolutePath}")
   }
 
-  private fun pngChunk(type: String, data: ByteArray): ByteArray {
-    val typeBytes = type.toByteArray(Charsets.US_ASCII)
-    val crc =
-      CRC32().apply {
-        update(typeBytes)
-        update(data)
-      }
-    return ByteBuffer.allocate(12 + data.size)
-      .putInt(data.size)
-      .put(typeBytes)
-      .put(data)
-      .putInt(crc.value.toInt())
-      .array()
-  }
+  fun delay(file: File): Pair<Short, Short> =
+    ApngDecoder.decode(file).frames.first().delay.let {
+      it.numerator.toShort() to it.denominator.toShort()
+    }
+
+  fun frames(file: File): List<BufferedImage> = ApngDecoder.decode(file).frames.map { it.image }
 }

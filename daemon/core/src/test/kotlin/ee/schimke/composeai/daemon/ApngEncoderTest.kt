@@ -1,5 +1,7 @@
 package ee.schimke.composeai.daemon
 
+import ee.schimke.composeai.motion.ApngDecoder
+import ee.schimke.composeai.motion.ApngFrameDelay
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.File
@@ -46,6 +48,32 @@ class ApngEncoderTest {
     assertEquals(frames.size, acTl.int)
     assertEquals(0, acTl.int)
     assertTrue("APNG should be non-empty", out.length() > 0)
+  }
+
+  @Test
+  fun recording_frames_round_trip_pixel_exact_and_keep_their_count() {
+    val frames =
+      listOf(
+        writeFrame("a.png", Color(255, 0, 0, 128)),
+        writeFrame("b.png", Color(255, 0, 0, 128)), // a held frame — still its own frame
+        writeFrame("c.png", Color(0, 0, 255, 255)),
+      )
+    val out = File(tmp.newFolder("rt"), "rt.apng")
+
+    ApngEncoder.encodeFromPngFrames(frames, 1, 30, 0, out)
+
+    val decoded = ApngDecoder.decode(out)
+    assertEquals(frames.size, decoded.frames.size)
+    for ((i, frame) in frames.withIndex()) {
+      val expected = ImageIO.read(frame)
+      val actual = decoded.frames[i].image
+      assertEquals(ApngFrameDelay(1, 30), decoded.frames[i].delay)
+      for (y in 0 until expected.height) {
+        for (x in 0 until expected.width) {
+          assertEquals("frame $i ($x,$y)", expected.getRGB(x, y), actual.getRGB(x, y))
+        }
+      }
+    }
   }
 
   @Test

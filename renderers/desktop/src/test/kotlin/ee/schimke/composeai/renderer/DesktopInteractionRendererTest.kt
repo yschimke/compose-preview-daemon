@@ -1,5 +1,6 @@
 package ee.schimke.composeai.renderer
 
+import ee.schimke.composeai.motion.ApngDecoder
 import ee.schimke.composeai.motion.apngDelayFor
 import java.awt.image.BufferedImage
 import java.io.File
@@ -363,103 +364,20 @@ class DesktopInteractionRendererTest {
   }
 }
 
-/** Minimal APNG reader — enough to count frames, read the first delay, and sample pixels. */
+/** The capture's composited frames and first delay, read through the shared [ApngDecoder]. */
 private object ApngFrames {
 
-  // The JVM's stock ImageIO decodes only the FIRST frame of an APNG, so frames are recovered from
-  // the chunk stream directly: each fcTL starts a frame and its pixels live in the IDAT / fdAT that
-  // follow. Every frame these fixtures produce is full-size and non-disposing, so rebuilding one as
-  // a standalone PNG is a chunk copy rather than a composite.
-  fun read(file: File): List<BufferedImage> = ApngSplitter(file.readBytes()).frames()
+  // The JVM's stock ImageIO decodes only the FIRST frame of an APNG, and every later frame is now
+  // stored as only the rectangle that changed — so frames are composited by the decoder that
+  // mirrors the encoder rather than split out of the chunk stream.
+  fun read(file: File): List<BufferedImage> = ApngDecoder.decode(file).frames.map { it.image }
 
-  fun firstDelay(file: File): Pair<Short, Short> = ApngSplitter(file.readBytes()).firstDelay()
+  fun firstDelay(file: File): Pair<Short, Short> =
+    ApngDecoder.decode(file).frames.first().delay.let {
+      it.numerator.toShort() to it.denominator.toShort()
+    }
 }
 
-private class ApngSplitter(private val bytes: ByteArray) {
-
-  private data class Chunk(val type: String, val start: Int, val length: Int)
-
-  private fun chunks(): List<Chunk> {
-    val out = mutableListOf<Chunk>()
-    var i = 8
-    while (i + 8 <= bytes.size) {
-      val length = readInt(i)
-      val type = String(bytes, i + 4, 4, Charsets.ISO_8859_1)
-      out += Chunk(type, i, length)
-      i += 12 + length
-    }
-    return out
-  }
-
-  fun firstDelay(): Pair<Short, Short> {
-    val fctl = chunks().first { it.type == "fcTL" }
-    val num = readShort(fctl.start + 8 + 20)
-    val den = readShort(fctl.start + 8 + 22)
-    return num to den
-  }
-
-  fun frames(): List<BufferedImage> {
-    val all = chunks()
-    val ihdr = all.first { it.type == "IHDR" }
-    val header = bytes.copyOfRange(0, 8) + slice(ihdr)
-    val tail = crcChunk("IEND", ByteArray(0))
-
-    val out = mutableListOf<BufferedImage>()
-    var pending: ByteArray? = null
-    for (chunk in all) {
-      when (chunk.type) {
-        "fcTL" -> {
-          pending?.let { out += decode(header + it + tail) }
-          pending = ByteArray(0)
-        }
-        "IDAT" -> if (pending != null) pending += slice(chunk)
-        // fdAT is an IDAT whose payload is prefixed by a 4-byte sequence number.
-        "fdAT" ->
-          if (pending != null) {
-            val payload = bytes.copyOfRange(chunk.start + 12, chunk.start + 8 + chunk.length)
-            pending += crcChunk("IDAT", payload)
-          }
-      }
-    }
-    pending?.let { out += decode(header + it + tail) }
-    return out
-  }
-
-  private fun decode(png: ByteArray): BufferedImage =
-    javax.imageio.ImageIO.read(png.inputStream()) ?: error("APNG frame failed to decode")
-
-  private fun slice(chunk: Chunk): ByteArray =
-    bytes.copyOfRange(chunk.start, chunk.start + 12 + chunk.length)
-
-  private fun crcChunk(type: String, payload: ByteArray): ByteArray {
-    val out = java.io.ByteArrayOutputStream()
-    out.write(intBytes(payload.size))
-    val typed = type.toByteArray(Charsets.ISO_8859_1) + payload
-    out.write(typed)
-    val crc = java.util.zip.CRC32().apply { update(typed) }.value
-    out.write(intBytes(crc.toInt()))
-    return out.toByteArray()
-  }
-
-  private fun intBytes(value: Int) =
-    byteArrayOf(
-      (value ushr 24).toByte(),
-      (value ushr 16).toByte(),
-      (value ushr 8).toByte(),
-      value.toByte(),
-    )
-
-  private fun readInt(at: Int): Int =
-    ((bytes[at].toInt() and 0xFF) shl 24) or
-      ((bytes[at + 1].toInt() and 0xFF) shl 16) or
-      ((bytes[at + 2].toInt() and 0xFF) shl 8) or
-      (bytes[at + 3].toInt() and 0xFF)
-
-  private fun readShort(at: Int): Short =
-    (((bytes[at].toInt() and 0xFF) shl 8) or (bytes[at + 1].toInt() and 0xFF)).toShort()
-}
-
-/** The pixel's alpha — `0` is padding the renderer added, `255` is something the component drew. */
 private fun BufferedImage.alphaAt(x: Int, y: Int): Int = (getRGB(x, y) shr 24) and 0xFF
 
 /** True when the pixel is (near-)white — the fixtures' "this is the active one" signal. */
