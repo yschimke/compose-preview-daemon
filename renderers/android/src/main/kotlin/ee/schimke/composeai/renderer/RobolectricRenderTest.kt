@@ -69,6 +69,8 @@ import ee.schimke.composeai.data.render.extensions.loadPreviewWrapperClass
 import ee.schimke.composeai.data.render.extensions.provides
 import ee.schimke.composeai.glimmer.GlimmerEnvironment as ConnectorGlimmerEnvironment
 import ee.schimke.composeai.glimmer.GlimmerEnvironmentCompositor
+import ee.schimke.composeai.motion.ApngEncoder
+import ee.schimke.composeai.motion.ApngFrameDelay
 import ee.schimke.composeai.scroll.FLING_DECAY
 import ee.schimke.composeai.scroll.FLING_MAX_DISTANCE_VIEWPORTS
 import ee.schimke.composeai.scroll.FLING_MIN_STEP_DP
@@ -2237,7 +2239,7 @@ abstract class RobolectricRenderTestBase(
 
             // @AnimatedPreview: paused mainClock, advance per frame
             // across the annotation's window, capture each frame,
-            // encode as GIF. When `showCurves = true`, the outer
+            // encode as GIF or APNG (`format`). When `showCurves = true`, the outer
             // setContent has already wrapped the composition in
             // Inspectable(animationCurveRecord, …) so we can attach
             // `AnimationInspector` to sample property values across
@@ -4208,9 +4210,10 @@ internal fun captureDecodableFrame(
  * 3. Loop one frame per `frameIntervalMs` of virtual time across the effective duration, capturing
  *    the screenshot to a temp PNG and seeking the inspector to the same time to sample each
  *    animated property's value.
- * 4. Build the output GIF. With `showCurves = true`, every frame is a composite of (screenshot on
- *    top, curve panel below with a moving dot on each curve at the current virtual time). With
- *    `showCurves = false`, the GIF is screenshot-only.
+ * 4. Encode the output in [AnimationCapture.format] — GIF unless the annotation asked for APNG —
+ *    through [encodeAnimatedFrames]. With `showCurves = true`, every frame is a composite of
+ *    (screenshot on top, curve panel below with a moving dot on each curve at the current virtual
+ *    time). With `showCurves = false`, the frames are screenshot-only.
  *
  * Returns `true` when [outputFile] was written.
  */
@@ -4413,26 +4416,15 @@ internal fun handleAnimatedCapture(
 
     val rawComposedFrames = composePresentationFrames(rawFrames)
 
-    // Hold the first frame for [HOLD_START_MS] and the last for
-    // [HOLD_END_MS] so the GIF reads as "pre-state → animation → settled
-    // state" rather than instantly looping back. Single-frame GIFs
-    // collapse to one long-hold image.
-    val frameDelays =
-      IntArray(rawComposedFrames.size) { i ->
-        when (i) {
-          0 -> HOLD_START_ANIM_MS
-          rawComposedFrames.lastIndex -> HOLD_END_ANIM_MS
-          else -> frameIntervalMs
-        }
-      }
     val composedFrames =
       glimmerEnvironment?.let { environment ->
-        val rawOutput = outputFile.resolveSibling("${outputFile.nameWithoutExtension}.raw.gif")
-        ScrollGifEncoder.encode(
-          frames = rawComposedFrames,
-          outputFile = rawOutput,
-          frameDelaysMs = frameDelays,
-        ) ?: return false
+        // `<stem>.raw.<ext>` beside the capture, in its container — as `@InteractionPreview` does.
+        val rawOutput =
+          outputFile.resolveSibling(
+            "${outputFile.nameWithoutExtension}.raw.${outputFile.extension}"
+          )
+        encodeAnimatedFrames(rawComposedFrames, rawOutput, animation.format, frameIntervalMs)
+          ?: return false
         // Composite only the captured Glimmer surface. Curve panels are renderer-owned UI and
         // should retain their ordinary colours rather than receiving the simulated environment.
         composePresentationFrames(
@@ -4440,11 +4432,8 @@ internal fun handleAnimatedCapture(
         )
       } ?: rawComposedFrames
     val written =
-      ScrollGifEncoder.encode(
-        frames = composedFrames,
-        outputFile = outputFile,
-        frameDelaysMs = frameDelays,
-      ) ?: return false
+      encodeAnimatedFrames(composedFrames, outputFile, animation.format, frameIntervalMs)
+        ?: return false
 
     val durationLabel =
       if (animation.durationMs == 0) {
@@ -4583,6 +4572,54 @@ private const val AUTO_DURATION_FALLBACK_MS = 1500
  * visibly for a moment before looping.
  */
 private const val AUTO_DURATION_TAIL_MS = 200L
+
+/**
+ * Per-frame delays of an `@AnimatedPreview` capture, in milliseconds: the first frame held for
+ * [HOLD_START_ANIM_MS] and the last for [HOLD_END_ANIM_MS], so the loop reads as "pre-state →
+ * animation → settled state" rather than snapping back; every frame between is one
+ * [frameIntervalMs]. A single-frame capture is one [HOLD_START_ANIM_MS] image.
+ */
+internal fun animatedFrameDelaysMs(frameCount: Int, frameIntervalMs: Int): IntArray =
+  IntArray(frameCount) { i ->
+    when (i) {
+      0 -> HOLD_START_ANIM_MS
+      frameCount - 1 -> HOLD_END_ANIM_MS
+      else -> frameIntervalMs
+    }
+  }
+
+/**
+ * Writes an `@AnimatedPreview` capture's [frames] to [outputFile] in [format], with the
+ * [animatedFrameDelaysMs] timing. Returns the written file, or `null` when the encoder declined.
+ *
+ * - [MotionFormat.GIF] is the historical path, unchanged: [ScrollGifEncoder] with the millisecond
+ *   delays, which it rounds to GIF's 1/100 s (and floors at 20 ms).
+ * - [MotionFormat.APNG] goes through `:data-motion-core`'s [ApngEncoder] — the encoder
+ *   `@InteractionPreview` uses — with each delay exact: the holds as `1/2` and `1/1` s, the steps
+ *   snapped like an interaction capture's (16 ms → `1/60`). Full 8-bit alpha and full colour, and
+ *   every frame is kept, so the frame count matches the GIF's.
+ */
+internal fun encodeAnimatedFrames(
+  frames: List<BufferedImage>,
+  outputFile: File,
+  format: MotionFormat,
+  frameIntervalMs: Int,
+): File? {
+  val delaysMs = animatedFrameDelaysMs(frames.size, frameIntervalMs)
+  return when (format) {
+    MotionFormat.GIF ->
+      ScrollGifEncoder.encode(frames = frames, outputFile = outputFile, frameDelaysMs = delaysMs)
+    MotionFormat.APNG -> {
+      if (frames.isEmpty()) return null
+      val delays = delaysMs.mapIndexed { i, ms ->
+        if (i == 0 || i == frames.lastIndex) ApngFrameDelay.ofMillis(ms)
+        else ApngFrameDelay.ofFrameInterval(ms)
+      }
+      ApngEncoder.encode(frames = frames, delays = delays, loopCount = 0, out = outputFile)
+      outputFile
+    }
+  }
+}
 
 /**
  * Per-frame `delayTime` overrides for the first and last frames of an `@AnimatedPreview` GIF.
