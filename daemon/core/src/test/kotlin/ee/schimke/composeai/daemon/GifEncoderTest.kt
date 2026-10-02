@@ -82,4 +82,56 @@ class GifEncoderTest {
       GifEncoder.encodeFromPngFrames(frames = frames, fps = 0, out = out)
     }
   }
+
+  @Test
+  fun recording_delays_track_the_frame_rate_within_one_centisecond() {
+    for (fps in listOf(30, 24, 20, 15, 10, 12, 25, 50, 1)) {
+      for (frameCount in 1..120) {
+        val delays = GifEncoder.centisecondDelays(fps, frameCount)
+        val totalMs = delays.sum() * 10.0
+        val expectedMs = frameCount * 1000.0 / fps
+        assertTrue(
+          "$fps fps × $frameCount frames: GIF total $totalMs ms vs captured $expectedMs ms",
+          kotlin.math.abs(totalMs - expectedMs) <= 10.0,
+        )
+        assertTrue("$fps fps: ${delays.toList()}", delays.all { it >= 2 })
+      }
+    }
+  }
+
+  @Test
+  fun thirty_fps_alternates_three_and_four_centiseconds() {
+    // Truncating 1000 / 30 = 33 ms wrote 3 cs every frame: 30 frames played in 900 ms.
+    val delays = GifEncoder.centisecondDelays(fps = 30, frameCount = 30)
+    assertEquals(listOf(3, 4, 3), delays.take(3))
+    assertEquals(100, delays.sum())
+  }
+
+  @Test
+  fun above_fifty_fps_every_frame_is_floored_at_two_centiseconds() {
+    // 0 and 1 cs delays play at ~100 ms in browsers; GIF cannot go faster than 50 fps reliably.
+    for (fps in listOf(51, 60, 120)) {
+      assertEquals(List(10) { 2 }, GifEncoder.centisecondDelays(fps, 10).toList())
+    }
+  }
+
+  @Test
+  fun encoded_file_carries_the_distributed_delays() {
+    val framesDir = tmp.newFolder("frames")
+    val frames = (0 until 6).map { writeFrame(framesDir, it, Color(it * 40, 0, 0)) }
+    val out = File(tmp.newFolder("out"), "timed.gif")
+    GifEncoder.encodeFromPngFrames(frames = frames, fps = 30, out = out)
+
+    val bytes = out.readBytes()
+    val delays =
+      bytes.indices
+        .filter { i ->
+          i + 5 < bytes.size &&
+            bytes[i] == 0x21.toByte() &&
+            bytes[i + 1] == 0xF9.toByte() &&
+            bytes[i + 2] == 0x04.toByte()
+        }
+        .map { i -> (bytes[i + 4].toInt() and 0xFF) or ((bytes[i + 5].toInt() and 0xFF) shl 8) }
+    assertEquals(listOf(3, 4, 3, 3, 4, 3), delays)
+  }
 }

@@ -21,7 +21,8 @@ import javax.imageio.metadata.IIOMetadataNode
  *
  * **Frame source.** [encodeFromPngFrames] takes a list of PNG files (one per frame, all sharing the
  * same dimensions — guaranteed by the fixed-size raster surface the recording sessions write) and
- * writes them as a single looping GIF at `1000 / fps` ms per frame.
+ * writes them as a single looping GIF at `1000 / fps` ms per frame, with the centisecond rounding
+ * distributed across frames (see [centisecondDelays]).
  *
  * Extracted from the original `TouchOverlayTestSupport.encodeFramesAsGif` test helper so the
  * recording surface ships GIF as a real encoder rather than a test-only artifact.
@@ -46,10 +47,7 @@ public object GifEncoder {
     out.parentFile?.mkdirs()
     if (out.exists()) out.delete()
 
-    // GIF frame delay is expressed in centiseconds (1/100 s). Clamp to ≥ 2cs (20ms) so viewers that
-    // treat very small delays as "as fast as possible" still animate at a sane rate, matching the
-    // browser convention for sub-20ms GIF delays.
-    val frameDelayCs = ((1000 / fps) / 10).coerceAtLeast(2)
+    val delaysCs = centisecondDelays(fps, frames.size)
 
     javax.imageio.stream.FileImageOutputStream(out).use { stream ->
       writer.output = stream
@@ -60,7 +58,7 @@ public object GifEncoder {
       val imageType = ImageTypeSpecifier.createFromRenderedImage(firstFrame)
       val param = writer.defaultWriteParam
       val meta = writer.getDefaultImageMetadata(imageType, param)
-      configureGifFrameMetadata(meta, frameDelayCs, loopForever = true)
+      configureGifFrameMetadata(meta, delaysCs[0], loopForever = true)
       writer.prepareWriteSequence(null)
       writer.writeToSequence(IIOImage(firstFrame, null, meta), param)
       for (i in 1 until frames.size) {
@@ -69,13 +67,38 @@ public object GifEncoder {
             "GifEncoder: ImageIO.read returned null for ${frames[i].absolutePath}"
           }
         val frameMeta = writer.getDefaultImageMetadata(imageType, param)
-        configureGifFrameMetadata(frameMeta, frameDelayCs, loopForever = false)
+        configureGifFrameMetadata(frameMeta, delaysCs[i], loopForever = false)
         writer.writeToSequence(IIOImage(frame, null, frameMeta), param)
       }
       writer.endWriteSequence()
     }
     writer.dispose()
   }
+
+  /**
+   * The per-frame GIF `delayTime`s (centiseconds) for [frameCount] frames at [fps], distributed so
+   * the cumulative playback time tracks `n / fps` instead of each frame being rounded on its own.
+   *
+   * GIF delays are whole centiseconds. Truncating `1000 / fps` per frame — what this encoder used
+   * to do — wrote 30 fps (33.3 ms) as 30 ms and 24 fps (41.7 ms) as 40 ms, so recordings played 11%
+   * / 4% fast. Frame `i` instead gets `round((i + 1) × 100 / fps) - round(i × 100 / fps)`, computed
+   * exactly in integers: 30 fps comes out `3, 4, 3, …`, which is exactly 1 s per 30 frames.
+   *
+   * **Minimum delay: 2 cs (20 ms).** Browsers play a `delayTime` of 0 or 1 cs at ~100 ms, so above
+   * 50 fps — where the average would drop below 2 cs and the distribution would emit 1 cs frames —
+   * every frame is written at 2 cs and the GIF plays at 50 fps. APNG keeps the exact rate. Same
+   * policy as `ScrollGifEncoder.centisecondDelays` in `:data-scroll-core`, which daemon/core does
+   * not depend on.
+   */
+  internal fun centisecondDelays(fps: Int, frameCount: Int): IntArray {
+    if (fps > MAX_REPRESENTABLE_FPS) return IntArray(frameCount) { MIN_DELAY_CS }
+    // round(n × 100 / fps), half up, in integers.
+    fun cumulativeCs(n: Int): Long = (2L * n * 100 + fps) / (2L * fps)
+    return IntArray(frameCount) { i -> (cumulativeCs(i + 1) - cumulativeCs(i)).toInt() }
+  }
+
+  private const val MIN_DELAY_CS = 2
+  private const val MAX_REPRESENTABLE_FPS = 100 / MIN_DELAY_CS
 
   private fun configureGifFrameMetadata(meta: IIOMetadata, delayCs: Int, loopForever: Boolean) {
     val formatName = meta.nativeMetadataFormatName
