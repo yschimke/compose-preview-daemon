@@ -44,7 +44,9 @@ annotation class AnimatedPreview(
   val durationMs: Int = AUTO_DETECT_DURATION_MS,
   /**
    * Per-frame delay, in milliseconds. Drives both the virtual-time stepping and the GIF's per-frame
-   * `delayTime`. Snaps to GIF's 10ms timing resolution at encode time. Default 33ms ≈ 30fps.
+   * `delayTime`. GIF delays are whole centiseconds, so the encoder spreads the rounding across
+   * frames (33ms is written as a mix of 30 and 40ms) to keep the total playback time on the
+   * captured timeline; intervals under 20ms play at 20ms. Default 33ms ≈ 30fps.
    */
   val frameIntervalMs: Int = DEFAULT_ANIMATION_FRAME_INTERVAL_MS,
   /**

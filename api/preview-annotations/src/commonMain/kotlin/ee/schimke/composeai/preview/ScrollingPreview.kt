@@ -45,9 +45,10 @@ annotation class ScrollingPreview(
   /** Which axis to drive. Only [ScrollAxis.VERTICAL] is rendered today. */
   val axis: ScrollAxis = ScrollAxis.VERTICAL,
   /**
-   * Per-frame delay for [ScrollMode.GIF] output, in milliseconds. Snaps to GIF's 10ms timing
-   * resolution at encode time. Default 80ms ≈ 12.5fps — smooth enough for a UI scroll, small enough
-   * to keep file size reasonable. Ignored by all other modes.
+   * Per-frame delay for [ScrollMode.GIF] output, in milliseconds. GIF delays are whole
+   * centiseconds; the encoder spreads the rounding across frames so the total playback time stays
+   * on `frames × frameIntervalMs`, with a 20ms floor per frame. Default 80ms ≈ 12.5fps — smooth
+   * enough for a UI scroll, small enough to keep file size reasonable. Ignored by all other modes.
    */
   val frameIntervalMs: Int = DEFAULT_GIF_FRAME_INTERVAL_MS,
 )

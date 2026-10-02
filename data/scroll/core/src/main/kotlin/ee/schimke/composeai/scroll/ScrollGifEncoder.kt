@@ -13,7 +13,9 @@ import javax.imageio.stream.FileImageOutputStream
 
 /**
  * Encodes a sequence of same-sized `BufferedImage` frames as an animated GIF at [outputFile],
- * looping forever at [frameDelayMs] per frame.
+ * looping forever at [frameDelayMs] per frame. GIF delays are whole centiseconds, so the rounding
+ * is distributed across frames to keep the total playback time on the captured timeline — see
+ * [centisecondDelays].
  *
  * Built on `javax.imageio`'s standard GIF writer plugin — no extra deps. Two GIF-specific knobs are
  * driven through the metadata tree that `ImageWriter` exposes:
@@ -33,6 +35,10 @@ import javax.imageio.stream.FileImageOutputStream
  */
 object ScrollGifEncoder {
   const val DEFAULT_FRAME_DELAY_MS: Int = 80
+  /**
+   * The shortest per-frame delay written, in ms. 2 cs is the smallest GIF delay browsers honour (0
+   * and 1 cs play at ~100 ms); see [centisecondDelays].
+   */
   const val MIN_FRAME_DELAY_MS: Int = 20
 
   fun encode(
@@ -85,7 +91,8 @@ object ScrollGifEncoder {
       val first = frames.first()
       val imageType = ImageTypeSpecifier.createFromRenderedImage(first)
       val meta = writer.getDefaultImageMetadata(imageType, param)
-      configureFrameMetadata(meta, toCentiseconds(frameDelaysMs[0]), disposal, loopForever = true)
+      val delaysCs = centisecondDelays(frameDelaysMs)
+      configureFrameMetadata(meta, delaysCs[0], disposal, loopForever = true)
 
       writer.prepareWriteSequence(null)
       writer.writeToSequence(IIOImage(first, null, meta), param)
@@ -94,7 +101,7 @@ object ScrollGifEncoder {
         val frameMeta = writer.getDefaultImageMetadata(imageType, param)
         configureFrameMetadata(
           frameMeta,
-          toCentiseconds(frameDelaysMs[i]),
+          delaysCs[i],
           disposal,
           loopForever = false,
         )
@@ -106,12 +113,39 @@ object ScrollGifEncoder {
     return outputFile
   }
 
-  // GIF timing resolution is 1/100s. Rounding down to the nearest 10ms
-  // keeps our nominal delay honest; clamped to 20ms because many browsers
-  // treat <20ms as "use default ~100ms", which silently breaks fast-cadence
-  // encodes.
-  private fun toCentiseconds(delayMs: Int): Int =
-    (delayMs.coerceAtLeast(MIN_FRAME_DELAY_MS) / 10).coerceAtLeast(2)
+  /**
+   * The per-frame GIF `delayTime`s (centiseconds) for [frameDelaysMs], chosen so the GIF's
+   * **cumulative** playback time tracks the captured timeline rather than each frame being rounded
+   * on its own.
+   *
+   * GIF stores delays in 1/100 s. Truncating every frame independently — what this encoder used to
+   * do — writes a 33 ms frame as 30 ms, so a default-interval (`33 ms`) capture played ~10% fast
+   * and the error grew with every frame. Instead the exact milliseconds are accumulated and frame
+   * `i` gets `round(cumulative_i / 10) - round(cumulative_{i-1} / 10)`: 33 ms frames come out as a
+   * mix of 3 and 4 cs averaging 33 ms, and the running total is never more than 5 ms (half a
+   * centisecond) away from the exact one. Intervals that are whole centiseconds (50, 80, 100 ms)
+   * encode exactly as before.
+   *
+   * **Minimum delay: [MIN_FRAME_DELAY_MS] (2 cs).** Browsers treat a `delayTime` of 0 or 1 cs as
+   * "unspecified" and play it at ~100 ms, so a frame meant to be fast would become the slowest in
+   * the GIF. Every input below 20 ms is therefore raised to 20 ms *before* accumulation; with every
+   * input ≥ 2 cs the rounded running total advances by ≥ 2 cs per frame, so no 0 or 1 cs frame can
+   * be emitted. The cost is that a sub-20 ms cadence (a 16 ms / 60 fps capture) cannot be
+   * represented: it plays at a uniform 20 ms / 50 fps. Use APNG for those (`MotionFormat.Apng`),
+   * whose rational delays stay exact.
+   */
+  internal fun centisecondDelays(frameDelaysMs: IntArray): IntArray {
+    var cumulativeMs = 0L
+    var emittedCs = 0L
+    return IntArray(frameDelaysMs.size) { i ->
+      cumulativeMs += frameDelaysMs[i].coerceAtLeast(MIN_FRAME_DELAY_MS)
+      // Round half up, in integers: (ms + 5) / 10 is round(ms / 10) for non-negative ms.
+      val targetCs = (cumulativeMs + 5) / 10
+      val delayCs = (targetCs - emittedCs).toInt()
+      emittedCs = targetCs
+      delayCs
+    }
+  }
 
   /**
    * The disposal method the whole sequence is written with, decided by whether [frames] carry an

@@ -291,8 +291,17 @@ Two neighbours are deliberately left on whole frames: the one-tick `advanceTimeB
 frame 0 (it anchors frame 0) and the settle/idle walks (`DesktopSettleClock`, the focus and scroll
 settles), which want whole frames by design. The scroll GIF is scripted motion, not real time —
 each scroll step advances a fixed drive window — so its frame delays never claimed to be the
-clock's. Separately, GIF stores delays in centiseconds, so a 33 ms frame is written as 30 ms
-(`ScrollGifEncoder` truncates); APNG keeps the exact rate.
+clock's.
+
+GIF stores delays in whole centiseconds. Both GIF encoders — `ScrollGifEncoder` (every renderer
+motion, interaction and scroll GIF, desktop and Android) and the recording `GifEncoder` — distribute
+the rounding instead of truncating each frame: they accumulate the exact timeline and give frame
+`n` the difference of the rounded running totals, so 33 ms frames are written as a mix of 3 and
+4 cs and the GIF's total stays within half a centisecond of `n × interval` (truncation wrote 3 cs
+every frame and played a 33 ms capture ~10% fast). The floor is 2 cs per frame: browsers play a
+0 or 1 cs delay at ~100 ms, so an interval under 20 ms (a 60 fps capture) plays at a uniform 20 ms.
+APNG keeps the exact rate, sub-20 ms included. `ScrollGifEncoderDelayTest` and `GifEncoderTest`
+pin both.
 
 ## Verifying the renderer on the next Compose line
 
