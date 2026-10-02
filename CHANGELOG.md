@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.13.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.12.1...v3.13.0) (2026-10-02)
+
+
+### Features
+
+* **data-motion:** changed-region APNG frames with per-frame delays ([#207](https://github.com/yschimke/compose-preview-daemon/issues/207)) ([a7e00ec](https://github.com/yschimke/compose-preview-daemon/commit/a7e00ec38e5e9ec81a072ea6f22e72808e7d316c))
+* **renderer-android:** honour @AnimatedPreview format = Apng ([#208](https://github.com/yschimke/compose-preview-daemon/issues/208)) ([43f5ce2](https://github.com/yschimke/compose-preview-daemon/commit/43f5ce2329da24abb0a92f03a46b53f8b3884fd2))
+
+
+### Bug Fixes
+
+* **renderer-android:** advance animated and interaction captures by the exact frame interval ([#206](https://github.com/yschimke/compose-preview-daemon/issues/206)) ([ef0e415](https://github.com/yschimke/compose-preview-daemon/commit/ef0e4158e6d71faf812e022502d62717fe5d59dc))
+* **renderer:** distribute GIF frame-delay rounding so playback keeps the captured timeline ([#204](https://github.com/yschimke/compose-preview-daemon/issues/204)) ([0283241](https://github.com/yschimke/compose-preview-daemon/commit/028324142ff0da13d6864b72cf10dcae23f1da7c))
+
 ## [3.12.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.12.0...v3.12.1) (2026-10-02)
 
 
