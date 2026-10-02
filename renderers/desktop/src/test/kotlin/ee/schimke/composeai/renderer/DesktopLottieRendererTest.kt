@@ -1,5 +1,6 @@
 package ee.schimke.composeai.renderer
 
+import ee.schimke.composeai.motion.ApngDecoder
 import ee.schimke.composeai.preview.lottie.lottieIntrinsicDurationMillis
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -120,7 +121,7 @@ class DesktopLottieRendererTest {
       )
     }
 
-    val frames = apngFramePayloads(first)
+    val frames = apngFramePixels(first)
     assertEquals(50, frames.size)
     for (i in 1 until frames.size) {
       assertTrue(
@@ -137,36 +138,14 @@ class DesktopLottieRendererTest {
   }
 
   /**
-   * Per-frame compressed payloads of an APNG, in order: frame 0's `IDAT` chunks, then each later
-   * frame's `fdAT` chunks with the 4-byte sequence number stripped. [ApngEncoder] copies Skiko's
-   * `IDAT` bytes verbatim and Skia's PNG encoder is deterministic for identical pixels, so two
-   * equal payloads mean two identical frames.
+   * Each composited frame's pixels, in order. Frames after the first are stored as only the
+   * rectangle that changed, so a stale duplicate is found by comparing what [ApngDecoder] composes,
+   * not the stored payloads.
    */
-  private fun apngFramePayloads(file: File): List<ByteArray> {
-    val bytes = file.readBytes()
-    val payloads = mutableListOf<ByteArray>()
-    var current: MutableList<Byte>? = null
-    var offset = 8 // skip the PNG signature
-    while (offset + 12 <= bytes.size) {
-      val length = ByteBuffer.wrap(bytes, offset, 4).int
-      val type = String(bytes, offset + 4, 4, Charsets.US_ASCII)
-      val dataStart = offset + 8
-      when (type) {
-        // `fcTL` opens a frame; flush whatever the previous one accumulated.
-        "fcTL" -> {
-          current?.let { payloads.add(it.toByteArray()) }
-          current = mutableListOf()
-        }
-        "IDAT" -> current?.addAll(bytes.slice(dataStart until dataStart + length))
-        // Drop the leading 4-byte sequence number so payloads are comparable with frame 0's IDAT.
-        "fdAT" -> current?.addAll(bytes.slice(dataStart + 4 until dataStart + length))
-      }
-      offset = dataStart + length + 4 // + CRC
-      if (type == "IEND") break
+  private fun apngFramePixels(file: File): List<IntArray> =
+    ApngDecoder.decode(file).frames.map {
+      it.image.getRGB(0, 0, it.image.width, it.image.height, null, 0, it.image.width)
     }
-    current?.let { payloads.add(it.toByteArray()) }
-    return payloads
-  }
 
   /** Read an APNG's `acTL` chunk and return its `numFrames` field. */
   private fun apngNumFrames(file: File): Int {
