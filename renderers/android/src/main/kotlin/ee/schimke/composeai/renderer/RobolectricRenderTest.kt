@@ -3652,6 +3652,36 @@ public fun advanceMainClockBy(
 }
 
 /**
+ * Steps a motion capture (`@AnimatedPreview`, `@InteractionPreview`) forward by [frameIntervalMs],
+ * so consecutive frames are [frameIntervalMs] of animation apart — the delay the GIF / APNG
+ * declares for them.
+ *
+ * **`ignoreFrameDuration = true` is the fix.** The plain `advanceTimeBy(ms)` overload rounds every
+ * step **up** to whole 16 ms frames: a 33 ms frame moved the animation 48 ms and a 50 ms one 64 ms,
+ * so every Android animated / interaction GIF played ≈1.45× / ≈1.28× too fast. The desktop renderer
+ * had the same bug and the same fix (compose-preview-daemon#203, `advanceMotionFrame` in
+ * `DesktopMotionCapture.kt`).
+ *
+ * What the exact advance does **not** buy is sub-tick sampling, and that matches desktop too: the
+ * test clock still dispatches frames only on its 16 ms ticks, so the composition captured at `t` is
+ * the animation as of the last tick at or before `t`. A 33 ms capture steps 32, 32, …, 48 ms
+ * (averaging 33) and frame `n` is always within one tick of `n × frameIntervalMs` — the error never
+ * compounds. `AndroidAnimatedFrameTimingTest` measures both on a 1 px/ms ruler.
+ *
+ * Robolectric's paused main looper is advanced by the same interval: Compose's test clock does not
+ * drive Android Views, so View / Choreographer animations (Material's ripple) and Remote Compose's
+ * injected player clock, which reads shadowed uptime (issue #3156), would otherwise stand still.
+ */
+internal fun advanceMotionFrame(
+  rule: AndroidComposeTestRule<*, ComponentActivity>,
+  frameIntervalMs: Long,
+) {
+  rule.mainClock.advanceTimeBy(frameIntervalMs, ignoreFrameDuration = true)
+  org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+    .idleFor(java.time.Duration.ofMillis(frameIntervalMs))
+}
+
+/**
  * Adaptive sample budget used to prove that a still capture is visually quiescent.
  *
  * Three consecutive identical decoded frames are required, and only once a frame delta has actually
@@ -4185,7 +4215,7 @@ internal fun captureDecodableFrame(
  * Returns `true` when [outputFile] was written.
  */
 @OptIn(ExperimentalRoborazziApi::class)
-private fun handleAnimatedCapture(
+internal fun handleAnimatedCapture(
   rule: AndroidComposeTestRule<*, ComponentActivity>,
   animation: AnimationCapture,
   previewId: String,
@@ -4316,14 +4346,11 @@ private fun handleAnimatedCapture(
     var t = 0L
     repeat(totalFrames) {
       t += frameIntervalMs.toLong()
-      rule.mainClock.advanceTimeBy(frameIntervalMs.toLong())
-      // Compose's test clock does not drive Android Views. Advance Robolectric's paused main
-      // looper by the same interval so View/Choreographer animations land on the same virtual
-      // timestamp as Compose animations. Remote Compose's preview wrapper also derives its
-      // injected player clock from shadowed uptime, avoiding the real System.nanoTime phase drift
-      // that made unchanged animated GIFs differ between renders (issue #3156).
-      org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
-        .idleFor(java.time.Duration.ofMillis(frameIntervalMs.toLong()))
+      // Exactly one interval on Compose's test clock (a rounded-up step played GIFs ~1.45× fast)
+      // and on Robolectric's paused main looper, so View/Choreographer animations and Remote
+      // Compose's injected player clock land on the same timestamp (issue #3156). See
+      // [advanceMotionFrame].
+      advanceMotionFrame(rule, frameIntervalMs.toLong())
       captureFrame(virtualTimeMs = t)
     }
 

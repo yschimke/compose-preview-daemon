@@ -166,11 +166,10 @@ internal fun handleInteractionCapture(
         if (measured.height > tallestContent) tallestContent = measured.height
       }
 
-      rule.mainClock.advanceTimeBy(frameInterval.toLong())
-      // The Robolectric-specific half of the advance — see this file's kdoc. Material's ripple and
-      // every other platform animation run on the main looper, not on Compose's test clock.
-      org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
-        .idleFor(java.time.Duration.ofMillis(frameInterval.toLong()))
+      // Exactly one interval on Compose's test clock and on the main looper — see
+      // [advanceMotionFrame]. Material's ripple and every other platform animation run on the main
+      // looper, not on Compose's test clock.
+      advanceMotionFrame(rule, frameInterval.toLong())
       elapsed += frameInterval
     }
 
