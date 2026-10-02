@@ -335,7 +335,7 @@ composeai-contracts-protocol = "3.15.0"
 #
 # During the move these were briefly split across two refs, so that three unpublished coordinates
 # could not pin the five that were already on Central. That is over: one ref again.
-rcplayers = "2.0.3"
+rcplayers = "2.0.4"
 
 [libraries]
 
@@ -353,6 +353,10 @@ composeai-common-io = { module = "ee.schimke.composeai:common-io", version.ref =
 # supported API; pinned to one AndroidX alpha and versioned with the player stack rather than with
 # upstream.
 rcplayer-embedded-android = { module = "ee.schimke.composeai:third-party-rc-embedded-player", version.ref = "rcplayers" }
+# The CMP player (`rc-player-compose`) — the supported player rc-players publishes, here drawing
+# the `cmp-android` lane. Resolved through the BOM, which pins protocol/trace at their own versions.
+rcplayers-bom = { module = "ee.schimke.composeai:rc-players-bom", version.ref = "rcplayers" }
+rcplayer-compose = { module = "ee.schimke.composeai:rc-player-compose" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 # Coil 2 / coil 3 — see the version comments above. `coil-compose` (not `coil-base`) because the
 # `:samples:android` fixture renders a real `AsyncImage`; the renderer itself only needs the

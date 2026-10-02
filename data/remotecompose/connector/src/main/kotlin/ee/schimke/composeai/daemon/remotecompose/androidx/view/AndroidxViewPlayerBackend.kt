@@ -29,8 +29,6 @@ internal class AndroidxViewPlayerBackend : RemoteComposePlayerBackend {
 
   override val aliases: Set<String> = setOf("java", "view")
 
-  override val capturePlayerName: String = "java"
-
   override val linkedPackages: List<String> =
     listOf(
       "ee.schimke.composeai.daemon.remotecompose.androidx",

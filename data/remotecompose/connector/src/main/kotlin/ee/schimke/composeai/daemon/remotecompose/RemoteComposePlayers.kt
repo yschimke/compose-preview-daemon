@@ -41,8 +41,9 @@ enum class RemoteComposeClock {
  * bytecode against the classpath before the backend is first used, so a player that has moved
  * underneath us is refused by name rather than failing as a `NoSuchMethodError` mid-composition.
  *
- * The two AndroidX players are built in. Another player — an rc-players backend, a JVM or CMP
- * player — joins by implementing this and registering it under
+ * Three players are built in: the two AndroidX ones and the CMP player (`cmp-android`). Another
+ * player — an rc-players backend, a JVM or CMP player — joins by implementing this and registering
+ * it under
  * `META-INF/services/ee.schimke.composeai.daemon.remotecompose.RemoteComposePlayerBackend`; it is
  * then reachable through [RemoteComposePlayers.forId] with the same linkage check.
  */
@@ -113,6 +114,13 @@ object RemoteComposePlayers {
         "ee.schimke.composeai.daemon.remotecompose.androidx.view.AndroidxViewPlayerBackend",
     )
 
+  /**
+   * Built-ins reachable by id only, not by a [RemoteComposePlayerKind]: the wire's `player` field
+   * names the two AndroidX players and nothing else, so a third built-in rides `playerId`.
+   */
+  private val builtInsById: List<String> =
+    listOf("ee.schimke.composeai.daemon.remotecompose.rcplayer.CmpAndroidPlayerBackend")
+
   private val checked = ConcurrentHashMap<String, Result<RemoteComposePlayerBackend>>()
 
   /** The built-in player for [kind], linkage-checked; throws [RemoteComposeLinkageException]. */
@@ -171,7 +179,7 @@ object RemoteComposePlayers {
     linkage(instantiate(builtIns.getValue(kind)))
 
   private fun candidates(): Sequence<RemoteComposePlayerBackend> =
-    builtIns.values.asSequence().map(::instantiate) +
+    (builtIns.values + builtInsById).asSequence().map(::instantiate) +
       ServiceLoader.load(
           RemoteComposePlayerBackend::class.java,
           RemoteComposePlayers::class.java.classLoader,

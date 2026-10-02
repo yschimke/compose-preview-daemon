@@ -27,6 +27,15 @@ class RemoteComposePlayersTest {
   }
 
   @Test
+  fun `the CMP player links against the line this module builds with`() {
+    val backend = checkNotNull(RemoteComposePlayers.forId("cmp-android"))
+    val report = RemoteComposePlayers.linkage(backend)
+    assertTrue("cmp-android read no classes", report.classes > 0)
+    assertTrue("cmp-android made no library references", report.references > 0)
+    assertTrue("cmp-android: $report", report.isLinked)
+  }
+
+  @Test
   fun `the capture links against the line this module builds with`() {
     val report = AndroidxRemoteCapture.linkage
     assertTrue("capture read no classes", report.classes > 0)
@@ -37,23 +46,27 @@ class RemoteComposePlayersTest {
   fun `each built-in answers to its canonical name and every historical spelling`() {
     val expected =
       mapOf(
-        "androidx-embedded" to listOf("androidx-embedded", "cmp", "cmp-android", "embedded"),
+        "androidx-embedded" to listOf("androidx-embedded", "embedded"),
         "androidx-view" to listOf("androidx-view", "java", "view", "  VIEW "),
+        "cmp-android" to listOf("cmp-android", "CMP-Android"),
       )
     for ((id, names) in expected) {
       for (name in names) assertEquals(name, id, RemoteComposePlayers.forId(name)?.id)
     }
-    assertNull(RemoteComposePlayers.forId("rcplayer-wasm"))
+    // The bare `cmp` used to be the embedded player's short name; it is ambiguous now (three hosts
+    // run the CMP player), so it names nothing.
+    assertNull(RemoteComposePlayers.forId("cmp"))
+    assertNull(RemoteComposePlayers.forId("cmp-wasm"))
   }
 
   @Test
-  fun `the built-ins keep the capturePlayer names published sidecars already carry`() {
+  fun `a capture records the player by its canonical id`() {
     assertEquals(
-      "cmp-android",
+      "androidx-embedded",
       RemoteComposePlayers.forKind(RemoteComposePlayerKind.EMBEDDED).capturePlayerName,
     )
     assertEquals(
-      "java",
+      "androidx-view",
       RemoteComposePlayers.forKind(RemoteComposePlayerKind.VIEW).capturePlayerName,
     )
   }

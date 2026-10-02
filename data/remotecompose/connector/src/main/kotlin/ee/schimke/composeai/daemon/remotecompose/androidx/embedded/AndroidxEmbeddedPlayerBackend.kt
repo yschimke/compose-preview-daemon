@@ -26,10 +26,11 @@ import ee.schimke.composeai.rcembedded.player.RcPlayerState
 internal class AndroidxEmbeddedPlayerBackend : RemoteComposePlayerBackend {
   override val id: String = "androidx-embedded"
 
-  override val aliases: Set<String> = setOf("cmp", "cmp-android", "embedded")
-
-  // What every published `.remotecompose.json` already says, and what readers key on.
-  override val capturePlayerName: String = "cmp-android"
+  // `embedded` is the daemon's own `RemoteComposePlayerKind` spelling. `cmp` / `cmp-android` are
+  // NOT accepted: they used to name this player, which is not the CMP player, and `cmp-android` now
+  // names the CMP player on Android
+  // ([CmpAndroidPlayerBackend][ee.schimke.composeai.daemon.remotecompose.rcplayer.CmpAndroidPlayerBackend]).
+  override val aliases: Set<String> = setOf("embedded")
 
   override val linkedPackages: List<String> =
     listOf(

@@ -26,12 +26,16 @@ import java.util.jar.JarFile
  * signatures names an absent class) is skipped, not reported.
  */
 public object RemoteComposeLinkage {
-  /** The packages whose members are checked: the Remote Compose family and its embedded player. */
+  /**
+   * The packages whose members are checked: the Remote Compose family, the vendored AndroidX
+   * embedded player and the CMP player (`rc-player-compose` and its runtime and protocol).
+   */
   public val LIBRARY_PACKAGES: List<String> =
     listOf(
       "androidx.compose.remote.",
       "androidx.wear.compose.remote.",
       "ee.schimke.composeai.rcembedded.",
+      "ee.schimke.composeai.rcplayer.",
     )
 
   /**
