@@ -1,17 +1,24 @@
 package ee.schimke.composeai.daemon.remotecompose.rcplayer
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import ee.schimke.composeai.daemon.protocol.RemoteNamedValue
+import ee.schimke.composeai.daemon.remotecompose.RemoteComposeClock
 import ee.schimke.composeai.daemon.remotecompose.RemoteComposeDocumentSource
 import ee.schimke.composeai.daemon.remotecompose.RemoteComposePlayerBackend
 import ee.schimke.composeai.data.remotecompose.NamedValueSeedTarget
 import ee.schimke.composeai.data.remotecompose.reseed
+import ee.schimke.composeai.rcplayer.compose.LocalRcTimeSource
 import ee.schimke.composeai.rcplayer.compose.RcComposePlayer
 import ee.schimke.composeai.rcplayer.runtime.RcNamedValue
+import ee.schimke.composeai.rcplayer.runtime.RcTimeSnapshot
+import ee.schimke.composeai.rcplayer.runtime.RcTimeSource
+import java.time.Instant
+import java.time.ZoneOffset
 
 /**
  * The CMP player — `rc-player-compose`, the player rc-players publishes as its supported API — on
@@ -44,11 +51,52 @@ internal class CmpAndroidPlayerBackend : RemoteComposePlayerBackend {
         addAll(applied)
       }
     }
-    RcComposePlayer(bytes = document.bytes, modifier = modifier, namedValues = values)
+    val player: @Composable () -> Unit = {
+      RcComposePlayer(bytes = document.bytes, modifier = modifier, namedValues = values)
+    }
+    when (document.clock) {
+      RemoteComposeClock.SYSTEM -> player()
+      // The clock the AndroidX backends get (`RobolectricRemoteClock`): wall time starts at the
+      // epoch, in UTC, when the document is first composed and advances only with Robolectric's
+      // uptime. Without it this player read the host's real wall clock, so anything a document
+      // derives from `CONTINUOUS_SEC` and its siblings — remote-m3's indeterminate progress sweep
+      // — was captured at an arbitrary phase and never matched the AndroidX lanes.
+      RemoteComposeClock.ROBOLECTRIC_UPTIME -> {
+        val clock = remember(document) { RobolectricRcTimeSource() }
+        CompositionLocalProvider(LocalRcTimeSource provides clock) { player() }
+      }
+    }
   }
 
   companion object {
     const val ID: String = "cmp-android"
+  }
+}
+
+/**
+ * [RcTimeSource] counterpart of the AndroidX backends' `RobolectricRemoteClock`: epoch milliseconds
+ * are the Robolectric uptime elapsed since construction, and calendar fields are read in UTC.
+ */
+internal class RobolectricRcTimeSource(
+  private val startUptimeMillis: Long = android.os.SystemClock.uptimeMillis(),
+  private val uptimeMillis: () -> Long = android.os.SystemClock::uptimeMillis,
+) : RcTimeSource {
+  override fun currentTimeMillis(): Long = (uptimeMillis() - startUptimeMillis).coerceAtLeast(0L)
+
+  override fun snapshot(epochMillis: Long): RcTimeSnapshot {
+    val time = Instant.ofEpochMilli(epochMillis).atZone(ZoneOffset.UTC)
+    return RcTimeSnapshot(
+      epochMillis = epochMillis,
+      year = time.year,
+      month = time.monthValue,
+      dayOfMonth = time.dayOfMonth,
+      dayOfYear = time.dayOfYear,
+      hour = time.hour,
+      minute = time.minute,
+      second = time.second,
+      isoDayOfWeek = time.dayOfWeek.value,
+      offsetSeconds = 0,
+    )
   }
 }
 
