@@ -268,6 +268,26 @@ drives an `ImageComposeScene` directly off the EDT is.
 
 Remove the hop once CMP-10678 lands and the delayed dispatch follows the scene's own thread.
 
+### `Dispatchers.Main` is the event dispatch thread
+
+`:renderer-desktop` ships `kotlinx-coroutines-swing` at runtime, so `Dispatchers.Main` on the desktop
+lane is Swing's dispatcher: the same EDT every scene is driven on (above), with `Main.immediate`
+running inline from inside a render.
+
+A Compose Multiplatform app gets its Main dispatcher from `kotlinx-coroutines-swing` in its
+*application* module. The library modules a catalog renders do not carry it, and Compose UI Test (a
+renderer dependency) puts `kotlinx-coroutines-test` on the classpath, whose `TestMainDispatcher`
+then wins `ServiceLoader` selection with no platform dispatcher to delegate to. The first access to
+`Dispatchers.Main` throws `IllegalStateException: Module with the Main dispatcher is missing`, inside
+composition, and the capture keeps whatever had drawn before it. That is how every route of
+tunjid/heron rendered as a single flat surface colour: its navigation library
+(`com.tunjid.treenav.compose.rememberNavigationEventStatus`) takes `Dispatchers.Main.immediate`
+while composing the app scaffold. `viewModelScope` and `lifecycleScope` take the same dispatcher.
+
+The runtime dependency is resolved in the consumer's graph like the rest of the tool classpath, so
+it aligns with the consumer's own `kotlinx-coroutines` version rather than pinning a second one.
+`DesktopMainDispatcherTest` holds the contract.
+
 ### Motion captures advance the clock by the exact frame interval
 
 `@AnimatedPreview` and `@InteractionPreview` on desktop run under `runSkikoComposeUiTest` with
