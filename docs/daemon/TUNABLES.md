@@ -72,6 +72,7 @@ flips a knob.
 | `composeai.daemon.sandboxWorker.spare` | Boolean | `false` | Whether `SandboxWorkerMain` runs as a pre-booted spare: it boots and warm-renders with no catalog, then listens on a loopback port for the daemon that adopts it. Set by the spare pool that spawns it. |
 | `composeai.daemon.sandboxWorker.spares` | list | empty | Loopback ports of pre-booted spare workers reserved for this daemon, adopted by `SandboxProcessPool` ahead of any cold worker boot. Set by the spare pool at launch. |
 | `composeai.daemon.lazyInProcessSandbox` | Boolean | `false` | When the daemon adopted spare workers, whether its own in-process sandbox (slot 0) boots only on demand — a held interactive session, a `@PreviewParameter` enumeration, or every worker gone — instead of in the background. Saves a boot and a sandbox's memory per daemon; costs one slot of render capacity until something needs slot 0. |
+| `composeai.daemon.onDemandWorkerBoot` | Boolean | `false` | With background boot, whether the worker sandboxes (slots 1..N-1) wait to boot until something needs them — two different previews rendering at once, or a held interactive session — instead of booting behind slot 0 at start. An agent's edit loop renders one preview at a time, and N background Robolectric boots competed with its first compile and render; the first grid render pays the boots instead. |
 
 ## Tracing and diagnostics
 

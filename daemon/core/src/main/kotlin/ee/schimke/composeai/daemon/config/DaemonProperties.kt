@@ -251,6 +251,7 @@ public object DaemonProperties {
     public const val SANDBOX_WORKER_SPARE: String = "composeai.daemon.sandboxWorker.spare"
     public const val SANDBOX_WORKER_SPARES: String = "composeai.daemon.sandboxWorker.spares"
     public const val LAZY_IN_PROCESS_SANDBOX: String = "composeai.daemon.lazyInProcessSandbox"
+    public const val ON_DEMAND_WORKER_BOOT: String = "composeai.daemon.onDemandWorkerBoot"
 
     public const val STARTUP_QUIET: String = "composeai.daemon.startupQuiet"
     public const val ATRACE: String = "composeai.daemon.atrace"
@@ -567,6 +568,18 @@ public object DaemonProperties {
       G_SANDBOX,
     )
 
+  public val onDemandWorkerBoot: BooleanProperty =
+    BooleanProperty(
+      Names.ON_DEMAND_WORKER_BOOT,
+      false,
+      "With background boot, whether the worker sandboxes (slots 1..N-1) wait to boot until " +
+        "something needs them — two different previews rendering at once, or a held interactive " +
+        "session — instead of booting behind slot 0 at start. An agent's edit loop renders one " +
+        "preview at a time, and N background Robolectric boots competed with its first compile " +
+        "and render; the first grid render pays the boots instead.",
+      G_SANDBOX,
+    )
+
   public val lazyInProcessSandbox: BooleanProperty =
     BooleanProperty(
       Names.LAZY_IN_PROCESS_SANDBOX,
@@ -757,6 +770,7 @@ public object DaemonProperties {
       sandboxWorkerSpare,
       sandboxWorkerSpares,
       lazyInProcessSandbox,
+      onDemandWorkerBoot,
       startupQuiet,
       atrace,
       perfettoTrace,
