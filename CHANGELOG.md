@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.13.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.13.1...v3.13.2) (2026-10-03)
+
+
+### Bug Fixes
+
+* **client:** stop evicting warm spares for every new signature ([#215](https://github.com/yschimke/compose-preview-daemon/issues/215)) ([6f86bf8](https://github.com/yschimke/compose-preview-daemon/commit/6f86bf8e7b9381e910dea208a8df9c88d69e7139))
+* **pool:** give a worker no CDS archive when its classpath has a non-empty directory ([#213](https://github.com/yschimke/compose-preview-daemon/issues/213)) ([19b9e8d](https://github.com/yschimke/compose-preview-daemon/commit/19b9e8dd175c49b3de9e63db734600c2720d6ee3))
+* **renderer-desktop:** give previews a Dispatchers.Main on the EDT ([#214](https://github.com/yschimke/compose-preview-daemon/issues/214)) ([42fa23a](https://github.com/yschimke/compose-preview-daemon/commit/42fa23ac768df4cfcbf03026145dae78d80941ad))
+
+
+### Build
+
+* **deps:** resolve contracts and rc-players through their BOMs ([#211](https://github.com/yschimke/compose-preview-daemon/issues/211)) ([cc4e738](https://github.com/yschimke/compose-preview-daemon/commit/cc4e7386f62dbafe7b356d3f5163b159296a6dcb))
+
 ## [3.13.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.13.0...v3.13.1) (2026-10-03)
 
 
