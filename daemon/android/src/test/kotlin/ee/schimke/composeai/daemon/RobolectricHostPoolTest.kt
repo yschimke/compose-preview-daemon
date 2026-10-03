@@ -1,8 +1,12 @@
 package ee.schimke.composeai.daemon
 
+import ee.schimke.composeai.daemon.config.DaemonProperties
 import java.io.File
 import java.nio.file.Files
+import java.util.concurrent.CountDownLatch
+import kotlin.concurrent.thread
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -183,6 +187,51 @@ class RobolectricHostPoolTest {
         }
       assertEquals("every steady-state render should return a result", 8, results.size)
     } finally {
+      System.clearProperty(RobolectricHost.BACKGROUND_BOOT_PROP)
+      host.shutdown()
+      outputDir.deleteRecursively()
+    }
+  }
+
+  @Test
+  fun onDemandWorkerBootWaitsForTwoDifferentPreviewsInFlight() {
+    // `composeai.daemon.onDemandWorkerBoot`: the worker does not boot behind slot 0 at start. An
+    // agent's edit loop renders one preview at a time, so sequential renders never boot it; two
+    // different previews rendering at once (a grid) do (yschimke/compose-ag-plugin#64).
+    val outputDir = Files.createTempDirectory("pool-on-demand-boot").toFile()
+    System.setProperty(RenderEngine.OUTPUT_DIR_PROP, outputDir.absolutePath)
+    System.setProperty("roborazzi.test.record", "true")
+    System.setProperty(RobolectricHost.BACKGROUND_BOOT_PROP, "true")
+    System.setProperty(DaemonProperties.Names.ON_DEMAND_WORKER_BOOT, "true")
+    val host = RobolectricHost(sandboxCount = 2)
+    try {
+      host.start()
+      repeat(3) { i ->
+        assertNotNull(host.submit(RenderRequest.Render(target = RenderTarget.Stub("seq-$i"))))
+      }
+      assertFalse("sequential renders must not boot a worker", host.workerBootRequestedForTest())
+      assertEquals(1, host.readySlotCountForTest())
+      assertTrue("no worker JVM before demand", host.workerPidsForTest().none { it != null })
+
+      val go = CountDownLatch(1)
+      val renders =
+        (0 until 8).map { i ->
+          thread(name = "grid-$i") {
+            go.await()
+            host.submit(RenderRequest.Render(target = RenderTarget.Stub("grid-$i")))
+          }
+        }
+      go.countDown()
+      renders.forEach { it.join(120_000) }
+      assertTrue("concurrent renders should boot the worker", host.workerBootRequestedForTest())
+
+      val poolDeadline = System.currentTimeMillis() + 300_000
+      while (host.readySlotCountForTest() < 2 && System.currentTimeMillis() < poolDeadline) {
+        Thread.sleep(200)
+      }
+      assertEquals("the requested boot should complete the pool", 2, host.readySlotCountForTest())
+    } finally {
+      System.clearProperty(DaemonProperties.Names.ON_DEMAND_WORKER_BOOT)
       System.clearProperty(RobolectricHost.BACKGROUND_BOOT_PROP)
       host.shutdown()
       outputDir.deleteRecursively()
