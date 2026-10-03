@@ -8,6 +8,7 @@ import java.nio.file.Files
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -261,6 +262,44 @@ class RobolectricHostSpareAdoptionTest {
         "adopted spare should be released, not killed",
         spare.handshakes.poll(30, TimeUnit.SECONDS),
       )
+      spare.process.destroyForcibly()
+      outputDir.deleteRecursively()
+    }
+  }
+
+  @Test
+  fun onDemandWorkerBootDefersTheSlotsTheSparesDidNotFill() {
+    // `composeai.daemon.onDemandWorkerBoot` through the adopt-first start: one spare fills one of
+    // two worker slots, and the other must wait for demand instead of booting cold behind the
+    // adopted worker (the partial-adoption return used to skip the on-demand check).
+    val outputDir = Files.createTempDirectory("spare-on-demand").toFile()
+    val spare = launchSpare()
+    System.setProperty(RenderEngine.OUTPUT_DIR_PROP, outputDir.absolutePath)
+    System.setProperty("roborazzi.test.record", "true")
+    System.setProperty(RobolectricHost.BACKGROUND_BOOT_PROP, "true")
+    System.setProperty(DaemonProperties.Names.LAZY_IN_PROCESS_SANDBOX, "true")
+    System.setProperty(DaemonProperties.Names.ON_DEMAND_WORKER_BOOT, "true")
+    System.setProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES, spare.port.toString())
+    val host = RobolectricHost(sandboxCount = 3)
+    try {
+      host.start()
+      assertEquals("only the adopted worker is ready", 1, host.readySlotCountForTest())
+      assertNotNull(
+        host.submit(RenderRequest.Render(target = RenderTarget.Stub("one")), timeoutMs = 120_000)
+      )
+      Thread.sleep(2_000)
+      assertFalse("one render must not boot a worker", host.workerBootRequestedForTest())
+      assertEquals(
+        "the unfilled worker slot stays down",
+        listOf(spare.pid, null),
+        host.workerPidsForTest(),
+      )
+    } finally {
+      System.clearProperty(DaemonProperties.Names.SANDBOX_WORKER_SPARES)
+      System.clearProperty(DaemonProperties.Names.ON_DEMAND_WORKER_BOOT)
+      System.clearProperty(DaemonProperties.Names.LAZY_IN_PROCESS_SANDBOX)
+      System.clearProperty(RobolectricHost.BACKGROUND_BOOT_PROP)
+      host.shutdown()
       spare.process.destroyForcibly()
       outputDir.deleteRecursively()
     }

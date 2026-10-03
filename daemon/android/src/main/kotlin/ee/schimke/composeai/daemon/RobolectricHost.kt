@@ -656,17 +656,27 @@ open class RobolectricHost(
         // session and enumerates no rows in the common case. Defer it to the first path that
         // needs it ([ensureInProcessSandbox]) rather than booting it behind the spares.
         val lazySlot0 = DaemonProperties.lazyInProcessSandbox.read()
+        // `onDemandWorkerBoot`: the worker slots the spares did not fill wait for demand
+        // ([requestWorkerBoot]) here too, rather than booting cold behind the adopted ones.
+        val onDemandWorkers = DaemonProperties.onDemandWorkerBoot.read()
+        val unfilled = sandboxCount - 1 - adopted
+        if (onDemandWorkers && unfilled > 0) deferredWorkerBootTimeoutMs = timeoutMs
         StartupTimings.mark(
           "sandbox-ready latch fired ($adopted adopted spare(s); " +
             (if (lazySlot0) "slot 0 deferred until needed" else "slot 0") +
-            " and ${sandboxCount - 1 - adopted} more booting in background)"
+            " and $unfilled more " +
+            (if (onDemandWorkers) "deferred until needed)" else "booting in background)")
         )
+        val bootWorkersNow = !onDemandWorkers && unfilled > 0
+        if (lazySlot0 && !bootWorkersNow) return
         backgroundBootWorker =
           Thread(
               {
                 runCatching {
-                  if (lazySlot0) bootRemainingSlots(timeoutMs, background = true)
-                  else bootBehindAdoptedSpares(timeoutMs)
+                  when {
+                    lazySlot0 -> bootRemainingSlots(timeoutMs, background = true)
+                    else -> bootBehindAdoptedSpares(timeoutMs, bootWorkers = bootWorkersNow)
+                  }
                 }
               },
               "compose-ai-daemon-pool-boot",
@@ -837,7 +847,7 @@ open class RobolectricHost(
    * which live on slot 0, are lost — matching the background-boot policy for a worker that fails
    * permanently.
    */
-  private fun bootBehindAdoptedSpares(timeoutMs: Long) {
+  private fun bootBehindAdoptedSpares(timeoutMs: Long, bootWorkers: Boolean = true) {
     if (DaemonHostBridge.shutdown.get()) return
     try {
       ensureInProcessSandbox("background boot behind adopted spares")
@@ -848,7 +858,7 @@ open class RobolectricHost(
           "adopted worker(s), but interactive sessions and parameter-row enumeration need slot 0."
       )
     }
-    if (DaemonHostBridge.shutdown.get()) return
+    if (DaemonHostBridge.shutdown.get() || !bootWorkers) return
     bootRemainingSlots(timeoutMs, background = true)
   }
 
