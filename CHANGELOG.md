@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.13.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.13.0...v3.13.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* give cmp-android the pinned Robolectric clock the AndroidX backends get ([#209](https://github.com/yschimke/compose-preview-daemon/issues/209)) ([58419ab](https://github.com/yschimke/compose-preview-daemon/commit/58419abe9e66bb8fb32f3ac86cac701967d201ab))
+
 ## [3.13.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.12.1...v3.13.0) (2026-10-02)
 
 
