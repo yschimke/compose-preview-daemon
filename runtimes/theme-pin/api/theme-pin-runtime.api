@@ -1,0 +1,7 @@
+public final class ee/schimke/composeai/preview/themepin/PreviewMaterialThemeKt {
+	public static final fun PinMaterialTheme (Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+	public static final fun PreviewMaterialTheme (Landroidx/compose/material3/ColorScheme;Landroidx/compose/material3/MotionScheme;Landroidx/compose/material3/Shapes;Landroidx/compose/material3/Typography;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PreviewMaterialTheme (Landroidx/compose/material3/ColorScheme;Landroidx/compose/material3/Shapes;Landroidx/compose/material3/Typography;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun getLocalPinnedColorScheme ()Landroidx/compose/runtime/ProvidableCompositionLocal;
+}
+

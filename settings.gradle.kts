@@ -277,6 +277,8 @@ include(":renderer-xr-client")
 project(":renderer-xr-client").projectDir = file("renderers/xr-client")
 include(":slot-preview-runtime")
 project(":slot-preview-runtime").projectDir = file("runtimes/slots")
+include(":theme-pin-runtime")
+project(":theme-pin-runtime").projectDir = file("runtimes/theme-pin")
 include(":svg-preview-runtime")
 project(":svg-preview-runtime").projectDir = file("runtimes/svg")
 
