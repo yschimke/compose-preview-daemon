@@ -286,7 +286,7 @@ project(":svg-preview-runtime").projectDir = file("runtimes/svg")
 include(":distribution")
 
 // The BOM. Constrains every published module to the version this build publishes it at, so a
-// consumer names one coordinate and gets an aligned set instead of pinning 69 versions by hand.
+// consumer names one coordinate and gets an aligned set instead of pinning 70 versions by hand.
 // Last in the file because it describes everything above it.
 include(":bom")
 
@@ -312,7 +312,7 @@ System.setProperty("composeai.ktfmtProjectPaths", ktfmtProjectPaths.joinToString
 // Project paths that publish to Maven Central, handed to `:bom` the same way — a closure-free
 // system property, safe under Isolated Projects.
 //
-// Read out of the build scripts rather than kept as a list here. A hand-kept list of 69 modules is
+// Read out of the build scripts rather than kept as a list here. A hand-kept list of 70 modules is
 // a thing that goes stale silently, and here going stale means a BOM that omits a coordinate (a
 // consumer pins it by hand and skews) or names one that was never published (resolution fails).
 // The build file is where the decision to publish is actually made, so that is what this reads.

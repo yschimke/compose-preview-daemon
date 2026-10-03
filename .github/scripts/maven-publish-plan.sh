@@ -35,6 +35,15 @@
 # same reason: it decides which tasks run, not what they build. Tested by
 # `test-maven-publish-plan.sh`.
 #
+# THE BOM has a rule of its own. `printPublishTasks` publishes `:bom` whenever the set is
+# non-empty, because the BOM indexes whichever modules moved. But the BOM also has inputs of its
+# own: its build script, and the catalog entries it uses -- including a sibling one, since it
+# imports compose-preview-contracts' BOM and that import is the BOM's content, not a floor of
+# compiled code. So when no module publishes, the BOM is compared against the version IT last
+# published at, by the same directory and catalog rules but with sibling entries kept, and its
+# artifact id is printed when they moved. That makes the set non-empty, which publishes `:bom`
+# alone; no module matches the id, so none of them is published by it.
+#
 # Rule 2 is what keeps the POMs honest, and it is deliberately coarser than it needs to be. A
 # skipped module keeps the version it is already published at (`PublishedVersions`), so a published
 # POM never names a sibling version that was not uploaded; rule 2 additionally republishes every
@@ -105,11 +114,17 @@ paths = re.findall(r'^include\("(:[^"]+)"\)', settings, re.M)
 modules = {}   # artifactId -> directory
 deps = {}      # artifactId -> [artifactId]
 path_to_id = {}
+platforms = {} # artifactId -> directory, for `composeai.maven-publishing-platform` projects (the BOM)
 for p in paths:
     d = dirs.get(p, p.lstrip(":").replace(":", "/"))
     try:
         text = open(d + "/build.gradle.kts", encoding="utf-8").read()
     except OSError:
+        continue
+    if 'composeai.maven-publishing-platform")' in text:
+        m = re.search(r'artifactId\s*=\s*"([^"]+)"', text)
+        if m:
+            platforms[m.group(1)] = d
         continue
     if 'composeai.maven-publishing")' not in text:
         continue
@@ -144,13 +159,15 @@ def central_release(aid):
 
 if manifest_path:
     recorded = json.load(open(manifest_path, encoding="utf-8"))["modules"]
+    platform_recorded = {aid: recorded.pop(aid) for aid in platforms if aid in recorded}
     print(f"  baseline: {manifest_path} ({len(recorded)} entries)", file=sys.stderr)
 else:
-    # Eight at a time: 69 sequential round-trips is most of this script's wall clock, and Central
+    # Eight at a time: 70 sequential round-trips is most of this script's wall clock, and Central
     # serves these as static files.
     with ThreadPoolExecutor(max_workers=8) as pool:
         found = dict(zip(sorted(modules), pool.map(central_release, sorted(modules))))
     recorded = {aid: v for aid, v in found.items() if v}
+    platform_recorded = {aid: v for aid, v in ((a, central_release(a)) for a in sorted(platforms)) if v}
     print(f"  baseline: Maven Central ({len(recorded)} of {len(modules)} coordinates)",
           file=sys.stderr)
 
@@ -232,7 +249,7 @@ def version_ref(entry):
         return entry["version"].get("ref")
     return None
 
-def catalog_changes(tag):
+def catalog_changes(tag, keep_siblings=False):
     """Every catalog entry that moved between `tag` and head, or None when that is not certain.
 
     Returned as accessor paths below `libs.`: `foo-bar`, `plugins.foo`, `bundles.foo`,
@@ -257,7 +274,7 @@ def catalog_changes(tag):
     for k in set(o) | set(n):
         if o.get(k) != n.get(k) or set(o.get(k) or ()) & moved_libs or set(n.get(k) or ()) & moved_libs:
             changed.add(f"bundles.{k}")
-    return changed - sibling_entries(old, new)
+    return changed if keep_siblings else changed - sibling_entries(old, new)
 
 
 def sibling_entries(old, new):
@@ -472,7 +489,32 @@ while stack:
             dirty.add(r)
             stack.append(r)
 
+def platform_moved(aid, directory):
+    """Did the BOM's own inputs move since the version it last published at? See "THE BOM"."""
+    version = platform_recorded.get(aid)
+    if version is None:
+        print(f"  {aid}: never published; publishing the BOM", file=sys.stderr)
+        return True
+    tag = f"v{version}"
+    if changed_since(version, directory):
+        print(f"  {aid}: {directory}/ changed since {tag}; publishing the BOM", file=sys.stderr)
+        return True
+    files = git("diff", "--no-renames", "--name-only", f"{tag}..{head}", "--", CATALOG).strip()
+    if not files:
+        return False
+    changes = catalog_changes(tag, keep_siblings=True)
+    if changes is None or uses_catalog_change(directory, reference_patterns(changes)):
+        print(f"  {aid}: a catalog entry it uses changed since {tag}; publishing the BOM",
+              file=sys.stderr)
+        return True
+    return False
+
+# Only when no module publishes: otherwise the set is non-empty and `:bom` publishes anyway.
+platforms_only = [] if dirty else [aid for aid, d in sorted(platforms.items()) if platform_moved(aid, d)]
+
 print(f"  {len(dirty)} of {len(modules)} modules publish", file=sys.stderr)
 for aid in sorted(dirty):
+    print(aid)
+for aid in platforms_only:
     print(aid)
 PY

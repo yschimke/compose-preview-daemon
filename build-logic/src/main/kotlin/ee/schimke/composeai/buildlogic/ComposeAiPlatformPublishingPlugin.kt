@@ -33,7 +33,9 @@ constructor(objects: ObjectFactory) {
  * [configureComposeAiPublication], so the BOM cannot drift from the modules it describes.
  *
  * `version` comes from [platformPublishedVersion], NOT the module path: the BOM is the index of a
- * release rather than a member of it, so it always carries the tag and is never skipped.
+ * release rather than a member of it, so whenever it publishes it carries the tag. It does not
+ * publish on every release: `printPublishTasks` skips it when the publish set is empty, and the
+ * publish plan puts its artifact id in the set when its own inputs moved and no module's did.
  */
 class ComposeAiPlatformPublishingPlugin : Plugin<Project> {
   override fun apply(project: Project) {

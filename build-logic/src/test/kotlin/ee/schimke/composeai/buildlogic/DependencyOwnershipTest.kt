@@ -12,6 +12,10 @@ class DependencyOwnershipTest {
   @Test
   fun `allows contracts but rejects tools and server ownership`() {
     assertFalse(DependencyOwnership.isForbidden("ee.schimke.composeai:daemon-protocol"))
+    // The contracts BOM is a platform component on every classpath that imports it.
+    assertFalse(
+      DependencyOwnership.isForbidden("ee.schimke.composeai:compose-preview-contracts-bom")
+    )
     assertFalse(DependencyOwnership.isForbidden("org.jetbrains.kotlin:kotlin-stdlib"))
 
     listOf(

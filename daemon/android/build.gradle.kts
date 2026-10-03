@@ -271,6 +271,7 @@ dependencies {
   testImplementation(libs.junit)
   testImplementation(libs.roborazzi)
   testImplementation(libs.roborazzi.compose)
+  testImplementation(platform(libs.rcplayers.bom))
   testImplementation(libs.rcplayer.embedded.android)
   testImplementation(libs.compose.remote.player.core)
   testImplementation(libs.compose.remote.core)

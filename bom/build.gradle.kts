@@ -49,7 +49,22 @@ val manifestText = providers.provider {
     ?.readText() ?: "{}"
 }
 
+// The layer below: this BOM imports compose-preview-contracts' BOM, so a consumer importing this
+// one also aligns the wire contracts every daemon module is compiled against — at the version this
+// build resolved them at, rather than whatever the first POM in their graph happens to name.
+// `allowDependencies()` because a `java-platform` otherwise accepts constraints only; the import
+// itself is a platform, so it publishes as `<scope>import</scope>` in the POM's
+// `<dependencyManagement>` and adds no jar to anyone's classpath.
+//
+// This makes `composeai-contracts` an input of the BOM, which the publish plan otherwise treats as
+// a sibling floor that moves no artifact. `maven-publish-plan.sh` therefore checks the BOM's own
+// inputs (this directory and the catalog entries it uses) against the version the BOM last
+// published at, and publishes it on its own when only they moved.
+javaPlatform { allowDependencies() }
+
 dependencies {
+  api(platform(libs.composeai.contracts.bom))
+
   constraints {
     publishedProjectPaths
       .map { path -> path.removePrefix(":").replace(':', '-') }

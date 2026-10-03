@@ -55,14 +55,19 @@ sha="$(git -C "${work}/tree" rev-parse --short HEAD)"
 status=$?
 git worktree remove --force "${work}/tree" 2>/dev/null || true
 
-mapfile -t modules < <(grep -v '^\s*$' "${work}/plan.out")
+# The plan prints the BOM's own artifact id when only the BOM's inputs moved (see "THE BOM" in
+# maven-publish-plan.sh). It is not a module, so it is counted apart.
+mapfile -t modules < <(grep -v '^\s*$' "${work}/plan.out" | grep -v -- '-bom$')
+bom_only="$(grep -c -- '-bom$' "${work}/plan.out")"
 count="${#modules[@]}"
 if [[ "${status}" -ne 0 ]]; then
   summary="The publish plan could not run on \`${sha}\` (exit ${status}); the release will compute it again."
 elif grep -q 'publishing every module' "${work}/plan.err"; then
   summary="**All ${count} modules** publish, plus the BOM: a shared build input changed."
 elif total="$(grep -oE '[0-9]+ of [0-9]+ modules publish' "${work}/plan.err" | grep -oE 'of [0-9]+' | grep -oE '[0-9]+')"; [[ -n "${total}" ]]; then
-  if [[ "${count}" -eq 0 ]]; then
+  if [[ "${count}" -eq 0 && "${bom_only}" -gt 0 ]]; then
+    summary="**Only the BOM** publishes: no module changed, but the BOM's own inputs did."
+  elif [[ "${count}" -eq 0 ]]; then
     summary="**Nothing** publishes to Maven Central: no module changed since the version it is published at."
   else
     summary="**${count} of ${total} modules** publish, plus the BOM."
@@ -72,7 +77,7 @@ else
 fi
 
 # Why, in the plan's own words: the lines that decide the set, not its whole log.
-reasons="$(grep -E 'shared build input|publishing every module|catalog entries changed|uses a changed catalog entry|never published|could not|not a shared input|changed only in comments' \
+reasons="$(grep -E 'shared build input|publishing every module|catalog entries changed|uses a changed catalog entry|never published|could not|not a shared input|changed only in comments|publishing the BOM' \
   "${work}/plan.err" | sed -E 's/^[[:space:]]+//' | sort -u | head -20)"
 
 {

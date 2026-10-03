@@ -55,9 +55,12 @@ object PublishedVersions {
    *  * **absent** (`null`) -- the release did not compute a plan, so publish everything. This is the
    *    old behaviour and the `workflow_dispatch` recovery path.
    *  * **present but empty** (`""`) -- the plan ran and found nothing to publish, which happens for
-   *    a releasable change confined to `.github/` or the docs. Publish nothing (bar the BOM).
+   *    a releasable change confined to `.github/` or the docs. Publish nothing, the BOM included:
+   *    `printPublishTasks` publishes `:bom` only for a non-empty set, because an empty one leaves
+   *    every constraint at the version it is already published at. The plan puts the BOM's own
+   *    artifact id in the set when only the BOM's inputs moved, which makes it non-empty.
    *
-   * Treating an empty property as "publish everything" would upload all 69 coordinates on exactly
+   * Treating an empty property as "publish everything" would upload all 70 coordinates on exactly
    * the releases that need none of them, while `record-published.py` recorded none of them --
    * defeating the saving and leaving the manifest disagreeing with Central.
    */

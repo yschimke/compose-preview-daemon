@@ -30,12 +30,13 @@ git init -q -b main
 git config user.email test@example.com
 git config user.name test
 
-mkdir -p alpha beta lib/gamma build-logic/src/main/kotlin/ee/schimke/composeai/buildlogic build-logic/src/test/kotlin gradle
+mkdir -p alpha beta lib/gamma bom build-logic/src/main/kotlin/ee/schimke/composeai/buildlogic build-logic/src/test/kotlin gradle
 cat > settings.gradle.kts <<'EOF'
 include(":alpha")
 include(":beta")
 include(":gamma")
 project(":gamma").projectDir = file("lib/gamma")
+include(":bom")
 
 dependencyResolutionManagement {
   versionCatalogs {
@@ -76,6 +77,15 @@ dependencies {
       .core
       .ktx
   )
+}
+EOF
+# The BOM: a platform project, so not one of the modules, with a sibling BOM import of its own.
+cat > bom/build.gradle.kts <<'EOF'
+plugins { id("composeai.maven-publishing-platform") }
+javaPlatform { allowDependencies() }
+dependencies { api(platform(libs.composeai.contracts.bom)) }
+composeAiPlatformPublishing {
+  coordinates(artifactId = "compose-preview-daemon-bom", displayName = "BOM", description = "BOM")
 }
 EOF
 cat > lib/gamma/build.gradle.kts <<'EOF'
@@ -123,6 +133,7 @@ mixed = "1.0.0"
 
 [libraries]
 composeai-daemon-protocol = { module = "ee.schimke.composeai:daemon-protocol", version.ref = "composeai-contracts" }
+composeai-contracts-bom = { module = "ee.schimke.composeai:compose-preview-contracts-bom", version.ref = "composeai-contracts" }
 rc-player-runtime = { module = "ee.schimke.composeai:rc-player-runtime", version.ref = "rcplayers" }
 mixed-sibling = { module = "ee.schimke.composeai:screen-document", version.ref = "mixed" }
 mixed-other = { module = "com.example:other", version.ref = "mixed" }
@@ -143,7 +154,7 @@ git add -A
 git commit -q -m base
 git tag v1.0.0
 
-printf '{"modules":{%s}}\n' "$(for a in ${ALL}; do printf '"%s":"1.0.0",' "${a}"; done | sed 's/,$//')" \
+printf '{"modules":{%s}}\n' "$(for a in ${ALL} compose-preview-daemon-bom; do printf '"%s":"1.0.0",' "${a}"; done | sed 's/,$//')" \
   > "${tmp}/manifest.json"
 
 # check <name> <expected set, space separated> — runs a case from a clean checkout of the baseline.
@@ -261,9 +272,25 @@ change_catalog_and_module() {
 }
 check catalog_and_module "alpha beta gamma"
 
-# v3.8.0 / v3.8.3 / v3.10.1: a sibling repository's coordinate moved and nothing else did.
+# v3.8.0 / v3.8.3 / v3.10.1: a sibling repository's coordinate moved and nothing else did. No
+# module publishes -- but the BOM imports the contracts BOM at that ref, so it publishes alone.
 change_catalog_sibling_only() { sed -i 's/composeai-contracts = "3.0.0"/composeai-contracts = "3.1.0"/' gradle/libs.versions.toml; }
-check catalog_sibling_only ""
+check catalog_sibling_only "compose-preview-daemon-bom"
+
+# A sibling the BOM does not use moves no module and not the BOM either.
+change_catalog_sibling_not_in_bom() { sed -i 's/rc-player-runtime", version.ref = "rcplayers"/rc-player-runtime", version = "1.0.1"/' gradle/libs.versions.toml; }
+check catalog_sibling_not_in_bom ""
+
+# An edit to the BOM's own build script publishes the BOM alone.
+change_bom_script() { echo '// touched' >> bom/build.gradle.kts; }
+check bom_script "compose-preview-daemon-bom"
+
+# When a module publishes, the BOM rides along with the non-empty set and is not printed.
+change_bom_and_module() {
+  echo '// touched' >> bom/build.gradle.kts
+  echo '// touched' >> lib/gamma/build.gradle.kts
+}
+check bom_and_module "gamma"
 
 # A version shared by a sibling coordinate and a third-party one is still an input.
 change_catalog_sibling_shared_version() { sed -i 's/mixed = "1.0.0"/mixed = "1.1.0"/' gradle/libs.versions.toml; }

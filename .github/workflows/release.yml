@@ -99,7 +99,7 @@ jobs:
           # PLANNED is "false" only on the recovery path, where no plan ran and everything
           # publishes. Otherwise the property is ALWAYS passed, including when the plan is empty:
           # an absent property means "publish everything", an empty one means "publish nothing",
-          # and collapsing the two would upload all 69 coordinates on exactly the
+          # and collapsing the two would upload all 70 coordinates on exactly the
           # releases that need none of them.
           if [ "${PLANNED}" = "true" ]; then
             args+=("-Pcomposeai.publishSet=${PUBLISH_SET}")
