@@ -213,19 +213,52 @@ class SandboxSparePoolTest {
     assertThat(launched.all { it.second.destroyed }).isTrue()
   }
 
+  /** A pool with a hand-driven clock, its two spares of [a]'s signature warm. */
+  private fun poolWarmFor(
+    a: DaemonLaunchDescriptor,
+    clock: java.util.concurrent.atomic.AtomicLong,
+  ) =
+    pool(SandboxSparePool.Config(maxSpares = 2, perSignature = 2)).also { pool ->
+      pool.nanoTime = clock::get
+      pool.reserve(a, 1)
+      pool.ensure(a)
+      awaitLaunched(1)
+      launched[0].second.handshake(1, 40001)
+      awaitLaunched(2)
+      launched[1].second.handshake(2, 40002)
+      awaitWarm(pool, 2)
+    }
+
+  @Test
+  fun `a recently used signature's spares are not evicted for another`() {
+    // The churn this prevents: with one signature's worth of budget, every launch of a new
+    // signature evicted the last one's spares and booted its own, which the next launch evicted in
+    // turn — two Robolectric boots per launch and none ever adopted.
+    val clock = java.util.concurrent.atomic.AtomicLong(0)
+    val a = descriptor()
+    val pool = poolWarmFor(a, clock)
+
+    clock.addAndGet(TimeUnit.MINUTES.toNanos(1))
+    val b = descriptor(classpath = listOf("/opt/b.jar"))
+    assertThat(pool.reserve(b, 1)).isEmpty() // b boots cold, as it would have anyway
+    pool.ensure(b)
+
+    assertThat(launched).hasSize(2)
+    assertThat(launched.none { it.second.destroyed }).isTrue()
+    assertThat(pool.snapshot().warm).isEqualTo(2)
+    assertThat(pool.reserve(a, 2)).containsExactly(40001, 40002) // still there for a's relaunch
+    pool.close()
+  }
+
   @Test
   fun `a spare of a less recently used signature is evicted to make room`() {
-    val pool = pool(SandboxSparePool.Config(maxSpares = 2, perSignature = 2))
+    val clock = java.util.concurrent.atomic.AtomicLong(0)
     val a = descriptor()
+    val pool = poolWarmFor(a, clock)
     val b = descriptor(classpath = listOf("/opt/b.jar"))
-    pool.reserve(a, 1)
-    pool.ensure(a)
-    awaitLaunched(1)
-    launched[0].second.handshake(1, 40001)
-    awaitLaunched(2)
-    launched[1].second.handshake(2, 40002)
-    awaitWarm(pool, 2)
 
+    // a has gone unreserved past the window: its spares are no longer likely to be adopted.
+    clock.addAndGet(TimeUnit.MINUTES.toNanos(11))
     pool.reserve(b, 1) // b is now the more recently used signature
     pool.ensure(b)
     awaitLaunched(3)

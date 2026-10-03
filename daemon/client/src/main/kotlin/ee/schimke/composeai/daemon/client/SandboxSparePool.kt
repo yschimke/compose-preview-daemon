@@ -117,6 +117,30 @@ public class SandboxSparePool(
     val returned: Long = 0L,
   )
 
+  /** Clock seam for tests; production reads [System.nanoTime]. */
+  internal var nanoTime: () -> Long = System::nanoTime
+
+  /**
+   * How long a signature must go unreserved before its warm spares may be evicted for another.
+   *
+   * Eviction used to need only that the newcomer was the more recently used signature — and a
+   * signature [ensure] runs for has always *just* been reserved, so every launch of a new signature
+   * won. With a budget of one signature's worth (`maxSpares == perSignature`, the deployed shape),
+   * each catalog daemon launch on a box hosting many catalogs evicted the previous signature's
+   * spares and booted two of its own (a Robolectric boot plus a warm render: ~50 s of CPU each),
+   * only for the next launch to evict those in turn. Measured on preview.coo.ee: spares evicted
+   * 10-60 s after warming, `adopted 0` against `coldLaunches 5` in six minutes, on a box already at
+   * a load of 25 on 8 cores.
+   *
+   * A spare pays off only when its signature launches again — a reaped catalog resumed, a replica
+   * added — so a spare is kept until its signature has been idle long enough that a relaunch is no
+   * longer likely. The newcomer meanwhile boots cold, which is what every launch did under the
+   * churn anyway. Ten minutes matches the serve session registry's own idle-suspend window, the
+   * interval on which a browsed catalog's daemon comes and goes.
+   */
+  internal var evictionMinIdleNanos: Long =
+    TimeUnit.MINUTES.toNanos(DEFAULT_EVICTION_MIN_IDLE_MINUTES)
+
   private val lock = ReentrantLock()
   private val spares = mutableListOf<Spare>() // guarded by [lock]
   private val lastReserved = mutableMapOf<String, Long>() // signature → nanoTime; guarded by [lock]
@@ -139,7 +163,7 @@ public class SandboxSparePool(
     if (wanted <= 0 || closed) return emptyList()
     val signature = signatureOf(descriptor)
     return lock.withLock {
-      lastReserved[signature] = System.nanoTime()
+      lastReserved[signature] = nanoTime()
       val ready =
         spares.filter { it.signature == signature && it.port != null && it.alive }.take(wanted)
       spares.removeAll(ready)
@@ -156,15 +180,15 @@ public class SandboxSparePool(
   /**
    * Keep [Config.perSignature] spares warm for [descriptor]'s signature, launching the missing ones
    * one at a time in the background. Within the total budget: a spare of the least recently
-   * reserved *other* signature is evicted to make room, and when every spare belongs to signatures
-   * reserved more recently than this one, nothing is launched. Idempotent — call it on every
-   * launch.
+   * reserved *other* signature is evicted to make room once that signature has been idle for
+   * [evictionMinIdleNanos]; when every spare belongs to a signature reserved more recently than
+   * this one, or within that window, nothing is launched. Idempotent — call it on every launch.
    */
   public fun ensure(descriptor: DaemonLaunchDescriptor) {
     if (closed || config.maxSpares <= 0 || config.perSignature <= 0) return
     val signature = signatureOf(descriptor)
     val queued = lock.withLock {
-      lastReserved.putIfAbsent(signature, System.nanoTime())
+      lastReserved.putIfAbsent(signature, nanoTime())
       pruneDead()
       val have = spares.count { it.signature == signature }
       var room = config.maxSpares - spares.size
@@ -174,7 +198,10 @@ public class SandboxSparePool(
           spares
             .filter { it.signature != signature && it.port != null }
             .minByOrNull { lastReserved[it.signature] ?: 0L } ?: break
-        if ((lastReserved[victim.signature] ?: 0L) > (lastReserved[signature] ?: 0L)) break
+        val victimReserved = lastReserved[victim.signature] ?: 0L
+        if (victimReserved > (lastReserved[signature] ?: 0L)) break
+        // Recently used: keep it, and let this signature boot cold. See [evictionMinIdleNanos].
+        if (nanoTime() - victimReserved < evictionMinIdleNanos) break
         evict(victim, "evicted for signature $signature")
         room++
       }
@@ -418,6 +445,7 @@ public class SandboxSparePool(
     public const val DEFAULT_MAX_SPARES: Int = 4
     public const val DEFAULT_PER_SIGNATURE: Int = 2
     public const val DEFAULT_TRIM_NATIVE_HEAP_MS: Long = 1_000L
+    private const val DEFAULT_EVICTION_MIN_IDLE_MINUTES = 10L
 
     private const val TRIM_NATIVE_HEAP_FLAG = "-XX:TrimNativeHeapInterval="
 
