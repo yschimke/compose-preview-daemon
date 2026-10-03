@@ -64,6 +64,8 @@ class ComposeAiBaseConventionsPlugin : Plugin<Project> {
       inputs.property("composeai.cacheSalt", cacheSalt)
     }
 
+    project.alignContractsThroughBom()
+
     registerDependencyChecks(project)
   }
 

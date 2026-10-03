@@ -35,23 +35,14 @@ abstract class CheckDependencyOwnership : DefaultTask() {
 
 /** Repository ownership policy, separate from Gradle resolution so it can be unit tested. */
 internal object DependencyOwnership {
-  const val COMPOSE_AI_GROUP: String = "ee.schimke.composeai"
+  const val COMPOSE_AI_GROUP: String = Contracts.GROUP
 
-  /** Exact coordinates owned by the lower-layer compose-preview-contracts repository. */
-  val contractModules: Set<String> =
-    setOf(
-      "$COMPOSE_AI_GROUP:agent-grant-protocol",
-      "$COMPOSE_AI_GROUP:common-io",
-      "$COMPOSE_AI_GROUP:daemon-bta",
-      "$COMPOSE_AI_GROUP:daemon-devices",
-      "$COMPOSE_AI_GROUP:daemon-protocol",
-      "$COMPOSE_AI_GROUP:data-layoutinspector-core",
-      "$COMPOSE_AI_GROUP:data-preview-overrides-core",
-      "$COMPOSE_AI_GROUP:data-render-core",
-      "$COMPOSE_AI_GROUP:data-theme-core",
-      "$COMPOSE_AI_GROUP:parity-issues-protocol",
-      "$COMPOSE_AI_GROUP:ui-builder-protocol",
-    )
+  /**
+   * Exact coordinates owned by the lower-layer compose-preview-contracts repository: its modules
+   * and the BOM that versions them. The BOM is a platform component, so it shows up on a resolved
+   * runtime classpath as a component of its own (it carries no classes).
+   */
+  val contractModules: Set<String> = Contracts.modules + Contracts.BOM
 
   /**
    * Project components are daemon-owned and never enter this function. Every external module in

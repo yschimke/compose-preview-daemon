@@ -134,10 +134,11 @@ dependencies {
   // when rc-players 2.x reshaped `RcPlayer` consumers on connector 3.9.2 baked every Remote sticker
   // through the wrong player with no error (yschimke/wear-m3-catalog#639). A missing or reshaped
   // player is now a `NoClassDefFoundError` / `NoSuchMethodError` at render time.
+  // Versionless: both players resolve through the rc-players BOM.
+  compileOnly(platform(libs.rcplayers.bom))
   compileOnly(libs.rcplayer.embedded.android)
   // The CMP player behind the `cmp-android` lane, on the same terms: the consumer supplies it, and
   // the linkage check refuses the lane by name when it does not.
-  compileOnly(platform(libs.rcplayers.bom))
   compileOnly(libs.rcplayer.compose)
   testImplementation(libs.compose.remote.player.core)
   testImplementation(libs.compose.remote.creation.compose)
@@ -146,8 +147,8 @@ dependencies {
   // linkage against the line this module is built with.
   testImplementation(libs.compose.remote.player.compose)
   testImplementation(libs.compose.remote.player.view)
-  testImplementation(libs.rcplayer.embedded.android)
   testImplementation(platform(libs.rcplayers.bom))
+  testImplementation(libs.rcplayer.embedded.android)
   testImplementation(libs.rcplayer.compose)
 
   testImplementation(libs.junit)

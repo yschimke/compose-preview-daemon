@@ -293,28 +293,20 @@ coil3 = "3.5.0"
 # here. This repository consumes them; it no longer owns these coordinates. A change to a contract
 # reaches this build only through a release there — see that repository's docs/VERSIONING.md.
 # A point pin, deliberately: a range would let a contract change arrive without a pull request.
-composeai-contracts = "3.14.0"
-
-# `common-io` on its own key for the same reason: it depends on no other contracts module, so a
-# release that changes only `daemon-protocol` (3.14.0, `RenderFinishedParams.workTrace`) skips it and
-# `common-io:3.14.0` does not exist. Fold it back into `composeai-contracts` once a release publishes
-# it again.
-composeai-contracts-common-io = "3.13.0"
-
-# …and one coordinate ahead of the rest, because contracts releases are no longer all-or-nothing.
-# Since its 3.1.0 a release there publishes only the modules it changed, and a skipped module's POM
-# names the version it is already published at rather than the tag — so `3.1.1` exists for
-# `data-layoutinspector-core` alone and resolving the other seven at it is a 404. Mixing is exactly
-# what that design intends: 3.1.1's POM names `daemon-protocol` at 3.0.0, which is the pin above.
-# `ee.schimke.composeai:bom` is published at every tag and constrains each coordinate at its real
-# version; adopting it here would replace both refs with one knob.
-composeai-contracts-layoutinspector = "3.13.0"
-
-# `daemon-protocol` ahead of the rest: 3.15.0 adds `RemoteComposeOverride.playerId`, which the
-# connector reads. Its dependents above stay on 3.14.0 and resolve it at this version, which is safe
-# because a contracts release is binary-compatible with the last (its ABI-superset gate). Fold back
-# into `composeai-contracts` once that moves to 3.15.0 or later.
-composeai-contracts-protocol = "3.15.0"
+#
+# ONE ref, and it names the contracts BOM (`compose-preview-contracts-bom`), never a module. Since
+# its 3.1.0 a contracts release publishes only the modules it changed, so the tag is not a version
+# every module has: `common-io` is at 3.13.0 under the 3.15.0 tag, and resolving it at 3.15.0 is a
+# 404. The BOM is published at every tag and pins each module at the version it really carries, so
+# the module entries below are versionless and `composeai.base-conventions` adds
+# `platform(composeai-contracts-bom)` to every configuration that declares one (see
+# `ContractsAlignment` in build-logic). The published POMs import the BOM the same way.
+#
+# 3.15.0 is the lowest BOM that satisfies every pin this replaced: `daemon-protocol` was already
+# at 3.15.0 (`RemoteComposeOverride.playerId`, read by the connector), and 3.15.0 is the first BOM
+# to carry it. 3.16.0 and 3.17.0 differ from it only in `ui-builder-protocol`, which nothing here
+# uses.
+composeai-contracts = "3.15.0"
 
 # The Remote Compose players, published by yschimke/rc-players (the CMP player stack, the vendored
 # AndroidX embedded player, and the Wasm browser bundle). They were project deps here until the
@@ -335,24 +327,28 @@ composeai-contracts-protocol = "3.15.0"
 #
 # During the move these were briefly split across two refs, so that three unpublished coordinates
 # could not pin the five that were already on Central. That is over: one ref again.
-rcplayers = "2.0.4"
+rcplayers = "2.1.0"
 
 [libraries]
 
-# Wire contracts consumed from compose-preview-contracts (see `composeai-contracts`).
-composeai-daemon-protocol = { module = "ee.schimke.composeai:daemon-protocol", version.ref = "composeai-contracts-protocol" }
-composeai-daemon-devices = { module = "ee.schimke.composeai:daemon-devices", version.ref = "composeai-contracts" }
-composeai-daemon-bta = { module = "ee.schimke.composeai:daemon-bta", version.ref = "composeai-contracts" }
-composeai-data-render-core = { module = "ee.schimke.composeai:data-render-core", version.ref = "composeai-contracts" }
-composeai-data-layoutinspector-core = { module = "ee.schimke.composeai:data-layoutinspector-core", version.ref = "composeai-contracts-layoutinspector" }
-composeai-data-theme-core = { module = "ee.schimke.composeai:data-theme-core", version.ref = "composeai-contracts" }
-composeai-data-preview-overrides-core = { module = "ee.schimke.composeai:data-preview-overrides-core", version.ref = "composeai-contracts" }
-composeai-common-io = { module = "ee.schimke.composeai:common-io", version.ref = "composeai-contracts-common-io" }
+# Wire contracts consumed from compose-preview-contracts (see `composeai-contracts`). Versionless:
+# each resolves through `composeai-contracts-bom`, which build-logic applies wherever one is used.
+composeai-contracts-bom = { module = "ee.schimke.composeai:compose-preview-contracts-bom", version.ref = "composeai-contracts" }
+composeai-daemon-protocol = { module = "ee.schimke.composeai:daemon-protocol" }
+composeai-daemon-devices = { module = "ee.schimke.composeai:daemon-devices" }
+composeai-daemon-bta = { module = "ee.schimke.composeai:daemon-bta" }
+composeai-data-render-core = { module = "ee.schimke.composeai:data-render-core" }
+composeai-data-layoutinspector-core = { module = "ee.schimke.composeai:data-layoutinspector-core" }
+composeai-data-theme-core = { module = "ee.schimke.composeai:data-theme-core" }
+composeai-data-preview-overrides-core = { module = "ee.schimke.composeai:data-preview-overrides-core" }
+composeai-common-io = { module = "ee.schimke.composeai:common-io" }
 
 # The vendored, locally patched AndroidX embedded player — the Android comparison lane. NOT a
 # supported API; pinned to one AndroidX alpha and versioned with the player stack rather than with
-# upstream.
-rcplayer-embedded-android = { module = "ee.schimke.composeai:third-party-rc-embedded-player", version.ref = "rcplayers" }
+# upstream. Versionless, like the CMP player below: resolved through `rcplayers-bom`, which every
+# configuration declaring it also imports. rc-players publishes selectively too, so the tag is not
+# a version every coordinate is guaranteed to have.
+rcplayer-embedded-android = { module = "ee.schimke.composeai:third-party-rc-embedded-player" }
 # The CMP player (`rc-player-compose`) — the supported player rc-players publishes, here drawing
 # the `cmp-android` lane. Resolved through the BOM, which pins protocol/trace at their own versions.
 rcplayers-bom = { module = "ee.schimke.composeai:rc-players-bom", version.ref = "rcplayers" }
