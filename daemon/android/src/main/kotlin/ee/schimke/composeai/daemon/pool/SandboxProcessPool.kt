@@ -407,10 +407,17 @@ class SandboxProcessPool(
     val java = File(File(System.getProperty("java.home"), "bin"), "java").absolutePath
     val command = buildList {
       add(java)
-      addAll(workerJvmArgs(inheritedJvmArgs(), index))
+      val classpath = System.getProperty("java.class.path") ?: ""
+      addAll(
+        workerJvmArgs(
+          inheritedJvmArgs(),
+          index,
+          classpathHasNonEmptyDirectory = hasNonEmptyDirectory(classpath),
+        )
+      )
       addAll(workerSysprops(index, port).map { (k, v) -> "-D$k=$v" })
       add("-cp")
-      add(System.getProperty("java.class.path") ?: "")
+      add(classpath)
       add(SandboxWorkerMain::class.java.name)
     }
     val process =
@@ -513,17 +520,44 @@ class SandboxProcessPool(
      * archive path is a torn file. One file per JVM removes the race: a slot has at most one live
      * worker, and a replacement is spawned only after the failed one is gone.
      *
+     * **No archive at all when the classpath holds a non-empty directory.** HotSpot refuses to
+     * create a dynamic archive over one and fails the launch outright — `Error occurred during
+     * initialization of VM: Cannot have non-empty directory in paths` — rather than running without
+     * CDS. The daemon itself gets past that check because it starts before its own `test-config/`
+     * directory (on its classpath, and so on every worker's) is populated; the workers it spawns
+     * after that do not, and a worker with no archive yet dies before `main`. On preview.coo.ee
+     * that was 13 failed worker boots in 30 minutes across 7 catalogs, each one retried and each
+     * one a catalog page left waiting. A worker without CDS boots ~35 % slower; a worker that
+     * cannot boot never renders.
+     *
      * Pure; `index` is the pool slot. Args without a `SharedArchiveFile` pass through unchanged.
      */
-    internal fun workerJvmArgs(inherited: List<String>, index: Int): List<String> =
-      inherited.map { arg ->
-        if (!arg.startsWith(SHARED_ARCHIVE_FLAG)) return@map arg
-        val path = arg.removePrefix(SHARED_ARCHIVE_FLAG)
-        val stem = path.removeSuffix(".jsa")
-        val ext = if (path.endsWith(".jsa")) ".jsa" else ""
-        "$SHARED_ARCHIVE_FLAG$stem-worker$index$ext"
+    internal fun workerJvmArgs(
+      inherited: List<String>,
+      index: Int,
+      classpathHasNonEmptyDirectory: Boolean = false,
+    ): List<String> =
+      if (classpathHasNonEmptyDirectory) {
+        inherited.filterNot { it == AUTO_CREATE_ARCHIVE_FLAG || it.startsWith(SHARED_ARCHIVE_FLAG) }
+      } else {
+        inherited.map { arg ->
+          if (!arg.startsWith(SHARED_ARCHIVE_FLAG)) return@map arg
+          val path = arg.removePrefix(SHARED_ARCHIVE_FLAG)
+          val stem = path.removeSuffix(".jsa")
+          val ext = if (path.endsWith(".jsa")) ".jsa" else ""
+          "$SHARED_ARCHIVE_FLAG$stem-worker$index$ext"
+        }
       }
 
+    /**
+     * Whether any entry of [classpath] is a directory with something in it. See [workerJvmArgs].
+     */
+    internal fun hasNonEmptyDirectory(classpath: String): Boolean =
+      classpath.split(File.pathSeparatorChar).any { entry ->
+        entry.isNotEmpty() && File(entry).list()?.isNotEmpty() == true
+      }
+
+    private const val AUTO_CREATE_ARCHIVE_FLAG = "-XX:+AutoCreateSharedArchive"
     private const val SHARED_ARCHIVE_FLAG = "-XX:SharedArchiveFile="
     const val WORKER_SLOT_PROP: String = DaemonProperties.Names.SANDBOX_WORKER_SLOT
 

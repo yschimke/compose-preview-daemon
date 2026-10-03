@@ -1,6 +1,9 @@
 package ee.schimke.composeai.daemon.pool
 
+import java.nio.file.Files
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -45,5 +48,36 @@ class SandboxProcessPoolWorkerJvmArgsTest {
   fun `args without an archive pass through untouched`() {
     val args = listOf("-Xmx1g", "-XX:+UseG1GC", "--enable-native-access=ALL-UNNAMED")
     assertEquals(args, SandboxProcessPool.workerJvmArgs(args, 2))
+  }
+
+  @Test
+  fun `a classpath with a non-empty directory gets no archive at all`() {
+    // HotSpot fails the launch rather than run without CDS: `Cannot have non-empty directory in
+    // paths`. A worker that cannot boot is worse than one that boots without an archive.
+    val inherited =
+      listOf(
+        "-XX:MaxRAMPercentage=70",
+        "-XX:+AutoCreateSharedArchive",
+        "-XX:SharedArchiveFile=/cache/cds/android-daemon-abc.jsa",
+        "-Xlog:cds*=off:stderr",
+      )
+    assertEquals(
+      listOf("-XX:MaxRAMPercentage=70", "-Xlog:cds*=off:stderr"),
+      SandboxProcessPool.workerJvmArgs(inherited, 0, classpathHasNonEmptyDirectory = true),
+    )
+  }
+
+  @Test
+  fun `only a directory with contents counts`() {
+    val empty = Files.createTempDirectory("cp-empty").toFile()
+    val full =
+      Files.createTempDirectory("cp-full").toFile().also {
+        it.resolve("a.properties").writeText("x")
+      }
+    val jar = Files.createTempFile("cp", ".jar").toFile()
+    val sep = java.io.File.pathSeparator
+    assertFalse(SandboxProcessPool.hasNonEmptyDirectory("${jar.path}$sep${empty.path}$sep/missing"))
+    assertTrue(SandboxProcessPool.hasNonEmptyDirectory("${jar.path}$sep${full.path}"))
+    assertFalse(SandboxProcessPool.hasNonEmptyDirectory(""))
   }
 }
