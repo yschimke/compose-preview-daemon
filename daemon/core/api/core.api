@@ -1795,6 +1795,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public final fun getModuleId ()Lee/schimke/composeai/daemon/config/StringProperty;
 	public final fun getModulePath ()Lee/schimke/composeai/daemon/config/StringProperty;
 	public final fun getModuleProjectDir ()Lee/schimke/composeai/daemon/config/PathProperty;
+	public final fun getOnDemandWorkerBoot ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getPerfettoTrace ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getPreviewsJsonPath ()Lee/schimke/composeai/daemon/config/PathProperty;
 	public final fun getProtocolVersion ()Lee/schimke/composeai/daemon/config/StringProperty;
@@ -1854,6 +1855,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
 	public static final field MODULE_ID Ljava/lang/String;
 	public static final field MODULE_PATH Ljava/lang/String;
 	public static final field MODULE_PROJECT_DIR Ljava/lang/String;
+	public static final field ON_DEMAND_WORKER_BOOT Ljava/lang/String;
 	public static final field PERFETTO_TRACE Ljava/lang/String;
 	public static final field PREVIEWS_JSON_PATH Ljava/lang/String;
 	public static final field PROTOCOL_VERSION Ljava/lang/String;

@@ -147,6 +147,16 @@ never queues on a still-booting worker.
   and a slot is still published only after its own warm render.
 - **A worker that dies mid-request is dropped from the pool**, logged with its
   pid; the remaining slots keep serving.
+- **The workers can wait for demand.** `composeai.daemon.onDemandWorkerBoot=true`
+  (off by default) keeps `start()` from launching the background boot at all:
+  the workers boot, on the same thread and one at a time, the first time two
+  *different* previews are in `submit` at once, or a held interactive session
+  needs a worker. Renders of one preview share a slot by affinity, so they
+  never ask for more. Until then the daemon is a single sandbox. The MCP server
+  sets it, because an agent's edit loop renders one preview at a time and N
+  background Robolectric boots competed with its first compile and render
+  (yschimke/compose-ag-plugin#63, #64, #76); the first grid render pays the
+  boots instead.
 
 ## Spare workers (adopt, don't boot)
 

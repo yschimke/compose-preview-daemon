@@ -48,11 +48,14 @@ import ee.schimke.composeai.data.theme.ThemeConsumer
 import ee.schimke.composeai.data.theme.ThemePayload
 import ee.schimke.composeai.io.composeAiCacheDir
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.FutureTask
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.serialization.json.Json
@@ -526,6 +529,62 @@ open class RobolectricHost(
   /** Background pool-boot thread (see [start]); null when background boot isn't active. */
   @Volatile private var backgroundBootWorker: Thread? = null
 
+  /**
+   * The boot budget for worker slots [start] deferred under `composeai.daemon.onDemandWorkerBoot`;
+   * null when nothing is deferred. [requestWorkerBoot] reads it.
+   */
+  @Volatile private var deferredWorkerBootTimeoutMs: Long? = null
+
+  /** Set once the deferred worker boot has started, so it starts at most once. */
+  private val workerBootRequested = AtomicBoolean(false)
+
+  /** Renders in [submit] right now, per affinity key; see [noteConcurrentDemand]. */
+  private val inFlightRenders = ConcurrentHashMap<String, AtomicInteger>()
+
+  /**
+   * Starts the worker boots [start] deferred (`composeai.daemon.onDemandWorkerBoot`), on the same
+   * background thread and with the same one-at-a-time policy as a background boot. A no-op when
+   * nothing was deferred or the boot already started. Renders keep routing to the ready slots
+   * meanwhile; each worker joins [routableSlots] once it is up.
+   */
+  private fun requestWorkerBoot(reason: String) {
+    val timeoutMs = deferredWorkerBootTimeoutMs ?: return
+    if (DaemonHostBridge.shutdown.get() || !workerBootRequested.compareAndSet(false, true)) return
+    StartupTimings.mark("deferred worker boot started ($reason)")
+    backgroundBootWorker =
+      Thread(
+          { runCatching { bootRemainingSlots(timeoutMs, background = true) } },
+          "compose-ai-daemon-pool-boot",
+        )
+        .apply {
+          isDaemon = true
+          start()
+        }
+  }
+
+  /**
+   * Records [render] as in flight and returns its key, for [submit]'s `finally` to release. Two
+   * *different* previews in flight at once is the demand worth a worker: renders of one preview
+   * share a slot by affinity whatever the pool size, so they never ask for more.
+   */
+  private fun noteConcurrentDemand(render: RenderRequest.Render): String {
+    val key = render.target.previewIdOrNull() ?: "request:${render.id}"
+    inFlightRenders.computeIfAbsent(key) { AtomicInteger() }.incrementAndGet()
+    if (deferredWorkerBootTimeoutMs != null && inFlightRenders.size > 1) {
+      requestWorkerBoot("concurrent renders")
+    }
+    return key
+  }
+
+  private fun releaseConcurrentDemand(key: String) {
+    inFlightRenders.computeIfPresent(key) { _, count ->
+      if (count.decrementAndGet() <= 0) null else count
+    }
+  }
+
+  /** Test seam: whether the deferred worker boot has started. */
+  internal fun workerBootRequestedForTest(): Boolean = workerBootRequested.get()
+
   /** Test seam: current ready-slot count (see [readySlotCount]). */
   internal fun readySlotCountForTest(): Int = readySlotCount.get()
 
@@ -576,6 +635,8 @@ open class RobolectricHost(
     DaemonHostBridge.configureSlotCount(LOCAL_SANDBOX_COUNT)
     readySlotCount.set(0)
     for (i in 0 until sandboxCount) slotReady.set(i, 0)
+    deferredWorkerBootTimeoutMs = null
+    workerBootRequested.set(false)
     val timeoutMs = DaemonProperties.sandboxBootTimeoutMs.read()
     // Read per-start (not at construction) so tests can flip the sysprop around start().
     val backgroundBoot = sandboxCount > 1 && DaemonProperties.backgroundSandboxBoot.read()
@@ -595,17 +656,27 @@ open class RobolectricHost(
         // session and enumerates no rows in the common case. Defer it to the first path that
         // needs it ([ensureInProcessSandbox]) rather than booting it behind the spares.
         val lazySlot0 = DaemonProperties.lazyInProcessSandbox.read()
+        // `onDemandWorkerBoot`: the worker slots the spares did not fill wait for demand
+        // ([requestWorkerBoot]) here too, rather than booting cold behind the adopted ones.
+        val onDemandWorkers = DaemonProperties.onDemandWorkerBoot.read()
+        val unfilled = sandboxCount - 1 - adopted
+        if (onDemandWorkers && unfilled > 0) deferredWorkerBootTimeoutMs = timeoutMs
         StartupTimings.mark(
           "sandbox-ready latch fired ($adopted adopted spare(s); " +
             (if (lazySlot0) "slot 0 deferred until needed" else "slot 0") +
-            " and ${sandboxCount - 1 - adopted} more booting in background)"
+            " and $unfilled more " +
+            (if (onDemandWorkers) "deferred until needed)" else "booting in background)")
         )
+        val bootWorkersNow = !onDemandWorkers && unfilled > 0
+        if (lazySlot0 && !bootWorkersNow) return
         backgroundBootWorker =
           Thread(
               {
                 runCatching {
-                  if (lazySlot0) bootRemainingSlots(timeoutMs, background = true)
-                  else bootBehindAdoptedSpares(timeoutMs)
+                  when {
+                    lazySlot0 -> bootRemainingSlots(timeoutMs, background = true)
+                    else -> bootBehindAdoptedSpares(timeoutMs, bootWorkers = bootWorkersNow)
+                  }
                 }
               },
               "compose-ai-daemon-pool-boot",
@@ -648,7 +719,12 @@ open class RobolectricHost(
         else -> "all sandbox-ready latches fired"
       }
     )
-    if (backgroundBoot) {
+    if (backgroundBoot && DaemonProperties.onDemandWorkerBoot.read()) {
+      // `onDemandWorkerBoot`: the workers wait for demand ([requestWorkerBoot]) instead of booting
+      // now, behind slot 0, while the caller's first compile and render want the CPU.
+      deferredWorkerBootTimeoutMs = timeoutMs
+      StartupTimings.mark("${sandboxCount - 1} worker sandbox(es) deferred until needed")
+    } else if (backgroundBoot) {
       backgroundBootWorker =
         Thread(
             { runCatching { bootRemainingSlots(timeoutMs, background = true) } },
@@ -771,7 +847,7 @@ open class RobolectricHost(
    * which live on slot 0, are lost — matching the background-boot policy for a worker that fails
    * permanently.
    */
-  private fun bootBehindAdoptedSpares(timeoutMs: Long) {
+  private fun bootBehindAdoptedSpares(timeoutMs: Long, bootWorkers: Boolean = true) {
     if (DaemonHostBridge.shutdown.get()) return
     try {
       ensureInProcessSandbox("background boot behind adopted spares")
@@ -782,7 +858,7 @@ open class RobolectricHost(
           "adopted worker(s), but interactive sessions and parameter-row enumeration need slot 0."
       )
     }
-    if (DaemonHostBridge.shutdown.get()) return
+    if (DaemonHostBridge.shutdown.get() || !bootWorkers) return
     bootRemainingSlots(timeoutMs, background = true)
   }
 
@@ -1120,6 +1196,16 @@ open class RobolectricHost(
     // sandboxCount=1 either dispatch path collapses to slot 0, which is byte-identical with the
     // pre-pool path (slot 0's `requests` queue is the same instance as the legacy top-level
     // queue).
+    val demandKey = noteConcurrentDemand(typed)
+    try {
+      return submitToSlot(typed, timeoutMs)
+    } finally {
+      releaseConcurrentDemand(demandKey)
+    }
+  }
+
+  /** [submit]'s dispatch, once the request is resolved and counted. */
+  private fun submitToSlot(typed: RenderRequest.Render, timeoutMs: Long): RenderResult {
     val slotIdx = chooseSlotIndex(typed)
     // #3072 — slots 1..N-1 are worker JVMs. The remote round-trip is a plain request/response over
     // the worker socket; the result comes back as the same host-side [RenderResult] the in-process
@@ -1163,6 +1249,7 @@ open class RobolectricHost(
    * worker's boot failed permanently), not the ordinary warm-up window.
    */
   private fun awaitWorkerForInteractive(timeoutMs: Long) {
+    if (routableSlots().size < 2) requestWorkerBoot("held interactive session")
     val deadline = System.nanoTime() + timeoutMs * 1_000_000
     while (routableSlots().size < 2) {
       if (System.nanoTime() >= deadline) {
