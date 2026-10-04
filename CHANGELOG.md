@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.14.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.13.2...v3.14.0) (2026-10-04)
+
+
+### Features
+
+* **daemon:** boot worker sandboxes on demand ([#219](https://github.com/yschimke/compose-preview-daemon/issues/219)) ([435fba9](https://github.com/yschimke/compose-preview-daemon/commit/435fba9caf75fbba6e2d3aaaa57002fcef81292a))
+
+
+### Bug Fixes
+
+* **deps:** rc-players 2.1.2 ([#217](https://github.com/yschimke/compose-preview-daemon/issues/217)) ([caf2157](https://github.com/yschimke/compose-preview-daemon/commit/caf2157fd50ee1ecc17c1f6850a2bf4bdf2b9ed4))
+
 ## [3.13.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.13.1...v3.13.2) (2026-10-03)
 
 
