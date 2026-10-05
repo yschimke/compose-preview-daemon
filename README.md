@@ -5,6 +5,11 @@ The renderers, the data extractors and the render daemon behind
 [compose-preview-server](https://github.com/yschimke/compose-preview-server): everything that
 executes a composable outside an IDE and returns pixels and data products.
 
+For agent installation and MCP wiring, start with the
+[Compose Agent Plugins quick start](https://github.com/yschimke/compose-agent-plugins#quick-start).
+The `compose-preview` plugin connects the agent to the local render stack; the daemon is installed
+through that stack rather than as an agent plugin of its own.
+
 | Directory | What |
 | --- | --- |
 | `renderers/` | `renderer-android` (Robolectric), `renderer-desktop` (Compose Multiplatform / Skiko), `renderer-xr-client` |
