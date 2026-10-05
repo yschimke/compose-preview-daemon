@@ -12,23 +12,11 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 
 /**
- * Test/harness-only [DesktopHost] subclass that re-packs an inbound `previewId=<id>` payload into a
- * parseable `className=…;functionName=…` [RenderSpec] payload by looking the previewId up in a JSON
- * manifest provided by the harness.
+ * Test/harness-only [DesktopHost] subclass that resolves an inbound [RenderTarget.Preview] to a
+ * [RenderSpec] by looking the previewId up in a harness-provided JSON manifest. Without it the real
+ * daemon cannot resolve the previewId and falls through to the stub render, producing no PNG.
  *
- * Mirrors the test-only `SpecRoutingHost` from
- * [JsonRpcDesktopIntegrationTest][ee.schimke.composeai.daemon.JsonRpcDesktopIntegrationTest], but
- * lives in the main source set so [DaemonMain] can mount it when spawned by `:daemon:harness`'s
- * `RealDesktopHarnessLauncher`. Without this routing the real daemon (driven by
- * `JsonRpcServer.handleRenderNow`, which only forwards `previewId=<id>` in the payload — see
- * `JsonRpcServer.kt` line ~352) would fall through to [DesktopHost.dispatchRender]'s
- * `renderStubFallback` path, producing no PNG.
- *
- * **Activated only when** `-Dcomposeai.harness.previewsManifest=<path>` is set on the JVM —
- * production daemon launches don't pass it, so production behaviour is unchanged. **Pending** `B2.2
- * — IncrementalDiscovery` lands the daemon's own `previews.json` ownership and a typed `previewId`
- * field on `RenderRequest`, at which point this whole routing concept folds into `JsonRpcServer`
- * itself and this class goes away.
+ * Activated only when `-Dcomposeai.harness.previewsManifest=<path>` is set.
  *
  * **Manifest schema** (`PreviewManifest`):
  * ```json
@@ -51,10 +39,7 @@ class PreviewManifestRouter(
   DesktopHost(
     engine = engine,
     userClassloaderHolder = userClassloaderHolder,
-    // Issue #1203 — wire a manifest-backed `previewSpecResolver` so harness real-mode tests can
-    // drive `interactive/start` + `recording/start` against the same fixtures `submit` already
-    // routes by id. Without this the parent `DesktopHost` advertises `supportsInteractive = false`
-    // and `interactive/start` falls back to v1, which the new key-dispatch scenarios can't use.
+    // Without a resolver DesktopHost advertises no interactive/recording support.
     previewSpecResolver = manifestPreviewSpecResolver(manifest.previews.associateBy { it.id }),
   ) {
 
@@ -81,10 +66,7 @@ class PreviewManifestRouter(
   internal fun routeTarget(target: RenderTarget): RenderTarget {
     val preview = target as? RenderTarget.Preview ?: return target
     val previewId = preview.previewId
-    // Issue #3749 — an exact manifest hit is the ordinary case; a miss may still be a
-    // `@PreviewParameter` **row** of a known base id (`<baseId>_Dark` / `<baseId>_PARAM_4`), which
-    // discovery could not have enumerated. [rowAddressed] resolves that against the entries we
-    // have.
+    // A miss may still be a `@PreviewParameter` row of a known base id (`<baseId>_Dark`).
     val addressed =
       rowAddressed(previewId)
         ?: error(
@@ -135,47 +117,6 @@ class PreviewManifestRouter(
 
   /** A previewId resolved against the manifest: the entry to render, and which row of it. */
   internal data class Addressed(val entry: PreviewManifestEntry, val row: String?)
-
-  private fun parseInboundPayload(payload: String): Map<String, String> {
-    val map = mutableMapOf<String, String>()
-    for (entry in payload.split(';')) {
-      val trimmed = entry.trim()
-      if (trimmed.isEmpty()) continue
-      val eq = trimmed.indexOf('=')
-      if (eq <= 0) continue
-      val k = trimmed.substring(0, eq).trim()
-      val v = trimmed.substring(eq + 1).trim()
-      if (v.isNotEmpty()) map[k] = v
-    }
-    return map
-  }
-
-  /**
-   * Layers a live request override over the synthetic preview's baked `@OverrideVariant` seed.
-   *
-   * The inbound token is the sparse per-call bag a knob edit sends; the baked one is the whole
-   * variant. Layering (rather than picking a side) is what lets a served `?knob.size=l` edit of a
-   * `_VARIANT_disabled` sticker keep the disabled seed it did not touch — the same merge
-   * `DesktopHost.specFromPreviewIdPayload` performs on the resolver lane.
-   */
-  private fun overridesTokenFor(inboundToken: String?, baseOverrides: PreviewOverrides?): String? {
-    if (baseOverrides == null) return inboundToken
-    val inbound = inboundToken?.let {
-      runCatching {
-        json.decodeFromString(
-          PreviewOverrides.serializer(),
-          String(java.util.Base64.getUrlDecoder().decode(it), Charsets.UTF_8),
-        )
-      }
-        .getOrNull()
-    }
-    val merged = inbound.layeredOver(baseOverrides) ?: return inboundToken
-    return java.util.Base64.getUrlEncoder()
-      .withoutPadding()
-      .encodeToString(
-        json.encodeToString(PreviewOverrides.serializer(), merged).toByteArray(Charsets.UTF_8)
-      )
-  }
 
   companion object {
     private val json = Json { ignoreUnknownKeys = true }
