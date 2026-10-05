@@ -155,7 +155,7 @@ never queues on a still-booting worker.
   never ask for more. Until then the daemon is a single sandbox. The MCP server
   sets it, because an agent's edit loop renders one preview at a time and N
   background Robolectric boots competed with its first compile and render
-  (yschimke/compose-ag-plugin#63, #64, #76); the first grid render pays the
+  (yschimke/compose-agent-plugins#63, #64, #76); the first grid render pays the
   boots instead.
 
 ## Spare workers (adopt, don't boot)
