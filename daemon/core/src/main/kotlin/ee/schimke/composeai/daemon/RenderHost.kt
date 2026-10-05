@@ -4,196 +4,92 @@ import ee.schimke.composeai.daemon.protocol.DataExtensionDescriptor
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * Renderer-agnostic seam between [JsonRpcServer] and the per-target render backend — see
- * docs/daemon/DESIGN.md § 4 ("Renderer-agnostic surface").
+ * Renderer-agnostic seam between [JsonRpcServer] and a render backend (`RobolectricHost`,
+ * `DesktopHost`) — see docs/daemon/DESIGN.md § 4. Members appear here only when every backend needs
+ * them; per-backend extras stay on the concrete class.
  *
- * One implementation per backend:
- *
- * - `RobolectricHost` (in `:daemon:android`) holds a Robolectric sandbox open via the dummy-`@Test`
- *   runner trick (DESIGN.md § 9) and bridges work across the sandbox classloader boundary.
- * - `DesktopHost` (planned, in `:daemon:desktop`, Stream B-desktop) holds a long-lived
- *   `Recomposer` + Skiko `Surface` warm.
- *
- * The surface is intentionally minimal: only the methods [JsonRpcServer] actually invokes ([start],
- * [submit], [shutdown]) plus the shared monotonic id source via [Companion.nextRequestId]. New
- * methods only appear here when `JsonRpcServer` needs them on every backend; per-backend extras
- * stay on the concrete class.
- *
- * **Threading contract.** Implementations expose a single render thread — see the
- * no-mid-render-cancellation invariant in DESIGN.md § 9. [submit] blocks the caller until the host
- * returns a [RenderResult]; [JsonRpcServer] already runs each `submit` on a fire-and-forget worker
- * so the JSON-RPC read loop is never blocked.
+ * **Threading.** Per DESIGN.md § 9, implementations render on a single thread and never cancel
+ * mid-render. [submit] blocks; [JsonRpcServer] calls it off the read loop.
  */
 public interface RenderHost {
 
-  /**
-   * Lifecycle: must be called once before the first [submit]. After this returns the host is alive
-   * and ready (though the first [submit] may still pay a cold-start cost, e.g. Robolectric sandbox
-   * bootstrap).
-   */
+  /** Called once before the first [submit]; the first render may still pay a cold-start cost. */
   public fun start()
 
   /**
-   * Submits one render request and blocks until its [RenderResult] is available, or until
-   * [timeoutMs] elapses (in which case the implementation throws — typically
-   * `IllegalStateException`).
-   *
-   * @param request must be a [RenderRequest.Render]; the [RenderRequest.Shutdown] poison pill is
-   *   implementation-internal and not legal here.
+   * Blocks until [request]'s [RenderResult] is available; throws (typically
+   * `IllegalStateException`) after [timeoutMs]. [RenderRequest.Shutdown] is not legal here.
    */
   public fun submit(request: RenderRequest, timeoutMs: Long = 60_000): RenderResult
 
-  /**
-   * Drains in-flight renders cleanly, then stops the render thread. Never aborts a render
-   * mid-flight (DESIGN.md § 9 invariant). Idempotent.
-   *
-   * @param timeoutMs upper bound for the worker thread to exit after the poison pill is enqueued.
-   */
+  /** Drains in-flight renders, then stops the render thread. Idempotent. */
   public fun shutdown(timeoutMs: Long = 30_000)
 
   /**
-   * The disposable user-class [UserClassLoaderHolder] this host renders against (B2.0 — see
-   * [CLASSLOADER.md](../../../../../../docs/daemon/CLASSLOADER.md)). The host's render path reads
-   * `currentChildLoader()` to resolve preview classes via `Class.forName`.
-   *
-   * Returns `null` when the host doesn't participate in the parent/child split (the harness's
-   * `FakeHost`, the Stream A B1.3 stub-render hosts, etc.) — those hosts don't load user classes,
-   * so the swap is a no-op and the existing v1 fake-mode scenarios stay unchanged. Real backends
-   * (`DesktopHost`, `RobolectricHost`) override.
-   *
-   * **Sandbox pool note (SANDBOX-POOL.md).** Under multi-sandbox mode `RobolectricHost` carries one
-   * holder per slot rather than a single shared instance. This property still returns one
-   * representative holder (slot 0) so callers that only need "is this host classloader-aware?" keep
-   * working; callers that mutate state should use [swapUserClassLoaders] for the broadcast.
+   * The disposable user-class loader holder this host renders against (docs/daemon/CLASSLOADER.md),
+   * or `null` for hosts that load no user classes (fakes). Under a multi-sandbox pool this is slot
+   * 0's holder only; mutate through [swapUserClassLoaders], which reaches every slot.
    */
   public val userClassloaderHolder: UserClassLoaderHolder?
     get() = null
 
   /**
-   * Swap (drop and lazily re-allocate on next read) every user-class child classloader this host
-   * holds. SANDBOX-POOL.md (per-slot child loaders): a host with `sandboxCount > 1` broadcasts to
-   * every slot's holder so all slots see the recompiled bytecode on their next render.
-   *
-   * Default no-op for hosts that don't participate in the parent/child split.
-   * [JsonRpcServer.handleFileChanged] calls this on `kind: "source"` instead of dereferencing
-   * [userClassloaderHolder]?.swap() directly so the broadcast is the same call site for both
-   * single-sandbox and pool modes.
+   * Drops every user-class child loader this host holds (every pool slot), so the next render sees
+   * recompiled bytecode.
    */
   public fun swapUserClassLoaders() {
     userClassloaderHolder?.swap()
   }
 
   /**
-   * `true` when this host's [acquireInteractiveSession] returns a real held-scene session that
-   * dispatches `interactive/input` into the composition (v2). `false` (the default) when the host
-   * inherits the throwing default and `interactive/input` falls back to v1 (re-render trigger,
-   * input does not reach the composition). Surfaced verbatim as
-   * `InitializeResult.capabilities.interactive` so clients can render an "unsupported host" hint
-   * without a per-call probe.
-   *
-   * Implementations MUST keep this in sync with their [acquireInteractiveSession] override —
-   * advertising `true` while throwing is a contract violation.
+   * Whether [acquireInteractiveSession] returns a real held-scene session; surfaced as
+   * `InitializeResult.capabilities.interactive`. MUST match the [acquireInteractiveSession]
+   * override.
    */
   public val supportsInteractive: Boolean
     get() = false
 
   /**
-   * Field names from `PreviewOverrides` (see PROTOCOL.md § 5 `renderNow.overrides`) that this host
-   * actually applies during a render. Names match the JSON spelling on the wire: `widthPx`,
-   * `heightPx`, `density`, `localeTag`, `fontScale`, `uiMode`, `orientation`, `device`,
-   * `captureAdvanceMs`, `inspectionMode`. Surfaced verbatim as
-   * `InitializeResult.capabilities.supportedOverrides` so clients can grey out unsupported sliders
-   * and MCP can warn agents who set fields the backend would silently ignore.
-   *
-   * The default empty set is the safe pre-feature value — clients treat absent and `[]` identically
-   * and assume any field they pass might be ignored. Real backends override: `RobolectricHost`
-   * advertises all fields; `DesktopHost` omits Android-only timing knobs (`captureAdvanceMs` —
-   * `ImageComposeScene` has no paused-clock concept) and `localeTag` unless the Compose UI runtime
-   * exposes a providable locale list. `orientation` IS advertised on desktop — reduced to a
-   * `widthPx ↔ heightPx` swap by `DesktopHost` (issue #1208).
+   * `PreviewOverrides` field names (wire spelling, PROTOCOL.md § 5) this host actually applies;
+   * surfaced as `InitializeResult.capabilities.supportedOverrides` so clients can grey out the
+   * rest.
    */
   public val supportedOverrides: Set<String>
     get() = emptySet()
 
-  /**
-   * Identifier for the renderer backend this host implements. Surfaced verbatim as
-   * `InitializeResult.capabilities.backend` so clients can render backend-specific UI hints (e.g.
-   * "Wear preview unsupported on desktop") without per-call probing. `null` (the default) for hosts
-   * that haven't been classified — `FakeHost` in `:daemon:harness`, the in-test `FakeRenderHost`,
-   * etc. Real backends override: `RobolectricHost` returns `ANDROID`, `DesktopHost` returns
-   * `DESKTOP`.
-   */
+  /** Surfaced as `InitializeResult.capabilities.backend`; `null` for fake hosts. */
   public val backendKind: ee.schimke.composeai.daemon.protocol.BackendKind?
     get() = null
 
-  /**
-   * Fixed Android SDK level this host renders against. Android/Robolectric backends expose the
-   * `@Config(sdk = ...)` value so clients can reason about backend compatibility without scraping
-   * daemon logs. Non-Android backends return `null`.
-   */
+  /** The Robolectric `@Config(sdk = ...)` level this host renders against; `null` off Android. */
   public val androidSdk: Int?
     get() = null
 
   /**
-   * Interactive input kinds (beyond pointer / click) this host can actually dispatch into a held
-   * composition. Wire-spellings match [protocol.InteractiveInputKind]'s `@SerialName`s — `keyDown`,
-   * `keyUp`, `rotaryScroll`. Pointer-family kinds are always supported when [supportsInteractive]
-   * is `true` and MUST NOT appear here.
-   *
-   * Surfaced verbatim (sorted) as `InitializeResult.capabilities.interactiveControlKinds` so
-   * clients can decide whether to surface controls (panel keyboard listener, rotary affordance,
-   * etc.) instead of probing each kind. The default empty set is the pre-#1203 contract — clients
-   * treat absent and `[]` identically and assume only pointer events are dispatchable.
+   * Non-pointer [protocol.InteractiveInputKind] wire names (`keyDown`, `keyUp`, `rotaryScroll`)
+   * this host dispatches; surfaced as `InitializeResult.capabilities.interactiveControlKinds`.
+   * Pointer kinds are implied by [supportsInteractive] and MUST NOT appear here.
    */
   public val supportedInteractiveControlKinds: Set<String>
     get() = emptySet()
 
   /**
-   * Allocate an [InteractiveSession] for [previewId] — the v2 click-into-composition surface
-   * documented in
-   * [INTERACTIVE.md § 9](../../../../../../docs/daemon/INTERACTIVE.md#9-v2--click-dispatch-into-composition).
+   * Allocates a held-scene [InteractiveSession] for [previewId] (docs/daemon/INTERACTIVE.md § 9).
+   * The default throws [UnsupportedOperationException], which [JsonRpcServer] maps to
+   * `MethodNotFound` so clients fall back to re-render-on-input.
    *
-   * Hosts that support interactive mode (today: `:daemon:desktop`'s `DesktopHost`) override and
-   * return a session holding a warm `ImageComposeScene` (or per-host equivalent) so `remember`'d
-   * state survives across `interactive/input` notifications. Such hosts MUST also override
-   * [supportsInteractive] to return `true`.
-   *
-   * The default body throws [UnsupportedOperationException] — which
-   * [JsonRpcServer.handleInteractiveStart] translates to `MethodNotFound (-32601)` on the wire. v1
-   * panels handle that by falling back to the legacy `setFocus + renderNow` path; v2 panels surface
-   * a status-bar hint. The default keeps every existing host (`FakeHost` in `:daemon:harness`,
-   * `RobolectricHost` in `:daemon:android`, the in-test
-   * [JsonRpcServerIntegrationTest.FakeRenderHost]) on the v1 behaviour without any code change.
-   *
-   * @param classLoader the disposable child loader from [UserClassLoaderHolder.currentChildLoader]
-   *   (B2.0 — see [CLASSLOADER.md](../../../../../../docs/daemon/CLASSLOADER.md)). The session
-   *   resolves the preview's class against this loader so a recompile during the session's lifetime
-   *   doesn't drag stale bytecode into the held scene — the next `interactive/start` after a save
-   *   gets a fresh loader.
-   * @param onSessionClosed fired exactly once after the session transitions to closed, regardless
-   *   of trigger: explicit [InteractiveSession.close], host-internal watchdog auto-close (e.g.
-   *   [AndroidInteractiveSession]'s idle-lease watchdog), or daemon shutdown. [JsonRpcServer] wires
-   *   a cleanup lambda here so a watchdog auto-close synchronously yanks the session out of
-   *   `interactiveSessions` / `interactiveTargets` / `pendingInteractiveInputs` rather than waiting
-   *   for the next render to discover it via [InteractiveSession.isClosed]. Defaults to `null` for
-   *   callers (in-process tests, fake hosts) that don't need the notification. The hook runs on
-   *   whatever thread fired the close — typically the watchdog's scheduled-executor thread for
-   *   auto-close, the JSON-RPC read thread for explicit stop, the JVM shutdown thread for
-   *   `cleanShutdown` — so implementations should be cheap and thread-safe.
+   * @param classLoader the current user-class child loader; a later recompile does not leak into
+   *   the held scene.
+   * @param onSessionClosed fired exactly once when the session closes for any reason (explicit
+   *   close, idle watchdog, shutdown), on whichever thread closed it — keep it cheap and
+   *   thread-safe.
    */
   public fun acquireInteractiveSession(
     previewId: String,
     classLoader: ClassLoader,
     inspectionMode: Boolean? = null,
     onSessionClosed: (() -> Unit)? = null,
-    /**
-     * Optional render-spec overrides to apply to the held interactive scene. Mirrors the analogous
-     * parameter on [acquireRecordingSession] — the interactive payoff is `touchOverlay = true`,
-     * which installs the `TouchOverlayExtension` so visualization rings paint over the streamed
-     * frames an external panel is rendering. Backends without a Compose host, or hosts that don't
-     * support per-session spec overrides for interactive mode, ignore the field. Default `null`
-     * preserves pre-existing behaviour.
-     */
+    /** Overrides for the held scene (e.g. `touchOverlay`); hosts may ignore them. */
     overrides: ee.schimke.composeai.daemon.protocol.PreviewOverrides? = null,
   ): InteractiveSession =
     throw UnsupportedOperationException(
@@ -201,56 +97,29 @@ public interface RenderHost {
     )
 
   /**
-   * `true` when this host's [acquireRecordingSession] returns a real held-scene session that drives
-   * a virtual frame clock and writes per-frame PNGs. `false` (the default) when the host inherits
-   * the throwing default and `recording/start` is rejected with `MethodNotFound (-32601)`. Surfaced
-   * verbatim as `InitializeResult.capabilities.recording`.
-   *
-   * Implementations MUST keep this in sync with their [acquireRecordingSession] override.
+   * Whether [acquireRecordingSession] returns a real session; surfaced as
+   * `InitializeResult.capabilities.recording`. MUST match the [acquireRecordingSession] override.
    */
   public val supportsRecording: Boolean
     get() = false
 
   /**
-   * Encoded video formats this host can produce — surfaced verbatim as
-   * `InitializeResult.capabilities.recordingFormats` (wire spellings from
-   * [ee.schimke.composeai.daemon.protocol.RecordingFormat]). Implementations that override
-   * [supportsRecording] to `true` MUST include `"apng"` (pure-JVM, always available); MP4 / WEBM
-   * appear only when the host has detected an `ffmpeg` binary at construction time.
-   *
-   * Default empty list keeps pre-feature hosts (FakeHost, RobolectricHost today) consistent with
-   * `supportsRecording = false` — clients see "no formats" and don't offer the toggle.
+   * [ee.schimke.composeai.daemon.protocol.RecordingFormat] wire names this host can encode. A host
+   * that supports recording MUST include `"apng"`; mp4/webm only when `ffmpeg` was found.
    */
   public val supportedRecordingFormats: List<String>
     get() = emptyList()
 
   /**
-   * Allocate a [RecordingSession] for [previewId] — the scripted screen-record surface. The session
-   * holds a warm `ImageComposeScene` (or per-host equivalent) for the duration of the recording so
-   * `remember`'d state and animation timing are continuous across the virtual timeline.
+   * Allocates a held-scene [RecordingSession] for [previewId]. The default throws
+   * [UnsupportedOperationException], which [JsonRpcServer] maps to `MethodNotFound`.
    *
-   * Hosts that support recording (today: `:daemon:desktop`'s `DesktopHost`) override and return a
-   * concrete session. The default body throws [UnsupportedOperationException] which
-   * [JsonRpcServer.handleRecordingStart] translates to `MethodNotFound (-32601)` on the wire.
-   *
-   * @param recordingId opaque session id assigned by [JsonRpcServer]; passed back on every
-   *   `recording/script` / `recording/stop` / `recording/encode` so the daemon can route to the
-   *   right held session.
-   * @param classLoader the disposable child loader from [UserClassLoaderHolder.currentChildLoader]
-   *   (B2.0 — see [CLASSLOADER.md](../../../../../../docs/daemon/CLASSLOADER.md)).
-   * @param fps frames per second at the virtual clock. Caller-validated to be in `[1, 120]`.
-   * @param scale output-frame size multiplier. Caller-validated to be in `(0, 8]`. Coordinates stay
-   *   in image-natural pixel space — the host scales the captured surface at encode time, not at
-   *   composition time.
-   * @param overrides per-render display overrides applied to the held scene; same shape and
-   *   semantics as `renderNow.overrides`. Lets a `Button`-sized component preview be recorded at
-   *   its natural size with a custom background.
-   * @param live when `true`, the session runs in live (real-time) mode — a background tick thread
-   *   captures frames at [fps] cadence using a wall-clock-driven virtual nanoTime, and
-   *   `recording/input` notifications drive the held scene as they arrive. When `false` (the
-   *   default), the session is scripted: callers post a full timeline via
-   *   [RecordingSession.postScript] and [RecordingSession.stop] plays it back. See RECORDING.md §
-   *   "live mode".
+   * @param fps virtual-clock frame rate, caller-validated to `[1, 120]`.
+   * @param scale output size multiplier, caller-validated to `(0, 8]`; applied at encode time, so
+   *   script coordinates stay in image-natural pixels.
+   * @param overrides same semantics as `renderNow.overrides`.
+   * @param live capture in real time from incoming `recording/input` instead of replaying a posted
+   *   script (RECORDING.md § "live mode").
    */
   public fun acquireRecordingSession(
     previewId: String,
@@ -266,40 +135,20 @@ public interface RenderHost {
     )
 
   /**
-   * Recording-script extension events this host's [RecordingSession]s actually dispatch — surfaced
-   * in `InitializeResult.capabilities.dataExtensions` alongside any roadmap descriptors the daemon
-   * advertises.
-   *
-   * Each entry's `recordingScriptEvents[*]` MUST flag `supported = true` and MUST be registered in
-   * the [RecordingScriptHandlerRegistry] the host's recording sessions build — agents take
-   * `supported = true` as a contract that `record_preview` will accept and the daemon will
-   * dispatch. Hosts without a recording session (FakeHost) inherit the default empty list.
-   *
-   * Roadmap items (`supported = false`) DO NOT belong here — they're advertised separately by
-   * `DaemonMain` (see `RecordingScriptDataExtensions.roadmapDescriptors`) so a host that wires real
-   * dispatch for one of them can flip just its own contribution to `supported = true` without
-   * editing the global roadmap list.
+   * Recording-script events this host's sessions actually dispatch, surfaced in
+   * `capabilities.dataExtensions`. Every event MUST be `supported = true` and registered in the
+   * sessions' [RecordingScriptHandlerRegistry]; roadmap (`supported = false`) entries are
+   * advertised separately by `DaemonMain`.
    */
   public fun recordingScriptEventDescriptors(): List<DataExtensionDescriptor> = emptyList()
 
   /**
-   * The `@PreviewParameter` rows of [previewId] — the ids a client can actually render
-   * (issue #3749).
+   * The renderable `@PreviewParameter` rows of [previewId]. Discovery reads bytecode and cannot
+   * instantiate a provider, so only a host holding the consumer classpath can answer.
    *
-   * On the renderer-agnostic surface because the *answer* is only obtainable here: `previews.json`
-   * carries one entry per parameterized function (discovery reads bytecode and can't instantiate a
-   * provider), so the row set exists nowhere until something holding the consumer classpath
-   * enumerates it. The daemon is that something.
-   *
-   * **Enumeration is gated on the preview actually declaring a provider.** Implementations resolve
-   * the discovery metadata first and return an empty list for an ordinary preview *without*
-   * touching a classloader or the render sandbox — which is the overwhelming majority of calls, and
-   * on Android would otherwise mean a pointless sandbox round-trip per preview. "No rows" and "one
-   * implicit row" are the same answer to a caller: render the bare id.
-   *
-   * Throws [IllegalArgumentException] for an unknown previewId and [UnsupportedOperationException]
-   * (the default) for a host that can't enumerate — [JsonRpcServer] maps those to `InvalidParams`
-   * and `MethodNotFound` respectively.
+   * Implementations return an empty list for a preview without a provider *before* touching a
+   * classloader or sandbox — the common case. Throws [IllegalArgumentException] for an unknown id
+   * (`InvalidParams`) and, by default, [UnsupportedOperationException] (`MethodNotFound`).
    */
   public fun previewParameterRows(previewId: String): List<PreviewParameterRow> =
     throw UnsupportedOperationException(
@@ -308,11 +157,7 @@ public interface RenderHost {
     )
 
   public companion object {
-    /**
-     * Monotonic id source shared across [JsonRpcServer] (which assigns ids to incoming render
-     * requests) and any host-side bookkeeping. Stays monotonic across host restarts within a single
-     * JVM so log correlation remains unambiguous.
-     */
+    /** JVM-wide monotonic render-request ids, so log correlation survives host restarts. */
     private val nextId: AtomicLong = AtomicLong(1)
 
     public fun nextRequestId(): Long = nextId.getAndIncrement()
@@ -332,32 +177,18 @@ public sealed interface RenderRequest {
   ) : RenderRequest {
 
     /**
-     * [target] as JSON, for the two boundaries that cannot pass a Kotlin object: the Robolectric
-     * sandbox classloader crossing and the sandbox worker-process hop.
-     *
-     * A property rather than a call at the crossing itself because the sandbox side reads it
-     * **reflectively** — `getTargetJson` — having matched this class by [Class.getSimpleName]
-     * rather than by identity. It has to: `RenderRequest` lives in the instrumented
-     * `ee.schimke.composeai.daemon` package, so the sandbox's copy of this class is a different
-     * `Class` object than the host's, and only `java.*` types (here, a `String`) survive the trip
-     * intact. See `DaemonHostBridge`'s package KDoc for the rule.
+     * [target] as JSON for the sandbox classloader and worker-process crossings. A property because
+     * the sandbox reads it reflectively (`getTargetJson`): its copy of this class is a different
+     * `Class`, and only `java.*` types survive the trip (see `DaemonHostBridge`).
      */
     val targetJson: String
       get() = RenderTarget.encode(target)
   }
 
   /**
-   * Enumerate a `@PreviewParameter` provider's rows — the ids `renderNow` can then address
-   * (issue #3749).
-   *
-   * A [RenderRequest] rather than a host-side call because on Android the answer is only obtainable
-   * *inside* the Robolectric sandbox: the provider class lives on the sandbox classloader, and its
-   * values routinely touch Android APIs that are only real in there. This rides the same queue
-   * [Render] does, so it inherits the sandbox's single-threaded dispatch and the
-   * no-mid-render-cancellation invariant for free.
-   *
-   * The reply posted back on the per-id result queue is a `java.util.List<String>` of row labels in
-   * provider order, because that is what crosses the sandbox classloader boundary intact.
+   * Enumerates a `@PreviewParameter` provider's row labels. A queued request rather than a host
+   * call because on Android the provider must run inside the sandbox; the reply is a
+   * `java.util.List<String>` in provider order, which crosses the classloader boundary intact.
    */
   public data class ParameterRows(
     val id: Long = RenderHost.nextRequestId(),

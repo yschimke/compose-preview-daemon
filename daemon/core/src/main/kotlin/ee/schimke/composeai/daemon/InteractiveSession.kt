@@ -4,33 +4,16 @@ import ee.schimke.composeai.daemon.protocol.InteractiveInputParams
 import ee.schimke.composeai.daemon.protocol.RemoteComposeChange
 
 /**
- * Held-scene interactive session for one `frameStreamId` — see
- * [INTERACTIVE.md § 9](../../../../../../docs/daemon/INTERACTIVE.md#9-v2--click-dispatch-into-composition).
+ * Held-scene interactive session for one `frameStreamId` (docs/daemon/INTERACTIVE.md § 9). The
+ * scene stays warm across `interactive/input`, so `remember`'d state survives between [dispatch]
+ * calls. [JsonRpcServer] allocates it at `interactive/start`, drives it with [dispatch] + [render],
+ * and [close]s it at `interactive/stop` or shutdown.
  *
- * Backends that support interactive mode (today: `:daemon:desktop`'s `DesktopInteractiveSession`,
- * landing in PR 2) implement this interface to keep an `ImageComposeScene` (or per-host equivalent)
- * warm across `interactive/input` notifications. State derived from `remember { mutableStateOf(...)
- * }` survives between [dispatch] calls, so a click that flips a `mutableStateOf` re-paints the
- * composition the next time [render] runs.
+ * Calls on one instance are serialised by the caller. [close] must drain an in-flight render rather
+ * than interrupt it (DESIGN.md § 9).
  *
- * Lifecycle owned by [JsonRpcServer]:
- * - **Allocate** at `interactive/start` via [RenderHost.acquireInteractiveSession]. Each session
- *   owns a fresh scene; concurrent streams targeting the same preview can either share one session
- *   (host's call — matches the design doc's "one session per previewId" preference) or hold their
- *   own, transparent to this interface.
- * - **Drive** at `interactive/input` — [dispatch] feeds the pointer/key event into the held scene,
- *   then [render] encodes the next frame.
- * - **Release** at `interactive/stop` (or daemon shutdown) — [close] frees the scene and any native
- *   resources.
- *
- * **Threading.** Implementations may assume calls are serialised per-instance — `JsonRpcServer`
- * dispatches inputs from its render-watcher thread, one at a time per session. Concurrent calls to
- * different session instances are independent and may happen on different threads.
- *
- * **No-mid-render-cancellation invariant** ([DESIGN.md §
- * 9](../../../../../../docs/daemon/DESIGN.md)). [close] must drain any in-flight render before
- * tearing down the scene, the same way `RenderHost.shutdown` drains its queue. We never interrupt a
- * render mid-flight.
+ * The optional `dispatch*` / `capture*` members default to "unsupported" (`false` / `null`) so the
+ * caller can report it without failing the session; they throw only when the action itself failed.
  */
 public interface InteractiveSession : AutoCloseable {
 
@@ -38,121 +21,49 @@ public interface InteractiveSession : AutoCloseable {
   public val previewId: String
 
   /**
-   * `true` once the session has been closed — either by explicit [close] or by a host-internal
-   * watchdog (e.g. [AndroidInteractiveSession]'s idle-lease watchdog). After this flips, [render]
-   * throws and [dispatch] is a no-op. [JsonRpcServer.submitInteractiveRenderAsync]'s catch path
-   * checks this on render failure to distinguish "session is gone, stop the live-frame loop" from
-   * "render itself blew up, leave the session in place for the next input".
-   *
-   * Default `false` keeps in-test sessions that don't model close semantics on the pre-existing
-   * behaviour (the worker still cleans up when their `render()` throws — see the catch in
-   * `submitInteractiveRenderAsync` — but the loop won't pre-emptively stop).
+   * `true` once closed, explicitly or by a host watchdog. Lets the render loop tell "session gone,
+   * stop" from "render failed, keep the session for the next input".
    */
   public val isClosed: Boolean
     get() = false
 
   /**
-   * Feed one wire-level [InteractiveInputParams] (click, pointer down/up, key down/up) into the
-   * held composition. Implementations translate the protocol-level kind into the host's pointer-
-   * input dispatch (e.g. `ImageComposeScene.sendPointerEvent` on desktop), splitting `CLICK` into
-   * Press+Release at the same position. Image-natural physical pixels are dispatched verbatim;
-   * scene density has already shaped layout and must not be applied to input a second time.
-   *
-   * Does NOT render — call [render] afterwards to encode the next frame. The split lets the
-   * coalescing path in [JsonRpcServer.handleInteractiveInput] queue several inputs and dispatch
-   * them in a batch followed by a single [render].
+   * Feeds one input into the held composition without rendering, so several inputs can be batched
+   * before one [render]. `CLICK` becomes press+release; coordinates are image-natural pixels and
+   * must not be density-scaled again.
    */
   public fun dispatch(input: InteractiveInputParams)
 
   /**
-   * Push one Remote Compose state edit into the held composition's `RemoteComposeController`
-   * without forcing a full re-render. The connector-side controller holds the named-value map /
-   * active profile in Compose snapshot state, so calling `set(...)` / `setNamedValue(...)` triggers
-   * a recomposition automatically — the next `interactive/input` (or a follow-up frame produced by
-   * an in-flight streaming session) paints the updated remote document.
-   *
-   * Default returns `false` so hosts without a live RemoteComposeController binding (desktop today;
-   * any non-Remote-Compose Android consumer where the connector isn't loaded) cleanly surface "no
-   * live dispatch available" — the caller's fallback re-issues a `renderNow` with
-   * `overrides.remoteCompose` populated. The Android session implementation reaches into
-   * `RemoteComposeController` reflectively (the singleton lives in the sandbox classloader, not the
-   * daemon's host loader) and returns `true` on success.
-   *
-   * @param change profile edit or named-value edit, mirroring the panel's
-   *   `RemoteComposeChangeDetail`. The implementation maps each variant onto the controller's
-   *   matching method.
+   * Applies a Remote Compose state edit to the live `RemoteComposeController`; the controller's
+   * snapshot state recomposes on its own. `false` means no live binding — the caller re-renders
+   * with `overrides.remoteCompose` instead.
    */
   public fun dispatchRemoteComposeChange(change: RemoteComposeChange): Boolean = false
 
   /**
-   * Push one Lottie timeline scrub into the held composition without a fresh `renderNow`. The
-   * desktop session holds the progress in Compose snapshot state that `LocalLottieProgress` reads,
-   * so setting it recomposes the held scene to [progress]; the next [render] (the
-   * `interactive/setLottie` handler requests one) paints that frame. This is the live-scrub payoff:
-   * dragging the panel's timeline slider re-renders the same scene via recomposition instead of
-   * standing up a new scene per tick.
-   *
-   * Default returns `false` so hosts without a live Lottie binding (Android today — there is no
-   * Compottie Android render path; any host where the held scene carries no Lottie state) cleanly
-   * surface "no live scrub" and the caller's fallback re-issues a `renderNow` with
-   * `overrides.lottie.progress`. The desktop session mutates the scene's `lottieProgressState`,
-   * remembers it for cross-render stickiness, and returns `true`.
-   *
-   * @param progress timeline position in `0f..1f` (implementations clamp); mirrors the panel's
-   *   `setLottieProgress` value.
+   * Sets the held scene's Lottie progress (`0f..1f`, clamped) so a timeline scrub recomposes
+   * instead of building a new scene per tick. `false` means no live binding — the caller re-renders
+   * with `overrides.lottie.progress`.
    */
   public fun dispatchLottieProgress(progress: Float): Boolean = false
 
   /**
-   * Accessibility-driven dispatch: resolve a node by its visible content description and invoke the
-   * named
-   * [`SemanticsActions`](https://developer.android.com/reference/kotlin/androidx/compose/ui/semantics/SemanticsActions)
-   * action against it — same path a screen reader would walk. Used by `record_preview`'s
-   * `a11y.action.*` script events.
-   *
-   * Returns `true` when a node matched [nodeContentDescription] and the action fired; `false` when
-   * no node matched or the matched node didn't expose [actionKind] (caller surfaces unsupported
-   * evidence). Throws when the action ran but failed mid-flight (Compose runtime error,
-   * cross-classloader marshalling failure) — same semantics as [dispatch].
-   *
-   * Default returns `false` so hosts without semantics-driven dispatch (DesktopHost today) cleanly
-   * surface "no a11y dispatch available" via [false] without blowing up the session.
-   *
-   * @param actionKind short name of the semantics action — `"click"`, `"longClick"`, `"focus"`,
-   *   `"scrollForward"`, etc. The implementation maps each name to the matching
-   *   [`androidx.compose.ui.semantics.SemanticsActions`] constant.
-   * @param nodeContentDescription content-description string the agent already saw in the latest
-   *   `a11y/hierarchy` payload (or that they know from the source). Matched against the node's
-   *   `SemanticsProperties.ContentDescription` — exact match, useUnmergedTree = true so merged
-   *   children remain reachable.
+   * Invokes the `SemanticsActions` action [actionKind] (`"click"`, `"longClick"`, `"focus"`, …) on
+   * the node whose content description exactly equals [nodeContentDescription], searching the
+   * unmerged tree. `false` when no node matched or it lacks the action.
    */
   public fun dispatchSemanticsAction(actionKind: String, nodeContentDescription: String): Boolean =
     false
 
   /**
-   * UIAutomator-shaped dispatch: resolve a node by a multi-axis BySelector-style predicate and
-   * invoke a named action against it. Mirrors [dispatchSemanticsAction] but with a structured
-   * selector instead of a single content description, so agents can target nodes by text / resource
-   * id / state / tree predicates without falling back on pixel coordinates.
+   * Invokes a UIAutomator-style action on the node matched by [selectorJson] (`SelectorJson` from
+   * `:data-uiautomator-core`, decoded sandbox-side). `false` when no node matched or it lacks the
+   * action.
    *
-   * Returns `true` when the action fired against a matched node; `false` when no node matched or
-   * the matched node didn't expose the action (caller surfaces unsupported evidence with a specific
-   * reason). Throws when the action body itself failed — same propagation path as [dispatch] /
-   * [dispatchSemanticsAction].
-   *
-   * Default returns `false` so hosts without UIAutomator support cleanly surface "no uiautomator
-   * dispatch available" instead of blowing up the session.
-   *
-   * @param actionKind short name of the action — `"click"`, `"longClick"`, `"scrollForward"`,
-   *   `"scrollBackward"`, `"requestFocus"`, `"expand"`, `"collapse"`, `"dismiss"`, `"inputText"`.
-   *   Maps to the matching `UiObject` action.
-   * @param selectorJson serialised [`Selector`] (see `:data-uiautomator-core`'s `SelectorJson`).
-   *   Decoded sandbox-side; nothing in this interface couples to the matcher's types.
-   * @param useUnmergedTree mirror of the prototype's option. Default `false` (merged) so
-   *   `By.text("Submit") + click` targets a `Button { Text(...) }` as one node, matching on-device
-   *   UIAutomator semantics. Pass `true` to target inner Compose nodes.
-   * @param inputText payload for `actionKind = "inputText"`; ignored otherwise. Routed through
-   *   `SemanticsActions.SetText` (Compose) or `ACTION_SET_TEXT` (View).
+   * @param useUnmergedTree `false` matches on-device UIAutomator, so `By.text("Submit")` targets
+   *   the whole `Button`.
+   * @param inputText payload for `actionKind = "inputText"`; ignored otherwise.
    */
   public fun dispatchUiAutomator(
     actionKind: String,
@@ -162,16 +73,8 @@ public interface InteractiveSession : AutoCloseable {
   ): Boolean = false
 
   /**
-   * Typed companion to [dispatchUiAutomator] for the unsupported path (#874 item #2). Called by the
-   * recording-session handler after [dispatchUiAutomator] returns `false` — walks the same
-   * `SemanticsOwner` tree the matcher used and returns a structured
-   * [`UiAutomatorUnsupportedReason`][ee.schimke.composeai.daemon.protocol.UiAutomatorUnsupportedReason]
-   * carrying the matched-count, the closest near-match node (text, contentDescription, testTag,
-   * role, exposed actions, bounds), and the action the agent attempted.
-   *
-   * Default returns `null` so hosts that don't ship a UIAutomator dispatch path (desktop today)
-   * cleanly degrade to the existing free-form `message` — agents iterating on selectors only see
-   * the structured field on backends that wired it up.
+   * After [dispatchUiAutomator] returned `false`, explains why: match count, the closest near-match
+   * node and the attempted action. `null` falls back to a free-form message.
    */
   public fun findUiAutomatorEvidence(
     actionKind: String,
@@ -181,134 +84,55 @@ public interface InteractiveSession : AutoCloseable {
   ): ee.schimke.composeai.daemon.protocol.UiAutomatorUnsupportedReason? = null
 
   /**
-   * Capture a compact snapshot of the held composition's live semantics for a `recording.probe`
-   * marker (issue #1786). Backends that hold a composition project the unmerged semantics tree into
-   * [RecordingProbeNode][ee.schimke.composeai.daemon.protocol.RecordingProbeNode]s — the same
-   * testTag / text / role projection target resolution (issue #1784) walks — so
-   * [RecordingTestGenerator] can diff consecutive probes into `onNodeWith…().assertExists()` /
-   * `assertDoesNotExist()` assertions instead of TODO stubs.
-   *
-   * Default returns `null` so hosts that can't reach the live tree (or predate probe capture) leave
-   * the probe assertion-less and the generator falls back to a stub.
+   * Snapshot of the live unmerged semantics tree for a `recording.probe` marker, which
+   * [RecordingTestGenerator] diffs into exists/doesNotExist assertions.
    */
   public fun captureProbeSemantics():
     List<ee.schimke.composeai.daemon.protocol.RecordingProbeNode>? = null
 
   /**
-   * Run the Android Accessibility Test Framework (ATF) against the held composition for an
-   * `assert.a11y` recording-script point (issue #1966), returning the findings projected into
-   * core-level [RecordingA11yFinding][ee.schimke.composeai.daemon.protocol.RecordingA11yFinding]s.
-   * Unlike the post-hoc `data/fetch` path, this evaluates the **live held scene** at the script's
-   * `tMs`, so it gates the actual recorded / post-interaction state.
-   *
-   * Default returns `null` so non-Android hosts (desktop's `ImageComposeScene` has no `View`
-   * hierarchy, and ATF runs only against Android Views) cleanly surface "a11y capture unavailable"
-   * — the `assert.a11y` handler then reports unsupported rather than blowing up the session.
+   * Runs ATF against the live held scene for an `assert.a11y` script point. `null` off Android,
+   * where there is no `View` hierarchy for ATF to check.
    */
   public fun captureA11yFindings():
     List<ee.schimke.composeai.daemon.protocol.RecordingA11yFinding>? = null
 
   /**
-   * Lifecycle dispatch: move the held activity (or per-host equivalent) to the named lifecycle
-   * state, exercising `onPause` / `onResume` / `onStop` etc. on the way. Used by `record_preview`'s
-   * `lifecycle.event` script events to verify that a preview survives a pause-resume cycle or a
-   * stop-restart.
-   *
-   * Returns `true` when the lifecycle transition fired; `false` when the host doesn't support
-   * lifecycle dispatch (e.g. desktop's `ImageComposeScene` has no Android lifecycle) or the named
-   * event isn't one the host recognises (caller surfaces unsupported evidence with a specific
-   * reason). Throws when the transition itself failed — same propagation shape as [dispatch].
-   *
-   * Default returns `false` so hosts without an Android lifecycle owner cleanly surface "no
-   * lifecycle dispatch available" without blowing up the session.
-   *
-   * @param lifecycleEvent transition name on the wire — `"pause"`, `"resume"`, `"stop"`. The
-   *   implementation maps each to the matching `Lifecycle.State` and calls
-   *   `ActivityScenario.moveToState(...)`. Unknown names yield `false`. `"destroy"` is
-   *   intentionally not part of v1 — moving to `DESTROYED` mid-recording would tear down the
-   *   scenario and break subsequent renders; document it as a follow-up if a use case lands.
+   * Moves the held activity to [lifecycleEvent] (`"pause"`, `"resume"`, `"stop"`). `"destroy"` is
+   * deliberately unsupported: it would tear down the scenario mid-recording. Unknown names yield
+   * `false`.
    */
   public fun dispatchLifecycle(lifecycleEvent: String): Boolean = false
 
   /**
-   * Force a fresh composition: tear down the current composition slot and rebuild from scratch
-   * against the same composable function. Used by `record_preview`'s `preview.reload` script event
-   * to verify a screen recovers cleanly from a recompose-from-zero (`remember`, `rememberSaveable`,
-   * and `LaunchedEffect`-keyed work all reset).
-   *
-   * Returns `true` when the composition was rebuilt; `false` when the host doesn't support forced
-   * reloads (DesktopHost today). Throws when the rebuild itself failed.
-   *
-   * Note: this is a Compose-level reset, not an Android lifecycle round-trip. State preserved by
-   * `rememberSaveable` (bundle-backed) is also lost because the `key(...)` boundary that drives the
-   * rebuild invalidates the saveable-state call sites. For "state survives a config-change" audits
-   * use [dispatchLifecycle] (`pause` / `resume`) instead.
+   * Rebuilds the composition from scratch under a new `key(...)`: both `remember` and
+   * `rememberSaveable` state reset. Use [dispatchStateRecreate] to keep saveable state.
    */
   public fun dispatchPreviewReload(): Boolean = false
 
   /**
-   * Force a Compose-level save+restore round-trip: snapshot `rememberSaveable` state from the
-   * current composition, tear it down under a `key(...)` boundary, and rebuild with the snapshot
-   * restored. Same audit signal as an Android `ActivityScenario.recreate()` — verifies state
-   * survives a teardown — but lives entirely at the Compose level so it doesn't depend on the
-   * activity's `onSaveInstanceState`/onCreate path.
-   *
-   * Returns `true` when the recreate fired; `false` when the host doesn't have the
-   * `SaveableStateRegistry` bridge wired (DesktopHost today). Throws when the rebuild itself
-   * failed.
-   *
-   * Note: `remember` state is lost across the boundary (same as a real recreate);
-   * `rememberSaveable` survives via the snapshot/restore. Use [dispatchPreviewReload] when you want
-   * a true cold composition (both `remember` and `rememberSaveable` reset). Use [dispatchLifecycle]
-   * (`pause` / `resume`) when you want a real Android lifecycle round-trip with the activity
-   * intact.
+   * Compose-level equivalent of an activity recreate: saves `rememberSaveable` state, rebuilds,
+   * restores. `remember` state is lost.
    */
   public fun dispatchStateRecreate(): Boolean = false
 
-  /**
-   * Capture the current `SaveableStateRegistry` snapshot into a named bundle keyed by
-   * [checkpointId]. Doesn't rebuild the composition — pair with a later [dispatchStateRestore]
-   * carrying the same id to apply the saved bundle.
-   *
-   * Returns `true` when the snapshot was stored; `false` when the host doesn't have the bridge
-   * wired (DesktopHost today). Multiple saves to the same id overwrite the previous bundle.
-   */
+  /** Stores the current `SaveableStateRegistry` snapshot under [checkpointId], overwriting. */
   public fun dispatchStateSave(checkpointId: String): Boolean = false
 
   /**
-   * Look up the bundle stashed by an earlier [dispatchStateSave] with matching [checkpointId] and
-   * rebuild the held composition with it restored. Returns `true` when the restore fired, `false`
-   * when no checkpoint with that id has been saved (caller surfaces unsupported evidence). Throws
-   * when the rebuild itself failed.
+   * Rebuilds the composition with the snapshot saved under [checkpointId]; `false` when there is
+   * none.
    */
   public fun dispatchStateRestore(checkpointId: String): Boolean = false
 
   /**
-   * Navigation-driven dispatch: fire a deep-link Intent at the held activity, an instant back
-   * press, or one phase of a predictive-back gesture. Used by `record_preview`'s `navigation.*`
-   * script events to exercise the consumer's intent-filter / `NavController` routing and the
-   * predictive-back flow without a real device.
+   * Fires a deep link, a back press, or one predictive-back phase at the held activity.
    *
-   * Returns `true` when the named action fired, `false` when the host doesn't support navigation
-   * dispatch (DesktopHost today) or the named [actionKind] isn't recognised. Throws when the action
-   * body itself failed — same propagation shape as [dispatch] / [dispatchLifecycle].
-   *
-   * Default returns `false` so hosts without an Android `OnBackPressedDispatcher` /
-   * `ActivityScenario` cleanly surface "no navigation dispatch available" instead of blowing up the
-   * session.
-   *
-   * @param actionKind short wire name — `"deepLink"`, `"back"`, `"predictiveBackStarted"`,
-   *   `"predictiveBackProgressed"`, `"predictiveBackCommitted"`, `"predictiveBackCancelled"`. Maps
-   *   to the matching `OnBackPressedDispatcher` method (or `Activity.startActivity` for
-   *   `deepLink`). Unknown kinds yield `false`.
-   * @param deepLinkUri payload for `actionKind = "deepLink"`; routed through
-   *   `Intent(Intent.ACTION_VIEW, Uri.parse(deepLinkUri))`. Ignored for other kinds.
-   * @param backProgress payload for `predictiveBackStarted` / `predictiveBackProgressed` — the
-   *   gesture progress value (0.0–1.0). Forwarded as
-   *   [`androidx.activity.BackEventCompat.progress`]. Ignored for other kinds.
-   * @param backEdge payload for `predictiveBackStarted` / `predictiveBackProgressed` — `"left"`
-   *   (default) or `"right"`. Mapped sandbox-side to
-   *   [`androidx.activity.BackEventCompat.EDGE_LEFT`] / `EDGE_RIGHT`.
+   * @param actionKind `"deepLink"`, `"back"`, or a `"predictiveBack*"` phase (`Started`,
+   *   `Progressed`, `Committed`, `Cancelled`); unknown kinds yield `false`.
+   * @param deepLinkUri for `deepLink`, sent as an `ACTION_VIEW` intent.
+   * @param backProgress for started/progressed, `0.0..1.0`.
+   * @param backEdge for started/progressed, `"left"` (default) or `"right"`.
    */
   public fun dispatchNavigation(
     actionKind: String,
@@ -318,24 +142,17 @@ public interface InteractiveSession : AutoCloseable {
   ): Boolean = false
 
   /**
-   * Render the current composition to a PNG and return the result. The implementation runs the
-   * scene through enough frames to settle (typically two `scene.render()` calls — same heuristic as
-   * the one-shot path) and encodes to disk at a stable path the daemon can publish via
-   * `renderFinished.pngPath`. The session retains the scene; this method is callable repeatedly.
+   * Settles and encodes the current composition to a PNG; callable repeatedly.
    *
-   * @param requestId opaque id forwarded to [RenderResult.id] so the caller's render-watcher can
-   *   demux concurrent renders. Generated by `RenderHost.nextRequestId()` at the call site.
-   * @param advanceTimeMs optional backend-specific virtual-clock advance before capture. Normal
-   *   interactive callers leave this null so the backend uses its default settle window; recording
-   *   callers can pass frame deltas to keep captured animation time paced to fps.
+   * @param requestId forwarded to [RenderResult.id].
+   * @param advanceTimeMs virtual-clock advance before capture; `null` uses the backend's settle
+   *   window. Recordings pass frame deltas to keep animation paced to fps.
    */
   public fun render(requestId: Long, advanceTimeMs: Long? = null): RenderResult
 
   /**
-   * Drains any in-flight render, frees the held scene + its native resources, and removes any
-   * filesystem state owned by the session (e.g. the per-stream PNG output file). Idempotent —
-   * subsequent calls are no-ops. Safe to call from the daemon's shutdown drain even when an input
-   * is queued.
+   * Drains any in-flight render, frees the scene and deletes session-owned files. Idempotent and
+   * safe during shutdown with input queued.
    */
   override fun close()
 }

@@ -17,32 +17,10 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 
 /**
- * Reusable base for the "per-previewId, per-kind, file-on-disk" data-product shape that most D2
- * producers follow: the renderer writes `<rootDir>/<previewId>/<file>`, the registry serves the
- * same file back via `data/fetch` and `renderFinished.dataProducts` attachments.
- *
- * Concretely, every existing file-backed registry was repeating the same skeleton: dispatch on
- * `kind`, resolve a file path, return `NotAvailable` if missing, otherwise return `PATH` (or read +
- * parse for `INLINE`), then mirror the same plumbing in `attachmentsFor`. This base captures that
- * skeleton so each concrete connector is the minimum surface — usually just the [capabilities] list
- * and a [fileFor] dispatch.
- *
- * **What the base handles:**
- * - Kind dispatch against [capabilities]; unknown kinds → [Outcome.Unknown].
- * - Missing file → [missingOutcome] (default [Outcome.NotAvailable]; the a11y registry overrides
- *   this to return [Outcome.RequiresRerender] so the dispatcher can queue a re-render).
- * - Transport routing: `PATH` returns `path`; `INLINE` reads via [readInlinePayload];
- *   `BOTH`/`PATH + inline=true` upgrade to a read.
- * - `attachmentsFor` mirrors `fetch` exactly — same file existence check, same payload-vs-path
- *   selection, same [extras] hook.
- *
- * **What it deliberately doesn't handle** — subclasses still implement directly:
- * - Subscription bookkeeping ([onSubscribe] / [onUnsubscribe]) — only
- *   `AccessibilityDataProductRegistry` needs it today and the state shape varies.
- * - Per-render metadata snapshotting ([onRender] overload picking up overrides) — the strings
- *   registry caches locale/font-scale per render so the fetched payload can stamp them in.
- * - Payload synthesis from a sibling kind's file (the strings registry derives from the semantics
- *   file, not its own).
+ * Base for producers whose renderer writes one file per `(previewId, kind)` and whose registry
+ * serves it back through `data/fetch` and `renderFinished` attachments. Subclasses usually supply
+ * only [capabilities] and [fileFor]; subscription state and payloads synthesised from another
+ * kind's file stay with the subclass.
  */
 public abstract class FileBackedDataProductRegistry(
   final override val capabilities: List<DataProductCapability>,
@@ -52,43 +30,22 @@ public abstract class FileBackedDataProductRegistry(
   private val byKind: Map<String, DataProductCapability> = capabilities.associateBy { it.kind }
 
   /**
-   * On-disk file backing the artefact for `(previewId, kind)`. Concrete subclasses typically
-   * resolve as `rootDir.resolve(previewId).resolve(<file name per kind>)`. Returning `null` is
-   * equivalent to "registry doesn't own this kind" and produces [Outcome.Unknown] — usually
-   * unreachable when [capabilities] is the only source of truth, but defensive.
+   * The file backing `(previewId, kind)`; `null` means the kind is not ours ([Outcome.Unknown]).
    */
   protected abstract fun fileFor(previewId: String, kind: String): File?
 
   /**
-   * Outcome returned when [fileFor] resolves to a missing file. Default is [Outcome.NotAvailable]
-   * which maps to "the producer hasn't run yet (or didn't compute this kind this pass)". Override
-   * to return [Outcome.RequiresRerender] for kinds whose `capabilities[].requiresRerender` is true
-   * — the dispatcher reacts by queueing a re-render in the specified mode and re-invoking [fetch].
-   * See [AccessibilityDataProductRegistry] for the current concrete consumer.
+   * Outcome for a missing file. Override to return [Outcome.RequiresRerender] for kinds whose
+   * capability sets `requiresRerender`.
    */
   protected open fun missingOutcome(previewId: String, kind: String): DataProductRegistry.Outcome =
     DataProductRegistry.Outcome.NotAvailable
 
-  /**
-   * Decode the inline-transport payload from [file]. Default reads as a free-form JsonElement — the
-   * most common case. Override when the on-disk format is a typed [kotlinx.serialization]-tagged
-   * class (the fonts registry uses `FontsUsedDataProducer.readPayload(...)` so the deserialiser is
-   * owned by the producer) or when the payload is synthesised rather than read directly.
-   *
-   * Returning `null` means "the file is structurally fine but there's nothing worth surfacing" —
-   * treated the same as missing-file by [fetch] and [attachmentsFor].
-   */
+  /** Decodes [file] as the inline payload; `null` is treated like a missing file. */
   protected open fun readInlinePayload(previewId: String, kind: String, file: File): JsonElement? =
     DEFAULT_JSON.parseToJsonElement(fileSystem.read(file.path.toPath()) { readUtf8() })
 
-  /**
-   * Optional extras attached alongside the payload — e.g. [DisplayFilterDataProductRegistry]
-   * surfaces per-variant PNG paths under the variants-manifest payload. Default returns `null` —
-   * most registries don't need it.
-   *
-   * `payload` is the decoded inline payload when one was read this call; for pure-PATH attaches it
-   * is `null`. Subclasses that need to read the file regardless can fetch it via [fileFor] again.
-   */
+  /** Extras to attach beside the payload; [payload] is `null` for path transport. */
   protected open fun extras(
     previewId: String,
     kind: String,
@@ -96,14 +53,8 @@ public abstract class FileBackedDataProductRegistry(
   ): List<DataProductExtra>? = null
 
   /**
-   * Whether [fetch] should honour `inline = true` for a `PATH`-transport [kind] by reading
-   * [readInlinePayload]. Default `true` — agents asking for inline get the JSON payload back
-   * inlined, even though the registry could also serve a path.
-   *
-   * Override to `false` for kinds whose on-disk artefact is **not** JSON: the a11y registry's
-   * overlay kind is a PNG, so an `inline = true` fetch must still return the path rather than
-   * trying to parse PNG bytes as JSON and emitting `FetchFailed`. `INLINE`-transport kinds are
-   * unaffected — they're always read regardless of the flag.
+   * Whether `inline = true` may upgrade a non-`INLINE` [kind] to a read. Override to `false` for
+   * kinds whose file is not JSON (e.g. a PNG overlay).
    */
   protected open fun allowInlineUpgrade(kind: String): Boolean = true
 
@@ -115,13 +66,8 @@ public abstract class FileBackedDataProductRegistry(
   ): DataProductRegistry.Outcome {
     val cap = byKind[kind] ?: return DataProductRegistry.Outcome.Unknown
     val file = fileFor(previewId, kind) ?: return DataProductRegistry.Outcome.Unknown
-    // `force` (from the caller's `params`) re-renders even when a file already exists — but only
-    // for
-    // a `requiresRerender` kind, whose `missingOutcome` is a `RequiresRerender` the dispatcher acts
-    // on. The full-page SVG file is shared per preview, so a differently-overridden fetch must
-    // re-render rather than serve the stale file. For non-rerender kinds `force` is a no-op (their
-    // `missingOutcome` is just `NotAvailable`, so honouring it would wrongly hide an existing
-    // file).
+    // `force` only means something for a `requiresRerender` kind (e.g. the per-preview SVG a
+    // differently-overridden fetch must not reuse); elsewhere it would hide an existing file.
     if (!file.exists() || (cap.requiresRerender && forceRerender(params))) {
       return missingOutcome(previewId, kind)
     }
@@ -196,9 +142,6 @@ public abstract class FileBackedDataProductRegistry(
     return out
   }
 
-  /**
-   * Reads the [DataFetchParams.PARAM_FORCE_RERENDER] flag from a fetch's kind-agnostic `params`.
-   */
   private fun forceRerender(params: JsonElement?): Boolean =
     runCatching {
       params?.jsonObject?.get(DataFetchParams.PARAM_FORCE_RERENDER)?.jsonPrimitive?.booleanOrNull

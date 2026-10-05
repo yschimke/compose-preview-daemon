@@ -93,37 +93,18 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 
 /**
- * JSON-RPC 2.0 server over stdio for the preview daemon.
+ * JSON-RPC 2.0 server over stdio for the preview daemon (docs/daemon/PROTOCOL.md).
  *
- * Wire format and dispatch semantics: docs/daemon/PROTOCOL.md (v1, locked).
+ * **Threading.** The thread calling [run] reads and dispatches envelopes and runs the inline
+ * handlers. A single writer thread serialises every reply and notification so framing stays intact.
+ * Renders run only on the [RenderHost]'s render thread; a render-watcher thread turns completed
+ * results into `renderStarted` / `renderFinished`.
  *
- * **Threading model.**
- * - One **read thread** (the thread that calls [run]) drains [input], parses envelopes, and
- *   dispatches them. Inline handlers (initialize, setVisible, setFocus, fileChanged, shutdown,
- *   exit) execute on this thread.
- * - One **write thread** (named `compose-ai-daemon-writer`) consumes a single outbound queue and
- *   writes framed bytes to [output]. This serialises every reply and notification so framing on the
- *   wire is always well-formed even when notifications race with responses.
- * - The **[RenderHost] render thread** (B1.3) is the only place renders execute. `renderNow`
- *   enqueues `RenderRequest.Render` items onto [host]; per-render notifications (`renderStarted`,
- *   `renderFinished`) are emitted from a dedicated **render-watcher thread** that polls completed
- *   results and forwards them to the writer queue.
+ * **No mid-render cancellation** (DESIGN.md § 9). Shutdown stops accepting work and waits for every
+ * accepted render; the render thread is never interrupted.
  *
- * **No mid-render cancellation invariant** (DESIGN.md § 9, PROTOCOL.md § 3). Shutdown stops
- * accepting new `renderNow` work, then waits for every already-accepted render to complete before
- * responding. We never call `Thread.interrupt()` on the render thread; the host's poison-pill
- * `Shutdown` is enqueued only after the in-flight queue has drained.
- *
- * **Stub render bodies.** B1.4 (RenderEngine) replaces the body of [renderFinishedFromResult] with
- * the real Compose/Robolectric render. For B1.5 the host returns a synthetic [RenderResult] and we
- * materialise it as a placeholder PNG path of `${historyDir}/daemon-stub-${id}.png`. The
- * placeholder file is **not** written to disk — `pngPath` is a string field, not a postcondition
- * that the file must exist. B1.4 will both produce real bytes and make the path point at them.
- *
- * **B1.4 hook point.** When B1.4 introduces `RenderEngine`, the wiring change is: replace the body
- * of [renderFinishedFromResult] with a call into `RenderEngine.renderTookMs(result)` (or similar)
- * that materialises the PNG and returns timing/metrics. The render queue plumbing (submit → poll →
- * notify) does not need to change.
+ * A stub host's `pngPath` (`daemon-stub-<id>.png`) is never written: a path is not a promise that
+ * the file exists.
  */
 public class JsonRpcServer(
   private val input: InputStream,
@@ -133,86 +114,42 @@ public class JsonRpcServer(
   private val historyDir: String = DEFAULT_HISTORY_DIR,
   private val idleTimeoutMs: Long = DaemonProperties.idleTimeoutMs.read(),
   /**
-   * B2.1 Tier-1 fingerprint detector. When non-null, the server captures a [Snapshot] at
-   * construction time and re-checks it on every `fileChanged({ kind: "classpath" })` notification;
-   * a mismatch triggers a one-shot `classpathDirty` notification and a graceful exit within
-   * [classpathDirtyGraceMs]. When null (the harness's fake-mode scenarios, the in-process
-   * integration tests) the classpath path stays a no-op — same as pre-B2.1 behaviour.
+   * Tier-1 detector, snapshotted at construction and re-checked on `fileChanged(kind=classpath)`; a
+   * mismatch sends `classpathDirty` and exits after [classpathDirtyGraceMs]. Null disables it.
    */
   private val classpathFingerprint: ClasspathFingerprint? = null,
-  /**
-   * Grace window between emitting `classpathDirty` and calling [onExit]. PROTOCOL.md § 6 documents
-   * this as `daemon.classpathDirtyGraceMs`, default 2000ms. Public so tests can shorten it.
-   */
+  /** Delay between `classpathDirty` and [onExit] (PROTOCOL.md § 6). */
   private val classpathDirtyGraceMs: Long = DaemonProperties.classpathDirtyGraceMs.read(),
   /**
-   * B2.2 phase 1 — the in-memory preview index, parsed from `previews.json` at daemon startup by
-   * [DaemonMain]. Surfaced to clients via `initialize.manifest`. Defaults to [PreviewIndex.empty]
-   * so existing in-process call sites (the integration tests, fake-mode harness scenarios) stay
-   * source-compatible — the empty index reports `path = ""` and `previewCount = 0`, matching the
-   * pre-B2.2 stub.
-   *
-   * B2.2 phase 2 — the index is now mutable. `fileChanged({kind: source})` runs the cheap-prefilter
-   * → scoped-scan → diff → applyDiff cascade against [incrementalDiscovery] and emits
-   * `discoveryUpdated` when the diff is non-empty.
+   * The preview index from `previews.json`, surfaced as `initialize.manifest` and updated in place
+   * by [incrementalDiscovery].
    */
   private val previewIndex: PreviewIndex = PreviewIndex.empty(),
   /**
-   * B2.2 phase 2 — when non-null, [handleFileChanged] for `kind: "source"` runs the cheap pre-
-   * filter + scoped ClassGraph scan against this discovery instance, diffs against [previewIndex],
-   * applies the diff in-place, and emits `discoveryUpdated`. When null (the in-process integration
-   * tests, the pre-phase-2 default) the source path stays a classloader-swap-only no-op — same
-   * behaviour as before phase 2 landed.
+   * When set, `fileChanged(kind=source)` rescans the changed classes, applies the diff to
+   * [previewIndex] and emits `discoveryUpdated`. Null only swaps the classloader.
    */
   private val incrementalDiscovery: IncrementalDiscovery? = null,
   /**
-   * Watchdog window for the deferred-discovery cascade — see [queueDiscoveryAfterRender]. A
-   * `fileChanged({kind: source})` notification queues the file for a background scan + diff, but
-   * holds the resulting `discoveryUpdated` notification until either (a) the next `renderFinished`
-   * for any preview flushes the queue, or (b) this many milliseconds elapse and we drain anyway.
-   * The point is that the user sees the new PNG first; the metadata reconcile arrives behind it and
-   * is silent when the diff is empty.
-   *
-   * Configurable via the [DISCOVERY_WATCHDOG_PROP] sysprop; the harness lowers it to a few hundred
-   * ms in scenarios that don't issue a render between the save and the assertion.
+   * Upper bound on holding a source change's `discoveryUpdated` back until the next
+   * `renderFinished`, so the new PNG arrives first ([queueDiscoveryAfterRender]).
    */
   private val discoveryWatchdogMs: Long = DaemonProperties.discoveryWatchdogMs.read(),
   /**
-   * H1+H2 — when non-null, every successful render produces a sidecar + index entry on disk
-   * (HISTORY.md § "What this PR lands § H1") and emits a `historyAdded` notification. The
-   * `history/list` and `history/read` requests dispatch into this manager. When null (in-process
-   * tests, fake-mode harness scenarios that don't opt in), history calls return empty / not-found
-   * and `historyAdded` notifications never fire — pre-H1 behaviour.
+   * Records each successful render (HISTORY.md) and serves `history/…`. Null disables history:
+   * listings are empty and `historyAdded` never fires.
    */
   private val historyManager: HistoryManager? = null,
-  /**
-   * H4 — initial delay for the auto-prune scheduler. Defaults to
-   * [HistoryManager.DEFAULT_INITIAL_DELAY_MS] (5s — runs after sandbox bootstrap). Tests pass a
-   * very small value (e.g. 50ms) to drive the schedule deterministically.
-   */
+  /** Initial delay of the history auto-prune scheduler. */
   private val autoPruneInitialDelayMs: Long = HistoryManager.DEFAULT_INITIAL_DELAY_MS,
   /**
-   * Daemon extension registry (see [Extension] and [ExtensionRegistry]). Replaces the per-feature
-   * lists this constructor used to take (`dataProducts`, `dataExtensions`, `previewExtensions`).
-   *
-   * Daemons start with every extension registered as inactive — `initialize.capabilities` reports
-   * empty kind/descriptor lists and every `data/fetch`/`data/subscribe` short-circuits to
-   * `DataProductUnknown`. Clients call `extensions/enable` to opt in to the contributions they
-   * actually need. Defaults to [ExtensionRegistry.Empty] for in-process tests and harness fake-mode
-   * scenarios that don't wire any.
+   * Registered extensions, all inactive until a client calls `extensions/enable`; until then data
+   * kinds are reported as unknown.
    */
   internal val extensions: ExtensionRegistry = ExtensionRegistry.Empty,
   /**
-   * D3 — per-request budget for `data/fetch` re-render-on-demand (DATA-PRODUCTS.md § "Re-render
-   * semantics"). When the registry returns [DataProductRegistry.Outcome.RequiresRerender] the
-   * dispatcher queues a fresh render in the required mode and waits at most this many milliseconds
-   * for the payload to land. On timeout we return `DataProductBudgetExceeded` (-32023); the render
-   * itself is **not** cancelled — Robolectric mid-render cancellation is unsafe (PROTOCOL.md § 8) —
-   * the fetch just stops waiting and lets the regular `renderFinished` notification ship when the
-   * render eventually completes.
-   *
-   * Default 30000ms per the spec. Overridable via the [DATA_FETCH_RERENDER_BUDGET_PROP] sysprop or
-   * the constructor (tests pin it small).
+   * How long a `data/fetch` waits for a [DataProductRegistry.Outcome.RequiresRerender] render
+   * before failing with `DataProductBudgetExceeded`. The render itself is not cancelled.
    */
   private val dataFetchRerenderBudgetMs: Long = DaemonProperties.dataFetchRerenderBudgetMs.read(),
   private val interactiveFrameIntervalMs: Long = INTERACTIVE_FRAME_INTERVAL_MS,
@@ -225,37 +162,20 @@ public class JsonRpcServer(
   private val interactiveIdleMaxIntervalMs: Long = INTERACTIVE_IDLE_MAX_INTERVAL_MS,
   private val interactiveQuiescentAfter: Int = INTERACTIVE_QUIESCENT_AFTER,
   /**
-   * Stage-2 in-process compile. When non-null, `compileSources` requests dispatch through this
-   * service; on `Ok` we swap the user classloader the same way `fileChanged({kind:source})` does.
-   * When null (fake-mode harness scenarios, integration tests that don't opt in, daemons whose
-   * launch descriptor lacks `btaCompilerClasspath`) the handler returns `result=fallback` so the
-   * editor falls back to stage 1 / 0 without surface churn.
+   * In-process compiler for `compileSources`; success swaps the user classloader. Null answers
+   * `result=fallback` so the editor uses its slower path.
    */
   private val btaCompileService: ee.schimke.composeai.daemon.bta.BtaCompileService? = null,
   private val fileSystem: FileSystem = SystemFileSystem,
   /**
-   * What the server does when it reaches a terminal path (`exit`, idle timeout, `classpathDirty`
-   * grace expiry). **Deliberately has no default.**
-   *
-   * It used to default to `System.exit(code)`, which is right for a real daemon and catastrophic
-   * in-process: one construction site that forgot to override it turned an `exit` notification into
-   * the death of the *test JVM*, taking the Gradle test executor and every class scheduled after it
-   * down with no failing test to point at — `:daemon:core:test` silently ran 20 of its 35 classes
-   * (#3087). Requiring the parameter moves that from a silent runtime truncation to a compile error
-   * at the call site. Real daemons pass [EXIT_PROCESS]; in-process callers pass a lambda that keeps
-   * the JVM alive.
+   * Called on `exit`, idle timeout or `classpathDirty` expiry. No default on purpose: a defaulted
+   * `System.exit` silently killed test JVMs (#3087). Real daemons pass [EXIT_PROCESS].
    */
   private val onExit: (Int) -> Unit,
   /**
-   * The daemon's XR renderer, if it has one (see the "XR render service" section in
-   * `protocol/Messages.kt`). When non-null the daemon advertises `capabilities.xr` and serves
-   * `xr/start` / `xr/updatePanels` / `xr/structure` / `xr/stop`. When null (the in-process
-   * integration tests, fake-mode harness, daemons whose host has no XR binary) the `xr/…` methods
-   * reply `MethodNotFound` — the one-shot composite path is unaffected.
-   *
-   * A port rather than the renderer client itself, so this module's compile ABI does not carry
-   * `:renderer-xr-client` to every consumer of the daemon protocol; `:daemon:desktop` adapts the
-   * real `XrSessionManager` onto it. See [XrSessions].
+   * The XR render service; when set, `capabilities.xr` is advertised and `xr/…` is served,
+   * otherwise those methods reply `MethodNotFound`. A port so this module's ABI does not carry
+   * `:renderer-xr-client`.
    */
   private val xrSessions: XrSessions? = null,
 ) {
@@ -265,11 +185,7 @@ public class JsonRpcServer(
     encodeDefaults = false
   }
 
-  /**
-   * The connection port handed to handlers that live outside this class (issue #5166). An adapter
-   * object rather than `JsonRpcServer : RpcPeer`, so the reply helpers stay private to this file
-   * and the server's public API is unchanged by the extraction.
-   */
+  /** Reply port for handlers outside this class; an adapter so the helpers stay private. */
   private val rpcPeer: RpcPeer =
     object : RpcPeer {
       override val json: Json
@@ -294,10 +210,7 @@ public class JsonRpcServer(
   private val historyRpcHandlers = HistoryRpcHandlers(rpcPeer, historyManager)
 
   init {
-    // H4 — wire the manager's prune listener so non-empty prune passes (auto or manual) emit a
-    // `historyPruned` JSON-RPC notification. The listener is invoked on whatever thread runs the
-    // prune (the auto-prune scheduler thread, or the read thread for manual calls); both eventually
-    // route through the writer queue, so frame ordering is preserved.
+    // Non-empty prune passes emit `historyPruned`, from whichever thread pruned.
     historyManager?.setPruneListener { notif ->
       val wireReason =
         when (notif.reason) {
@@ -804,24 +717,17 @@ public class JsonRpcServer(
       running.set(false)
       return
     }
-    // D1 — accept the client's `attachDataProducts` set, narrowed to kinds the registry
-    // actually knows AND advertises as attachable. Anything outside that intersection is
-    // silently dropped: pre-D2 daemons advertise nothing, so even an over-eager client falls
-    // back to no global attachments rather than tripping `DataProductUnknown` on every
-    // render.
+    // Unknown or non-attachable kinds are dropped silently rather than failing every render.
     val attachableKinds =
       extensions.publicDataProductCapabilities().filter { it.attachable }.map { it.kind }.toSet()
     globalAttachKinds =
       (params.options?.attachDataProducts ?: emptyList()).toSet().intersect(attachableKinds)
-    // PROTOCOL.md § 3 — per-render timeout override. Positive values win; null / ≤ 0 keeps the
-    // 5-minute default. Survives across renders for this client's session lifetime.
+    // PROTOCOL.md § 3: a positive value overrides the default render timeout for the session.
     params.options?.maxRenderMs?.takeIf { it > 0 }?.let { renderTimeoutMs = it }
     params.options?.historyPrune?.let { options ->
       historyManager?.configurePruneConfig(historyManager.pruneConfig.withOptions(options))
     }
-    // H4 — kick off the auto-prune scheduler after initialize-time options have landed. The first
-    // pass fires after `autoPruneInitialDelayMs` (5s default; small in tests). All-off configs
-    // short-circuit inside `startAutoPrune` so we don't spin a thread for nothing.
+    // After the prune options above have been applied.
     historyManager?.startAutoPrune(initialDelayMs = autoPruneInitialDelayMs)
     val result =
       InitializeResult(
@@ -830,71 +736,29 @@ public class JsonRpcServer(
         pid = currentPid(),
         capabilities =
           ServerCapabilities(
-            // B2.2 phase 2 — flipped to true when an [IncrementalDiscovery] is wired (the
-            // production daemon-main path). In-process integration tests / fake-mode callers
-            // that don't pass one still see false, matching the pre-phase-2 contract.
             incrementalDiscovery = incrementalDiscovery != null,
             sandboxRecycle = true,
-            // Leak detection (B2.4) not wired yet — empty list = unavailable.
+            // Leak detection is not implemented; empty means unavailable.
             leakDetection = emptyList<LeakDetectionMode>(),
-            // D1 — advertised kinds. Empty when no producer was wired (pre-D2 default).
             dataProducts = extensions.publicDataProductCapabilities(),
             dataExtensions = extensions.publicDataExtensionDescriptors(),
             previewExtensions = extensions.publicPreviewExtensionDescriptors(),
-            // INTERACTIVE.md § 9 — `true` when the host's `acquireInteractiveSession` returns a
-            // real held-scene session (DesktopHost). `false` for hosts that inherit the throwing
-            // default (FakeHost, RobolectricHost today) — clients fall back to v1 dispatch.
             interactive = host.supportsInteractive,
-            // RECORDING.md — `true` when the host's `acquireRecordingSession` returns a real
-            // held-scene recording driver (DesktopHost). `false` keeps `recording/start` behind a
-            // `MethodNotFound` reply so clients can grey out the toggle.
             recording = host.supportsRecording,
-            // `true` when the daemon can front the native XR render server (an `xrSessions` port
-            // was wired). Gates the `xr/…` methods.
             xr = xrSessions != null,
-            // RECORDING.md § "encoded formats" — list of wire format spellings the host can
-            // produce (`"apng"`, `"mp4"`, `"webm"`). APNG is always present when recording is
-            // enabled; MP4 / WEBM appear only when an `ffmpeg` binary was detected at host
-            // construction time. Sorted for stable wire ordering.
+            // Sets are sorted for stable wire ordering.
             recordingFormats = host.supportedRecordingFormats.sorted(),
-            // PROTOCOL.md § 3 — surface the daemon's `DeviceDimensions` catalog so clients can
-            // build a `renderNow.overrides.device` picker without re-bundling the list. The
-            // catalog itself lives in `:daemon:core/.../daemon/devices/DeviceDimensions.kt`;
-            // we project each entry into a wire-friendly shape (id + dp dims + density) so
-            // clients can render labels like "Pixel 5 — 393×851 dp @ 2.75x" without
-            // re-resolving.
             knownDevices = buildKnownDevices(),
-            // PROTOCOL.md § 3 — surface which `PreviewOverrides` fields this host actually
-            // applies, so clients can grey out unsupported sliders and MCP can warn agents who
-            // set fields the backend would silently ignore. Sorted for stable wire ordering;
-            // pre-feature hosts inherit `emptySet()` from the interface, projected to `[]`.
             supportedOverrides = host.supportedOverrides.sorted(),
-            // PROTOCOL.md § 3 — surface the renderer backend so clients can render
-            // backend-specific UI hints (e.g. "Wear preview unsupported on desktop") without
-            // per-call probing. Defaulted to `null` for hosts that don't classify themselves
-            // (FakeHost, in-test stubs); production hosts always populate.
             backend = host.backendKind,
-            // PROTOCOL.md § 3 — Android/Robolectric hosts advertise their fixed SDK level so
-            // clients can reason about backend compatibility without scraping logs. Desktop and
-            // test fakes inherit null.
             androidSdk = host.androidSdk,
-            // Issue #1203 — interactive input kinds (beyond pointer) this host can dispatch.
-            // Sorted for stable wire ordering; pre-feature hosts inherit `emptySet()` and clients
-            // see `[]` (treat as "only pointer is supported").
             interactiveControlKinds = host.supportedInteractiveControlKinds.sorted(),
           ),
-        // B2.1 — surface the authoritative SHA-256 to the client so VS Code can correlate later
-        // `classpathDirty` notifications against the daemon's known-at-startup state. Empty
-        // string when no fingerprint was wired (fake-mode / pre-B2.1 callers).
+        // Lets clients correlate a later `classpathDirty`; empty when no fingerprint is wired.
         classpathFingerprint = classpathSnapshot?.classpathHash ?: "",
         manifest =
           Manifest(
-            // B2.2 phase 1 — the daemon owns its preview index now. Path is the absolute path of
-            // the `previews.json` we loaded at startup ("" when no
-            // `composeai.daemon.previewsJsonPath`
-            // sysprop was supplied — fake-mode / in-process tests). B2.2 phase 2 keeps the count
-            // live by mutating the index in-place from `discoveryUpdated` emissions; the path is
-            // immutable for the daemon's lifetime.
+            // "" when no `previews.json` was loaded.
             path = previewIndex.path?.toAbsolutePath()?.toString() ?: "",
             previewCount = previewIndex.size,
           ),
@@ -998,8 +862,7 @@ public class JsonRpcServer(
     val now = System.currentTimeMillis()
     val overrides = params.overrides
     for (previewId in params.previews) {
-      // Stub policy for B1.5: accept any non-blank id. UnknownPreview (-32004)
-      // requires a real discovery set, which lands with B2.2.
+      // Any non-blank id is queued; `UnknownPreview` (-32004) is not enforced here.
       if (previewId.isBlank()) {
         rejected.add(RejectedRender(id = previewId, reason = "blank preview id"))
         continue
@@ -1083,30 +946,14 @@ public class JsonRpcServer(
   }
 
   private fun submitRenderAsync(hostId: Long, overrides: PreviewOverrides? = null) {
-    // Fire-and-forget: the watcher thread polls the result and emits the
-    // notification. We use a fresh thread (cheap; we expect O(visible) renders
-    // queued at a time) rather than a pool to keep wiring trivial — B1.4 will
-    // revisit when it introduces a real RenderEngine.
-    //
-    // We propagate the protocol-level previewId via the existing
-    // `RenderRequest.Render.payload` "previewId=<id>" channel (see
-    // RenderHost.kt's KDoc on RenderRequest.payload, and FakeHost's
-    // resolvePreviewId which reads the same convention). This lets fake-mode
-    // harness backends — and any future host that needs to disambiguate
-    // concurrent renders — recover the caller's preview id without widening
-    // the RenderRequest shape. B-desktop.1.4 will replace this with a typed
-    // field; until then this is the documented workaround.
+    // Fire-and-forget on a fresh thread (only O(visible) renders are queued at once); the watcher
+    // thread emits the notification.
     val previewId = hostIdToPreviewId[hostId] ?: ""
     val target = renderTargetFor(previewId, overrides)
     Thread(
         {
           try {
-            // 5-minute ceiling: covers cold sandbox bootstrap (~5–15s on
-            // first render) plus B1.4's eventual real Compose render
-            // (single-digit seconds). The Android host still uses its own 60s
-            // default for direct callers; we override here because the
-            // first render in a daemon's life sits behind the sandbox cold
-            // boot.
+            // Longer than the host's 60 s default: the first render waits on the sandbox boot.
             val raw =
               host.submit(
                 RenderRequest.Render(id = hostId, target = target),
@@ -1126,29 +973,14 @@ public class JsonRpcServer(
   }
 
   /**
-   * Builds the [RenderTarget] for a `renderNow`: the preview id, the caller's [PreviewOverrides],
-   * and the render mode this preview's active subscriptions imply.
+   * Builds the [RenderTarget] for a `renderNow`, with the render mode the preview's subscriptions
+   * imply.
    *
-   * **`device` is resolved here and nowhere else.** `PreviewOverrides.device` is a catalog token
-   * (`id:pixel_5`, `spec:parent=pixel_tablet,orientation=portrait`) and the backends want pixels,
-   * so this resolves it against [DeviceDimensions] and writes the derived `widthPx` / `heightPx` /
-   * `density` onto the overrides the target carries. The precedence PROTOCOL.md § 5 documents is
-   * applied here in one place: an explicit `widthPx`/`heightPx` from the caller outranks the device
-   * geometry, which outranks the preview's own frame.
-   *
-   * `orientation` rotates a device-derived frame (issue #3547) — a device supplies the frame's
-   * *natural* geometry, and `id:pixel_tablet` + `orientation=portrait` is precisely a request to
-   * rotate it — but never an explicitly sized one, since that is the caller naming exact pixels.
-   * The swap is idempotent: it means "make it look like this", not "always flip", so a landscape
-   * base plus `orientation=landscape` is a no-op and repeated calls stay stable.
-   *
-   * The [device] token itself rides along unresolved as well, because Android's render body reads
-   * it to detect round Wear devices and apply the circular crop.
-   *
-   * **What this no longer does.** It used to serialize all of the above into a `;`-delimited
-   * `key=value` string, with the fields it had no token for base64-encoded into an `overrides=`
-   * token beside them. See [RenderTarget]'s KDoc for what that cost. The overrides now travel as
-   * the object they already are.
+   * **`device` is resolved here and nowhere else**, into `widthPx` / `heightPx` / `density`, with
+   * PROTOCOL.md § 5 precedence: explicit size, then device geometry, then the preview's frame.
+   * `orientation` rotates a device-derived frame but never an explicitly sized one, and is
+   * idempotent ("make it portrait", not "flip"). The raw token is kept for Android's round-device
+   * detection.
    */
   private fun renderTargetFor(
     previewId: String,
@@ -1319,17 +1151,9 @@ public class JsonRpcServer(
     if (frameHash != null) {
       lastFrameHashes[previewId] = frameHash
     }
-    // H1 — record the render to history, if configured. Wrapped in a fail-open try/catch so a
-    // history write failure never blocks the renderFinished wire-format. The render's notification
-    // has already been sent above; history is observation, not state.
-    //
-    // Dedup is the history source's job, not this gate's: a byte-identical frame may still carry a
-    // changed `compose/semantics` tree (a dropped contentDescription leaves pixels untouched), and
-    // that's exactly what `history/diff mode=semantics` exists to catch (issue #1785). So we record
-    // regardless of the pixel-only `isUnchanged` flag and let `LocalFsHistorySource` skip only when
-    // BOTH the bytes and the semantics tree are unchanged — `recordHistoryForRender` returns null
-    // on
-    // that skip, so a truly-redundant frame still emits no `historyAdded` and adds no sidecar.
+    // Recorded even when the pixels are unchanged: the semantics tree may still differ (a dropped
+    // contentDescription), which `history/diff mode=semantics` must see. The history source
+    // dedups only when both are unchanged. Failures never affect the render.
     recordHistoryForRender(
       previewId = previewId,
       result = result,
@@ -1372,16 +1196,8 @@ public class JsonRpcServer(
   }
 
   /**
-   * H1 — takes the render's PNG bytes ([pngBytes], read once by [emitRenderFinished]; re-read here
-   * only if that read didn't happen), sha256s them, and writes a sidecar + index entry via
-   * [historyManager]. Emits `historyAdded` after the entry has been persisted.
-   *
-   * Skips when:
-   * - [historyManager] is null or disabled (the pre-H1 default for in-process tests).
-   * - `result.pngPath` is null or the file doesn't exist (B1.5-era stub hosts; the daemon-stub
-   *   placeholder path that was never written to disk).
-   *
-   * Failures are logged to stderr and swallowed. The render itself is unaffected.
+   * Writes a history entry for the render and emits `historyAdded`. Skipped when history is off or
+   * the PNG was never written (stub hosts); failures are logged and swallowed.
    */
   private fun recordHistoryForRender(
     previewId: String,
@@ -1394,9 +1210,7 @@ public class JsonRpcServer(
     val pngPath = result.artifact.pathOrNull() ?: return
     val pngFile = pngPath.toPath()
     if (!fileSystem.exists(pngFile)) {
-      // Stub-host path — pngPath is the deterministic `daemon-stub-${id}.png` placeholder that
-      // never actually lands on disk. Skip silently; this is the pre-H1 behaviour for stub hosts.
-      return
+      return // a stub host's placeholder path
     }
     val bytes =
       pngBytes
@@ -1525,27 +1339,6 @@ public class JsonRpcServer(
     sendNotification("renderFailed", payload)
   }
 
-  /**
-   * Builds the `renderFinished` payload from a host-returned [RenderResult]. For B1.5-era stub
-   * hosts (no `pngPath` on the result) we emit a deterministic placeholder PNG path; the file is
-   * **not** written to disk by the server. Hosts that actually produce bytes (e.g. `FakeHost` from
-   * `:daemon:harness`, or `DesktopHost`/`RobolectricHost` once their real-render bodies land)
-   * populate `pngPath` and we forward that string verbatim.
-   *
-   * `tookMs` is sourced from `result.metrics["tookMs"]` upstream by [emitRenderFinished]; stub
-   * hosts that don't time their bodies pass `0L`.
-   *
-   * **B2.3 — structured [RenderMetrics].** When the host populates the four B2.3 keys
-   * (`heapAfterGcMb`, `nativeHeapMb`, `sandboxAgeRenders`, `sandboxAgeMs`) on `result.metrics`,
-   * [RenderMetrics.fromFlatMap] translates them into a structured [RenderMetrics] for the wire. A
-   * partial map (some but not all four keys) emits a warn-level `log` notification so drift is
-   * observable, and we still emit `metrics: null` — half-populated objects are misleading because
-   * callers cannot tell "field was zero" from "field was missing". Hosts that return `null` metrics
-   * (the B1.5-era stub hosts that don't measure anything) keep the pre-B2.3 `metrics: null`
-   * behaviour. Empty and timing-only maps likewise omit structured metrics, including renders
-   * skipped by the opt-in measurement cadence; they contain no partial measurement to warn about.
-   */
-
   /** SHA-256 hex of [bytes] — the live lane's dedup key, and history's frame identity. */
   private fun sha256Hex(bytes: ByteArray): String {
     val digest = java.security.MessageDigest.getInstance("SHA-256").digest(bytes)
@@ -1558,6 +1351,11 @@ public class JsonRpcServer(
     }
   }
 
+  /**
+   * Builds `renderFinished` from [result]. A result without a path gets an unwritten placeholder
+   * path. Structured [RenderMetrics] are sent only when all their keys are present; a partial map
+   * is logged and sent as `null`, since a half-filled object cannot tell zero from missing.
+   */
   private fun renderFinishedFromResult(
     previewId: String,
     result: RenderResult,
@@ -1573,9 +1371,6 @@ public class JsonRpcServer(
       ) {
         is RenderMetrics.FromFlatMapResult.AbsentSource -> null
         is RenderMetrics.FromFlatMapResult.PartialMap -> {
-          // Drift signal — host emitted some but not all of the B2.3 keys. Warn so the caller
-          // side observes the gap; still emit `metrics: null` because half-populated objects are
-          // ambiguous on the wire.
           System.err.println(
             "compose-ai-daemon: RenderMetrics partial map for previewId='$previewId' " +
               "(missing keys: ${outcome.missingKeys.joinToString(",")}); emitting metrics=null"
@@ -1584,11 +1379,7 @@ public class JsonRpcServer(
         }
         is RenderMetrics.FromFlatMapResult.Populated -> outcome.metrics
       }
-    // D1 — pull attachments from the registry for the union of (per-preview) subscribed kinds
-    // and the global attach set. The registry returns an empty list for kinds that didn't land
-    // anything for this render (e.g. an a11y producer on a render whose mode skipped a11y), so
-    // a missing attachment never blocks the renderFinished. We omit the field entirely when the
-    // resulting list is empty so pre-D1 fixtures keep round-tripping.
+    // Kinds with nothing for this render simply drop out; an empty list omits the field.
     val requestedKinds: Set<String> = subscriptions.kindsFor(previewId) + globalAttachKinds
     val attachments: List<DataProductAttachment> =
       if (requestedKinds.isEmpty()) emptyList()
@@ -3283,7 +3074,7 @@ public class JsonRpcServer(
       "exit" -> handleExit()
       "setVisible" ->
         tryDecode(SetVisibleParams.serializer(), n) { pruneSubscriptionsToVisible(it.ids.toSet()) }
-      "setFocus" -> tryDecode(SetFocusParams.serializer(), n) { /* no-op for B1.5 */ }
+      "setFocus" -> tryDecode(SetFocusParams.serializer(), n) { /* accepted, not acted on */ }
       "fileChanged" -> tryDecode(FileChangedParams.serializer(), n) { handleFileChanged(it) }
       "interactive/stop" ->
         tryDecode(ee.schimke.composeai.daemon.protocol.InteractiveStopParams.serializer(), n) {
@@ -3328,34 +3119,15 @@ public class JsonRpcServer(
   }
 
   /**
-   * Routes a `fileChanged` notification.
-   *
-   * - **`kind: "source"`** (B2.0 + B2.2 phase 2):
-   *     1. Drops the strong reference to the host's current child classloader so the next render
-   *        lazily allocates a fresh [java.net.URLClassLoader] reading the recompiled bytecode off
-   *        disk (B2.0 — see [CLASSLOADER.md](../../../../../../docs/daemon/CLASSLOADER.md)).
-   *     2. When [incrementalDiscovery] is wired, runs the cheap-prefilter → scoped-scan → diff →
-   *        applyDiff cascade on a worker thread and emits `discoveryUpdated` if the diff is
-   *        non-empty (B2.2 phase 2 — [DESIGN § 8 Tier 2](../../../../../../docs/daemon/DESIGN.md)).
-   *
-   *    Honours the no-mid-render-cancellation invariant: both steps are queue-time events, not
-   *    preemption, so any in-flight render keeps using its already-resolved `Class<?>` and the
-   *    already-snapshotted `PreviewIndex`.
-   * - **`kind: "classpath"`** → Tier-1 fingerprint cascade ([handleClasspathFileChanged]).
-   * - **`kind: "resource"`** → conservative v1: would mark all previews stale, but the daemon does
-   *   not yet own its own preview index for resources, so this is a no-op for now. B2.0c lands the
-   *   smart variant (per-preview resource-read tracking).
-   *
-   * Hosts that don't participate in the parent/child split (the harness's `FakeHost`, the B1.3
-   * stub) return `null` from [RenderHost.userClassloaderHolder]; the swap is then skipped.
+   * Routes `fileChanged`:
+   * - `source`: swaps the user classloaders (CLASSLOADER.md) and queues incremental discovery
+   *   (DESIGN § 8 Tier 2). Neither preempts an in-flight render.
+   * - `classpath`: the Tier-1 fingerprint check ([handleClasspathFileChanged]).
+   * - `resource`: a no-op until resource reads are tracked per preview.
    */
   private fun handleFileChanged(params: FileChangedParams) {
     when (params.kind) {
       FileKind.SOURCE -> {
-        // Broadcast to every slot's holder under sandboxCount>1. For single-sandbox hosts this is
-        // the same `swap()` call the previous code made on
-        // `userClassloaderHolder`; the default-no-op on hosts without holders (FakeHost, B1.3
-        // stubs) keeps the v1 fake-mode scenarios unchanged.
         host.swapUserClassLoaders()
         queueDiscoveryAfterRender(params.path)
       }
@@ -3363,10 +3135,7 @@ public class JsonRpcServer(
         handleClasspathFileChanged(params)
       }
       FileKind.RESOURCE -> {
-        // B2.0 v1 conservative: mark all previews stale. The daemon does not yet own its preview
-        // index for resources (B2.0c lands the per-preview resource-read tracking that gives us a
-        // smart invalidation pass). Left as a no-op deliberately so the harness's existing
-        // `S3RenderAfterEdit*Test` (fake-mode) "fileChanged is a no-op" assertion still holds.
+        // Deliberately a no-op; harness scenarios assert that.
       }
     }
   }
@@ -3408,16 +3177,9 @@ public class JsonRpcServer(
   }
 
   /**
-   * B2.2 phase 2 — runs the daemon-side cheap-prefilter / scoped-scan / diff cascade for one
-   * source-file `fileChanged` notification, applies the resulting diff in-place to [previewIndex],
-   * and emits `discoveryUpdated` if non-empty.
-   *
-   * Runs the heavy work on a fresh daemon thread so neither the JSON-RPC read loop nor the
-   * render-watcher loop blocks on a scan. Mirrors the fire-and-forget pattern [submitRenderAsync]
-   * uses for renders. We deliberately pick a fresh thread (rather than reusing an executor) for
-   * symmetry with the render path; saved-file events arrive O(seconds) apart in a typical save
-   * loop, so the cost of one short-lived `Thread` per save is negligible compared to a ClassGraph
-   * scan.
+   * Rescans for one changed source file on a fresh thread (saves are seconds apart, so a thread per
+   * save is cheap next to the scan), applies the diff to [previewIndex] and emits
+   * `discoveryUpdated` when it is non-empty.
    */
   private fun runIncrementalDiscoveryNow(path: String) {
     val discovery = incrementalDiscovery ?: return
@@ -3465,19 +3227,9 @@ public class JsonRpcServer(
   }
 
   /**
-   * Tier-1 dirty-detection (DESIGN § 8) — runs the cheap → authoritative cascade and emits
-   * `classpathDirty` + initiates a graceful exit when the classpath has truly drifted.
-   *
-   * Cascade:
-   * 1. **No fingerprint configured** (e.g. fake-mode harness, the in-process integration test) —
-   *    no-op; pre-B2.1 behaviour.
-   * 2. **Cheap hash unchanged** — the saved file's bytes match what they were at startup. Common
-   *    case: editor saved a file but no actual content drift (timestamp-only touch). No-op.
-   * 3. **Cheap hash drifted, authoritative classpath hash unchanged** — a build-script edit
-   *    (comment, formatting) that doesn't affect the resolved JAR list. Update the stored cheap
-   *    hash so we don't keep re-walking the classpath, and no-op. (We do NOT emit `classpathDirty`
-   *    — the daemon's classloader is still valid.)
-   * 4. **Both drifted** — emit `classpathDirty` and start the graceful-exit timer.
+   * Tier-1 detection (DESIGN § 8). An unchanged cheap hash is a no-op; a drifted cheap hash with an
+   * unchanged classpath (a comment edit in a build script) just updates the cheap baseline; only a
+   * drifted classpath sends `classpathDirty` and starts the graceful exit.
    */
   private fun handleClasspathFileChanged(params: FileChangedParams) {
     val fingerprint = classpathFingerprint ?: return
@@ -3493,9 +3245,7 @@ public class JsonRpcServer(
     }
     val freshAuthoritative = fingerprint.classpathHash()
     if (freshAuthoritative == baseline.classpathHash) {
-      // Cheap drifted but the resolved classpath did not. Common case: the user edited a comment
-      // in build.gradle.kts. Update the cheap baseline to avoid re-walking the classpath JAR list
-      // on every subsequent fileChanged for this same edit, and no-op.
+      // Avoid re-walking the classpath on every later fileChanged for the same edit.
       lastObservedCheapHash = freshCheap
       return
     }

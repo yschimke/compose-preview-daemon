@@ -4,52 +4,18 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * Optional `ffmpeg`-backed encoder for [RecordingFormat.MP4] and [RecordingFormat.WEBM] — see
- * RECORDING.md § "encoded formats".
- *
- * **Detection.** [available] runs `ffmpeg -version` once at JVM start (lazily, on first call) and
- * caches the result for the daemon's lifetime. A subsequent uninstall during the daemon's life
- * isn't observed; that's fine — daemons are short-lived per workspace and the path is set at spawn
- * time. When detection fails, [DesktopHost.supportedRecordingFormats] omits `mp4` / `webm` from the
- * advertised set so the MCP layer's `validateRecordingFormat` rejects requests with a clean
- * diagnostic instead of a `record_preview` runtime error.
- *
- * **Encoder shape.** Both formats use the standard `ffmpeg -framerate <fps> -i frame-%05d.png ...`
- * pipeline against the per-frame PNGs [DesktopRecordingSession] writes:
- *
- * - **MP4**: H.264 via libx264 + yuv420p pixel format (the universal-compatibility default — plays
- *   in QuickTime, every browser, mobile players). `-pix_fmt yuv420p` is load-bearing for Android /
- *   iOS players that reject yuv444 and friends.
- * - **WEBM**: VP9 via libvpx-vp9. Smaller files for the same quality at the cost of slower encode;
- *   reasonable trade-off for short recordings (typical agent clips are <10 s).
- *
- * **Why not pure-Java mp4.** JCodec / Humble exist but pull in megabytes of native bindings or
- * pure-Java H.264 implementations that are 5–10× slower than libx264. Since this is an opt-in
- * surface (APNG is the always-available default), shelling out to `ffmpeg` is the right pragmatic
- * answer — most developer machines and CI agents already have it installed.
- *
- * **Threading / process lifetime.** `ffmpeg` is run as a `ProcessBuilder` subprocess with a bounded
- * wait. A 60 s budget covers typical clips (a few hundred frames) with margin; longer recordings
- * should still complete within minutes. The subprocess is `destroyForcibly()`'d on timeout to
- * prevent zombies; tests rely on this to keep the JVM clean across encode failures.
+ * Optional `ffmpeg` subprocess encoder for MP4 (H.264) and WEBM (VP9) recordings; see RECORDING.md,
+ * "encoded formats". APNG is the always-available pure-JVM default; when `ffmpeg` is missing the
+ * host simply does not advertise these formats. The subprocess is killed on timeout.
  */
 public object FfmpegEncoder {
 
-  /**
-   * Encoder timeout in milliseconds. 60 s is generous enough for ~5 s of 30 fps content (libx264
-   * encodes ~100 fps on a modern laptop) and covers libvpx-vp9's slower path. Longer recordings
-   * should still complete; if not, surfacing the timeout to the caller as an exception is
-   * preferable to leaving a half-written file on disk.
-   */
+  /** Encode timeout; a failure is better surfaced than a half-written file. */
   public const val ENCODE_TIMEOUT_MS: Long = 60_000L
 
   @Volatile private var detected: Boolean? = null
 
-  /**
-   * Cached probe of `ffmpeg -version`. Returns `true` if `ffmpeg` is on `PATH` and exits 0; cache
-   * is computed once per JVM. Tests can flip the cache via [resetDetectionForTesting] when they
-   * need to exercise the "ffmpeg unavailable" path on a machine where it's installed.
-   */
+  /** Whether `ffmpeg -version` on `PATH` exits 0; probed once per JVM. */
   public fun available(): Boolean {
     val cached = detected
     if (cached != null) return cached
@@ -76,16 +42,11 @@ public object FfmpegEncoder {
   }
 
   /**
-   * Encode the per-frame PNGs in [framesDir] (named `frame-NNNNN.png`, contiguous starting at 0) to
-   * [out] using [format] at [fps] frames per second. Throws on any non-zero exit, missing binary
-   * (when [available] reports false at call time), or timeout — callers map these to a tool-level
-   * error so the agent sees the real failure instead of an empty file on disk.
+   * Encodes `frame-NNNNN.png` (contiguous from 0) in [framesDir] to [out]. Throws on a missing
+   * binary, non-zero exit, timeout or empty output.
    *
-   * [audioTrack] is an optional pre-rendered audio file muxed in as a second input — the TalkBack
-   * spoken-announcement track (issue #1956, Phase 4). When `null` (the default and the only path
-   * for every existing caller) the command is byte-identical to the video-only encoder. Audio is
-   * only meaningful for MP4 / WEBM; APNG / GIF have no audio track, so [DesktopRecordingSession]
-   * passes it only down the ffmpeg path.
+   * @param audioTrack optional audio (e.g. the TalkBack announcement track) muxed as a second
+   *   input.
    */
   public fun encodeFromPngFrames(
     framesDir: File,
@@ -112,10 +73,7 @@ public object FfmpegEncoder {
 
     val pb = ProcessBuilder(args).redirectErrorStream(true)
     val proc = pb.start()
-    // Drain stdout/stderr in a background thread so the subprocess doesn't block on a full pipe
-    // buffer mid-encode. ffmpeg writes a fair amount of progress info to stderr (which we've
-    // merged into stdout via `redirectErrorStream`); not draining causes the encoder to stall on
-    // a small clip after a few hundred KB of output.
+    // Drain output concurrently: ffmpeg's progress chatter would otherwise fill the pipe and stall.
     val log = StringBuilder()
     val drainThread = Thread {
       try {
@@ -159,15 +117,7 @@ public object FfmpegEncoder {
     }
   }
 
-  /**
-   * Builds the full `ffmpeg` argv for [encodeFromPngFrames]. Extracted (and `internal`) so the
-   * codec / mux flags — especially the optional [audioTrack] muxing — can be unit-tested without
-   * shelling out. When [audioTrack] is non-null a second `-i` input is added, encoded to the
-   * container's standard audio codec (AAC for MP4, Opus for WEBM), and explicitly mapped alongside
-   * the video stream. `-af apad` pads short audio with trailing silence and `-shortest` clamps long
-   * audio, so the output is exactly the video duration in both directions — a TTS track that ends
-   * before the last frame never truncates the video.
-   */
+  /** The `ffmpeg` argv for [encodeFromPngFrames]; separate so it can be tested without ffmpeg. */
   internal fun buildArgs(
     framesDir: File,
     fps: Int,
@@ -184,11 +134,8 @@ public object FfmpegEncoder {
     }
     when (format) {
       RecordingFormatChoice.MP4 -> {
-        // H.264 + yuv420p for universal player compatibility (mobile + QuickTime require yuv420p
-        // even though libx264's default profile would otherwise pick yuv444). `-movflags
-        // +faststart` shifts the moov atom to the start of the file so streaming players can
-        // begin playback before downloading the trailer; cheap on small clips, useful when the
-        // file is served via HTTP from the daemon's history dir.
+        // yuv420p: mobile players and QuickTime reject libx264's yuv444 default. `+faststart`
+        // lets an HTTP-served clip start playing before it has fully downloaded.
         args.addAll(
           listOf(
             "-c:v",
@@ -204,9 +151,7 @@ public object FfmpegEncoder {
         if (audioTrack != null) args.addAll(listOf("-c:a", "aac"))
       }
       RecordingFormatChoice.WEBM -> {
-        // VP9 with the row-multithread + tile-columns combo most modern guides recommend for
-        // sub-720p content. `-deadline good -cpu-used 4` is the speed/quality middle ground —
-        // matching libx264's `veryfast`. Default WebM container.
+        // `-deadline good -cpu-used 4` is the speed/quality middle ground, like x264 `veryfast`.
         args.addAll(
           listOf(
             "-c:v",
@@ -225,22 +170,15 @@ public object FfmpegEncoder {
       }
     }
     if (audioTrack != null) {
-      // Map video from input 0 and audio from input 1 explicitly. `-af apad` pads the audio with
-      // trailing silence so a TTS track that ends before the last frame never becomes the shortest
-      // stream; `-shortest` then clamps the output to the video length. Together they hold the
-      // result to exactly the video duration whether the audio runs short (silence-padded) or long
-      // (truncated) — so trailing frames are never dropped.
+      // `apad` + `-shortest`: output is exactly the video's length whether the audio is short or
+      // long, so a short TTS track never truncates the video.
       args.addAll(listOf("-map", "0:v:0", "-map", "1:a:0", "-af", "apad", "-shortest"))
     }
     args.add(out.absolutePath)
     return args
   }
 
-  /**
-   * The subset of [ee.schimke.composeai.daemon.protocol.RecordingFormat] this encoder handles. Kept
-   * distinct so the encoder body never has to consider the APNG path (handled by [ApngEncoder]
-   * inline in [DesktopRecordingSession.encode]).
-   */
+  /** The [ee.schimke.composeai.daemon.protocol.RecordingFormat]s this encoder handles. */
   public enum class RecordingFormatChoice {
     MP4,
     WEBM,
