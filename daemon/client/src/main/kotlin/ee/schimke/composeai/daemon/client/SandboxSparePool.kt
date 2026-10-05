@@ -11,36 +11,18 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
- * Pre-booted Android sandbox workers, kept warm ahead of demand and handed to the next daemon that
- * needs them (SANDBOX-POOL.md § "Spare workers"; the A1 item of BOOT-ROADMAP.md).
+ * Pre-booted, warm Android sandbox workers handed to the next daemon that needs them
+ * (SANDBOX-POOL.md § "Spare workers"). A sandbox does not depend on the catalog (its classes ride
+ * the child loader), so adoption replaces a ~4 s boot plus ~6 s warm render with the catalog's
+ * first real render.
  *
- * A Robolectric sandbox does not depend on the catalog it renders: the catalog's classes ride the
- * disposable child classloader, and the boot-time warm render touches none of them. So a worker
- * booted and warm-rendered against *no* catalog can be adopted by whichever daemon needs a slot
- * next, paying that catalog's first real render (1-2 s, on a JVM where Compose, the font stack and
- * the PNG encoder are already hot) instead of a ~4 s boot plus a ~6 s warm render. The daemon
- * itself still boots its in-process sandbox — behind the adopted workers, off the request path.
+ * A worker *does* depend on its parent classpath, JVM flags and boot properties, so spares are
+ * pooled by [signatureOf]; [ensure] tops up the signature each launch just used.
  *
- * **Overlay signature.** What a worker *does* depend on is its parent classpath: a catalog's own
- * Compose/AndroidX overlay jars precede the daemon sidecar on the daemon `-cp`, and its Android
- * resource carriage rides there too. A spare is therefore generic only within one [signatureOf] —
- * the daemon classpath, the JVM flags and the boot-time system properties. Spares are pooled by
- * signature; catalogs on one Compose BOM share one, and a new signature pays a cold boot once
- * ("first can be slower") because [ensure] is demand-driven: every launch tops the signature it
- * just used back up to [Config.perSignature].
- *
- * **Lifecycle.** A spare is a child of this JVM. It halts when this JVM exits, when the pool evicts
- * it, or with the daemon that adopted it (`SandboxWorkerMain` watches both). [reserve] hands out
- * only spares that are warm and alive; a handed-out spare is the adopting daemon's until that
- * daemon is done with it. A daemon that shuts down cleanly **releases** its adopted workers rather
- * than killing them: each drops the catalog and announces a fresh port on the same stdout, and the
- * pool takes it back as warm — the reaped daemon's sandboxes are the next daemon's, no boot at all.
- * A daemon that dies takes its workers with it, and the pool boots replacements as usual.
- *
- * Wired by whoever spawns daemons — [SubprocessDaemonClientFactory] takes one and reserves spares
- * for every Android launch with a pool of more than one sandbox. Threading: one boot at a time, on
- * the pool's own thread, exactly as a daemon boots its workers — two concurrent Robolectric
- * bootstraps thrash a box.
+ * A spare dies with this JVM, on eviction, or with the daemon that adopted it. A daemon that shuts
+ * down cleanly releases its workers instead: each announces a fresh port and returns to the pool
+ * warm. Boots run one at a time on the pool's thread, because concurrent Robolectric boots thrash
+ * the machine.
  */
 public class SandboxSparePool(
   private val config: Config = Config(),
@@ -122,21 +104,9 @@ public class SandboxSparePool(
 
   /**
    * How long a signature must go unreserved before its warm spares may be evicted for another.
-   *
-   * Eviction used to need only that the newcomer was the more recently used signature — and a
-   * signature [ensure] runs for has always *just* been reserved, so every launch of a new signature
-   * won. With a budget of one signature's worth (`maxSpares == perSignature`, the deployed shape),
-   * each catalog daemon launch on a box hosting many catalogs evicted the previous signature's
-   * spares and booted two of its own (a Robolectric boot plus a warm render: ~50 s of CPU each),
-   * only for the next launch to evict those in turn. Measured on preview.coo.ee: spares evicted
-   * 10-60 s after warming, `adopted 0` against `coldLaunches 5` in six minutes, on a box already at
-   * a load of 25 on 8 cores.
-   *
-   * A spare pays off only when its signature launches again — a reaped catalog resumed, a replica
-   * added — so a spare is kept until its signature has been idle long enough that a relaunch is no
-   * longer likely. The newcomer meanwhile boots cold, which is what every launch did under the
-   * churn anyway. Ten minutes matches the serve session registry's own idle-suspend window, the
-   * interval on which a browsed catalog's daemon comes and goes.
+   * Without it, many catalogs sharing a one-signature budget evicted each other's spares on every
+   * launch (~50 s CPU per boot, none ever adopted). Matches the serve registry's idle-suspend
+   * window.
    */
   internal var evictionMinIdleNanos: Long =
     TimeUnit.MINUTES.toNanos(DEFAULT_EVICTION_MIN_IDLE_MINUTES)

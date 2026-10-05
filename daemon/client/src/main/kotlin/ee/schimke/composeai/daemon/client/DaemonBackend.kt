@@ -4,28 +4,10 @@ import java.io.File
 import java.util.Properties
 
 /**
- * Which renderer a daemon hosts, and the facts about running it that only this repository knows.
- *
- * ### Why this is here and not in the caller
- *
- * A `DaemonLaunchDescriptor` is a JVM command line: classpath, JVM args, system properties, main
- * class. `SubprocessDaemonClientFactory` executes one faithfully and decides almost nothing — so
- * everything that decides what goes *in* one has, until now, lived in the callers. In
- * compose-ai-tools that knowledge exists in **two** copies: `AndroidPreviewClasspath` in the Gradle
- * plugin and `AndroidBundleLaunch` in `bundle/format`, the latter's KDoc asking the reader to "keep
- * them in sync if the plugin side changes".
- *
- * They had not stayed in sync, and the divergence was a bug: three properties the Android renderer
- * reads off system properties (`composeai.fonts.offline`, `composeai.svg.embedFonts`,
- * `composeai.svg.background`) were forwarded to the child JVM on the Gradle path and on the desktop
- * serve daemon but on no Android lane at all, so an air-gapped Android render still tried to fetch
- * Google Fonts (yschimke/compose-ai-tools#5371).
- *
- * None of those flags is a decision a caller is entitled to make. The `--add-opens` set is what
- * *our* Robolectric host needs to reflect into `java.base` on JDK 17+; the `robolectric.*` values
- * are how *our* renderer expects Robolectric configured; the `robolectric.properties` package path
- * is *our* renderer's package. They are facts about this repository, so they belong in it — the
- * seam EMBEDDING.md states as "facts about the daemon here, decisions about the application there".
+ * Which renderer a daemon hosts, and the launch facts only this repository knows: JVM args such as
+ * Robolectric's `--add-opens`, renderer system properties, required artifacts. Kept here so callers
+ * cannot drift apart (EMBEDDING.md: "facts about the daemon here, decisions about the application
+ * there").
  */
 public sealed interface DaemonBackend {
 
@@ -44,11 +26,8 @@ public sealed interface DaemonBackend {
   /**
    * Compose Multiplatform Desktop, via `ImageComposeScene`. No sandbox, no Android SDK.
    *
-   * @property backgroundAgent runs the JVM as a macOS background agent — no Dock icon, no focus
-   *   steal. Passed as a JVM arg rather than through [systemProperties] because it must land before
-   *   AWT initialises, which is earlier than the daemon's own property reads. Inert off macOS, and
-   *   emitted unconditionally so a descriptor is identical on every host: making it conditional
-   *   would mean the golden files differ by build machine.
+   * @property backgroundAgent run as a macOS background agent (no Dock icon). A JVM arg because it
+   *   must precede AWT init; emitted on every OS so descriptors do not differ by build machine.
    */
   public data class Desktop(public val backgroundAgent: Boolean = true) : DaemonBackend {
 
@@ -94,12 +73,8 @@ public sealed interface DaemonBackend {
     internal const val ENABLE_NATIVE_ACCESS: String = "--enable-native-access=ALL-UNNAMED"
 
     /**
-     * Font properties both backends need, and the three a parent `-D` cannot deliver on its own.
-     *
-     * A system property set on *this* JVM does not reach a spawned one, so anything the child reads
-     * has to be named here or it silently takes its default. These three are read by the renderers
-     * and the figma-svg connector in this repository, and each was being forwarded — or not — by
-     * hand at three separate call sites in compose-ai-tools.
+     * Font properties for both backends. A `-D` on this JVM does not reach the child, so each
+     * property the renderers read must be forwarded explicitly (compose-ai-tools#5371).
      */
     internal fun fontSystemProperties(): Map<String, String> = buildMap {
       put("composeai.fonts.cacheDir", composeAiFontsCacheDir().absolutePath)
@@ -114,10 +89,8 @@ public sealed interface DaemonBackend {
     }
 
     /**
-     * `$XDG_CACHE_HOME/composeai/fonts`, else `~/.cache/composeai/fonts`.
-     *
-     * The same directory the Gradle plugin computes, deliberately: a bundle or serve render then
-     * reuses the faces a pack-time render already downloaded instead of fetching them again.
+     * `$XDG_CACHE_HOME/composeai/fonts`, else `~/.cache/composeai/fonts` — the Gradle plugin's
+     * directory too, so downloaded faces are shared.
      */
     internal fun composeAiFontsCacheDir(
       env: (String) -> String? = { System.getenv(it) },
@@ -142,27 +115,11 @@ public enum class DaemonRuntimeArtifact {
 }
 
 /**
- * Where this daemon's own jars live.
- *
- * **An interface rather than a resolver, deliberately.** Locating jars is a *packaging* question
- * and every embedder answers it differently: a CLI tarball, a Gradle configuration, an IDE plugin's
- * bundled jars, a Maven resolution, an air-gapped mirror. Shipping a resolver in this module would
- * put an HTTP client, a cache directory, checksum policy and proxy configuration into the daemon —
- * the surface most likely to be wrong in somebody else's environment, which is exactly the
- * population it would exist to serve.
- *
- * What the daemon owes the caller is the *requirement*, not the mechanism: [DaemonBackend]
- * enumerates which artifacts a backend needs, and this interface is how the caller satisfies them.
- * A convenience implementation that resolves published coordinates belongs in a separate, optional
- * artifact so that core stays free of resolution and an enterprise caller can swap it out while
- * keeping the contract (EMBEDDING.md, decision 2).
+ * Where this daemon's own jars live. An interface, not a resolver: packaging differs per embedder,
+ * and resolution (HTTP, caching, proxies) does not belong in the daemon (EMBEDDING.md, decision 2).
  */
 public fun interface DaemonRuntimeLocation {
-  /**
-   * Jars for [artifact], or an empty list when this location cannot supply it — the caller turns
-   * that into an actionable diagnostic rather than a crash, because "the Android sidecar is not
-   * unpacked" is a setup problem with a fix, not a bug.
-   */
+  /** Jars for [artifact], or empty when unavailable (reported as a setup problem, not a crash). */
   public fun jarsFor(artifact: DaemonRuntimeArtifact): List<File>
 }
 
@@ -179,12 +136,8 @@ public object AndroidSdk {
   public const val DEFAULT_SDK: Int = 35
 
   /**
-   * Resolve `android.jar`: `sdk.dir` in [localPropertiesFile] first, then `ANDROID_HOME` /
-   * `ANDROID_SDK_ROOT`, then the highest-versioned `platforms/android-N/android.jar` under the
-   * resolved root.
-   *
-   * Null when no SDK is reachable. That is a setup condition with a clear remedy, so it is a value
-   * the caller can report rather than an exception it has to catch.
+   * Resolves the highest `platforms/android-N/android.jar` under `sdk.dir` from
+   * [localPropertiesFile], else `ANDROID_HOME` / `ANDROID_SDK_ROOT`. Null when no SDK is reachable.
    */
   public fun discover(
     localPropertiesFile: File? = null,

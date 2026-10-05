@@ -9,14 +9,8 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 
 /**
- * Per-daemon registry of live `stream/start` subscribers. Owns the per-stream state needed to make
- * the buttery client tick: dedup heartbeats, fps-cap throttling, visibility-driven downshift, and
- * monotonic per-stream sequence numbers.
- *
- * `JsonRpcServer` is the only caller. The split lets the streaming logic live next to its tests
- * (the server is already 3000 LoC) and keeps the `emitRenderFinished` path free of new conditionals
- * — all stream-side conditionals live in [consumeForPreview] and return a list of ready-to-send
- * [StreamFrameParams].
+ * Live `stream/start` subscribers and their per-stream state: dedup heartbeats, fps caps,
+ * visibility throttling and sequence numbers. Used only by `JsonRpcServer`.
  */
 internal class FrameStreamRegistry(
   private val clock: () -> Long = System::currentTimeMillis,
@@ -25,23 +19,15 @@ internal class FrameStreamRegistry(
   private val supportedCodecs: Set<StreamCodec> = setOf(StreamCodec.PNG),
 ) {
 
-  /**
-   * Per-stream state machine. Mutated only inside [register], [unregister], [setVisibility], and
-   * [consumeForPreview] — none of which races with another (the server dispatches each from its
-   * single reader thread or its single render-watcher).
-   */
+  /** Per-stream state; mutated from the server's reader thread or its render watcher. */
   internal data class State(
     val frameStreamId: String,
     val previewId: String,
     val codec: StreamCodec,
     val maxFps: Int?,
-    // Volatile, unlike the rest of this state: the visibility pair is written by the reader thread
-    // handling `stream/visibility` and read by each stream's interactive frame-loop thread through
-    // [emitMinIntervalMs]. The ConcurrentHashMap publishes the State object safely, but not writes
-    // made to it afterwards — and a stream going hidden touches nothing else that would establish
-    // the ordering (the wake queue is only offered on resume). Without this a frame loop is free to
-    // keep reading the pre-hide cadence and keep rendering at full rate, which is the exact thing
-    // this notification exists to stop. Everything else here is written and read on one thread.
+    // Volatile: written by the reader thread, read by each interactive frame loop through
+    // [emitMinIntervalMs]. Nothing else orders a hide, so without it a loop could keep rendering
+    // at full rate. The rest of this state stays on one thread.
     @Volatile var visible: Boolean = true,
     @Volatile var visibilityFps: Int? = null,
     var lastEmittedAtMs: Long = Long.MIN_VALUE,
@@ -56,20 +42,14 @@ internal class FrameStreamRegistry(
   /** Negotiate an emitting codec for a `stream/start` request. */
   fun negotiateCodec(requested: StreamCodec?): StreamCodec {
     if (requested != null && requested in supportedCodecs) return requested
-    // Prefer PNG when the requested codec isn't supported — every renderer already produces PNG,
-    // so the downgrade is always safe.
+    // Every renderer produces PNG, so it is the safe downgrade.
     if (StreamCodec.PNG in supportedCodecs) return StreamCodec.PNG
     return supportedCodecs.first()
   }
 
   fun mintStreamId(): String = "fstream-${nextStreamId.getAndIncrement()}"
 
-  /**
-   * Records a new subscriber. Returns the same [State] mutable instance held inside the registry so
-   * the server-side handler can read [State.codec] for the reply. Idempotent: re-registering an
-   * existing id replaces the prior state (the server allocates a fresh id on every `stream/start`,
-   * so this branch is purely defensive).
-   */
+  /** Records a subscriber, replacing any state under the same id, and returns its live [State]. */
   fun register(frameStreamId: String, previewId: String, codec: StreamCodec, maxFps: Int?): State {
     val state =
       State(frameStreamId = frameStreamId, previewId = previewId, codec = codec, maxFps = maxFps)
@@ -81,15 +61,9 @@ internal class FrameStreamRegistry(
   fun unregister(frameStreamId: String): State? = states.remove(frameStreamId)
 
   /**
-   * Apply a `stream/visibility` notification. Idempotent and silent on unknown stream ids — the
-   * client may race a visibility flip with a `stream/stop` and we don't want to error out. When
-   * [visible] flips back to true the next emitted frame is marked as a keyframe so the client has
-   * an explicit "paint me now" anchor (replaces the old "scroll-back-blank-then-fade").
-   *
-   * Returns true when this call flipped a hidden stream back to visible, so the caller can wake
-   * whatever it parked while the stream was throttled (the daemon's interactive frame loop reads
-   * [emitMinIntervalMs] for its cadence, and a resume that only took effect at the *next* tick
-   * would keep a card blank for up to the throttled interval after it scrolled back into view).
+   * Applies `stream/visibility`; unknown ids are ignored (it can race `stream/stop`). Becoming
+   * visible makes the next frame a keyframe and returns true, so the caller can wake a throttled
+   * frame loop now rather than at its next slow tick.
    */
   fun setVisibility(frameStreamId: String, visible: Boolean, fps: Int?): Boolean {
     val s = states[frameStreamId] ?: return false
@@ -104,14 +78,9 @@ internal class FrameStreamRegistry(
   }
 
   /**
-   * The minimum interval the emit gate would apply to [frameStreamId] right now — driven by its
-   * `stream/start` `maxFps` and any `stream/visibility` throttle. `0` when uncapped, or when the
-   * stream is unknown.
-   *
-   * Public so the *render* side can honour the same number the *emit* side does. Gating emission
-   * alone leaves the daemon rendering (and, on the Android backend, re-capturing through
-   * Robolectric) at full rate for a stream whose frames are being dropped a layer later — which is
-   * most of what a backgrounded tab costs. See `JsonRpcServer.interactiveFrameCadenceMs`.
+   * The emit gate's current minimum interval for [frameStreamId] (`maxFps` and visibility
+   * throttle); `0` when uncapped or unknown. The render loop honours it too, so a hidden stream is
+   * not rendered at full rate only to have its frames dropped.
    */
   fun emitMinIntervalMs(frameStreamId: String): Long {
     val s = states[frameStreamId] ?: return 0L
@@ -125,21 +94,12 @@ internal class FrameStreamRegistry(
   fun hasStreamsFor(previewId: String): Boolean = states.values.any { it.previewId == previewId }
 
   /**
-   * Materialise the per-stream `streamFrame` notifications produced by a render of [previewId].
+   * The `streamFrame` notifications for a render of [previewId]. Per stream: drop the frame if
+   * inside the fps gate; send a payload-free heartbeat if [pngHash] is unchanged; otherwise send
+   * the frame, as a keyframe if one is pending (which also overrides dedup).
    *
-   * Logic, applied per stream:
-   * 1. fps gate — drop the frame entirely if the elapsed-since-last is below the per-stream minimum
-   *    interval (driven by [State.maxFps] or the visibility-throttled fps).
-   * 2. dedup — if [pngHash] matches the prior frame's hash on this stream, emit an `unchanged`
-   *    heartbeat (codec=null, payload=null). Saves the encode + ~50 KB of base64 on the wire.
-   * 3. keyframe-pending — if the stream just started or just flipped visible, mark the frame as a
-   *    keyframe so the client refreshes its paint anchor.
-   *
-   * Encoding: the caller passes [pngBytes] when it already holds the frame in memory (the server
-   * hashes every frame for dedup, so on the live path it always does) and the registry base64s
-   * those. [pngPath] is the fallback for callers that don't, and is read only when the dedup branch
-   * fires "different" AND at least one stream wants the bytes. Either way two streams targeting the
-   * same preview share one copy.
+   * [pngPath] is read only when [pngBytes] is absent and some stream needs the bytes; all streams
+   * share one copy.
    */
   fun consumeForPreview(
     previewId: String,
@@ -160,40 +120,16 @@ internal class FrameStreamRegistry(
         if (now - s.lastEmittedAtMs < minIntervalMs) continue
       }
       val keyframe = s.keyframePending
-      // A pending keyframe (fresh stream or scroll-back-into-view) overrides dedup so the client
-      // always gets a real paint anchor, even when the pixels are byte-identical.
       val isUnchanged = !keyframe && pngHash != null && s.lastHash == pngHash
       val seq = ++s.seq
       val params: StreamFrameParams =
         if (isUnchanged) {
-          StreamFrameParams(
-            frameStreamId = s.frameStreamId,
-            seq = seq,
-            ptsMillis = now,
-            widthPx = widthPx,
-            heightPx = heightPx,
-            codec = null,
-            keyframe = false,
-            final = false,
-            payloadBase64 = null,
-          )
+          heartbeat(s, seq, now, widthPx, heightPx)
         } else {
           val bytes = cachedBytes ?: pngPath?.let(pngBytesReader)?.also { cachedBytes = it }
-          // Synthesise a heartbeat when the bytes are unreadable (file vanished, host is in
-          // stub mode). The client treats this as "no new pixels"; the legacy renderFinished
-          // path still flows for callers that read pngPath off disk on their own.
+          // Unreadable bytes (file gone, stub host) degrade to a heartbeat.
           if (bytes == null) {
-            StreamFrameParams(
-              frameStreamId = s.frameStreamId,
-              seq = seq,
-              ptsMillis = now,
-              widthPx = widthPx,
-              heightPx = heightPx,
-              codec = null,
-              keyframe = false,
-              final = false,
-              payloadBase64 = null,
-            )
+            heartbeat(s, seq, now, widthPx, heightPx)
           } else {
             StreamFrameParams(
               frameStreamId = s.frameStreamId,
@@ -216,11 +152,7 @@ internal class FrameStreamRegistry(
     return out
   }
 
-  /**
-   * Emit a final frame for a stop-in-flight: returns the most-recent frame as a `final` marker so
-   * the client can release its decoder state cleanly. Idempotent: returns null when [frameStreamId]
-   * is unknown.
-   */
+  /** A `final` marker so the client can release decoder state; null for an unknown stream. */
   fun finalFrameOnStop(frameStreamId: String): StreamFrameParams? {
     val s = states[frameStreamId] ?: return null
     return StreamFrameParams(
@@ -237,16 +169,8 @@ internal class FrameStreamRegistry(
   }
 
   /**
-   * Per-stream variant of [consumeForPreview] for externally-produced frames (the XR render service
-   * — frames arrive from the native `xr-composite --serve` already base64-encoded, keyed by
-   * `frameStreamId` rather than a preview render). Applies the same gating to the one stream:
-   * 1. fps gate — returns null (drop the frame) when below the per-stream minimum interval.
-   * 2. dedup — emits an `unchanged` heartbeat (codec/payload null) when [payloadBase64] hashes to
-   *    the prior frame's content.
-   * 3. keyframe-pending — marks the first frame (or the first after a visibility flip) as a
-   *    keyframe.
-   *
-   * Returns null when the stream id is unknown or the fps gate dropped the frame.
+   * [consumeForPreview]'s gating for one externally produced, already-encoded frame (the XR render
+   * service). Null when the stream is unknown or the fps gate dropped the frame.
    */
   fun consumeForStream(
     frameStreamId: String,
@@ -262,23 +186,11 @@ internal class FrameStreamRegistry(
     }
     val hash = payloadBase64?.let(::sha256)
     val keyframe = s.keyframePending
-    // A pending keyframe (fresh stream or scroll-back-into-view) overrides dedup so the client
-    // always gets a real paint anchor, even when the payload is byte-identical.
     val isUnchanged = !keyframe && hash != null && s.lastHash == hash
     val seq = ++s.seq
     val params =
       if (isUnchanged || payloadBase64 == null) {
-        StreamFrameParams(
-          frameStreamId = s.frameStreamId,
-          seq = seq,
-          ptsMillis = now,
-          widthPx = widthPx,
-          heightPx = heightPx,
-          codec = null,
-          keyframe = false,
-          final = false,
-          payloadBase64 = null,
-        )
+        heartbeat(s, seq, now, widthPx, heightPx)
       } else {
         StreamFrameParams(
           frameStreamId = s.frameStreamId,
@@ -297,6 +209,20 @@ internal class FrameStreamRegistry(
     if (params.codec != null) s.keyframePending = false
     return params
   }
+
+  /** A payload-free "no new pixels" frame. */
+  private fun heartbeat(s: State, seq: Long, now: Long, widthPx: Int, heightPx: Int) =
+    StreamFrameParams(
+      frameStreamId = s.frameStreamId,
+      seq = seq,
+      ptsMillis = now,
+      widthPx = widthPx,
+      heightPx = heightPx,
+      codec = null,
+      keyframe = false,
+      final = false,
+      payloadBase64 = null,
+    )
 
   private fun effectiveMinIntervalMs(s: State): Long {
     val visibilityCap = if (!s.visible) (s.visibilityFps ?: 1) else null

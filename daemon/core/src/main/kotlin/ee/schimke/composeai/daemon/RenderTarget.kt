@@ -6,42 +6,20 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * What a [RenderRequest.Render] is asking for — either a preview the backend still has to resolve,
- * or a spec that is already resolved.
+ * What a [RenderRequest.Render] asks for. `JsonRpcServer` knows only a previewId and
+ * [PreviewOverrides]; resolving the [RenderSpec] needs the preview index (and, on Android, the
+ * sandbox), so a request is *unresolved* when it leaves the JSON-RPC layer and *resolved* when it
+ * reaches a `RenderEngine`.
  *
- * **Why this exists.** `JsonRpcServer` knows a `previewId` and a [PreviewOverrides]; it does not
- * know the `className` / `functionName` that a [RenderSpec] requires, because resolving those means
- * consulting the preview index (and, for a `@PreviewParameter` row, the consumer classpath) — which
- * on Android happens inside the Robolectric sandbox. So a render request is *unresolved* when it
- * leaves the JSON-RPC layer and *resolved* by the time it reaches a `RenderEngine`. Those are two
- * different shapes, and this type says so.
- *
- * They used to be the same shape: a single `payload: String` in the `;`-delimited `key=value`
- * grammar that `JsonRpcServer.renderTargetFor` wrote and each backend re-parsed. Twelve fields of
- * [PreviewOverrides] travelled as typed tokens, and **the rest of the object travelled as
- * base64-encoded JSON in an `overrides=` token beside them** — with the twelve nulled out of the
- * bag so they were not restated. Whether a field reached the renderer depended on whether someone
- * had remembered to add it to the encoder, and issue #3073 counted eight live fields that had not
- * been (`clockEpochMillis`, `placeholderActive`, `ambient`, `focus`, `keyboard`, `touchOverlay`,
- * `remoteCompose`, `launcherWidget`), after `permissions`, `gestures`, `lottie`, `namedOverrides`
- * and `themeProvider` had each been fixed the same way, one at a time, before it. The failure was
- * always silent: the protocol accepted the field, the merge applied it, the encoder dropped it, and
- * default pixels came back.
- *
- * Passing the object removes the question. A field added to [PreviewOverrides] reaches the renderer
- * because it is *on the object*, not because an encoder was taught about it.
+ * Overrides travel as the whole object so a new [PreviewOverrides] field reaches the renderer
+ * without anyone teaching an encoder about it (issue #3073).
  */
 @Serializable
 public sealed interface RenderTarget {
 
   /**
-   * An unresolved request: render this discovery-time preview id, with these per-call overrides.
-   *
-   * [overrides] arrives with `device` already resolved into `widthPx` / `heightPx` / `density` by
-   * [JsonRpcServer], because that resolution needs the device catalog and the precedence rules
-   * PROTOCOL.md § 5 documents (an explicit `widthPx` outranks the device geometry, which outranks
-   * the preview's own frame; `orientation` rotates a device-derived frame but not an explicitly
-   * sized one). Backends read the resolved values and do not redo it.
+   * An unresolved request for a discovery-time preview id. [JsonRpcServer] has already resolved
+   * `device` into `widthPx` / `heightPx` / `density` (PROTOCOL.md § 5); backends must not redo it.
    */
   @Serializable
   @SerialName("preview")
@@ -50,11 +28,7 @@ public sealed interface RenderTarget {
     val overrides: PreviewOverrides? = null,
     /** Data-product render mode (`a11y`, `theme`, …) implied by this preview's subscriptions. */
     val renderMode: String? = null,
-    /**
-     * Which `@PreviewParameter` row to bind, when the caller addressed one explicitly rather than
-     * through a `<baseId>_<row>` preview id. An explicit value outranks the one parsed out of the
-     * id, so a caller can render a row of the bare base id without minting a row id for it.
-     */
+    /** Explicit `@PreviewParameter` row; outranks a row parsed from a `<baseId>_<row>` id. */
     val previewParameterRow: String? = null,
     /**
      * Data-product kinds requested for this render; resolved onto [RenderSpec.requestedDataKinds].
@@ -67,28 +41,14 @@ public sealed interface RenderTarget {
   @Serializable @SerialName("spec") public data class Spec(val spec: RenderSpec) : RenderTarget
 
   /**
-   * A request carrying no renderable target at all — the host answers it from the render thread
-   * without composing anything.
-   *
-   * This is the queue-plumbing lane: `DaemonHostTest`'s ten-render sandbox-reuse assertion submits
-   * one of these and asserts on the classloader identity stamped into the [RenderResult], which is
-   * the load-bearing daemon invariant (DESIGN.md § 9) and needs no preview to verify. Hosts answer
-   * it with their stub render.
-   *
-   * Named rather than inferred: it used to be "a payload string that happens not to contain
-   * `className=`", which meant any malformed real request silently became a stub render reported as
-   * a success.
+   * No renderable target: the host answers with its stub render. Exercises queue plumbing and
+   * sandbox reuse (DESIGN.md § 9) without a preview.
    */
   @Serializable @SerialName("stub") public data class Stub(val token: String = "") : RenderTarget
 
   /**
-   * Run a classloader forensic dump instead of a render (CLASSLOADER-FORENSICS.md).
-   *
-   * It rides the render queue rather than a channel of its own because the dump is only meaningful
-   * *inside* the sandbox classloader with the child loader active — exactly the state a real render
-   * sees, which is the whole point of the daemon-path dump — and the render queue is what gets it
-   * there. It used to ride as a render payload beginning `forensic-dump=`, told apart by a string
-   * prefix; a variant says the same thing without the prefix being load-bearing.
+   * A classloader forensic dump instead of a render (CLASSLOADER-FORENSICS.md). Rides the render
+   * queue because the dump only means something in the sandbox state a real render sees.
    */
   @Serializable
   @SerialName("forensic")
@@ -107,28 +67,17 @@ public sealed interface RenderTarget {
       classDiscriminator = "target"
     }
 
-    /**
-     * Encode for one of the two boundaries that cannot pass a Kotlin object: the Robolectric
-     * sandbox classloader crossing (`DaemonHostBridge`) and the sandbox worker-process hop
-     * (SANDBOX-POOL.md). Everywhere else, pass the object.
-     */
+    /** For the sandbox classloader and worker-process crossings only; elsewhere pass the object. */
     public fun encode(target: RenderTarget): String = json.encodeToString(serializer(), target)
 
-    /**
-     * Inverse of [encode]. Throws on malformed input — a garbled boundary is a bug, not a degraded
-     * mode to render through.
-     */
+    /** Inverse of [encode]. Throws on malformed input: a garbled boundary is a bug. */
     public fun decode(encoded: String): RenderTarget = json.decodeFromString(serializer(), encoded)
   }
 }
 
 /**
- * The previewId this target names, or `null` when it names none.
- *
- * The sandbox pool uses it as the affinity key so the same preview always lands on the same sandbox
- * — Compose snapshot caches and Robolectric shadow caches accumulate per-sandbox and pay off on
- * repeat renders (SANDBOX-POOL.md). A target with no previewId falls back to the request id, which
- * keeps a stable slot without the cache locality.
+ * The previewId this target names, or `null`. The sandbox pool's affinity key, so repeat renders of
+ * a preview reuse one sandbox's warm caches (SANDBOX-POOL.md).
  */
 public fun RenderTarget.previewIdOrNull(): String? =
   when (this) {

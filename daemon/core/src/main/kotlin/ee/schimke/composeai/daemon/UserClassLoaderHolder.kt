@@ -6,56 +6,19 @@ import java.net.URL
 import java.net.URLClassLoader
 
 /**
- * Owns the disposable child [URLClassLoader] for the user module's compiled classes — the
- * implementation seam for the [B2.0 disposable-user-classloader design](
- * ../../../../../../docs/daemon/CLASSLOADER.md).
+ * Owns the disposable child [URLClassLoader] over the user module's compiled classes
+ * (docs/daemon/CLASSLOADER.md). The long-lived parent pays the bootstrap cost once; [swap] drops
+ * the child so the next render loads recompiled bytecode. An in-flight render keeps the loader it
+ * already resolved against.
  *
- * The daemon's parent classloader is long-lived (Robolectric `InstrumentingClassLoader` on Android,
- * the JVM app classloader on desktop) and pays the multi-second bootstrap cost once at daemon
- * spawn. The user's `build/intermediates/built_in_kotlinc/<variant>/classes/` directory is
- * **excluded** from the parent's classpath; the [currentChildLoader] reads those URLs instead with
- * the parent loader as its delegate. On `fileChanged({ kind: "source" })` the [JsonRpcServer]
- * invokes [swap], which drops the strong reference to the current child loader and lazily allocates
- * a fresh one on next read — the next render then sees the recompiled bytecode rather than the
- * cached `Class<?>`.
+ * Read by the render thread, swapped by the JSON-RPC thread; guarded by a lock. Every child is also
+ * tracked weakly so [liveLoaderCount] can assert recycled loaders collect.
  *
- * Per [Decision 2](../../../../../../docs/daemon/CLASSLOADER.md#decisions-made) this lives in
- * `:daemon:core`. It's renderer-agnostic: a `URLClassLoader` lifecycle holder doesn't touch
- * Compose, Robolectric, or any backend specifics. Both [RenderHost] implementations (`DesktopHost`
- * and `RobolectricHost`) construct one against the user-class-dirs sysprop wired by the gradle
- * plugin's launch descriptor.
- *
- * **Thread-safety.** The holder is read by the render thread and mutated by the JSON-RPC read
- * thread (when `handleFileChanged` arrives). All access goes through `synchronized(this)` — the
- * critical section is tiny (single field write) and there's no hot path that takes the lock per
- * render.
- *
- * **No-mid-render-cancellation invariant.** [swap] is a queue-time event, not a preemption: the
- * `JsonRpcServer.handleFileChanged` path drops the current loader strong reference but the
- * in-flight render keeps using the loader it already resolved its `Class<?>` against (the JVM holds
- * a strong reference for the duration of the reflection call).
- *
- * **Soak-leak detection.** Each allocated child loader is also tracked via a [WeakReference] in
- * [trackedLoaders]; [liveLoaderCount] forces 2 GCs and returns the surviving count, used by the
- * unit/integration soak loop to assert that recycled loaders collect within 2 GCs (CLASSLOADER.md §
- * Risks 1).
- *
- * @param urls user-class directories the child loader exposes. Mutating the list after construction
- *   has no effect; [swap] re-reads the same URLs every time.
- * @param parentSupplier function returning the parent classloader the child delegates to.
- *   **Evaluated lazily at allocation time**, not at construction. This is load-bearing for the
- *   Android backend: the holder is constructed on the host thread (where
- *   `Thread.currentThread().contextClassLoader` is the JVM app loader), but the URLClassLoader must
- *   inherit the **sandbox classloader** as its parent — otherwise framework classes (Compose
- *   runtime, Robolectric internals) load via the app loader instead of the instrumented sandbox
- *   loader, and `getDeclaredComposableMethod` fails on classloader-identity skew
- *   (forensics-confirmed; see `docs/daemon/CLASSLOADER-FORENSICS.md` for the diagnostic tool).
- *   Android's `DaemonMain` passes a supplier that reads `DaemonHostBridge.sandboxClassLoaderRef`,
- *   set inside the sandbox by `SandboxHoldingRunner.holdSandboxOpen`. Desktop's default supplier
- *   resolves to the JVM app loader, which is the right parent there.
- * @param onSwap optional callback invoked synchronously after [swap] (and the initial allocation)
- *   with the new loader. The Android backend uses it to mirror the loader into
- *   `DaemonHostBridge.currentChildLoader` so the sandbox-side render thread sees the swap.
+ * @param parentSupplier evaluated at allocation, not construction: on Android the parent must be
+ *   the Robolectric sandbox loader, which only exists once the sandbox is up. Otherwise framework
+ *   classes load from the app loader and composable lookup fails on classloader-identity skew.
+ * @param onSwap called with each newly allocated loader (Android mirrors it into
+ *   `DaemonHostBridge`).
  */
 public class UserClassLoaderHolder(
   private val urls: List<URL>,
@@ -69,10 +32,7 @@ public class UserClassLoaderHolder(
   private var current: URLClassLoader? = null
   private val trackedLoaders: MutableList<WeakReference<URLClassLoader>> = mutableListOf()
 
-  /**
-   * Returns the current child [URLClassLoader], allocating it lazily on first read. Subsequent
-   * reads return the same instance until [swap] is invoked.
-   */
+  /** The current child loader, allocated lazily; stable until [swap]. */
   public fun currentChildLoader(): URLClassLoader =
     synchronized(lock) {
       val existing = current
@@ -81,45 +41,29 @@ public class UserClassLoaderHolder(
     }
 
   /**
-   * Drops the strong reference to the current child loader. The next [currentChildLoader] read
-   * lazily allocates a fresh one with the same URLs. Old loader becomes GC-able once any
-   * sandbox/Compose state holding references to user-class-loaded objects is cleared (per-render
-   * scoping verified in CLASSLOADER.md § Risks 1).
+   * Drops the current child loader; the next [currentChildLoader] allocates a fresh one. Not
+   * pre-allocated, so a burst of file changes does not pile up loaders.
    */
   public fun swap() {
     synchronized(lock) {
       current = null
-      // Self-diagnostic log — surfaces as `[daemon stderr] [classloader] swap …` in the VS Code
-      // extension's Compose Preview output channel. Pairs with the `allocate` line emitted on the
-      // next currentChildLoader() read; if a save loop produces "swap" but never the matching
-      // "allocate" the host's render thread isn't picking up the swap, and if "allocate" fires but
-      // the .class fingerprint doesn't move across saves the disk hasn't actually been recompiled.
+      // Pairs with the `allocate` line: a swap with no allocate means the render path missed it.
       System.err.println(
         "compose-ai-daemon: [classloader] swap requested urlCount=${urls.size} liveLoaders=${trackedLoaders.size}"
       )
-      // Force the next currentChildLoader read to do the allocation; we deliberately don't
-      // pre-allocate here because the next render is what cares, and pre-allocating would
-      // double the loader objects in flight when fileChanged arrives faster than renders.
     }
   }
 
-  /**
-   * Returns the URL list this holder uses. Exposed so backends can construct identically-shaped
-   * sibling loaders (e.g. the Robolectric bridge mirror).
-   */
+  /** The URLs every child loader exposes, for building identically-shaped sibling loaders. */
   public fun urls(): List<URL> = urls.toList()
 
   /**
-   * Forces 2 GCs and returns the count of allocated child loaders that haven't yet been collected.
-   * The current loader (if any) is always counted; legacy swapped-out loaders should bring the
-   * count back to 1 (or 0 if no allocation has happened).
-   *
-   * Used by the soak `WeakReference` probe in the unit test.
+   * Forces two GCs and returns how many allocated child loaders survive, including the current one.
+   * For soak tests.
    */
   public fun liveLoaderCount(): Int {
     repeat(2) {
       System.gc()
-      // Hint the runtime that finalizers should run; not guaranteed but doesn't hurt.
       try {
         Thread.sleep(20)
       } catch (_: InterruptedException) {
@@ -127,8 +71,6 @@ public class UserClassLoaderHolder(
       }
     }
     synchronized(lock) {
-      // Prune cleared references in-place so the count is accurate and the list doesn't grow
-      // unboundedly across long-running soak loops.
       trackedLoaders.removeAll { it.get() == null }
       return trackedLoaders.size
     }
@@ -139,10 +81,7 @@ public class UserClassLoaderHolder(
     val fresh = ChildFirstURLClassLoader(urls.toTypedArray(), resolvedParent)
     current = fresh
     trackedLoaders.add(WeakReference(fresh))
-    // Self-diagnostic log — pairs with `swap requested` above. Surfaces the URL list so we can see
-    // exactly which directories the next render's findClass walks. The `urlsSummary` helper
-    // reports the directory mtime for each entry; an mtime that doesn't advance across saves means
-    // `compileKotlin` didn't actually rewrite anything (Gradle up-to-date, no-op edit, etc.).
+    // An mtime that does not advance across saves means the compile rewrote nothing.
     System.err.println(
       "compose-ai-daemon: [classloader] allocate child loader parent=${resolvedParent.javaClass.name} " +
         "loaderId=${System.identityHashCode(fresh).toString(16)} urls=${urlsSummary(urls)}"
@@ -152,35 +91,14 @@ public class UserClassLoaderHolder(
   }
 
   /**
-   * Child-first [URLClassLoader] — overrides the JVM's default parent-first delegation so user
-   * classes are resolved against the child's URLs even when the same FQN is also reachable via the
-   * parent classpath. Required because the gradle plugin doesn't partition user-class-dirs out of
-   * the parent's `-cp` in B2.0's v1 (the daemon's launch descriptor still puts everything on a
-   * single classpath); without child-first the parent would happily resolve `Foo.kt`'s old bytes
-   * before the child got a chance.
-   *
-   * **Framework classes still resolve against the parent.** When the child's own URLs don't carry a
-   * class (e.g. `androidx.compose.foundation.*`, `kotlin.*`, anything not under the user's
-   * `build/intermediates/...`), the child falls through to the parent. Per CLASSLOADER.md the
-   * Compose runtime, AndroidX, and the daemon's helpers stay on the parent.
-   *
-   * **Shared process-static bridges are forced to the parent even when the child's URLs carry
-   * them.** [mustDelegateToParent] lists the framework packages *plus*
-   * `org.jetbrains.compose.resources.*`, `ee.schimke.composeai.daemon.*`, and
-   * `ee.schimke.composeai.overrides.*`. These packages expose composition locals or process-static
-   * bridges shared between the daemon and preview, so a child-loaded copy would split that shared
-   * state. See [mustDelegateToParent] for the full rationale.
-   *
-   * **Loaded-class cache discipline.** The JVM's `findLoadedClass` is checked first so a user class
-   * loaded via the child stays the same `Class<?>` instance for repeated lookups within the
-   * loader's lifetime — only [swap] rotates it.
+   * Child-first, because the user classes may also be on the parent's classpath with stale bytes.
+   * [mustDelegateToParent] packages always go to the parent.
    */
   private class ChildFirstURLClassLoader(urls: Array<URL>, parent: ClassLoader) :
     URLClassLoader(urls, parent) {
 
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
       synchronized(getClassLoadingLock(name)) {
-        // Already cached on this loader? Return it.
         val cached = findLoadedClass(name)
         if (cached != null) {
           if (resolve) resolveClass(cached)
@@ -189,7 +107,6 @@ public class UserClassLoaderHolder(
         if (UserClassLoaderHolder.mustDelegateToParent(name)) {
           return super.loadClass(name, resolve)
         }
-        // Try our own URLs first (child-first); fall back to parent if not present locally.
         return try {
           val found = findClass(name)
           if (resolve) resolveClass(found)
@@ -202,55 +119,21 @@ public class UserClassLoaderHolder(
   }
 
   public companion object {
-    /**
-     * Sysprop name. Colon-delimited (`File.pathSeparator`) absolute paths to user-class directories
-     * — the gradle plugin's daemon launch descriptor sets it; both backends' [DaemonMain] reads it
-     * and constructs a [UserClassLoaderHolder] with the resolved URLs.
-     */
+    /** Sysprop: `File.pathSeparator`-delimited user-class directories, set by the launcher. */
     public const val USER_CLASS_DIRS_PROP: String = DaemonProperties.Names.USER_CLASS_DIRS
 
     /**
-     * Whether [name] must be resolved via the parent loader instead of child-first (used by
-     * [ChildFirstURLClassLoader.loadClass]). Two reasons a class is on this list:
-     * 1. **Bootstrap / framework classes** — `java.*`, `kotlin.*`, `androidx.*`, Robolectric,
-     *    Skiko, etc. Punching holes in the JDK packages would break the JVM's bootstrap invariants,
-     *    and the Compose/AndroidX runtime must be the *one* copy the parent bootstrapped
-     *    (child-loading it would fail on classloader-identity skew).
-     * 2. **Composition locals / process-static bridges shared with the daemon** —
-     *    `org.jetbrains.compose.resources.*` (the `LocalResourceReader` provided by the renderer),
-     *    `ee.schimke.composeai.daemon.*` (the cross-classloader handoff queues), and
-     *    `ee.schimke.composeai.overrides.*` (the `previewOverride*` named-override runtime:
-     *    `PreviewOverrideController` is a process-static the daemon's connector seeds *before* the
-     *    preview composes, and the preview reads it back during composition). These only work when
-     *    the daemon and the user preview see the **same** `Class<?>` — one shared static, not two
-     *    per-classloader copies.
+     * Packages the child must never load itself, even when its URLs carry them:
+     * 1. JDK and framework runtimes (Kotlin, AndroidX, Robolectric, Skiko), which must be the one
+     *    copy the parent bootstrapped.
+     * 2. State shared between daemon and preview: `compose.resources` locals, the daemon's handoff
+     *    queues, and the `previewOverride*` runtime the connector seeds before composition. A
+     *    child-loaded copy would be a separate static, so overrides would silently no-op when a
+     *    bundle classpath puts the runtime jar on the child's URLs.
      *
-     * `ee.schimke.composeai.data.overrides.` is the same rule, and missing it was a real bug
-     * (compose-preview-server#839). The JVM `PreviewOverrideOption` is an `actual typealias` onto
-     * `ee.schimke.composeai.data.overrides.PreviewOverrideOption` — the serializable wire shape in
-     * `:data-preview-overrides-core` — so a preview calling `previewOverrideChoice(options =
-     * listOf(PreviewOverrideOption("enabled", "Enabled")))` constructs a type from THAT package and
-     * hands it to the runtime above. Delegating only `…composeai.overrides.` put the two halves of
-     * one call on different loaders: on the Android backend a slot's child loader is built with the
-     * Robolectric sandbox loader as its parent (`RobolectricHost.ensureHolderForSlot`), so the
-     * runtime resolved to the sandbox copy while the option resolved child-first out of the
-     * bundle's core jar, and the call died with `ClassCastException: PreviewOverrideOption cannot
-     * be cast to PreviewOverrideOption`.
-     *
-     * Only `choice` passes a declared type across that seam — every other `previewOverride*` knob
-     * takes JLS types (`String`, `Int`, `Boolean`, …) — which is why an option-bearing knob was the
-     * first to expose it.
-     *
-     * The overrides runtime is the load-bearing case for the **bundle-backed live daemon**
-     * (`ServeBundleDaemon`, the engine behind `--catalogs` `liveBundle` / `preview.coo.ee`): there
-     * the bundle's resolved maven classpath — which includes `:data-preview-overrides-runtime` — is
-     * added to the child loader's URLs. Without this delegation the child would resolve
-     * `PreviewOverrideController` child-first from that jar, a *different* copy from the one the
-     * daemon connector seeds, so every `previewOverrideString("label", "Filled")` silently returns
-     * its author default and content overrides no-op. (On the ordinary Gradle-driven daemon the
-     * child URLs are only the module's compiled-class directory, which carries no runtime classes,
-     * so the child already falls through to the parent — this delegation just makes that guarantee
-     * explicit and independent of what's on the child's URLs.)
+     * `data.overrides` belongs with `overrides`: `previewOverrideChoice` passes a
+     * `PreviewOverrideOption` from that package across the seam, and splitting them across loaders
+     * threw `ClassCastException` (compose-preview-server#839).
      */
     internal fun mustDelegateToParent(name: String): Boolean =
       name.startsWith("java.") ||
@@ -270,30 +153,10 @@ public class UserClassLoaderHolder(
         name.startsWith("ee.schimke.composeai.data.overrides.")
 
     /**
-     * Resolves [USER_CLASS_DIRS_PROP] into a list of [URL]s, dropping entries that don't exist on
-     * disk and **ordering directories before jars**. Returns an empty list if the sysprop is unset.
-     *
-     * **Why directories first.** AGP's variant classpath surfaces both the kotlinc output directory
-     * (`build/intermediates/built_in_kotlinc/<variant>/compileDebugKotlin/classes/`) and the
-     * runtime-bundled jar (`build/intermediates/runtime_app_classes_jar/<variant>/.../classes.jar`)
-     * for the same set of user classes. The kotlinc directory is rewritten by `compileDebugKotlin`
-     * — an upstream of every save's `composePreviewDiscover` — so it carries the fresh bytecode.
-     * The runtime jar is rewritten by `bundleDebugClassesToRuntimeJar`, which is **not** on the
-     * `composePreviewDiscover` task graph; it only runs as part of `composePreviewDaemonStart`
-     * (once at bootstrap) and the unit-test packaging path. After the first save the jar is
-     * therefore stale relative to the `.class` directory.
-     *
-     * `URLClassLoader.findClass` walks URLs in declaration order and returns the first match. AGP's
-     * natural ordering puts the runtime jar before the kotlinc directory; without this sort the
-     * daemon resolves every user class out of the stale jar and the freshly-recompiled directory is
-     * never read — the "first edit updates, subsequent edits stick" symptom that the cancellation
-     * hole / classloader-swap diagnostics couldn't explain on their own. Moving directories to the
-     * front lets the kotlinc output win for any class it carries; bundled jars stay on the path as
-     * a fallback for kapt/ksp-generated classes and the AGP `R.jar`.
-     *
-     * Sort is stable (`sortedBy` uses TimSort), so directories among themselves and jars among
-     * themselves keep their relative order — important because AGP's main-vs-test classpath
-     * ordering carries semantics we don't want to scramble.
+     * Resolves [USER_CLASS_DIRS_PROP] to URLs, dropping missing entries and putting directories
+     * before jars. AGP also lists a runtime classes jar that is only rebuilt at daemon start, so
+     * after the first save it is stale; listed first, it would shadow the recompiled `.class`
+     * directory. The sort is stable, preserving AGP's order within each group.
      */
     public fun urlsFromSysprop(): List<URL> {
       val files =
@@ -301,11 +164,7 @@ public class UserClassLoaderHolder(
       return files.sortedBy { if (it.isDirectory) 0 else 1 }.map { it.toURI().toURL() }
     }
 
-    /**
-     * Compact one-line dump of [urls] suitable for stderr — each entry is `<path>(mtime=…)` so the
-     * directory's most-recent write is visible at a glance. Only `file:` URLs are statted; other
-     * schemes are reported by URL string only.
-     */
+    /** One-line `[<path>(mtime=…), …]` dump of [urls] for stderr. */
     internal fun urlsSummary(urls: List<URL>): String =
       urls.joinToString(prefix = "[", postfix = "]") { url ->
         if (url.protocol == "file") {
@@ -320,13 +179,9 @@ public class UserClassLoaderHolder(
       }
 
     /**
-     * Resolves [className] to its on-disk `.class` file via [loader]'s resource lookup and returns
-     * a compact `path=… mtime=… size=… sha=…` string. Returns `null` if the class isn't on a
-     * `file:` URL (jar entry, network, missing) — we only fingerprint disk-backed user classes
-     * since those are the ones that should change across save → recompile cycles.
-     *
-     * The SHA is the first 6 bytes of SHA-256 hex (12 chars) — enough to disambiguate consecutive
-     * recompiles in a save loop without bloating each log line.
+     * A `path=… mtime=… size=… sha=…` fingerprint of [className]'s class file (or containing jar),
+     * for spotting a save that did not recompile; `null` when it is not on a local file. The SHA is
+     * truncated to 12 hex chars.
      */
     public fun classFileFingerprint(loader: ClassLoader, className: String): String? {
       val resourceName = className.replace('.', '/') + ".class"

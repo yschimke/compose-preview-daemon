@@ -12,36 +12,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * Daemon-side parse target for the gradle plugin's `previews.json`.
- *
- * **Layer-2-only DTO.** [LAYERING.md](../../../../../../../docs/daemon/LAYERING.md) forbids
- * `:daemon:core` from depending on `:gradle-plugin`. The plugin owns the authoritative
- * [PreviewInfo] type (`gradle-plugin/.../PreviewData.kt`) and writes it to disk via
- * kotlinx-serialization; the daemon parses the same JSON shape with this minimal mirror, capturing
- * only the fields the daemon actually needs. Extra fields the plugin emits (captures list,
- * accessibility report pointer, …) are ignored at parse time via `ignoreUnknownKeys`, so adding new
- * plugin-side fields does NOT break the daemon's parser.
- *
- * **Why duplicate instead of share.** Sharing the type would either pull `:gradle-plugin` onto the
- * daemon's classpath (heavy, and a layering inversion) or carve a third "shared protocol" module
- * out of the plugin. Phase 1 deliberately picks duplication: ~30 LOC of mirror keeps the layering
- * invariant and the daemon's parse surface scoped to fields it consumes today.
- *
- * Field naming follows the wire JSON, NOT the plugin's internal field names. The plugin emits
- * `functionName` (the `@Preview`-annotated function), so we read `functionName` here.
- *
- * **B2.2 phase 2** added [displayName] and [group] so the diff path can detect "ID present on both
- * sides but a tracked field changed" (a renamed preview, a `group =` rewrite). Both fields are
- * optional in `previews.json` and absent in older fixtures; the diff treats `null == null` as
- * unchanged.
- *
- * **Issue #420** added the nested [params] block so the v2 interactive resolver can build a
- * [RenderSpec][ee.schimke.composeai.daemon.RenderSpec]-shaped scene that matches `@Preview(widthDp
- * = …, heightDp = …, density = …, …)` exactly. All sub-fields are optional and default to `null` so
- * older `previews.json` fixtures (and the harness's flat fake schema) still parse — the resolver
- * falls back to its built-in `320x320 / density 2.0` defaults when a field is absent. Additive per
- * [PROTOCOL.md § 7](../../../../../../../docs/daemon/PROTOCOL.md#7-versioning) — no
- * `protocolVersion` bump.
+ * The daemon's mirror of the Gradle plugin's `previews.json` entry, holding only the fields the
+ * daemon reads. A mirror rather than a shared type because `:daemon:core` may not depend on the
+ * plugin (LAYERING.md); unknown keys are ignored, so plugin additions never break parsing. Field
+ * names follow the wire JSON. New fields are optional, so older files still parse.
  */
 @Serializable
 public data class PreviewInfoDto(
@@ -50,21 +24,11 @@ public data class PreviewInfoDto(
   val className: String,
   /** Method name of the `@Preview` function. The plugin's JSON key is `functionName`. */
   @SerialName("functionName") val methodName: String,
-  /**
-   * Source file path captured by the discovery task (`ClassInfo.sourceFile`). Optional — older
-   * `previews.json` files predate B2.0 and don't include it.
-   */
+  /** Source file path captured by discovery (`ClassInfo.sourceFile`). */
   val sourceFile: String? = null,
-  /**
-   * Display name surfaced to the client (typically the `name = "…"` argument on `@Preview`).
-   * Optional — phase 1's parse predates this field, so older fixtures emit `null`. Tracked by
-   * [diff] for "changed" detection.
-   */
+  /** `@Preview(name = …)`; tracked by [diff] for "changed" detection. */
   val displayName: String? = null,
-  /**
-   * Preview group (the `group = "…"` argument on `@Preview`). Tracked by [diff] for "changed"
-   * detection.
-   */
+  /** `@Preview(group = …)`; tracked by [diff] for "changed" detection. */
   val group: String? = null,
   /**
    * Display-property block sourced from the gradle plugin's `PreviewParams`. Optional — fixtures
@@ -428,27 +392,13 @@ public fun discoveryDiffEmpty(diff: DiscoveryDiff): Boolean =
   diff.added.isEmpty() && diff.removed.isEmpty() && diff.changed.isEmpty()
 
 /**
- * In-memory preview index owned by the daemon.
- *
- * **B2.2 phase 1.** The daemon parses `previews.json` once at startup and exposes the resulting map
- * for `initialize.manifest.{path, previewCount}`.
- *
- * **B2.2 phase 2.** The index is now mutable — [diff] computes the delta against a freshly-scanned
- * `Set<PreviewInfoDto>` for one source file, and [applyDiff] merges that delta in-place. Reads use
- * a [ReentrantReadWriteLock] so concurrent renders observing the index can never see a torn map.
- *
- * **Degraded mode.** [loadFromFile] never throws on a malformed or missing input. It returns
- * [empty] and writes a single warn-level diagnostic to stderr (free-form log per
- * [PROTOCOL.md § 1](../../../../../../../docs/daemon/PROTOCOL.md)). The daemon should still come up
- * on a corrupt manifest; clients see `previewCount = 0` and can re-trigger discovery.
+ * The daemon's preview index, loaded from `previews.json` at startup and updated in place by [diff]
+ * / [applyDiff] after a source change. Guarded by a read-write lock so renders never see a torn
+ * map. A missing or corrupt file yields [empty] rather than failing startup.
  */
 public class PreviewIndex
 internal constructor(
-  /**
-   * Absolute path to the file the index was loaded from. `null` when the index is the empty
-   * placeholder — i.e. no `composeai.daemon.previewsJsonPath` sysprop was set, or the file didn't
-   * exist / was malformed.
-   */
+  /** The file the index was loaded from; `null` for the [empty] placeholder. */
   public val path: Path?,
   initial: Map<String, PreviewInfoDto>,
 ) {
@@ -460,7 +410,6 @@ internal constructor(
   public val size: Int
     get() = lock.read { byId.size }
 
-  /** Lookup by `PreviewInfo.id`. `null` if the id is unknown. */
   /** The discovered preview [id] names, or `null`. Exact match only — see [rowResolved]. */
   public fun byId(id: String): PreviewInfoDto? = lock.read { byId[id] }
 
@@ -475,10 +424,8 @@ internal constructor(
    * lands in history with no metadata and `recording/generateTest` emits a test with no function
    * name.
    *
-   * [Resolved.row] is the other half, and callers that *build a render* must honour it: resolving a
-   * row id to its base entry and dropping the token would compose value 0 under the row's id —
-   * silently the wrong state, which is worse than the "unknown previewId" a caller used to get.
-   * That is why the row rides out here rather than being folded invisibly into [byId].
+   * Callers that build a render must honour [Resolved.row]: dropping it would silently render value
+   * 0 under the row's id.
    */
   public fun rowResolved(id: String): Resolved? = lock.read {
     byId[id]?.let {
@@ -704,18 +651,10 @@ internal constructor(
   }
 
   public companion object {
-    /**
-     * The empty placeholder. Used when no `composeai.daemon.previewsJsonPath` was supplied — e.g.
-     * fake-mode harness scenarios, the in-process integration tests, the pre-B2.2 default. `path =
-     * null`, `size = 0`.
-     */
+    /** The index used when no `previews.json` is available. */
     public fun empty(): PreviewIndex = PreviewIndex(path = null, initial = emptyMap())
 
-    /**
-     * Constructs an index from an in-memory map. Used by the harness's `FakeDaemonMain` to seed a
-     * daemon-side index from its own fixture manifest without round-tripping a JSON file. [path]
-     * may be null (harness path) or absolute (production / desktop daemon path).
-     */
+    /** An index over an in-memory map, e.g. a harness fixture manifest. */
     public fun fromMap(path: Path?, byId: Map<String, PreviewInfoDto>): PreviewIndex =
       PreviewIndex(path = path?.toAbsolutePath(), initial = byId)
 
@@ -760,18 +699,11 @@ internal constructor(
       return PreviewIndex(path = absolute, initial = byId)
     }
 
-    /**
-     * System property the per-target [DaemonMain] reads to locate `previews.json`. The gradle
-     * plugin emits this as part of `composePreviewDaemonStart`'s descriptor (see
-     * [DaemonClasspathDescriptor.systemProperties]); when unset, the daemon comes up with [empty] —
-     * preserves pre-B2.2 in-process / fake-mode behaviour.
-     */
+    /** Sysprop locating `previews.json`; unset means [empty]. */
     public const val PREVIEWS_JSON_PATH_PROP: String = DaemonProperties.Names.PREVIEWS_JSON_PATH
 
     private val JSON: Json = Json {
       ignoreUnknownKeys = true
-      // Plugin-side `PreviewParams.fontScale = 1.0f` etc. are encoded with default values; we
-      // don't decode them, but staying lenient about defaults keeps the parse path forgiving.
       isLenient = false
     }
   }

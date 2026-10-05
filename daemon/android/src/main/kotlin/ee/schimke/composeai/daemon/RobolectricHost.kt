@@ -1507,20 +1507,6 @@ open class RobolectricHost(
     return RenderTarget.Spec(spec)
   }
 
-  /** Parses a `;`-delimited `key=value` payload into a map; mirrors [PreviewManifestRouter]. */
-  private fun parsePayloadMap(payload: String): Map<String, String> {
-    val map = mutableMapOf<String, String>()
-    for (entry in payload.split(';')) {
-      val trimmed = entry.trim()
-      if (trimmed.isEmpty()) continue
-      val eq = trimmed.indexOf('=')
-      if (eq <= 0) continue
-      val v = trimmed.substring(eq + 1).trim()
-      if (v.isNotEmpty()) map[trimmed.substring(0, eq).trim()] = v
-    }
-    return map
-  }
-
   private fun copyResultAcrossClassloaders(raw: Any): RenderResult {
     val cls = raw.javaClass
     val id = cls.getMethod("getId").invoke(raw) as Long
