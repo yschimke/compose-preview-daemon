@@ -134,4 +134,42 @@ class GifEncoderTest {
         .map { i -> (bytes[i + 4].toInt() and 0xFF) or ((bytes[i + 5].toInt() and 0xFF) shl 8) }
     assertEquals(listOf(3, 4, 3, 3, 4, 3), delays)
   }
+
+  @Test
+  fun translucent_frames_clear_between_frames_and_opaque_frames_do_not() {
+    val framesDir = tmp.newFolder("frames")
+    val translucent =
+      (0 until 3).map { i ->
+        val img = BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB)
+        img.setRGB(i, 0, Color.RED.rgb)
+        File(framesDir, "frame-${"%05d".format(i)}.png").also { ImageIO.write(img, "png", it) }
+      }
+    val translucentOut = File(tmp.newFolder("translucent"), "t.gif")
+    GifEncoder.encodeFromPngFrames(frames = translucent, fps = 10, out = translucentOut)
+    assertEquals(List(3) { RESTORE_TO_BACKGROUND }, disposalMethods(translucentOut))
+
+    val opaqueDir = tmp.newFolder("opaque-frames")
+    val opaque = (0 until 3).map { writeFrame(opaqueDir, it, Color.BLUE) }
+    val opaqueOut = File(tmp.newFolder("opaque"), "o.gif")
+    GifEncoder.encodeFromPngFrames(frames = opaque, fps = 10, out = opaqueOut)
+    assertEquals(List(3) { NO_DISPOSAL }, disposalMethods(opaqueOut))
+  }
+
+  /** The disposal field of every Graphic Control Extension in [gif], as encoded. */
+  private fun disposalMethods(gif: File): List<Int> {
+    val bytes = gif.readBytes()
+    return bytes.indices
+      .filter { i ->
+        i + 3 < bytes.size &&
+          bytes[i] == 0x21.toByte() &&
+          bytes[i + 1] == 0xF9.toByte() &&
+          bytes[i + 2] == 0x04.toByte()
+      }
+      .map { i -> (bytes[i + 3].toInt() shr 2) and 0x07 }
+  }
+
+  private companion object {
+    const val NO_DISPOSAL = 0
+    const val RESTORE_TO_BACKGROUND = 2
+  }
 }
