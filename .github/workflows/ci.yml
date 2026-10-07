@@ -33,8 +33,12 @@ jobs:
           ro-token: ${{ secrets.BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN_RO || secrets.BUILDFETCH_GRADLE_REMOTE_CACHE_TOKEN_RO }}
       - name: Test build ownership checks
         run: ./gradlew -p build-logic test
+      # `:daemon:android:test` has a runner of its own (`daemon-android-tests`): it was the whole
+      # tail of this job, 9-13 minutes of one Robolectric boot per test class.
       - name: Run module tests
-        run: ./gradlew test jvmTest checkKotlinAbi checkDependencyOwnership checkHttpServerFloor --continue
+        run: >-
+          ./gradlew test jvmTest checkKotlinAbi checkDependencyOwnership checkHttpServerFloor
+          -x :daemon:android:test --continue
       - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -43,6 +47,33 @@ jobs:
           path: |
             **/build/reports/tests/**
             **/build/test-results/**
+          retention-days: 7
+
+  # The Robolectric-backed daemon tests, split out of `module-unit-tests` so the two run side by
+  # side. One JVM per test class (`forkEvery`, see `daemon/android/build.gradle.kts`), two at a time
+  # on a 4-core runner.
+  daemon-android-tests:
+    name: Daemon Android Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/buildfetch-cache
+        with:
+          rw-token: ${{ github.event_name == 'push' && (secrets.BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN || secrets.BUILDFETCH_GRADLE_REMOTE_CACHE_TOKEN) || '' }}
+          ro-token: ${{ secrets.BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN_RO || secrets.BUILDFETCH_GRADLE_REMOTE_CACHE_TOKEN_RO }}
+      - name: Run daemon Android tests
+        run: ./gradlew :daemon:android:test
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: daemon-android-test-reports
+          path: |
+            daemon/android/build/reports/tests/**
+            daemon/android/build/test-results/**
           retention-days: 7
 
   # Android lint, which nothing enforced until now: `lintDebug` was green on nobody's machine and

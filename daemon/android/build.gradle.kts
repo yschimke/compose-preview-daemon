@@ -562,4 +562,13 @@ composeAiMavenPublishing {
 //
 // Robolectric boot dominates the runtime either way, so the extra JVM starts cost little next to
 // the ~150 tests a dead executor was silently skipping. See #3072.
-tasks.withType<Test>().configureEach { forkEvery = 1 }
+//
+// Those per-class JVMs run side by side, half the cores at a time. With the default of one fork,
+// the ~90 classes booted Robolectric strictly one after another and `:daemon:android:test` alone
+// took 9-13 minutes of CI, the whole tail of `Module Unit Tests`. Separate processes, so the
+// single-classloader constraint above still holds per fork; same ratio
+// compose-preview-server's `:server:test` uses.
+tasks.withType<Test>().configureEach {
+  forkEvery = 1
+  maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+}
