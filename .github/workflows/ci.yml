@@ -31,6 +31,33 @@ jobs:
         with:
           rw-token: ${{ github.event_name == 'push' && (secrets.BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN || secrets.BUILDFETCH_GRADLE_REMOTE_CACHE_TOKEN) || '' }}
           ro-token: ${{ secrets.BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN_RO || secrets.BUILDFETCH_GRADLE_REMOTE_CACHE_TOKEN_RO }}
+      # Robolectric fetches its `android-all-instrumented` framework jars (SDK 33, 34 and 35 here)
+      # into `~/.m2` at test time, outside the Gradle User Home that setup-gradle caches, so every
+      # run downloaded them again. Same scheme as compose-ai-tools' integration.yml: restore by
+      # prefix, save under a key naming the exact jar set, and only from `main`.
+      - name: Restore Robolectric android-all cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.m2/repository/org/robolectric/android-all-instrumented
+          key: android-all-instrumented-${{ runner.os }}-${{ github.job }}-
+          restore-keys: |
+            android-all-instrumented-${{ runner.os }}-${{ github.job }}-
+      # Robolectric skips the download when the jar's path exists, so a truncated jar restored from
+      # cache would boot a broken sandbox rather than be fetched again. Drop any that fail to open.
+      - name: Drop corrupt android-all jars
+        run: |
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import Path
+
+          root = Path.home() / ".m2/repository/org/robolectric/android-all-instrumented"
+          for jar in root.rglob("*.jar") if root.exists() else []:
+              try:
+                  zipfile.ZipFile(jar).close()
+              except (zipfile.BadZipFile, OSError) as e:
+                  print(f"dropping {jar}: {e}")
+                  jar.unlink()
+          PY
       - name: Test build ownership checks
         run: ./gradlew -p build-logic test
       # `:daemon:android:test` has a runner of its own (`daemon-android-tests`): it was the whole
@@ -48,6 +75,23 @@ jobs:
             **/build/reports/tests/**
             **/build/test-results/**
           retention-days: 7
+      - name: Name the android-all jar set
+        id: android-all
+        if: always() && github.event_name == 'push'
+        run: |
+          dir="${HOME}/.m2/repository/org/robolectric/android-all-instrumented"
+          if [ -d "$dir" ] && [ -n "$(find "$dir" -name '*.jar' -print -quit)" ]; then
+            coordinate=$(cd "$dir" && find . -name '*.jar' | sort | sha256sum | cut -c1-16)
+            echo "coordinate=${coordinate}" >> "$GITHUB_OUTPUT"
+          fi
+      # Saving a key that already exists only warns: the steady state, since the set rarely moves.
+      - name: Save Robolectric android-all cache
+        if: always() && steps.android-all.outputs.coordinate != ''
+        continue-on-error: true
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.m2/repository/org/robolectric/android-all-instrumented
+          key: android-all-instrumented-${{ runner.os }}-${{ github.job }}-${{ steps.android-all.outputs.coordinate }}
 
   # The Robolectric-backed daemon tests, split out of `module-unit-tests` so the two run side by
   # side. One JVM per test class (`forkEvery`, see `daemon/android/build.gradle.kts`), two at a time
@@ -64,6 +108,33 @@ jobs:
         with:
           rw-token: ${{ github.event_name == 'push' && (secrets.BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN || secrets.BUILDFETCH_GRADLE_REMOTE_CACHE_TOKEN) || '' }}
           ro-token: ${{ secrets.BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN_RO || secrets.BUILDFETCH_GRADLE_REMOTE_CACHE_TOKEN_RO }}
+      # Robolectric fetches its `android-all-instrumented` framework jars (SDK 33, 34 and 35 here)
+      # into `~/.m2` at test time, outside the Gradle User Home that setup-gradle caches, so every
+      # run downloaded them again. Same scheme as compose-ai-tools' integration.yml: restore by
+      # prefix, save under a key naming the exact jar set, and only from `main`.
+      - name: Restore Robolectric android-all cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.m2/repository/org/robolectric/android-all-instrumented
+          key: android-all-instrumented-${{ runner.os }}-${{ github.job }}-
+          restore-keys: |
+            android-all-instrumented-${{ runner.os }}-${{ github.job }}-
+      # Robolectric skips the download when the jar's path exists, so a truncated jar restored from
+      # cache would boot a broken sandbox rather than be fetched again. Drop any that fail to open.
+      - name: Drop corrupt android-all jars
+        run: |
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import Path
+
+          root = Path.home() / ".m2/repository/org/robolectric/android-all-instrumented"
+          for jar in root.rglob("*.jar") if root.exists() else []:
+              try:
+                  zipfile.ZipFile(jar).close()
+              except (zipfile.BadZipFile, OSError) as e:
+                  print(f"dropping {jar}: {e}")
+                  jar.unlink()
+          PY
       - name: Run daemon Android tests
         run: ./gradlew :daemon:android:test
       - name: Upload test reports on failure
@@ -75,6 +146,23 @@ jobs:
             daemon/android/build/reports/tests/**
             daemon/android/build/test-results/**
           retention-days: 7
+      - name: Name the android-all jar set
+        id: android-all
+        if: always() && github.event_name == 'push'
+        run: |
+          dir="${HOME}/.m2/repository/org/robolectric/android-all-instrumented"
+          if [ -d "$dir" ] && [ -n "$(find "$dir" -name '*.jar' -print -quit)" ]; then
+            coordinate=$(cd "$dir" && find . -name '*.jar' | sort | sha256sum | cut -c1-16)
+            echo "coordinate=${coordinate}" >> "$GITHUB_OUTPUT"
+          fi
+      # Saving a key that already exists only warns: the steady state, since the set rarely moves.
+      - name: Save Robolectric android-all cache
+        if: always() && steps.android-all.outputs.coordinate != ''
+        continue-on-error: true
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.m2/repository/org/robolectric/android-all-instrumented
+          key: android-all-instrumented-${{ runner.os }}-${{ github.job }}-${{ steps.android-all.outputs.coordinate }}
 
   # Android lint, which nothing enforced until now: `lintDebug` was green on nobody's machine and
   # red on `main` for 102 `NewApi` errors (#136) plus 21 others (#137) before those landed, because
