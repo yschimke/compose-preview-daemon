@@ -327,7 +327,9 @@ composeai-contracts = "3.20.0"
 #
 # During the move these were briefly split across two refs, so that three unpublished coordinates
 # could not pin the five that were already on Central. That is over: one ref again.
-rcplayers = "2.1.4"
+# 2.2.0 applies the OpenType font features (`tnum`, `frac`, `liga 0`) a `CoreText` style carries
+# beside its variation axes (rc-players#586).
+rcplayers = "2.2.0"
 
 [libraries]
 
