@@ -306,7 +306,7 @@ coil3 = "3.5.0"
 # at 3.15.0 (`RemoteComposeOverride.playerId`, read by the connector), and 3.15.0 is the first BOM
 # to carry it. 3.16.0 and 3.17.0 differ from it only in `ui-builder-protocol`, which nothing here
 # uses.
-composeai-contracts = "3.19.0"
+composeai-contracts = "3.20.0"
 
 # The Remote Compose players, published by yschimke/rc-players (the CMP player stack, the vendored
 # AndroidX embedded player, and the Wasm browser bundle). They were project deps here until the
