@@ -1,5 +1,31 @@
 # Changelog
 
+## [3.14.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.14.0...v3.14.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **deps:** rc-players 2.2.0, which applies a CoreText style's font features ([#227](https://github.com/yschimke/compose-preview-daemon/issues/227)) ([ab74939](https://github.com/yschimke/compose-preview-daemon/commit/ab749397258554adeb9f8adab3afe08e2df274e3))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.20.0 ([#228](https://github.com/yschimke/compose-preview-daemon/issues/228)) ([95ca3aa](https://github.com/yschimke/compose-preview-daemon/commit/95ca3aa91b26d2e08568bf1b30005a296b13374e))
+* stop translucent recording GIFs smearing; remove dead code and trim comments ([#223](https://github.com/yschimke/compose-preview-daemon/issues/223)) ([591f01b](https://github.com/yschimke/compose-preview-daemon/commit/591f01b8da15bf2a476064ab8d9e865559fc5af4))
+
+
+### Documentation
+
+* update agent plugin location and setup guidance ([#222](https://github.com/yschimke/compose-preview-daemon/issues/222)) ([808dd81](https://github.com/yschimke/compose-preview-daemon/commit/808dd8156d916272d890fb81125ca48ad5356b57))
+
+
+### CI
+
+* restore the Gradle and Robolectric caches instead of downloading every run ([#226](https://github.com/yschimke/compose-preview-daemon/issues/226)) ([d6e733a](https://github.com/yschimke/compose-preview-daemon/commit/d6e733a3fcf6210d3ab0e55e39730898d49b3a38))
+* run daemon Android tests two forks at a time, on their own runner ([#225](https://github.com/yschimke/compose-preview-daemon/issues/225)) ([255a451](https://github.com/yschimke/compose-preview-daemon/commit/255a451682d99a401e98f60aac1ce2db6792eb04))
+
+
+### Chores
+
+* align daemon dependencies to latest release BOMs ([124af53](https://github.com/yschimke/compose-preview-daemon/commit/124af5385d83eb7ca1c918416d3bd2b65e399ab7))
+* **deps:** update dependency dev.zacsweers.metro to v1.4.5 ([#220](https://github.com/yschimke/compose-preview-daemon/issues/220)) ([5f06036](https://github.com/yschimke/compose-preview-daemon/commit/5f06036c3ecc360dab87ef030a15242319563797))
+
 ## [3.14.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.13.2...v3.14.0) (2026-10-04)
 
 
