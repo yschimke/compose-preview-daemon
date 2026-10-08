@@ -329,7 +329,7 @@ composeai-contracts = "3.20.0"
 # could not pin the five that were already on Central. That is over: one ref again.
 # 2.2.0 applies the OpenType font features (`tnum`, `frac`, `liga 0`) a `CoreText` style carries
 # beside its variation axes (rc-players#586).
-rcplayers = "2.2.0"
+rcplayers = "2.2.1"
 
 [libraries]
 
