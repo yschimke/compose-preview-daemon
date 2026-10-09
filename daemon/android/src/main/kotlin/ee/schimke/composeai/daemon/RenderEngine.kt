@@ -318,7 +318,10 @@ class RenderEngine(
     // a Remote Compose IR preview falls through to the normal path (its class is still absent, so
     // it
     // errors as it did before, until its replay path lands).
-    val irReplay = BundleIrReplayStore.lookup(spec.previewId)
+    // A document carried on the request (`overrides.remoteCompose.documentBase64`) replays in place
+    // of the preview's own content — see [BundleIrReplayStore.resolve].
+    val carriedDocument = BundleIrReplayStore.carried(spec.overrides?.remoteCompose)
+    val irReplay = carriedDocument ?: BundleIrReplayStore.lookup(spec.previewId)
     val isProtolayoutIr = irReplay?.format == BundleIrReplayStore.FORMAT_PROTOLAYOUT
     // Remote Compose replays through a connector composable the daemon can't compile against (it's
     // built on the alpha player SDK); resolve it reflectively via the IR-replay SPI. Null when the
@@ -333,6 +336,12 @@ class RenderEngine(
       else null
     // An IR-backed preview's consumer class was dropped at pack time, so skip the reflective load
     // whenever we have a replay path for it (protolayout direct, or a resolved RC provider).
+    // Falling through to the preview's own class would draw a confident render of the wrong
+    // document; a request that carried bytes fails instead.
+    check(carriedDocument == null || rcReplayClass != null) {
+      "overrides.remoteCompose.documentBase64 needs the Remote Compose IR replay connector " +
+        "(data-remotecompose-connector) on the render classpath"
+    }
     val isIrReplay = isProtolayoutIr || rcReplayClass != null
     val isSyntheticThemeCatalog = isThemeCatalog || isWearThemeCatalog
     val clazz =
