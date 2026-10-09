@@ -49,6 +49,7 @@ public final class ee/schimke/composeai/daemon/BundleIrReplayStore {
 	public static final field FORMAT_REMOTECOMPOSE Ljava/lang/String;
 	public static final field INSTANCE Lee/schimke/composeai/daemon/BundleIrReplayStore;
 	public static final field IR_DIR_PROP Ljava/lang/String;
+	public final fun carried (Lee/schimke/composeai/daemon/protocol/RemoteComposeOverride;)Lee/schimke/composeai/daemon/BundleIrReplayStore$Entry;
 	public final fun loadFrom (Ljava/io/File;Ljava/io/File;Lokio/FileSystem;)Ljava/util/Map;
 	public static synthetic fun loadFrom$default (Lee/schimke/composeai/daemon/BundleIrReplayStore;Ljava/io/File;Ljava/io/File;Lokio/FileSystem;ILjava/lang/Object;)Ljava/util/Map;
 	public final fun lookup (Ljava/lang/String;)Lee/schimke/composeai/daemon/BundleIrReplayStore$Entry;

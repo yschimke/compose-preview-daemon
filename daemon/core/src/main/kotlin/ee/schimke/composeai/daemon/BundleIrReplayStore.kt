@@ -1,8 +1,10 @@
 package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.config.DaemonProperties
+import ee.schimke.composeai.daemon.protocol.RemoteComposeOverride
 import ee.schimke.composeai.io.SystemFileSystem
 import java.io.File
+import java.util.Base64
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okio.FileSystem
@@ -49,6 +51,22 @@ public object BundleIrReplayStore {
   public fun lookup(previewId: String?): Entry? {
     if (previewId == null) return null
     return entries()[previewId]
+  }
+
+  /**
+   * The Remote Compose document a request carries in `renderNow.overrides.remoteCompose
+   * .documentBase64`, or `null` when it names none. A carried document replays in place of both the
+   * bundle's own `ir/<id>.rc` ([lookup]) and the preview's composable, which lets a caller hand the
+   * daemon arbitrary `.rc` bytes — the preview server's shared-document players — and see them
+   * drawn by the AndroidX players without the bytes ever being packed into a bundle; the render's
+   * preview then only picks the sandbox and frame.
+   *
+   * Malformed base64 throws rather than returning `null`: a caller that asked to see its bytes must
+   * never get a confident render of the preview's own document instead.
+   */
+  public fun carried(remoteCompose: RemoteComposeOverride?): Entry? {
+    val encoded = remoteCompose?.documentBase64 ?: return null
+    return Entry(FORMAT_REMOTECOMPOSE, Base64.getDecoder().decode(encoded), resourcesBytes = null)
   }
 
   private fun entries(): Map<String, Entry> = cached ?: load().also { cached = it }
