@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.15.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.14.1...v3.15.0) (2026-10-09)
+
+
+### Features
+
+* replay a Remote Compose document carried on renderNow ([#231](https://github.com/yschimke/compose-preview-daemon/issues/231)) ([2fe4da4](https://github.com/yschimke/compose-preview-daemon/commit/2fe4da4afb0b72409e873d7f141af224495fd3bc))
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.2.1 ([#229](https://github.com/yschimke/compose-preview-daemon/issues/229)) ([70651ed](https://github.com/yschimke/compose-preview-daemon/commit/70651ed74d1af6ba3dd074bb2ad35c8c95d770e7))
+
 ## [3.14.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.14.0...v3.14.1) (2026-10-07)
 
 
