@@ -56,7 +56,8 @@ class CarriedDocumentReplayTest {
     try {
       val result =
         host.submit(RenderRequest.Render(target = RenderTarget.Spec(spec)), timeoutMs = 120_000)
-      val png = assertNotNull("carried replay must produce a PNG", result.artifact.pathOrNull())
+      val png = result.artifact.pathOrNull()
+      assertNotNull("carried replay must produce a PNG", png)
       val greenPct = greenPct(File(png!!))
       assertTrue(
         "expected the frame to be ≥95% the replay composable's green " +
