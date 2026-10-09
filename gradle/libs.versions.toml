@@ -329,7 +329,11 @@ composeai-contracts = "3.21.0"
 # could not pin the five that were already on Central. That is over: one ref again.
 # 2.2.0 applies the OpenType font features (`tnum`, `frac`, `liga 0`) a `CoreText` style carries
 # beside its variation axes (rc-players#586).
-rcplayers = "2.2.1"
+# 2.4.0 brings 2.3.0's variable faces: a variable file listed once per weight now draws at each
+# weight (rc-players#597; 2.2.1 drew every row at the file's default instance), draw-list sounds and
+# per-frame redraw of clock-driven canvases, then 2.4.0's StateLayout enter/exit and shared elements
+# matched by their AnimationSpec id.
+rcplayers = "2.4.0"
 
 [libraries]
 
