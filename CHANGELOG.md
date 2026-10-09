@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.15.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.0...v3.15.1) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** contracts 3.24.0 ([#234](https://github.com/yschimke/compose-preview-daemon/issues/234)) ([fce1c90](https://github.com/yschimke/compose-preview-daemon/commit/fce1c90a0614a7cc251bd951a69c41a1dd4652ac))
+
+
+### Build
+
+* **deps:** rc-players 2.4.0 ([#232](https://github.com/yschimke/compose-preview-daemon/issues/232)) ([45dc54c](https://github.com/yschimke/compose-preview-daemon/commit/45dc54c7b3a7417ff3ba971c75c60d6b6cebd43b))
+
 ## [3.15.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.14.1...v3.15.0) (2026-10-09)
 
 
