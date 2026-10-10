@@ -119,8 +119,12 @@ merged, stop: branch fresh for the follow-up.
 - **A PR that changes what a renderer draws carries before/after evidence as embedded images from a
   GitHub-hosted origin** (`raw.githubusercontent.com`, commit-pinned). Text-only is correct for a
   non-visual change.
-- **Don't auto-merge.** Opening, tracking and fix-up commits are automatic; merging is the user's
-  call.
+- **Merge only when explicitly requested.** Only merge a PR or enable auto-merge
+  when the user specifically asks. If the request or intended PRs are unclear,
+  ask for clarification before merging. A request to implement, fix, review,
+  or open a PR does not by itself authorize merging. Honor required checks,
+  reviews, and branch protections. Opening,
+  tracking and fix-up commits remain automatic.
 
 ## Robolectric integration findings
 
