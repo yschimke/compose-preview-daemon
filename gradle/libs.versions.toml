@@ -308,7 +308,7 @@ coil3 = "3.5.0"
 # uses.
 # 3.24.0 is the set compose-ai-tools 2.38.x, compose-ui-builder 3.101.0 and the server resolve, so
 # every layer above this one meets the daemon on one contracts BOM rather than lifting it as a floor.
-composeai-contracts = "3.25.0"
+composeai-contracts = "3.26.0"
 
 # The Remote Compose players, published by yschimke/rc-players (the CMP player stack, the vendored
 # AndroidX embedded player, and the Wasm browser bundle). They were project deps here until the
