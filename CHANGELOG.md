@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.15.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.1...v3.15.2) (2026-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.25.0 ([#236](https://github.com/yschimke/compose-preview-daemon/issues/236)) ([de8e3f5](https://github.com/yschimke/compose-preview-daemon/commit/de8e3f50f2fed1924029f9c1f08fe065efb562a3))
+* **renderer-desktop:** stop raising the consumer's material3 ([#235](https://github.com/yschimke/compose-preview-daemon/issues/235)) ([9403983](https://github.com/yschimke/compose-preview-daemon/commit/94039837509fe74acbab2626f1939bfe95b226b0))
+
 ## [3.15.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.0...v3.15.1) (2026-10-09)
 
 
