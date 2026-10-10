@@ -92,7 +92,6 @@ dependencies {
   implementation(compose.desktop.currentOs)
   implementation(libs.jetbrains.compose.ui)
   implementation(libs.jetbrains.compose.foundation)
-  implementation(libs.jetbrains.compose.material3)
   implementation(libs.jetbrains.compose.runtime)
   implementation(libs.jetbrains.compose.components.ui.tooling.preview)
   // JetBrains Compose UI Test — gives the renderer `runComposeUiTest { ... }`, the desktop
@@ -161,6 +160,13 @@ dependencies {
   // declared and no sidecar is written). `core` (re-exported) carries the payload serializer.
   implementation(project(":data-preview-overrides-runtime"))
 
+  // material3 on the TEST classpath only: the renderer's main code never touches it, and
+  // `implementation` put it on every consumer's render classpath, where conflict resolution
+  // raised the consumer's own material3 to ours. A Compose Multiplatform 1.12 app pinning an
+  // older material3 then rendered against a material3 built for a different foundation —
+  // `AbstractMethodError: … CustomStyle.applyStyle` in every OutlinedTextField (meshcore-mobile).
+  // The Android renderer keeps it compileOnly for the same reason.
+  testImplementation(libs.jetbrains.compose.material3)
   // Test-only: the `@KnobValue` alias fixture. The renderer resolves that annotation by NAME at
   // runtime rather than by type, precisely so no published renderer artefact depends on it — this
   // is the test proving that resolution works, so the dependency belongs here and nowhere else.
