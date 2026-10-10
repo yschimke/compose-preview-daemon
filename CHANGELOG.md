@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.15.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.2...v3.15.3) (2026-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.26.0 ([#239](https://github.com/yschimke/compose-preview-daemon/issues/239)) ([07669b3](https://github.com/yschimke/compose-preview-daemon/commit/07669b3cb3a71e32ae04ef07f8f3422d1cc4c28d))
+
+
+### Documentation
+
+* require explicit user requests for merging PRs ([#238](https://github.com/yschimke/compose-preview-daemon/issues/238)) ([b99d195](https://github.com/yschimke/compose-preview-daemon/commit/b99d195f0044691ee5d29416ae046802bc970528))
+
 ## [3.15.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.1...v3.15.2) (2026-10-10)
 
 
