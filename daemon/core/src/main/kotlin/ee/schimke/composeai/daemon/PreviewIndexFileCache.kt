@@ -20,8 +20,11 @@ import java.util.concurrent.TimeUnit
  *
  * The cache keeps the engines' existing freshness contract: a `previews.json` rewritten by the
  * Gradle plugin while the daemon runs changes the file's modified time or size, so the next lookup
- * reloads it. A missing file is never cached, so its "file does not exist" diagnostic still prints
- * and a file that appears later is picked up.
+ * reloads it. A rewrite can keep both, though — same length, inside one tick of a coarse-timestamp
+ * filesystem — so, like git's racily-clean index check, a parse is only reused once the file's
+ * modified time is at least [RACY_WINDOW_NANOS] older than the moment it was read; a file modified
+ * that recently is re-read on every lookup until it settles. A missing file is never cached, so its
+ * "file does not exist" diagnostic still prints and a file that appears later is picked up.
  *
  * The returned [PreviewIndex] is shared between callers; treat it as read-only.
  */
@@ -31,8 +34,21 @@ public object PreviewIndexFileCache {
     val path: Path,
     val modifiedNanos: Long,
     val size: Long,
+    val readAtNanos: Long,
     val index: PreviewIndex,
-  )
+  ) {
+    fun reusableFor(path: Path, modifiedNanos: Long, size: Long): Boolean =
+      this.path == path &&
+        this.modifiedNanos == modifiedNanos &&
+        this.size == size &&
+        modifiedNanos < readAtNanos - RACY_WINDOW_NANOS
+  }
+
+  /**
+   * How much older than the read a file's modified time must be before its parse is trusted. Covers
+   * filesystems that store modified times at one- or two-second granularity.
+   */
+  private val RACY_WINDOW_NANOS: Long = TimeUnit.SECONDS.toNanos(2)
 
   @Volatile private var entry: Entry? = null
 
@@ -59,18 +75,21 @@ public object PreviewIndexFileCache {
     val modifiedNanos = attributes.lastModifiedTime().to(TimeUnit.NANOSECONDS)
     val size = attributes.size()
     entry
-      ?.takeIf { it.path == absolute && it.modifiedNanos == modifiedNanos && it.size == size }
+      ?.takeIf { it.reusableFor(absolute, modifiedNanos, size) }
       ?.let {
         return it.index
       }
     synchronized(this) {
       entry
-        ?.takeIf { it.path == absolute && it.modifiedNanos == modifiedNanos && it.size == size }
+        ?.takeIf { it.reusableFor(absolute, modifiedNanos, size) }
         ?.let {
           return it.index
         }
+      // Taken before the read: a write that lands during it leaves a modified time inside the
+      // window, so the entry is not trusted until it is re-read.
+      val readAtNanos = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis())
       val index = PreviewIndex.loadFromFile(absolute)
-      entry = Entry(absolute, modifiedNanos, size, index)
+      entry = Entry(absolute, modifiedNanos, size, readAtNanos, index)
       return index
     }
   }

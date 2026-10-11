@@ -67,6 +67,19 @@ class PreviewIndexFileCacheTest {
   }
 
   @Test
+  fun `a just-written file is re-read until its modified time settles`() {
+    val now = System.currentTimeMillis()
+    write("A", "B", modified = now)
+    val first = PreviewIndexFileCache.load(file)
+
+    // Same length and same modified time, as on a coarse-timestamp filesystem: not trusted yet.
+    write("A", "C", modified = now)
+    val rewritten = PreviewIndexFileCache.load(file)
+    assertNotSame(first, rewritten)
+    assertEquals(setOf("A", "C"), rewritten.ids())
+  }
+
+  @Test
   fun `a missing file is not cached`() {
     Files.delete(file)
     assertTrue(PreviewIndexFileCache.load(file).ids().isEmpty())
