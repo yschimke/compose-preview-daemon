@@ -105,7 +105,8 @@ Params:
     detectLeaks?: "off" | "light" | "heavy";
     foreground?: boolean;            // true when launched via `--foreground`
     maxRenderMs?: number;            // per-render host.submit timeout. Default 5*60_000;
-                                     // values ≤ 0 are ignored.
+                                     // values ≤ 0 are ignored. On desktop it measures the
+                                     // render from dequeue, not the wait in the queue.
     historyPrune?: {                 // session defaults for auto/manual history pruning;
       maxEntriesPerPreview?: number; // null → daemon sysprop/default; 0 / negative → disabled
       maxAgeDays?: number;

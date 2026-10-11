@@ -55,6 +55,14 @@ import java.util.concurrent.TimeUnit
  * `renderNow.previews[i]` id and the caller's overrides), the harness's `HarnessClient`, and direct
  * unit tests — build the target rather than encoding one into a string.
  *
+ * **What [submit]'s timeout measures.** The render, not the queue. `JsonRpcServer` enqueues a whole
+ * `renderNow` batch at once, so a deadline that started at enqueue made every request in a large
+ * batch time out at the same instant, however healthy the render thread was. The deadline now
+ * starts when the render thread dequeues the request, so it stays what it is for: a guard against a
+ * hung render. A queued request still fails promptly when the render ahead of it has overrun its
+ * own deadline (the thread is wedged) or the thread has stopped. A request whose caller has given
+ * up is dropped when it reaches the head of the queue rather than rendered for nobody.
+ *
  * **Render-body exceptions propagate** — when [RenderEngine.render] throws (e.g. `BoomComposable`'s
  * `error("boom")` inside the composition), the loop posts the Throwable onto the per-id result
  * queue and [submit] re-throws on the caller's thread. The Throwable then surfaces upstream as a
@@ -261,7 +269,26 @@ open class DesktopHost(
     if (supportsInteractive) setOf("keyDown", "keyUp", "rotaryScroll") else emptySet()
 
   private val requests: LinkedBlockingQueue<RenderRequest> = LinkedBlockingQueue()
-  private val results: ConcurrentHashMap<Long, LinkedBlockingQueue<Any>> = ConcurrentHashMap()
+
+  /**
+   * One submitted render's hand-off between [submit] and the render thread. The render thread puts
+   * [RENDER_STARTED] when it dequeues the request, then the [RenderResult] or the engine's
+   * Throwable.
+   */
+  private class PendingRender(val id: Long, val timeoutMs: Long) {
+    val events: LinkedBlockingQueue<Any> = LinkedBlockingQueue()
+    @Volatile var startedAtNs: Long = 0L
+  }
+
+  /**
+   * Requests whose caller is still waiting, keyed by request id. [submit] removes its entry on
+   * every exit path, so a request missing from here when the render thread dequeues it has been
+   * given up on and is skipped.
+   */
+  private val results: ConcurrentHashMap<Long, PendingRender> = ConcurrentHashMap()
+
+  /** The render the render thread is running now, for a queued [submit]'s wedge check. */
+  @Volatile private var inFlight: PendingRender? = null
 
   /**
    * B2.3 — per-host sandbox-lifecycle counters. Captured at host construction so `sandboxAgeMs` is
@@ -299,19 +326,18 @@ open class DesktopHost(
       "Use shutdown() to stop the host, not submit(Shutdown)."
     }
     val typed = request as RenderRequest.Render
-    // Register the result slot *before* enqueuing the request so the render worker always finds an
-    // existing queue (it delivers via a plain `results[id]?.put`, never `computeIfAbsent`).
-    // Otherwise a worker that finishes *after* we give up on timeout below would resurrect a fresh
-    // entry that nobody ever drains — a per-timeout leak of the queue plus its RenderResult.
-    val resultQueue = results.computeIfAbsent(typed.id) { LinkedBlockingQueue() }
+    // Register the slot *before* enqueuing so the render thread always finds it. The render thread
+    // delivers via a plain `results[id]` lookup, never `computeIfAbsent`, so a request whose caller
+    // already gave up is skipped instead of resurrecting an entry nobody drains.
+    val pending = PendingRender(typed.id, timeoutMs)
+    results[typed.id] = pending
     requests.put(typed)
     val raw =
       try {
-        resultQueue.poll(timeoutMs, TimeUnit.MILLISECONDS)
-          ?: error("DesktopHost.submit($typed) timed out after ${timeoutMs}ms")
+        awaitResult(typed, pending)
       } finally {
         // Remove on every exit path — success, timeout, or a re-thrown engine Throwable — so the
-        // map never retains a completed request's slot.
+        // map never retains a finished request's slot, and an abandoned queued request is dropped.
         results.remove(typed.id)
       }
     // The render loop posts either a [RenderResult] (success / stub) or a [Throwable] (engine
@@ -319,6 +345,41 @@ open class DesktopHost(
     // it as a `renderFailed` notification — the path the v1 `S5RenderFailedRealModeTest` covers.
     if (raw is Throwable) throw raw
     return raw as RenderResult
+  }
+
+  /**
+   * Waits for [pending] in two phases: while queued, with no deadline of its own but failing fast
+   * if the render thread is wedged or gone; then, once the render thread has dequeued it, for at
+   * most [PendingRender.timeoutMs] from that moment.
+   */
+  private fun awaitResult(request: RenderRequest.Render, pending: PendingRender): Any {
+    while (true) {
+      val event = pending.events.poll(QUEUE_CHECK_INTERVAL_MS, TimeUnit.MILLISECONDS)
+      when {
+        event === RENDER_STARTED -> break
+        event != null -> return event
+        else -> checkQueueMoving(request)
+      }
+    }
+    val renderingMs = (System.nanoTime() - pending.startedAtNs) / 1_000_000L
+    val remainingMs = (pending.timeoutMs - renderingMs).coerceAtLeast(0L)
+    return pending.events.poll(remainingMs, TimeUnit.MILLISECONDS)
+      ?: error("DesktopHost.submit($request) timed out after ${pending.timeoutMs}ms of rendering")
+  }
+
+  /** Throws when a queued request can no longer expect the render thread to reach it. */
+  private fun checkQueueMoving(request: RenderRequest.Render) {
+    if (renderThread.state == Thread.State.TERMINATED) {
+      error("DesktopHost.submit($request): the render thread has stopped")
+    }
+    val current = inFlight ?: return
+    val runningMs = (System.nanoTime() - current.startedAtNs) / 1_000_000L
+    if (current.startedAtNs != 0L && runningMs > current.timeoutMs) {
+      error(
+        "DesktopHost.submit($request) gave up while queued: the render thread has been on " +
+          "request ${current.id} for ${runningMs}ms, past its ${current.timeoutMs}ms timeout"
+      )
+    }
   }
 
   /**
@@ -653,9 +714,9 @@ open class DesktopHost(
         // Post the failure onto the result queue rather than throwing: an unexpected request must
         // not kill the worker and time out every later submit.
         is RenderRequest.ParameterRows -> {
-          results
-            .computeIfAbsent(request.id) { LinkedBlockingQueue() }
-            .put(
+          results[request.id]
+            ?.events
+            ?.put(
               IllegalStateException(
                 "DesktopHost does not dispatch ParameterRows through the render queue; " +
                   "call previewParameterRows() instead"
@@ -663,6 +724,19 @@ open class DesktopHost(
             )
         }
         is RenderRequest.Render -> {
+          // The caller gave up while this request was queued (see [submit]): rendering it now
+          // would only delay the requests behind it.
+          val pending = results[request.id]
+          if (pending == null) {
+            System.err.println(
+              "compose-ai-daemon: DesktopHost dropping render ${request.id}: " +
+                "its caller stopped waiting before it reached the render thread"
+            )
+            continue
+          }
+          pending.startedAtNs = System.nanoTime()
+          inFlight = pending
+          pending.events.put(RENDER_STARTED)
           // Two failure modes are routed differently:
           //   1. Spec-payload-not-recognised (legacy `payload="render-N"` from DesktopHostTest):
           //      `dispatchRender` selects [renderStubFallback], which never throws — the result is
@@ -694,10 +768,11 @@ open class DesktopHost(
               // leaking reflection details into S5RenderFailedRealModeTest's assertions.
               unwrapInvocationTarget(t)
             }
+          inFlight = null
           // Deliver into the slot `submit` registered before enqueuing this request. Use a plain
           // lookup, never `computeIfAbsent`: if `submit` already gave up (timeout) and removed the
           // slot, drop the result here instead of resurrecting an entry no one will ever drain.
-          results[request.id]?.put(result)
+          results[request.id]?.events?.put(result)
         }
       }
     }
@@ -796,6 +871,12 @@ open class DesktopHost(
   }
 
   companion object {
+    /** Put on a [PendingRender]'s events when the render thread dequeues it. */
+    private val RENDER_STARTED = Any()
+
+    /** How often a queued [submit] checks that the render thread is still making progress. */
+    private const val QUEUE_CHECK_INTERVAL_MS: Long = 1_000L
+
     /**
      * System property carrying the absolute path of the recordings directory. Set by the gradle
      * plugin's daemon launch descriptor in production; left unset in tests, in which case
