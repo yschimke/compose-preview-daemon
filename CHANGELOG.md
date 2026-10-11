@@ -1,5 +1,24 @@
 # Changelog
 
+## [3.15.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.2...v3.15.3) (2026-10-11)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.26.0 ([#239](https://github.com/yschimke/compose-preview-daemon/issues/239)) ([07669b3](https://github.com/yschimke/compose-preview-daemon/commit/07669b3cb3a71e32ae04ef07f8f3422d1cc4c28d))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.29.0 ([#242](https://github.com/yschimke/compose-preview-daemon/issues/242)) ([2eac369](https://github.com/yschimke/compose-preview-daemon/commit/2eac369f86570d7b54dbc12b0725f9953499d38c))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.5.0 ([#241](https://github.com/yschimke/compose-preview-daemon/issues/241)) ([d403369](https://github.com/yschimke/compose-preview-daemon/commit/d403369fa05063c18bb079c0b79f225e6af87ca6))
+
+
+### Documentation
+
+* require explicit user requests for merging PRs ([#238](https://github.com/yschimke/compose-preview-daemon/issues/238)) ([b99d195](https://github.com/yschimke/compose-preview-daemon/commit/b99d195f0044691ee5d29416ae046802bc970528))
+
+
+### CI
+
+* skip the heavy CI lanes on release-please PRs ([#243](https://github.com/yschimke/compose-preview-daemon/issues/243)) ([bfc12c0](https://github.com/yschimke/compose-preview-daemon/commit/bfc12c057706fac5f26b3b3689f64e7f01bacb48))
+
 ## [3.15.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.1...v3.15.2) (2026-10-10)
 
 
