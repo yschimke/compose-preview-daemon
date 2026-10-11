@@ -266,7 +266,10 @@ class RenderEngine(
             requestId,
             sandboxStats = sandboxStats,
             trace = trace,
+            useWallClockFrameTime = false,
             elapsedBeforeNs = driveNs,
+            // Written once, in the `finally` below, after tearDown.
+            writeTrace = false,
           )
         }
       } finally {
@@ -835,6 +838,31 @@ class RenderEngine(
      * for every other caller, including the interactive session.
      */
     elapsedBeforeNs: Long = 0L,
+  ): RenderResult =
+    renderOnce(
+      state,
+      requestId,
+      sandboxStats,
+      trace,
+      useWallClockFrameTime,
+      elapsedBeforeNs,
+      writeTrace = true,
+    )
+
+  /**
+   * [renderOnce], with [writeTrace] choosing whether to write the Perfetto trace artefact. The
+   * one-shot [render] passes `false`: it writes the trace itself once tearDown has run, and writing
+   * it here as well serialised the same recorder to the same file twice per render.
+   */
+  @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+  private fun renderOnce(
+    state: SceneState,
+    requestId: Long,
+    sandboxStats: SandboxLifecycleStats,
+    trace: PerfettoTraceDataProducer.Recorder,
+    useWallClockFrameTime: Boolean,
+    elapsedBeforeNs: Long,
+    writeTrace: Boolean,
   ): RenderResult {
     val startNs = System.nanoTime() - elapsedBeforeNs
     // Per-render work trace — the post-capture processors that ran (and for how long) and the data
@@ -1098,7 +1126,7 @@ class RenderEngine(
 
     val tookMs = (System.nanoTime() - startNs) / 1_000_000L
     val metrics = SandboxMeasurement.collect(sandboxStats, tookMs = tookMs) + workTraceMetrics
-    trace.write(dataDir)
+    if (writeTrace) trace.write(dataDir)
     return RenderResult(
       id = requestId,
       classLoaderHashCode = System.identityHashCode(state.classLoader),
