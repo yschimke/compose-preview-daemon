@@ -867,8 +867,8 @@ class RenderEngine(
     val startNs = System.nanoTime() - elapsedBeforeNs
     // Per-render work trace — the post-capture processors that ran (and for how long) and the data
     // kinds the other producers computed. Folded into the result's metrics and projected onto
-    // `renderFinished.workTrace`; see [RenderWorkTraceMetrics]. This engine runs every processor in
-    // `dataArtifactExtensions` unconditionally, so nothing is recorded as skipped.
+    // `renderFinished.workTrace`; see [RenderWorkTraceMetrics]. A processor the
+    // `postCaptureKinds` allowlist gates out is recorded as skipped (see [PostCaptureGate]).
     val workTraceMetrics = LinkedHashMap<String, Long>()
     RenderWorkTraceMetrics.markRecorded(workTraceMetrics)
 
@@ -1041,8 +1041,24 @@ class RenderEngine(
               .toTypedArray()
           )
         val productStore = RecordingDataProductStore()
+        // Desktop has no on-demand kinds of its own: every processor runs unless the daemon was
+        // launched with a `postCaptureKinds` allowlist, in which case only the allowlisted kinds
+        // and the ones this render's subscriptions / attach set / fetch asked for run. See
+        // [PostCaptureGate].
+        val allowlist = PostCaptureGate.allowlistFromSystemProperties()
         for (ext in dataArtifactExtensions) {
           if (ext !is PostCaptureProcessor) continue
+          if (
+            !PostCaptureGate.shouldRun(
+              kind = ext.id.value,
+              requested = state.spec.requestedDataKinds,
+              onDemandKinds = emptySet(),
+              allowlist = allowlist,
+            )
+          ) {
+            workTraceMetrics[PostCaptureGate.skippedMetricKey(ext.id.value)] = 0L
+            continue
+          }
           val extStartNs = System.nanoTime()
           try {
             trace.section("dataArtifact:${ext.id}") {
@@ -1071,7 +1087,14 @@ class RenderEngine(
         // shared ComposeFigmaSvgExtension in the loop above wrote compose/figma-svg; rasterise it
         // and score against this render, dropping a `figma-svg | diff | render` composite. Android
         // has no equivalent.
-        if (FigmaSvgFidelity.enabled()) {
+        // Only when this render wrote the SVG: a gated-out figma-svg would leave a stale or
+        // missing file to score.
+        if (
+          FigmaSvgFidelity.enabled() &&
+            workTraceMetrics.containsKey(
+              PostCaptureGate.ranMetricKey(ComposeFigmaSvgDataProducer.KIND)
+            )
+        ) {
           try {
             val previewDir = dataDir.resolve(previewId)
             FigmaSvgFidelity.write(
@@ -1685,6 +1708,9 @@ class RenderEngine(
         wrapHeight = false,
         previewId = null,
         outputBaseName = tmpBase,
+        // This render exists to produce the layered SVG, so the export must run even under a
+        // `postCaptureKinds` allowlist that does not name it (see PostCaptureGate).
+        requestedDataKinds = spec.requestedDataKinds.orEmpty() + ComposeFigmaSvgDataProducer.KIND,
       )
     val finalState = setUp(finalSpec, classLoader, inspectionMode = spec.inspectionMode ?: true)
     try {

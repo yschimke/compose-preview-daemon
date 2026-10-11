@@ -264,6 +264,7 @@ public object DaemonProperties {
 
     public const val RES_DIRS: String = "composeai.daemon.resDirs"
     public const val DEFAULT_LOCALE: String = "composeai.daemon.defaultLocale"
+    public const val POST_CAPTURE_KINDS: String = "composeai.daemon.postCaptureKinds"
 
     public const val PROTOCOL_VERSION: String = "composeai.daemon.protocolVersion"
     public const val MODULE_PATH: String = "composeai.daemon.modulePath"
@@ -662,6 +663,18 @@ public object DaemonProperties {
       G_DATA,
     )
 
+  public val postCaptureKinds: CsvListProperty =
+    CsvListProperty(
+      Names.POST_CAPTURE_KINDS,
+      "Opt-in allowlist of data-product kinds the post-capture processors write on every render " +
+        "(`compose/semantics`, `compose/semantics-wireframe`, `layout/inspector`, " +
+        "`compose/figma-svg`). When set, every other post-capture processor runs only for a " +
+        "render whose subscriptions, `attachDataProducts` or `data/fetch` ask for its kind. " +
+        "Empty keeps every processor's default. For batch clients that read a fixed set of " +
+        "sidecars off disk, such as `bundle pack --with-semantics`.",
+      G_DATA,
+    )
+
   // ---- Launch descriptor --------------------------------------------------------------------
 
   public val protocolVersion: StringProperty =
@@ -780,6 +793,7 @@ public object DaemonProperties {
       irDir,
       resDirs,
       defaultLocale,
+      postCaptureKinds,
       protocolVersion,
       modulePath,
       moduleProjectDir,

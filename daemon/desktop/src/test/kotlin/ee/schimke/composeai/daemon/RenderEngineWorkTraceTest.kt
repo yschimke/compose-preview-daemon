@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon
 
+import ee.schimke.composeai.daemon.config.DaemonProperties.Names as DaemonPropertiesNames
 import ee.schimke.composeai.daemon.protocol.DataExtensionId
 import ee.schimke.composeai.data.render.extensions.DataExtensionConstraints
 import ee.schimke.composeai.data.render.extensions.DataExtensionHookKind
@@ -105,8 +106,8 @@ class RenderEngineWorkTraceTest {
 
   @Test
   fun `the default processor set is reported, figma-svg included`() {
-    // This engine does not gate on-demand kinds (yet): it pays for the figma-svg export on every
-    // render, and the trace has to say so — that visibility is the point of the trace.
+    // Without a `postCaptureKinds` allowlist this engine gates nothing: it pays for the figma-svg
+    // export on every render, and the trace has to say so — that visibility is the point of it.
     val engine = RenderEngine(outputDir = tempFolder.newFolder("renders"))
 
     val result = engine.render(redSquareSpec("work-trace-default"), requestId = 1L)
@@ -123,5 +124,72 @@ class RenderEngineWorkTraceTest {
       processors,
     )
     assertTrue("compose/figma-svg" in processors.orEmpty())
+  }
+
+  @Test
+  fun `a postCaptureKinds allowlist runs only the allowlisted and requested processors`() {
+    val calls = CopyOnWriteArrayList<String>()
+    val engine =
+      RenderEngine(
+        outputDir = tempFolder.newFolder("renders"),
+        dataArtifactExtensions =
+          listOf(
+            RecordingProcessor("compose/semantics", calls),
+            RecordingProcessor("compose/semantics-wireframe", calls),
+            RecordingProcessor("layout/inspector", calls),
+            RecordingProcessor("compose/figma-svg", calls),
+          ),
+      )
+
+    val result =
+      withPostCaptureKinds("compose/semantics,layout/inspector") {
+        engine.render(
+          // A subscription or fetch adds its kind on top of the allowlist.
+          redSquareSpec("work-trace-allowlist")
+            .copy(requestedDataKinds = setOf("compose/figma-svg")),
+          requestId = 1L,
+        )
+      }
+
+    val ran = listOf("compose/semantics", "layout/inspector", "compose/figma-svg")
+    assertEquals(ran, calls.toList())
+    assertEquals(ran, RenderWorkTraceMetrics.fromMetrics(result.metrics)!!.processors)
+    assertTrue(PostCaptureGate.wasSkipped(result.metrics, "compose/semantics-wireframe"))
+  }
+
+  @Test
+  fun `without an allowlist the requested kinds gate nothing on desktop`() {
+    val calls = CopyOnWriteArrayList<String>()
+    val engine =
+      RenderEngine(
+        outputDir = tempFolder.newFolder("renders"),
+        dataArtifactExtensions =
+          listOf(
+            RecordingProcessor("compose/semantics", calls),
+            RecordingProcessor("compose/figma-svg", calls),
+          ),
+      )
+
+    // An unsubscribed `renderNow` arrives with an empty (not null) requested set; existing clients
+    // that read sidecars straight off disk must still get every one of them.
+    withPostCaptureKinds(null) {
+      engine.render(
+        redSquareSpec("work-trace-no-allowlist").copy(requestedDataKinds = emptySet()),
+        requestId = 1L,
+      )
+    }
+
+    assertEquals(listOf("compose/semantics", "compose/figma-svg"), calls.toList())
+  }
+
+  private fun <T> withPostCaptureKinds(value: String?, block: () -> T): T {
+    val name = DaemonPropertiesNames.POST_CAPTURE_KINDS
+    val previous = System.getProperty(name)
+    if (value == null) System.clearProperty(name) else System.setProperty(name, value)
+    try {
+      return block()
+    } finally {
+      if (previous == null) System.clearProperty(name) else System.setProperty(name, previous)
+    }
   }
 }

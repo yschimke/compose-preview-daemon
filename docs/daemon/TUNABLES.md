@@ -97,6 +97,7 @@ flips a knob.
 | --- | --- | --- | --- |
 | `composeai.daemon.resDirs` | path list | empty | Android resource directories the resource / i18n data products read. |
 | `composeai.daemon.defaultLocale` | String | unset | Locale treated as the source language by the i18n translations data product. |
+| `composeai.daemon.postCaptureKinds` | list | empty | Opt-in allowlist of data-product kinds the post-capture processors write on every render (`compose/semantics`, `compose/semantics-wireframe`, `layout/inspector`, `compose/figma-svg`). When set, every other post-capture processor runs only for a render whose subscriptions, `attachDataProducts` or `data/fetch` ask for its kind. Empty keeps every processor's default. For batch clients that read a fixed set of sidecars off disk, such as `bundle pack --with-semantics`. |
 
 ## Launch descriptor (set by the Gradle plugin)
 

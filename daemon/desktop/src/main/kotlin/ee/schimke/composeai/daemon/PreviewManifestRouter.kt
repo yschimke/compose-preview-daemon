@@ -90,6 +90,7 @@ class PreviewManifestRouter(
           // every downstream consumer keyed by previewId is concerned.
           previewId = previewId,
           renderMode = preview.renderMode?.takeIf { it.isNotBlank() },
+          requestedDataKinds = preview.dataKinds,
           previewParameterRow = base.previewParameterProviderClassName?.let { row },
           // A row render writes its own artifact, keyed the way the fan-out renderer keys it
           // (`<stem>_<row>.png`), so rendering row 4 cannot clobber row 0's PNG or the data

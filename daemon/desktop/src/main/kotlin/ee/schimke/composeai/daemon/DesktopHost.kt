@@ -836,7 +836,13 @@ open class DesktopHost(
     val base = resolver(previewId) ?: return null
     return base
       .mergedWith(target.overrides)
-      .copy(previewId = previewId, renderMode = target.renderMode?.takeIf { it.isNotBlank() })
+      .copy(
+        previewId = previewId,
+        renderMode = target.renderMode?.takeIf { it.isNotBlank() },
+        // What this render must produce (subscriptions, attach set, fetched kind); gates the
+        // post-capture processors when a `postCaptureKinds` allowlist is set. See PostCaptureGate.
+        requestedDataKinds = target.dataKinds ?: base.requestedDataKinds,
+      )
   }
 
   /**
