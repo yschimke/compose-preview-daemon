@@ -825,6 +825,13 @@ public final class ee/schimke/composeai/daemon/PreviewIndex$Resolved {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ee/schimke/composeai/daemon/PreviewIndexFileCache {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/PreviewIndexFileCache;
+	public final fun clear ()V
+	public final fun fromSystemProperty ()Lee/schimke/composeai/daemon/PreviewIndex;
+	public final fun load (Ljava/nio/file/Path;)Lee/schimke/composeai/daemon/PreviewIndex;
+}
+
 public final class ee/schimke/composeai/daemon/PreviewIndexKt {
 	public static final fun discoveryDiffEmpty (Lee/schimke/composeai/daemon/DiscoveryDiff;)Z
 	public static final fun uiModeIsNight (Ljava/lang/Integer;)Z

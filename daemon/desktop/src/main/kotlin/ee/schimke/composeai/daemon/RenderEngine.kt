@@ -2263,20 +2263,15 @@ class RenderEngine(
   }
 
   /**
-   * Lazily reads the daemon's `previews.json` via [PreviewIndex.loadFromFile] using the
-   * `composeai.daemon.previewsJsonPath` system property the gradle plugin populates. Falls back to
-   * [PreviewIndex.empty] when the property is unset (harness / fake-mode tests) —
-   * [runScrollScenario] then surfaces a structured "no scroll metadata" error. Mirrors the Android
-   * engine's helper of the same name so the two backends resolve scroll intent identically.
+   * Reads the daemon's `previews.json` via [PreviewIndexFileCache] using the
+   * `composeai.daemon.previewsJsonPath` system property the gradle plugin populates. The cache
+   * decodes the file once and reuses it until the file changes, so the several lookups a render
+   * makes no longer each parse the whole manifest. Falls back to [PreviewIndex.empty] when the
+   * property is unset (harness / fake-mode tests) — [runScrollScenario] then surfaces a structured
+   * "no scroll metadata" error. Mirrors the Android engine's helper of the same name so the two
+   * backends resolve scroll intent identically.
    */
-  private fun loadPreviewIndexLazily(): PreviewIndex {
-    val path = System.getProperty(PreviewIndex.PREVIEWS_JSON_PATH_PROP)
-    return if (path.isNullOrBlank()) {
-      PreviewIndex.empty()
-    } else {
-      PreviewIndex.loadFromFile(java.nio.file.Paths.get(path))
-    }
-  }
+  private fun loadPreviewIndexLazily(): PreviewIndex = PreviewIndexFileCache.fromSystemProperty()
 
   interface PreviewContextCapture {
     fun shouldCapture(previewId: String?, renderMode: String?): Boolean

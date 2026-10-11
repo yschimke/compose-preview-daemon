@@ -2246,19 +2246,14 @@ class RenderEngine(
   }
 
   /**
-   * Lazily reads the daemon's `previews.json` via [PreviewIndex.loadFromFile] using the
-   * `composeai.daemon.previewsJsonPath` system property the gradle plugin populates. Falls back to
-   * [PreviewIndex.empty] when the property is unset (harness / fake-mode tests) — callers that need
-   * a real index check for an empty result and emit a structured error.
+   * Reads the daemon's `previews.json` via [PreviewIndexFileCache] using the
+   * `composeai.daemon.previewsJsonPath` system property the gradle plugin populates. The cache
+   * decodes the file once and reuses it until the file changes, so the several lookups a render
+   * makes no longer each parse the whole manifest. Falls back to [PreviewIndex.empty] when the
+   * property is unset (harness / fake-mode tests) — callers that need a real index check for an
+   * empty result and emit a structured error.
    */
-  private fun loadPreviewIndexLazily(): PreviewIndex {
-    val path = System.getProperty(PreviewIndex.PREVIEWS_JSON_PATH_PROP)
-    return if (path.isNullOrBlank()) {
-      PreviewIndex.empty()
-    } else {
-      PreviewIndex.loadFromFile(java.nio.file.Paths.get(path))
-    }
-  }
+  private fun loadPreviewIndexLazily(): PreviewIndex = PreviewIndexFileCache.fromSystemProperty()
 
   private fun ScrollCaptureDto.toRendererScrollCapture():
     ee.schimke.composeai.renderer.ScrollCapture =
