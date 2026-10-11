@@ -14,6 +14,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Release-please PRs change only `.release-please-manifest.json`, `CHANGELOG.md` and the tagged
+# version lines; every source input was already verified by main's push run. So the four Gradle
+# jobs carry a job-level guard that skips them there, matching both the `pull_request` form (branch
+# from `head_ref`, the bot as PR author) and a `workflow_dispatch` on the release branch (branch from
+# `ref_name`, the bot as actor). The branch name alone is contributor-controlled, so the bot identity
+# is required too; a human dispatching on the release branch still gets the full run, and pushes to
+# main never match. A job skipped by its `if:` reports "skipped", which branch protection treats as
+# passing, so the required checks stay green. Same guard as yschimke/compose-ui-builder#700/#701.
 jobs:
   # Every module's unit tests, plus the ABI dumps. `jvmTest` alongside `test`
   # because a Kotlin Multiplatform module names its JVM tests that way and registers no `test`;
@@ -21,6 +29,7 @@ jobs:
   # `--continue` so one red module reports every other module's result in the same run.
   module-unit-tests:
     name: Module Unit Tests
+    if: ${{ !(startsWith(github.head_ref || github.ref_name, 'release-please--') && (github.event.pull_request.user.login || github.actor) == 'github-actions[bot]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -98,6 +107,7 @@ jobs:
   # on a 4-core runner.
   daemon-android-tests:
     name: Daemon Android Tests
+    if: ${{ !(startsWith(github.head_ref || github.ref_name, 'release-please--') && (github.event.pull_request.user.login || github.actor) == 'github-actions[bot]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -178,6 +188,7 @@ jobs:
   # module with errors, and one red module should not hide the other sixteen's results.
   android-lint:
     name: Android Lint
+    if: ${{ !(startsWith(github.head_ref || github.ref_name, 'release-please--') && (github.event.pull_request.user.login || github.actor) == 'github-actions[bot]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -204,6 +215,7 @@ jobs:
   # caught before the tag, and the Skiko-native check that guards the desktop one.
   sidecars:
     name: Sidecar archives
+    if: ${{ !(startsWith(github.head_ref || github.ref_name, 'release-please--') && (github.event.pull_request.user.login || github.actor) == 'github-actions[bot]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
