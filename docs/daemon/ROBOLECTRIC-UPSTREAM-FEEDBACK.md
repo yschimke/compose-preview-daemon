@@ -43,6 +43,7 @@ unmeasured. Evidence confidence is separate from priority.
 | 8 | **P3 · R03 — runner-neutral embedding API** | Medium maintenance/dependency friction; measured bypass saving is only 48 ms ready. | Mainly standalone tools and non-JUnit integrations; ordinary JUnit users already benefit from the runner. | High confidence in coupling; dependency removal not demonstrated. | Coordinate with R04/R05 session design and audit dependencies before requesting API extraction. |
 | 9 | **P3 · R07 — Activity-free window host** | Potential setup saving and simpler offscreen hosting; broad compatibility remains unproven. | Conditional benefit for isolated View/composable screenshot tools; Activity-dependent cases still need a fallback. | Medium/low readiness: experimental host, integration bugs found, shared ecosystem ownership. | Validate focus/IME/popups/themes and establish Robolectric vs Compose/Roborazzi ownership. |
 | 10 | **P3 · R09 — reload lifetime investigation** | Our growing leak is fixed. Remaining initial AWT loader root is bounded, so no established ongoing growth benefit. | Unknown for normal unit/screenshot tests; custom application reloads distinguish our case. | No confirmed Robolectric bug; ownership unresolved. | Minimize AWT/TCCL retention first; escalate priority only if growth or substantial retained memory is established. |
+| 11 | **P3 · R11 — two input clocks in a held Compose session** | Fixed locally (input dropped by a hosted `View` player); upstream value is documentation, not a speedup. | Any Robolectric Compose test that injects input into an `AndroidView` whose `View` reads `SystemClock`, once the looper clock and `mainClock` have drifted. | High confidence in mechanism (measured, before/after test); ownership split across Compose ui-test, Robolectric and Roborazzi, not established. | Reduce to a one-file Robolectric + Compose test before deciding where, if anywhere, to report it. |
 
 ## Applicability beyond the daemon
 
@@ -377,6 +378,40 @@ without raising its P2 priority or claiming ordinary-test impact.
 
 The daemon's own forced per-render GC and its `nativeHeapMb` approximation are our
 telemetry decisions, not automatically Robolectric defects.
+
+## R11 — Two input clocks in a held Compose session
+
+**Owner:** unestablished — Compose ui-test (event stamping), Robolectric (looper clock),
+Roborazzi (capture). **Status:** fixed in the daemon (2026-10-12); integration friction,
+not a confirmed bug in any of the three. **Evidence/version:** Robolectric 4.17, Compose
+`ui-test-android` 1.12.1, Roborazzi 1.76.0, `remote-player-view` 1.0.0-alpha19;
+`AndroidInteractiveCarriedRealPlayerTest.everyAndroidPlayerTogglesTheCarriedToggleButton`.
+
+Compose's test input (`performTouchInput` / `performMouseInput`) stamps each
+`MotionEvent`'s `downTime`/`eventTime` from the rule's `mainClock`. A platform `View`
+hosted in the composition reads those stamps against `SystemClock.uptimeMillis()`, which
+under Robolectric's paused looper is the looper clock. In a held session the two do not
+agree: `mainClock` starts at zero with each session's compose rule, while the looper clock
+belongs to the sandbox and keeps the time of every earlier render and session (17 s apart
+by the third session of one test; hours on a production daemon). Within a session the
+looper clock also gains on its own: about 30 ms per `captureRoboImage`, and about 450 ms
+over an injected tap plus its settle, although the daemon advances both clocks together.
+
+The casualty was the `androidx-view` Remote Compose player. `RemoteComposeView.onDraw`
+flags a long press when `SystemClock.uptimeMillis() - downTime >= getLongPressTimeout()`,
+so the first frame drawn with the pointer down already read as a 400 ms hold and the
+release clicked nothing. Compose players compare only the events' own stamps and were
+unaffected; a `click` (press and release with no capture between) also escaped, which is
+why the bug showed only for a `pointerDown` … frame … `pointerUp` tap.
+
+**Workaround (ours):** `RobolectricHost.alignHeldInputClock` moves `mainClock` forward to
+the looper clock before `setContent` and before every pointer/key dispatch. Residual: lag
+still accrues across frames rendered while a pointer is held with no further input
+(~30 ms per frame). **Possible upstream asks**, none validated: stamp injected events from
+`SystemClock.uptimeMillis()` under Robolectric, or document that `mainClock` and the
+looper clock are independent; establish which layer advances the looper clock during a
+capture. **Validation needed:** a single-test reproducer with an `AndroidView` whose
+`onDraw` reads `SystemClock`, outside the daemon.
 
 ## How to turn an item into upstream feedback
 

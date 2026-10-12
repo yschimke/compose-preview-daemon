@@ -3066,6 +3066,10 @@ open class RobolectricHost(
           @OptIn(com.github.takahirom.roborazzi.ExperimentalRoborazziApi::class)
           override fun evaluate() {
             rule.mainClock.autoAdvance = false
+            // Before anything composes, so the jump runs no Compose work: start the input
+            // timeline at the sandbox's Android time rather than at zero. See
+            // [alignHeldInputClock].
+            alignHeldInputClock(rule)
             rule.runOnUiThread {
               // Same host-activity theming the batch renderer and `RenderEngine` apply, so a live
               // interactive session hosting an `AndroidView` resolves the consumer's app-owned
@@ -4234,6 +4238,48 @@ open class RobolectricHost(
     }
 
     /**
+     * Bring `mainClock` up to Android's `SystemClock.uptimeMillis()` when it has fallen behind, so
+     * the input a held session injects is stamped on the timeline the platform reads it against.
+     *
+     * Compose's test input (`performTouchInput` / `performMouseInput`) stamps every `MotionEvent`'s
+     * `downTime` / `eventTime` from `mainClock`. A Compose node only ever compares those stamps
+     * with each other, so their origin never mattered. A platform `View` hosted in the composition
+     * compares them with `SystemClock.uptimeMillis()` — Robolectric's looper clock — and the two
+     * clocks do not agree in a held session:
+     * - `mainClock` belongs to the session's compose rule and starts at **zero** with every
+     *   session, while the looper clock belongs to the sandbox and has kept running through every
+     *   render and every earlier session it hosted (tens of seconds in a test class, hours on a
+     *   long-lived daemon);
+     * - within a session the looper clock keeps gaining, although [advanceHeldClocks] moves both
+     *   together: each `captureRoboImage` moves it ~30 ms on its own, and a tap plus the settle
+     *   after it gained ~450 ms more (both measured in `AndroidInteractiveCarriedRealPlayerTest`).
+     *
+     * The casualty was `remote-player-view`'s `RemoteComposePlayer` (the `androidx-view` Remote
+     * Compose player). Its `onDraw` detects a long press as `SystemClock.uptimeMillis() -
+     * downTime >= ViewConfiguration.getLongPressTimeout()`, so with the looper clock seconds ahead
+     * the first frame drawn while the pointer is down already reads as a 400 ms hold: it performs a
+     * long press and the release that follows clicks nothing. A viewer sends a tap whose pointer
+     * moved at all as `pointerDown` … `pointerUp`, with frames streamed in between, so on a
+     * production daemon such a tap never reached the document — while `androidx-embedded` and
+     * `cmp-android`, Compose players that read only the events' own stamps, took the same gesture.
+     *
+     * Only ever forward and only `mainClock`: the looper clock cannot go back, and moving
+     * `mainClock` alone by the lag puts the Compose timeline where Android's already is. Called
+     * before `setContent` (nothing composed yet, so the jump is free) and before each pointer or
+     * key dispatch (the lag accrued since, normally well under a second).
+     */
+    private fun alignHeldInputClock(
+      rule:
+        androidx.compose.ui.test.junit4.AndroidComposeTestRule<
+          *,
+          androidx.activity.ComponentActivity,
+        >
+    ) {
+      val lag = android.os.SystemClock.uptimeMillis() - rule.mainClock.currentTime
+      if (lag > 0L) rule.mainClock.advanceTimeBy(lag, ignoreFrameDuration = true)
+    }
+
+    /**
      * `mainClock` time to advance after an input has been dispatched, before the next capture.
      *
      * A click gets one frame ([POINTER_SETTLE_MS]) so its press feedback is still on screen for the
@@ -4270,6 +4316,9 @@ open class RobolectricHost(
       // the mouse one drags out a text selection. The wire now says which device it was; absent
       // (every pre-#3491 client) still means touch.
       val mouse = cmd.pointerType?.trim()?.lowercase() == "mouse"
+      // Every event below is stamped from `mainClock`; a platform `View` reads it against
+      // `SystemClock`. Line the two up first — see [alignHeldInputClock].
+      alignHeldInputClock(rule)
       when (cmd.kind) {
         // A click is injected as a real press and release, never as the node's `OnClick` semantics
         // action. The action invokes the handler lambda and NOTHING else: no `PressInteraction`
