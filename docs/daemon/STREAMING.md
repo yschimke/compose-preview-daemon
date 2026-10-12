@@ -56,6 +56,7 @@ drive the same composition. Clients can mix the surfaces freely.
   maxFps?: number;          // cap on emit cadence; null = renderer-natural
   hidpi?: boolean;          // keep capture density; default: true
   inspectionMode?: boolean; // mirrors interactive/start.inspectionMode
+  overrides?: PreviewOverrides; // same bag as renderNow.overrides, merged per session
 }
 // result
 {
@@ -70,6 +71,50 @@ Errors:
 - `-32602 (InvalidParams)` when `previewId` is blank or `maxFps <= 0`.
 - `-32603 (Internal)` when the host advertises held sessions but failed
   to allocate one.
+- `-32603 (Internal)` when `overrides.remoteCompose.documentBase64` is set
+  and no held session was acquired (see below) — never a v1 fallback.
+
+### Carried Remote Compose documents
+
+`overrides.remoteCompose.documentBase64` — the same carried document the
+one-shot `renderNow` replays in place of the preview — also drives the held
+session behind `stream/start` (and `interactive/start` / `recording/start`,
+which share it) on Android. The session then plays **that document** through
+the Remote Compose IR replay connector instead of resolving the preview id:
+neither the bundle's own `ir/<id>.rc` nor the preview class is consulted, so
+
+- the preview server's player-only daemon, whose one manifest preview names a
+  class that exists nowhere, holds a live session for it; and
+- a borrowed catalog daemon plays the caller's document, not its own preview.
+
+An id the manifest does not know at all is accepted too when a document is
+carried; the frame then comes from the overrides' `widthPx` / `heightPx` /
+`density`. The rest of the override applies as on the one-shot lane:
+`remoteCompose.player` / `playerId` pick the player, `namedValues`,
+`profile` and `acceptedHostActions` seed `RemoteComposeController`, and
+`uiMode`, `density`, `localeTag`, `fontScale`, size and the other
+display fields reach the held composition's configuration. Input
+(`interactive/input`) is dispatched into the held composition, so a tap lands
+on the player and reaches the document's click actions and touch expressions;
+the player animates on the session's frame clock like any held preview.
+`captureAdvanceMs` is a one-shot settle point and has no live meaning.
+
+A document that does not decode is refused (`-32603`). Because the v1
+fallback would re-render the bare preview id — the borrowed preview's own
+content, or nothing on a player-only daemon — a carried document never takes
+it: no held session means an error, and the caller keeps whatever lane it had.
+
+**Detecting support.** A daemon that does this advertises the token
+`remoteCompose.documentBase64.live` in
+`InitializeResult.capabilities.supportedOverrides` (only when it can hold
+sessions at all, i.e. `capabilities.interactive`). It is a capability token,
+not a field name — dotted so it can never collide with one. Older daemons
+silently ignore the carried document on this lane and draw the preview id, so
+a client must check the token before relying on it.
+
+Frames are still routed by `previewId` (as every stream is), so a carried
+stream on a borrowed catalog daemon shares its frame routing and dedup with
+other viewers of the same id; only one held session exists per host.
 
 ### `stream/stop` (notification)
 

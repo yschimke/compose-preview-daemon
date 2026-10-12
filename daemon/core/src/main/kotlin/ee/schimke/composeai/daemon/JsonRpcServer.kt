@@ -2172,6 +2172,22 @@ public class JsonRpcServer(
         fallbackReason = "${describeThrowable(t)}"
         null
       }
+    // A carried Remote Compose document (`overrides.remoteCompose.documentBase64`) is only ever
+    // drawn by a held session: the v1 fallback re-renders the preview id with no overrides, which
+    // would stream the preview's own content (a borrowed catalog daemon's) — or nothing at all on a
+    // daemon whose preview class does not exist — under a stream the caller opened for its bytes.
+    // Refuse instead, so the caller keeps whatever lane it had.
+    if (session == null && params.overrides?.remoteCompose?.documentBase64 != null) {
+      sendErrorResponse(
+        id = req.id,
+        code = ERR_INTERNAL,
+        message =
+          "stream/start: a carried overrides.remoteCompose.documentBase64 needs a held session, " +
+            "and none was acquired for previewId='${params.previewId}': " +
+            (fallbackReason ?: "unknown reason"),
+      )
+      return
+    }
     val codec = streamRegistry.negotiateCodec(params.codec)
     streamRegistry.register(
       frameStreamId = streamId,

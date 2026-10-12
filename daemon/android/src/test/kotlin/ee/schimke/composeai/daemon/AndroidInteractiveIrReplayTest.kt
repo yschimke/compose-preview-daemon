@@ -1,9 +1,15 @@
 package ee.schimke.composeai.daemon
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import ee.schimke.composeai.data.render.extensions.IrReplayComposableProvider
@@ -227,13 +233,43 @@ class FakeRemoteComposeIrReplayProvider : IrReplayComposableProvider {
 /**
  * Stand-in for the connector's replay composable: the `@Composable Replay(bytes: ByteArray)` shape
  * plus a no-arg constructor the renderer resolves through `getDeclaredComposableMethod`. Paints a
- * flat colour so a captured frame proves which branch composed it, and ignores the bytes — the real
- * player's document decoding is the connector's business, not this dispatch test's.
+ * flat colour so a captured frame proves which branch composed it — the real player's document
+ * decoding is the connector's business, not these dispatch tests'.
+ *
+ * Every document paints the replay green except two "documents" that
+ * [AndroidInteractiveCarriedDocumentTest] carries to prove more than routing:
+ * - [FakeReplayDocuments.TAP] — a stateful click target, red until tapped and blue after, the
+ *   stand- in for a document whose click action changes its state;
+ * - [FakeReplayDocuments.THEMED] — follows the host configuration, navy in night mode and yellow
+ *   otherwise, the stand-in for a document whose colours defer to the theme.
  */
 class FakeRemoteComposeIrReplay {
   @Composable
-  @Suppress("UNUSED_PARAMETER")
   fun Replay(bytes: ByteArray) {
-    Box(modifier = Modifier.fillMaxSize().background(Color(0xFF2E7D32)))
+    when {
+      bytes.contentEquals(FakeReplayDocuments.TAP) -> {
+        var tapped by remember { mutableStateOf(false) }
+        Box(
+          modifier =
+            Modifier.fillMaxSize()
+              .background(if (tapped) Color(0xFF1565C0) else Color(0xFFC62828))
+              .clickable { tapped = !tapped }
+        )
+      }
+      bytes.contentEquals(FakeReplayDocuments.THEMED) ->
+        Box(
+          modifier =
+            Modifier.fillMaxSize()
+              .background(if (isSystemInDarkTheme()) Color(0xFF000080) else Color(0xFFFFFF00))
+        )
+      else -> Box(modifier = Modifier.fillMaxSize().background(Color(0xFF2E7D32)))
+    }
   }
+}
+
+/** Byte patterns [FakeRemoteComposeIrReplay] recognises; anything else paints green. */
+object FakeReplayDocuments {
+  val TAP: ByteArray = "fake-rc:tap".toByteArray()
+
+  val THEMED: ByteArray = "fake-rc:themed".toByteArray()
 }

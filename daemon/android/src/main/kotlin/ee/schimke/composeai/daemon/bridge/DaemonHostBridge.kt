@@ -512,6 +512,21 @@ sealed interface InteractiveCommand {
      * (yschimke/wear-m3-catalog#83), and a knob edited in the viewer's Live lane did nothing.
      */
     val namedOverrides: Map<String, String> = emptyMap(),
+    /**
+     * `spec.overrides.remoteCompose` as JSON (see `HeldRemoteCompose`), present **only** when it
+     * carries a document (`documentBase64`). The held-rule loop then plays that document through
+     * the Remote Compose IR replay connector — in the requested player, seeded with the override's
+     * named values and profile — in place of both the bundle's own IR ([previewId]) and the preview
+     * class ([previewClassName]), which is never loaded. That is what lets `stream/start` hold a
+     * live, input-taking session for a document-only preview: on the preview server's player-only
+     * daemon (whose placeholder preview class exists nowhere) and on a borrowed catalog daemon
+     * (whose own preview must not be drawn).
+     *
+     * Threaded as one `java.lang.String` for the same do-not-acquire bridge reason as
+     * [namedOverrides]; decoded sandbox-side so the override is the sandbox classloader's own.
+     * `null` keeps the pre-existing resolution (bundle IR, else the preview class) byte-for-byte.
+     */
+    val carriedRemoteComposeJson: String? = null,
   ) : InteractiveCommand
 
   /**

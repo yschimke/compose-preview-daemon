@@ -430,6 +430,47 @@ class StreamRpcIntegrationTest {
   }
 
   @Test(timeout = 30_000)
+  fun carried_remote_compose_document_refuses_the_v1_fallback() {
+    // A stream opened for a carried document (`overrides.remoteCompose.documentBase64`) can only be
+    // drawn by a held session. The v1 fallback re-renders the bare preview id, which would stream
+    // the preview's own content under the caller's stream — so the start is refused instead, and
+    // nothing is registered for the id. StreamRpcFakeHost holds no sessions, so every start here
+    // takes the fallback.
+    val tmp = Files.createTempDirectory("stream-rpc-test").toFile()
+    val pngFile = File(tmp, "preview-A.png").apply { writeBytes(testPngBytes(seed = 0)) }
+    val host = StreamRpcFakeHost(pngFile)
+
+    val (_, serverThread, out, received, exitLatch) = bringUpServer(host)
+    resourcesToClose.add(AutoCloseable { runCatching { out.close() } })
+    handshake(out, received)
+
+    writeFrame(
+      out,
+      """{"jsonrpc":"2.0","id":7,"method":"stream/start","params":{"previewId":"preview-A",
+            "overrides":{"remoteCompose":{"playerId":"androidx-view","documentBase64":"AQIDBA=="}}}}""",
+    )
+    val refused = pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 7 }!!
+    val err = refused["error"]?.jsonObject
+    assertNotNull("a carried document without a held session must be refused", err)
+    assertTrue(
+      "the refusal must name the carried document, got: $err",
+      err!!["message"]?.jsonPrimitive?.contentOrNull.orEmpty().contains("documentBase64"),
+    )
+
+    // The same start without a document keeps the long-standing v1 fallback.
+    writeFrame(
+      out,
+      """{"jsonrpc":"2.0","id":8,"method":"stream/start","params":{"previewId":"preview-A",
+            "overrides":{"remoteCompose":{"playerId":"androidx-view"}}}}""",
+    )
+    val accepted = pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 8 }!!
+    assertNull("no document, no refusal", accepted["error"])
+    assertEquals(false, accepted["result"]!!.jsonObject["heldSession"]?.jsonPrimitive?.boolean)
+
+    teardownServer(out, received, serverThread, exitLatch)
+  }
+
+  @Test(timeout = 30_000)
   fun start_with_blank_previewId_yields_invalid_params() {
     val tmp = Files.createTempDirectory("stream-rpc-test").toFile()
     val pngFile = File(tmp, "preview-A.png").apply { writeBytes(testPngBytes(seed = 0)) }

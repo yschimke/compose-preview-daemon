@@ -347,7 +347,17 @@ open class RobolectricHost(
    * controls the paused-clock settle point; `inspectionMode` flows into `LocalInspectionMode`. See
    * `daemon/android/.../RenderEngine.kt` for the call sites.
    */
-  override val supportedOverrides: Set<String> =
+  override val supportedOverrides: Set<String>
+    get() =
+      fieldOverrides +
+        // Capability token, not a field: `overrides.remoteCompose.documentBase64` is honoured on
+        // the held lanes (`stream/start`, `interactive/start`, `recording/start`) as well as the
+        // one-shot render — the session plays the carried document instead of resolving the
+        // preview. Only advertised where a held session can exist at all. See
+        // docs/daemon/STREAMING.md.
+        if (supportsInteractive) setOf(CARRIED_REMOTE_COMPOSE_LIVE_CAPABILITY) else emptySet()
+
+  private val fieldOverrides: Set<String> =
     setOf(
       "widthPx",
       "heightPx",
@@ -1678,6 +1688,11 @@ open class RobolectricHost(
         )
     val baseSpec =
       resolver(previewId)
+        // A carried Remote Compose document needs no preview of its own: the id only names the
+        // session (and the frames' routing key), and the document is the content. So an id the
+        // manifest does not know still holds a session when the bytes ride along, framed by the
+        // overrides' own size and density — the shape a document-only caller already sends.
+        ?: carriedDocumentSpec(previewId, overrides)
         ?: throw UnsupportedOperationException(
           "RobolectricHost.previewSpecResolver returned null for previewId='$previewId'; " +
             "interactive session not allocated"
@@ -1698,12 +1713,36 @@ open class RobolectricHost(
     )
   }
 
+  /**
+   * The base spec for a held session on a [previewId] the manifest does not know, when [overrides]
+   * carry a Remote Compose document to play instead — or `null` when they carry none, which keeps
+   * the unknown-preview refusal. The class and function name nothing: the held loop never loads
+   * them for a carried document. Size and density come from [overrides] on the merge that follows.
+   */
+  private fun carriedDocumentSpec(
+    previewId: String,
+    overrides: ee.schimke.composeai.daemon.protocol.PreviewOverrides?,
+  ): RenderSpec? {
+    if (overrides?.remoteCompose?.documentBase64 == null) return null
+    return RenderSpec(
+      previewId = previewId,
+      className = CARRIED_DOCUMENT_CLASS,
+      functionName = CARRIED_DOCUMENT_FUNCTION,
+      density = 1.0f,
+      outputBaseName = "carried-document",
+    )
+  }
+
   private fun acquireInteractiveSession(
     previewId: String,
     spec: RenderSpec,
     inspectionMode: Boolean? = spec.inspectionMode,
     onSessionClosed: (() -> Unit)? = null,
   ): AndroidInteractiveSession {
+    // A carried document that will not decode fails here, before a slot is claimed, rather than as
+    // a sandbox-side start error — and never as a session that quietly draws the preview instead.
+    // Same contract as the one-shot path ([BundleIrReplayStore.carried] throws on bad base64).
+    BundleIrReplayStore.carried(spec.overrides?.remoteCompose)
     // The interactive slot is the in-process sandbox (slot 0), which `start()` boots eagerly — so
     // unlike the pre-#3072 shape this never waits on a background boot. The await stays as a cheap
     // guard for callers that reach acquire before `start()` has returned.
@@ -1825,6 +1864,9 @@ open class RobolectricHost(
         // spec's own id and fall back to the acquire argument: both name the same preview, but a
         // resolver-built spec is the authority on the form `BundleIrReplayStore` is keyed by.
         previewId = spec.previewId ?: previewId,
+        // A carried Remote Compose document replaces the preview's content in the held session
+        // exactly as it does in the one-shot render (`RenderEngine.render`). Validated above.
+        carriedRemoteComposeJson = HeldRemoteCompose.encode(spec.overrides?.remoteCompose),
       )
     )
     if (!replyLatch.await(INTERACTIVE_START_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
@@ -2059,6 +2101,21 @@ open class RobolectricHost(
      * daemon to whatever Robolectric currently supports.
      */
     const val ANDROID_SDK: Int = 35
+
+    /**
+     * Placeholder class / function a [carriedDocumentSpec] names. Never loaded: a held session with
+     * a carried Remote Compose document plays the document instead of reflecting a preview.
+     */
+    private const val CARRIED_DOCUMENT_CLASS: String = "ee.schimke.composeai.daemon.CarriedDocument"
+
+    private const val CARRIED_DOCUMENT_FUNCTION: String = "Document"
+
+    /**
+     * `InitializeResult.capabilities.supportedOverrides` entry advertising that a held session
+     * plays `overrides.remoteCompose.documentBase64`. Dotted so it can never collide with a real
+     * `PreviewOverrides` field name; a client that greys controls out by field name ignores it.
+     */
+    const val CARRIED_REMOTE_COMPOSE_LIVE_CAPABILITY: String = "remoteCompose.documentBase64.live"
 
     /** Same sysprop the desktop side uses; honoured on Android too. */
     const val RECORDINGS_DIR_PROP: String = DaemonProperties.Names.RECORDINGS_DIR
@@ -2842,12 +2899,42 @@ open class RobolectricHost(
       // composable (the daemon can't compile against the alpha player SDK). A null replay class
       // means the connector isn't on the classpath — then we fall through to reflection, which
       // fails exactly as it did before rather than blanking the preview silently.
-      val irReplay = BundleIrReplayStore.lookup(start.previewId)
+      //
+      // A document carried on the request (`overrides.remoteCompose.documentBase64`, threaded as
+      // `start.carriedRemoteComposeJson`) outranks both, exactly as in `RenderEngine.render`: the
+      // preview id then only names the session, so this works on a daemon whose preview class
+      // exists nowhere and on a borrowed catalog daemon whose own preview must not be drawn. The
+      // decoded override also seeds `RemoteComposeController` (player, named values, profile)
+      // through the planned extensions below, so the document plays in the player the caller
+      // asked for.
+      val carriedRemoteCompose: ee.schimke.composeai.daemon.protocol.RemoteComposeOverride?
+      val carriedDocument: BundleIrReplayStore.Entry?
+      try {
+        carriedRemoteCompose = HeldRemoteCompose.decode(start.carriedRemoteComposeJson)
+        carriedDocument = BundleIrReplayStore.carried(carriedRemoteCompose)
+      } catch (t: Throwable) {
+        start.replyError.set(t)
+        start.replyLatch.countDown()
+        return
+      }
+      val irReplay = carriedDocument ?: BundleIrReplayStore.lookup(start.previewId)
       val isProtolayoutIr = irReplay?.format == BundleIrReplayStore.FORMAT_PROTOLAYOUT
       val rcReplayClass: Class<*>? =
         if (irReplay?.format == BundleIrReplayStore.FORMAT_REMOTECOMPOSE)
           runCatching { loadIrReplayClass(BundleIrReplayStore.FORMAT_REMOTECOMPOSE) }.getOrNull()
         else null
+      if (carriedDocument != null && rcReplayClass == null) {
+        // Falling through to the preview class would draw a confident live frame of the wrong
+        // content (or fail on a class that was never there); say what is actually missing.
+        start.replyError.set(
+          IllegalStateException(
+            "overrides.remoteCompose.documentBase64 needs the Remote Compose IR replay connector " +
+              "(data-remotecompose-connector) on the render classpath"
+          )
+        )
+        start.replyLatch.countDown()
+        return
+      }
       val isIrReplay = isProtolayoutIr || rcReplayClass != null
       val nonComposableInvocation = isTile || isNotification || isGlanceAppWidget || isIrReplay
       // `@PreviewParameter` previews resolve to the `(<T>, Composer, int)` overload and are invoked
@@ -3179,6 +3266,10 @@ open class RobolectricHost(
                                     .build()
                                 },
                               namedOverrides = HeldNamedOverrides.decode(start.namedOverrides),
+                              // Only a carried document's override crosses (see
+                              // `InteractiveCommand.Start.carriedRemoteComposeJson`); null keeps
+                              // the planner's unseeded extension, as before.
+                              remoteCompose = carriedRemoteCompose,
                             )
                             .withPseudolocaleFrom(start.localeTag)
                         ComposeDataExtensionPipeline.Apply(
