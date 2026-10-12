@@ -79,7 +79,7 @@ Errors:
 `overrides.remoteCompose.documentBase64` — the same carried document the
 one-shot `renderNow` replays in place of the preview — also drives the held
 session behind `stream/start` (and `interactive/start` / `recording/start`,
-which share it) on Android. The session then plays **that document** through
+which share it) on Android and on desktop (see below). The session then plays **that document** through
 the Remote Compose IR replay connector instead of resolving the preview id:
 neither the bundle's own `ir/<id>.rc` nor the preview class is consulted, so
 
@@ -115,6 +115,73 @@ a client must check the token before relying on it.
 Frames are still routed by `previewId` (as every stream is), so a carried
 stream on a borrowed catalog daemon shares its frame routing and dedup with
 other viewers of the same id; only one held session exists per host.
+
+**Which players draw it.** On Android the request picks any player the
+Remote Compose connector resolves: `androidx-embedded` (the default),
+`androidx-view`, or the CMP player `cmp-android` (`playerId`; the `player`
+enum names only the two AndroidX ones). All three play a carried document in
+the held session and receive input; the CMP player's click areas and touch
+expressions are ordinary pointer-input modifiers, so the tap the session
+dispatches reaches them. `AndroidInteractiveCarriedRealPlayerTest` plays a
+real `.rc` document (remote-m3's `Stepper`) through the real connector in each
+of them. Under Robolectric `androidx-view` (remote-player-view alpha19) draws
+that document without its filled buttons and rail and does not step it — the
+tap lands (its press indication is drawn) but the value is back on the next
+frame — while `androidx-embedded` and `cmp-android` step it and keep the new
+value. That is the view player's own behaviour on the document, recorded in
+the test rather than asserted.
+
+#### Desktop (`cmp-jvm`)
+
+The desktop daemon honours the same override on every lane — the one-shot
+`renderNow`, `stream/start` / `interactive/start`, and `recording/start` —
+by composing the carried document in the **CMP player's JVM host, `cmp-jvm`**
+(rc-players' `rc-player-compose`, JVM target) inside the `ImageComposeScene`
+in place of the preview. The contract is the Android one, with these
+specifics:
+
+- **Player.** `remoteCompose.playerId` may be omitted, `cmp-jvm` or
+  `rcplayer-jvm`. Any other id — and the `player` enum, which names only the
+  AndroidX players — is refused (`renderFailed`, or `-32603` on
+  `stream/start`) rather than drawn with `cmp-jvm`: what drew the pixels is
+  part of the answer.
+- **Unknown ids.** An id the manifest does not know renders / holds a session
+  / records when a document is carried, framed by the overrides' `widthPx` /
+  `heightPx` / `density` (density defaults to 1.0, as on Android). A borrowed
+  catalog preview's content is never drawn, and its preview-index intents
+  (`@SettledPreview`, `@ScrollingPreview(END)`, hover / drag) are not applied
+  to the document; a caller's own `focus` override still is.
+- **Theme, size, density.** `uiMode` reaches the player through
+  `LocalSystemTheme` (the player resolves its default theme with
+  `isSystemInDarkTheme()`), density and `fontScale` through the scene's
+  `Density`, size through the scene size; `namedValues` seed the player's
+  named values. `profile` and `acceptedHostActions` have no desktop meaning,
+  and host actions a document fires are not reported (neither are they on
+  the Android replay path today).
+- **Input and time.** `interactive/input` and recording script input go into
+  the scene as for any held preview, so pointer, click, scroll and key events
+  reach the document. Animations follow the scene's frame clock; the
+  document's wall clock (`TimeAttribute`, calendar variables) is frame time
+  since the scene's first frame, from the epoch, in UTC — so the one-shot
+  render is deterministic (frame zero is 1970-01-01T00:00Z, matching the
+  Android players' Robolectric clock), a live session runs on wall-clock
+  frames and a scripted recording on its virtual timeline.
+  `captureAdvanceMs` is not applied on desktop.
+- **The player is host-supplied.** `rc-player-compose` is an
+  `ee.schimke.composeai` artifact, so dependency ownership keeps it off
+  `daemon-desktop`'s runtime: the process that launches the daemon must put
+  `ee.schimke.composeai:rc-player-compose-jvm` (and the Compose Multiplatform
+  line it requires — 1.12.1 for rc-players 2.9.0, newer than the 1.11 line
+  `daemon-desktop` is built on) on the daemon's classpath. `daemon-desktop`
+  ships only a small binding (`ee.schimke.composeai.daemon.rcplayer`), compiled
+  against the player in its own source set and loaded by name after a
+  bytecode linkage check. Without the player a carried document is refused by
+  name (`IllegalStateException` naming `rc-player-compose-jvm`) on every lane.
+- **Detecting support.** The desktop host advertises `remoteCompose` and,
+  when it can hold sessions, `remoteCompose.documentBase64.live` in
+  `supportedOverrides` **only when the player is on its classpath and links**.
+  A desktop daemon that advertises neither ignores — older builds — or
+  refuses — this build without the player — a carried document.
 
 ### `stream/stop` (notification)
 
@@ -360,3 +427,13 @@ canvas painter; there is no opt-in setting and no fallback.
   intervals, per-catalog scoping, socket open/close accounting.
 - `cli/serve-web` `liveFramePainter.test.ts` — newest-wins queue, stale
   drop after dispatch, the post-decode watermark, heartbeat handling.
+- `:daemon:android` `AndroidInteractiveCarriedDocumentTest` — carried-document
+  routing in the held session (fake replay composable);
+  `AndroidInteractiveCarriedRealPlayerTest` — a real `.rc` document through
+  the real connector in `androidx-view`, `androidx-embedded` and
+  `cmp-android`, drawn and tapped.
+- `:daemon:desktop` `DesktopCarriedRemoteComposeTest` (task
+  `carriedRemoteComposeTest`, whose classpath has the CMP player) — one-shot,
+  borrowed catalog id, held session + tap, recording + scripted tap, `uiMode`,
+  refusals; `DesktopCarriedRemoteComposeAbsentTest` (default `test`) — no
+  capability and a refusal by name without the player.

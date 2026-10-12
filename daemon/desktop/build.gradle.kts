@@ -151,6 +151,11 @@ dependencies {
   // Slot mode: RenderEngine provides `LocalSlotMode` (from `:slot-preview-runtime`) around the
   // rendered content, so a `PreviewSlot` marker draws a placeholder when `slotMode` is set.
   implementation(project(":slot-preview-runtime"))
+  // A carried Remote Compose document (`overrides.remoteCompose.documentBase64`): the linkage check
+  // `CarriedRemoteCompose` runs over the player binding before using it, and the named-value
+  // seeding the binding shares with the Android connector's CMP backend. The player itself is NOT a
+  // dependency — see the `rcplayerBinding` source set below.
+  implementation(project(":data-remotecompose-core"))
 
   // Bundle previews keep generated composeResources on the disposable user classloader. The
   // daemon provides a JvmResourceReader for that loader around every composition so CMP resource
@@ -242,6 +247,90 @@ dependencies {
   // changes the rendered pixels (the end-to-end named-override render path).
   "testFixturesImplementation"(project(":data-preview-overrides-runtime"))
 }
+
+/**
+ * The CMP Remote Compose player binding (`cmp-jvm`) — the only code in this module compiled against
+ * rc-players' `rc-player-compose`, which draws a carried `overrides.remoteCompose.documentBase64`.
+ *
+ * Its own source set for two reasons. The player is published under `ee.schimke.composeai`, so
+ * `checkDependencyOwnership` keeps it off the production runtime classpath: the host that launches
+ * the daemon supplies it, exactly as consumers supply the AndroidX family to `:daemon:android`. And
+ * the player is built against a newer Compose Multiplatform line than this module, so a plain
+ * `compileOnly` on `main` would silently move the published module's own compile classpath onto
+ * that line. Here only the binding compiles against it; its classes ship in this module's jar and
+ * `CarriedRemoteCompose` loads them by name after a linkage check, so a daemon without the player
+ * refuses a carried document by name and advertises nothing it cannot do.
+ */
+val rcplayerBinding: SourceSet = sourceSets.create("rcplayerBinding")
+
+dependencies {
+  "rcplayerBindingCompileOnly"(sourceSets.main.get().output)
+  "rcplayerBindingCompileOnly"(platform(libs.rcplayers.bom))
+  "rcplayerBindingCompileOnly"(libs.rcplayer.compose)
+  "rcplayerBindingCompileOnly"(project(":data-remotecompose-core"))
+}
+
+// `main`'s classes as friend paths, so the binding can implement `main`'s internal
+// `CarriedDocumentPlayer` without widening the published ABI. Not `associateWith(main)`: KGP
+// associates a JVM compilation through `main`'s jar, and that jar carries the binding — a cycle.
+tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileRcplayerBindingKotlin") {
+  friendPaths.from(sourceSets.main.get().output.classesDirs)
+}
+
+tasks.jar { from(rcplayerBinding.output) }
+
+dependencies {
+  // The binding is in the production jar, so it is on every test runtime too: the default `test`
+  // task then sees exactly what a host that does not supply the player sees (binding present,
+  // player absent), which is what `DesktopCarriedRemoteComposeAbsentTest` pins.
+  testRuntimeOnly(rcplayerBinding.output)
+}
+
+/**
+ * The carried-document tests, on a runtime that has the player — which means the Compose
+ * Multiplatform line the player requires, not this module's. Isolated in their own task for the
+ * same reason as [forwardComposeTestRuntime]: putting the player on `testRuntimeClasspath` would
+ * move every other desktop test onto that line too. `compose.desktop.currentOs` is pinned to the
+ * same line so Skiko's native runtime and `skiko-awt` cannot disagree.
+ *
+ * The default `test` task runs without the player, so the "not on the classpath" half — no
+ * capability advertised, a carried render refused by name — is covered there
+ * (`DesktopCarriedRemoteComposeAbsentTest`).
+ */
+val carriedRemoteComposeTestRuntime =
+  configurations.create("carriedRemoteComposeTestRuntime") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    description = "Desktop daemon tests with the CMP Remote Compose player on the classpath."
+    extendsFrom(configurations.testRuntimeClasspath.get())
+  }
+
+dependencies {
+  carriedRemoteComposeTestRuntime(platform(libs.rcplayers.bom))
+  carriedRemoteComposeTestRuntime(libs.rcplayer.compose)
+  carriedRemoteComposeTestRuntime(compose.desktop.currentOs) {
+    version { strictly(libs.versions.compose.multiplatform.rcplayer.get()) }
+  }
+}
+
+val carriedRemoteComposeTest =
+  tasks.register<Test>("carriedRemoteComposeTest") {
+    group = "verification"
+    description =
+      "Runs the carried Remote Compose document tests with the CMP player (cmp-jvm) on the " +
+        "classpath."
+    val testSourceSet = sourceSets.test.get()
+    testClassesDirs = testSourceSet.output.classesDirs
+    classpath =
+      testSourceSet.output +
+        sourceSets.main.get().output +
+        sourceSets.getByName("testFixtures").output +
+        carriedRemoteComposeTestRuntime
+    filter { includeTestsMatching("ee.schimke.composeai.daemon.DesktopCarriedRemoteComposeTest") }
+    shouldRunAfter(tasks.test)
+  }
+
+tasks.check { dependsOn(carriedRemoteComposeTest) }
 
 /**
  * The `compose/figma-svg` export's Material interaction states, run one Compose line forward.
@@ -365,6 +454,9 @@ tasks.check { dependsOn(forwardComposeInteractionExportTest) }
 
 tasks.test {
   finalizedBy(forwardComposeInteractionExportTest)
+  // Same `finalizedBy` reasoning as the forward task: CI runs `test`, not `check`. The class itself
+  // needs the player, which this task's classpath deliberately lacks.
+  finalizedBy(carriedRemoteComposeTest)
   // The forward class asserts behaviour that only exists once material3 has forked its ripple
   // node, so on the production pin it would fail for the right reason at the wrong time. It runs
   // in `forwardComposeInteractionExportTest` and nowhere else — and that task's first test fails
@@ -372,6 +464,7 @@ tasks.test {
   // cannot end up hiding a class that has quietly stopped being run anywhere.
   filter {
     excludeTestsMatching("ee.schimke.composeai.daemon.ForwardMaterialInteractionExportTest")
+    excludeTestsMatching("ee.schimke.composeai.daemon.DesktopCarriedRemoteComposeTest")
   }
 }
 

@@ -337,6 +337,16 @@ class RenderEngine(
 
     // kind=LOTTIE has no class to reflect — the asset is rendered directly via Compottie below.
     val isLottie = spec.kind == "LOTTIE"
+    // A Remote Compose document carried on the request (`overrides.remoteCompose.documentBase64`)
+    // replaces the preview's content outright, as it does on the Android daemon: the preview id
+    // only
+    // names the render (and a held session's frame routing), so its class is never loaded — it may
+    // not exist at all (the preview server's player-only daemon) or must not be drawn (a borrowed
+    // catalog preview). Resolved before anything is allocated: bytes that will not decode, a player
+    // this daemon does not have, or a missing CMP player fail the render here rather than as a
+    // confident frame of something else. See [CarriedRemoteCompose].
+    val carried: CarriedRemoteComposeDocument? = CarriedRemoteCompose.resolve(spec.overrides)
+    val carriedClock: CarriedDocumentClock? = carried?.let { CarriedDocumentClock() }
     // Resolve the composable entrypoint plus any `@PreviewParameter` argument list. A parameterized
     // preview compiles to `foo(<T>, Composer, int)`, so the bare `getDeclaredComposableMethod`
     // lookup used to throw `NoSuchMethodException` here — no PNG, no semantics. The daemon now
@@ -345,7 +355,7 @@ class RenderEngine(
     // [PreviewParameterSupport.resolve] opens the method for reflective invocation (Kotlin `private
     // fun` previews are idiomatic and would otherwise throw `IllegalAccessException`).
     val resolvedInvocation: ee.schimke.composeai.renderer.PreviewParameterSupport.Resolved? =
-      if (isLottie) {
+      if (isLottie || carried != null) {
         null
       } else {
         val clazz = Class.forName(spec.className, true, classLoader)
@@ -374,7 +384,12 @@ class RenderEngine(
     // Pairs with `[classloader] swap requested` / `allocate child loader` lines from
     // [UserClassLoaderHolder]. If `classFile` doesn't advance across saves the daemon is
     // re-rendering against bytecode that wasn't actually recompiled.
-    if (isLottie) {
+    if (carried != null) {
+      System.err.println(
+        "compose-ai-daemon: [setUp] carried Remote Compose document (${carried.bytes.size} bytes) " +
+          "player=${carried.player.id} previewId=${spec.previewId} inspectionMode=$inspectionMode"
+      )
+    } else if (isLottie) {
       System.err.println(
         "compose-ai-daemon: [setUp] lottie asset '${spec.assetPath}' " +
           "loaderId=${System.identityHashCode(classLoader).toString(16)}"
@@ -486,8 +501,11 @@ class RenderEngine(
     // Resolved from the daemon's `previews.json` index, the same lookup the END-scroll drive uses,
     // so the intent is annotation-sourced: an interactive render with no previewId simply doesn't
     // settle, as before.
+    // Never for a carried document: the index describes the preview the id names, and on a borrowed
+    // catalog daemon that preview's `@SettledPreview` says nothing about the caller's bytes.
     val settle =
-      if (settleEligible) spec.previewId?.let { loadPreviewIndexLazily().staticSettleFor(it) }
+      if (settleEligible && carried == null)
+        spec.previewId?.let { loadPreviewIndexLazily().staticSettleFor(it) }
       else null
     // A zero-length window is "no settle", not "settle for no time" — discovery floors both knobs
     // at a frame, so only a hand-built manifest can produce one, and falling through keeps that
@@ -635,7 +653,19 @@ class RenderEngine(
                     // running composition. Mirrors `:renderer-desktop`'s InvokeComposable. Honours
                     // `@PreviewWrapper(SomeProvider::class)` by routing through the wrapper's
                     // `Wrap`.
-                    if (isLottie) {
+                    if (carried != null) {
+                      // The carried document, in the CMP player, seeded with the override's named
+                      // values. Inside the extension pipeline and the content box like any
+                      // preview, so size, density, uiMode (the player resolves its theme through
+                      // `isSystemInDarkTheme()`, i.e. `LocalSystemTheme` above), the touch overlay
+                      // and every post-capture product apply unchanged.
+                      carried.player.Play(
+                        bytes = carried.bytes,
+                        namedValues = carried.override.namedValues.orEmpty(),
+                        clock = carriedClock!!,
+                        modifier = Modifier,
+                      )
+                    } else if (isLottie) {
                       // Drive the file-discovered Lottie through the draw-time `progress` lambda
                       // reading the snapshot state, so a held-session scrub (mutating
                       // `lottieProgressState`) repaints on the next `render()` by redraw alone — no
@@ -751,6 +781,7 @@ class RenderEngine(
       settleClock = settleClock,
       settleWindowMs = settle?.windowMs ?: 0,
       settleIsExact = (settle?.afterMs ?: 0) > 0,
+      carriedClock = carriedClock,
     )
   }
 
@@ -1356,7 +1387,18 @@ class RenderEngine(
     internal val settleWindowMs: Int = 0,
     /** Whether [settleWindowMs] is an exact coordinate (`afterMs`) rather than an auto bound. */
     internal val settleIsExact: Boolean = false,
+    /**
+     * The wall clock of a carried Remote Compose document this scene plays (see
+     * [CarriedRemoteCompose]), fed every frame timestamp the scene renders at; `null` for every
+     * other scene. Its presence is also what marks the scene as a carried document's, whose
+     * preview-index intents (END scroll, hover, drag) belong to another composable.
+     */
+    internal val carriedClock: CarriedDocumentClock? = null,
   ) {
+    /** Whether this scene plays a carried Remote Compose document rather than a preview. */
+    internal val playsCarriedDocument: Boolean
+      get() = carriedClock != null
+
     /**
      * Whether [applyStaticSettle] has already walked this scene's settle window.
      *
@@ -1432,6 +1474,7 @@ class RenderEngine(
     internal fun recordFrameNanos(nanoTime: Long) {
       lastRenderedFrameNanos = nanoTime
       renderGeneration++
+      carriedClock?.onFrame(nanoTime)
     }
 
     /** Advances [virtualFrameNanos] by one 60 Hz frame and returns the new timestamp. */
@@ -1441,6 +1484,7 @@ class RenderEngine(
       pinnedFrameNanos = null
       virtualFrameNanos += FRAME_INTERVAL_NANOS
       lastRenderedFrameNanos = virtualFrameNanos
+      carriedClock?.onFrame(virtualFrameNanos)
       return virtualFrameNanos
     }
 
@@ -1852,6 +1896,8 @@ class RenderEngine(
     androidx.compose.ui.ExperimentalComposeUiApi::class,
   )
   internal fun driveStaticScrollToEnd(state: SceneState) {
+    // The index's intent is the named preview's; a carried document is someone else's content.
+    if (state.playsCarriedDocument) return
     val previewId = state.spec.previewId ?: return
     val intent = loadPreviewIndexLazily().staticScrollFor(previewId) ?: return
     // Under the same JVM-default-`Locale` override `renderOnce` wraps its frames in. The drive
@@ -1999,8 +2045,12 @@ class RenderEngine(
     androidx.compose.ui.ExperimentalComposeUiApi::class,
   )
   internal fun driveStaticInteraction(state: SceneState) {
-    val hoverIndex = state.spec.previewId?.let { loadPreviewIndexLazily().staticHoverFor(it) }
-    val dragIndex = state.spec.previewId?.let { loadPreviewIndexLazily().staticDragFor(it) }
+    // Hover / drag are the named preview's annotation intents, which a carried document (someone
+    // else's content under that id) does not inherit; a caller's own `focus` override still
+    // applies.
+    val indexedPreviewId = state.spec.previewId?.takeUnless { state.playsCarriedDocument }
+    val hoverIndex = indexedPreviewId?.let { loadPreviewIndexLazily().staticHoverFor(it) }
+    val dragIndex = indexedPreviewId?.let { loadPreviewIndexLazily().staticDragFor(it) }
     val focus = state.spec.overrides?.focus
     // A direction-addressed override is a traversal script, which is the extension's walk to run
     // and not a target this can name. Left exactly as it was.

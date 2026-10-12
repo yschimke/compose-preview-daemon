@@ -253,6 +253,17 @@ open class DesktopHost(
     // `renderNow.overrides.namedOverrides` seeds the plain-Compose `previewOverride*` knobs via the
     // `data/overrides` planner (`PreviewOverridesPreviewOverrideExtension`).
     add("namedOverrides")
+    // `overrides.remoteCompose` — on desktop, a carried document (`documentBase64`, with `playerId`
+    // `cmp-jvm` and seeded `namedValues`) played by the CMP player in place of the preview. Only
+    // where that player is actually on the classpath: the host supplies it (see
+    // [CarriedRemoteCompose]), and advertising it without would invite a render that can only fail.
+    if (CarriedRemoteCompose.isAvailable()) {
+      add("remoteCompose")
+      // Capability token, not a field: the held lanes (`stream/start`, `interactive/start`,
+      // `recording/start`) play the carried document too. The same token the Android daemon
+      // advertises, and likewise only where a held session can exist. See docs/daemon/STREAMING.md.
+      if (supportsInteractive) add(CarriedRemoteCompose.LIVE_CAPABILITY)
+    }
   }
 
   /** PROTOCOL.md § 3 — desktop backend identifier surfaced via `capabilities.backend`. */
@@ -467,6 +478,11 @@ open class DesktopHost(
         )
     val baseSpec =
       resolver(previewId)
+        // A carried Remote Compose document needs no preview of its own: the id only names the
+        // session (and its frames' routing key), and the document is the content. So an id the
+        // manifest does not know still holds a session when the bytes ride along, framed by the
+        // overrides' own size and density — as on the Android daemon.
+        ?: CarriedRemoteCompose.carriedDocumentSpec(previewId, overrides)
         ?: throw UnsupportedOperationException(
           "DesktopHost.previewSpecResolver returned null for previewId='$previewId'; " +
             "interactive session not allocated"
@@ -601,6 +617,8 @@ open class DesktopHost(
         )
     val baseSpec =
       resolver(previewId)
+        // Same as an interactive session: carried bytes need no manifest entry.
+        ?: CarriedRemoteCompose.carriedDocumentSpec(previewId, overrides)
         ?: throw UnsupportedOperationException(
           "DesktopHost.previewSpecResolver returned null for previewId='$previewId'; " +
             "recording session not allocated"
@@ -833,7 +851,12 @@ open class DesktopHost(
   internal fun specFromPreviewTarget(target: RenderTarget.Preview): RenderSpec? {
     val previewId = target.previewId.takeIf { it.isNotBlank() } ?: return null
     val resolver = previewSpecResolver ?: return null
-    val base = resolver(previewId) ?: return null
+    // An id the manifest does not know renders a carried Remote Compose document instead of
+    // falling back to the stub (a "successful" render of nothing); see [CarriedRemoteCompose].
+    val base =
+      resolver(previewId)
+        ?: CarriedRemoteCompose.carriedDocumentSpec(previewId, target.overrides)
+        ?: return null
     return base
       .mergedWith(target.overrides)
       .copy(

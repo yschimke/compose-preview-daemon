@@ -84,6 +84,11 @@ compose-multiplatform = "1.11.1"
 # Consumer runtime used by renderer forward-compatibility tests. Keep this on the newest CMP line
 # that catalogs are expected to adopt; it intentionally does not affect production compilation.
 compose-multiplatform-forward = "1.12.0-rc01"
+# The Compose Multiplatform line the CMP Remote Compose player (`rc-player-compose`, `rcplayers`
+# below) requires: the `:daemon:desktop` `carriedRemoteComposeTest` runtime pins
+# `compose.desktop.currentOs` to it so Skiko's native runtime matches the `skiko-awt` the player's
+# Compose pulls in. Test-only; move it with `rcplayers` when a release raises its Compose floor.
+compose-multiplatform-rcplayer = "1.12.1"
 # JetBrains Compose Multiplatform material3 tracks its own line, so the explicit coordinate must
 # use this version rather than `compose-multiplatform`. Matched to what `m3-catalog` pins on the
 # 1.11 line, so the largest live-rendered catalog and the host agree on the material3 ABI as well
