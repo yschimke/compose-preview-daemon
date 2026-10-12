@@ -242,11 +242,19 @@ class FakeRemoteComposeIrReplayProvider : IrReplayComposableProvider {
  *   stand- in for a document whose click action changes its state;
  * - [FakeReplayDocuments.THEMED] — follows the host configuration, navy in night mode and yellow
  *   otherwise, the stand-in for a document whose colours defer to the theme.
+ *
+ * A **real** Remote Compose document — one that starts with the format's `HEADER` operation (opcode
+ * `0`), which no fake pattern here does — is handed to the connector's own [RemoteComposeIrReplay]
+ * instead, so [AndroidInteractiveCarriedRealPlayerTest] exercises the real player selection and the
+ * real players. This provider has to stay first on the classpath for the fakes above, and the
+ * `IrReplayComposableProvider` lookup takes the first provider for a format, so the real replay is
+ * reached through it rather than by a second registration.
  */
 class FakeRemoteComposeIrReplay {
   @Composable
   fun Replay(bytes: ByteArray) {
     when {
+      FakeReplayDocuments.isRealDocument(bytes) -> RemoteComposeIrReplay().Replay(bytes)
       bytes.contentEquals(FakeReplayDocuments.TAP) -> {
         var tapped by remember { mutableStateOf(false) }
         Box(
@@ -272,4 +280,10 @@ object FakeReplayDocuments {
   val TAP: ByteArray = "fake-rc:tap".toByteArray()
 
   val THEMED: ByteArray = "fake-rc:themed".toByteArray()
+
+  /**
+   * Whether [bytes] look like a real `.rc` document: the `HEADER` operation (`0x00`) followed by
+   * its major version. Every fake pattern above is ASCII text, so the two never collide.
+   */
+  fun isRealDocument(bytes: ByteArray): Boolean = bytes.size > 8 && bytes[0] == 0.toByte()
 }

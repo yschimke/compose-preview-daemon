@@ -275,6 +275,16 @@ dependencies {
   testImplementation(libs.rcplayer.embedded.android)
   testImplementation(libs.compose.remote.player.core)
   testImplementation(libs.compose.remote.core)
+  // The other two players the connector draws a carried document with, so
+  // `AndroidInteractiveCarriedRealPlayerTest` plays one through the real connector in a held
+  // session: `androidx-view` (remote-player-view, plus remote-player-compose its backend links)
+  // and `cmp-android` (the CMP player). Consumer-supplied in production like the rest of the
+  // family: `isConsumerSuppliedRemoteCompose` keeps their jars off the sidecar classpath, and the
+  // sidecar resolves without `rc-player-compose` at all so its transitive closure (Ktor, Coil, a
+  // newer coroutines line) never reaches it either — see `sidecarRuntimeCfg`.
+  testImplementation(libs.compose.remote.player.view)
+  testImplementation(libs.compose.remote.player.compose)
+  testImplementation(libs.rcplayer.compose)
 
   // D-harness.v2 — testFixtures source set holds RedFixturePreviews.kt so its `RedSquare`,
   // `BlueSquare`, `GreenSquare`, `SlowSquare`, `BoomComposable` composables are consumable from
@@ -375,7 +385,8 @@ fun isConsumerSuppliedRemoteCompose(id: ComponentIdentifier): Boolean =
   id is ModuleComponentIdentifier &&
     (id.group == "androidx.compose.remote" ||
       id.group == "androidx.wear.compose.remote" ||
-      (id.group == "ee.schimke.composeai" && id.module.startsWith("third-party-rc-")))
+      (id.group == "ee.schimke.composeai" &&
+        (id.module.startsWith("third-party-rc-") || id.module.startsWith("rc-player-"))))
 
 // AGP's SDK android.jar — needed on the spawned daemon's classpath so JUnit / Robolectric can
 // introspect annotations referencing `android.app.Application` etc. before sandbox bootstrap. The
@@ -422,8 +433,18 @@ afterEvaluate {
   val unitTestRJarTask = tasks.findByName("processDebugUnitTestResources")
   val unitTestRJarFiles = unitTestRJarTask?.outputs?.files
   val bootClasspathProvider = androidBootClasspath
+  // Resolved separately from the test runtime, without the CMP player: excluding it after
+  // resolution (the component filter below) would drop its own jars but keep everything it pulled
+  // in or upgraded — Ktor, Coil, a newer kotlinx-coroutines line — on the shipped sidecar. A copy
+  // with the module excluded resolves the closure the sidecar had before the player was a test
+  // dependency here.
+  val sidecarRuntimeCfg =
+    testRuntimeCfg.copyRecursive().apply {
+      isCanBeConsumed = false
+      exclude(mapOf("group" to "ee.schimke.composeai", "module" to "rc-player-compose"))
+    }
   val sidecarRuntimeJarsView =
-    testRuntimeCfg.incoming
+    sidecarRuntimeCfg.incoming
       .artifactView {
         attributes { attribute(artifactTypeAttr, "jar") }
         componentFilter { !isConsumerSuppliedRemoteCompose(it) }
