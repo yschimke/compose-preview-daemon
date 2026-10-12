@@ -234,6 +234,16 @@ public class JsonRpcServer(
   private val initialized = AtomicBoolean(false)
   private val shutdownRequested = AtomicBoolean(false)
   private val running = AtomicBoolean(true)
+
+  /**
+   * Whether [readLoop] reads another frame. Only the read thread clears it — on `exit` and on a
+   * protocol mismatch — so a stop decided elsewhere cannot cut the loop off between two frames. The
+   * classpath-dirty exit thread clears [running] from its own thread; were the loop gated on that,
+   * a `renderNow` already on the wire would be dropped unanswered whenever that thread won the race
+   * to the loop condition, instead of being refused with [ERR_CLASSPATH_DIRTY] as PROTOCOL.md § 6
+   * promises.
+   */
+  private val readLoopOpen = AtomicBoolean(true)
   private val exitInvoked = AtomicBoolean(false)
 
   /**
@@ -569,7 +579,7 @@ public class JsonRpcServer(
 
   private fun readLoop() {
     val reader = ContentLengthFramer(input)
-    while (running.get()) {
+    while (readLoopOpen.get()) {
       val bytes =
         try {
           reader.readFrame() ?: break // EOF
@@ -715,6 +725,7 @@ public class JsonRpcServer(
       // Per PROTOCOL.md § 3: daemon errors out on mismatch.
       shutdownRequested.set(true)
       running.set(false)
+      readLoopOpen.set(false)
       return
     }
     // Unknown or non-attachable kinds are dropped silently rather than failing every render.
@@ -3312,9 +3323,11 @@ public class JsonRpcServer(
             }
           }
           // The host goes down here — an Android daemon hands its adopted sandbox workers back to
-          // the spare pool from `host.shutdown()` — but the writer stays up until the process
-          // exits, so a `renderNow` racing the exit still gets its ClasspathDirty refusal rather
-          // than EOF. [cleanShutdown]'s full teardown (writer sentinel, thread joins) is for the
+          // the spare pool from `host.shutdown()` — but the reader and writer stay up until the
+          // process exits, so a `renderNow` racing the exit still gets its ClasspathDirty refusal
+          // rather than EOF. Clearing `running` here does not stop [readLoop]: it reads
+          // [readLoopOpen], which only the read thread clears. [cleanShutdown]'s full teardown
+          // (writer sentinel, thread joins) is for the
           // paths where the client is already gone; with `running` cleared first it is a no-op.
           shutdownHost()
           running.set(false)
@@ -3340,6 +3353,9 @@ public class JsonRpcServer(
     // graceful classpath-dirty exit. 1 otherwise (client sent `exit` without `shutdown` first,
     // PROTOCOL.md § 3 — that path is a protocol violation).
     val exitCode = if (shutdownRequested.get() || classpathDirtyEmitted.get()) 0 else 1
+    // The read loop ends after this frame even when a classpath-dirty exit already cleared
+    // `running` and [cleanShutdown] below is a no-op.
+    readLoopOpen.set(false)
     // Sessions first, then the full teardown. [cleanShutdown] flips `running` itself
     // (compareAndSet true→false) and is what shuts the host down — an explicit `exit` used to set
     // `running=false` ahead of it, which made its guard return early and left `host.shutdown()`
