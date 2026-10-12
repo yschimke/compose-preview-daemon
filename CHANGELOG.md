@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.16.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.4...v3.16.0) (2026-10-12)
+
+
+### Features
+
+* **android:** play a carried Remote Compose document in the live session ([#254](https://github.com/yschimke/compose-preview-daemon/issues/254)) ([4df5241](https://github.com/yschimke/compose-preview-daemon/commit/4df52411b72c778597e76d362e3a6da0502c218f))
+* **desktop:** play a carried Remote Compose document in the CMP JVM player ([#255](https://github.com/yschimke/compose-preview-daemon/issues/255)) ([00c930a](https://github.com/yschimke/compose-preview-daemon/commit/00c930a0e5e73155416ff09dc5d78cc9f3489510))
+
 ## [3.15.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.3...v3.15.4) (2026-10-12)
 
 
