@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.15.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.3...v3.15.4) (2026-10-12)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.30.0 ([#244](https://github.com/yschimke/compose-preview-daemon/issues/244)) ([fb9f465](https://github.com/yschimke/compose-preview-daemon/commit/fb9f465eb14d4b89f4dfef08ec624588032d6dc1))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.7.1 ([#245](https://github.com/yschimke/compose-preview-daemon/issues/245)) ([30efb31](https://github.com/yschimke/compose-preview-daemon/commit/30efb3163b512beb7b3f0193148e383d81bc0084))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.8.0 ([#249](https://github.com/yschimke/compose-preview-daemon/issues/249)) ([622bbdc](https://github.com/yschimke/compose-preview-daemon/commit/622bbdc5dcf6ebac6cc82c147870054795556a72))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.9.0 ([#253](https://github.com/yschimke/compose-preview-daemon/issues/253)) ([2a6ba5b](https://github.com/yschimke/compose-preview-daemon/commit/2a6ba5b387155a4791e1dbea1fc9833b569007a7))
+* **deps:** update dependency org.checkerframework:checker-qual to v4.3.0 ([#250](https://github.com/yschimke/compose-preview-daemon/issues/250)) ([6e3d9cd](https://github.com/yschimke/compose-preview-daemon/commit/6e3d9cd1356e94b314eeae499d9799b102ba37cd))
+* **deps:** update dependency org.ow2.asm:asm to v9.11 ([#251](https://github.com/yschimke/compose-preview-daemon/issues/251)) ([640675b](https://github.com/yschimke/compose-preview-daemon/commit/640675b0de841deda12bdd9ba1e21a1977a77009))
+* **deps:** update dependency org.ow2.asm:asm-commons to v9.11 ([#252](https://github.com/yschimke/compose-preview-daemon/issues/252)) ([03763b7](https://github.com/yschimke/compose-preview-daemon/commit/03763b7c6a323accb03aea99026ee0d1f0da02eb))
+
+
+### Performance
+
+* **desktop:** load the preview index once, run only requested extensions, and time renders from dequeue ([#247](https://github.com/yschimke/compose-preview-daemon/issues/247)) ([2e7b785](https://github.com/yschimke/compose-preview-daemon/commit/2e7b785375f9f134c760aa0540bdbd9c55cf7677))
+
+
+### Chores
+
+* **deps:** update dependency yschimke/compose-preview-xr to v2.0.1 ([#248](https://github.com/yschimke/compose-preview-daemon/issues/248)) ([103ba11](https://github.com/yschimke/compose-preview-daemon/commit/103ba1182d1c0486662448b447817103d8f6d576))
+
 ## [3.15.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.2...v3.15.3) (2026-10-11)
 
 
