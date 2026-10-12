@@ -3,10 +3,7 @@
   "extends": [
     "github>yschimke/renovate-config"
   ],
-  "description": "Extends the shared preset at yschimke/renovate-config, which owns the release-train grouping for the ee.schimke.composeai group. platformAutomerge lets native GitHub auto-merge land minor/patch/digest/pin bumps once every required check is green. The packageRules below are this repository's own floors and ceilings: what renderer-android and the published `data-*` connectors are compiled against is part of their supported-minimum surface, so a green build is not on its own a reason to take an upgrade (docs/RENDERER_COMPATIBILITY.md).",
-  "schedule": [
-    "before 9am on Monday"
-  ],
+  "description": "Extends the shared preset at yschimke/renovate-config, which owns the release-train grouping for the ee.schimke.composeai group. platformAutomerge lets native GitHub auto-merge land minor/patch/digest/pin bumps once every required check is green. The packageRules below are this repository's own floors and ceilings: what renderer-android and the published `data-*` connectors are compiled against is part of their supported-minimum surface, so a green build is not on its own a reason to take an upgrade (docs/RENDERER_COMPATIBILITY.md). There is no `schedule`: neither this file nor the preset sets one, so an update is proposed on whichever Renovate run first sees it (roughly hourly on the hosted app). Third-party dependencies still soak for the 7-day `minimumReleaseAge` below; the first-party contracts and rc-players BOMs opt out of it and arrive as soon as they are published.",
   "timezone": "UTC",
   "platformAutomerge": true,
   "prConcurrentLimit": 10,
@@ -120,7 +117,7 @@
       "enabled": false
     },
     {
-      "description": "One PR a week for the workflow pins rather than one per action: these land as a workflow-only change that the same required checks gate, and reviewing them together is how a bad action bump is spotted. Grouping is expressed as a packageRule because that is the stage at which Renovate builds branches.",
+      "description": "One PR for the workflow pins rather than one per action: these land as a workflow-only change that the same required checks gate, and reviewing them together is how a bad action bump is spotted. Grouping is expressed as a packageRule because that is the stage at which Renovate builds branches.",
       "matchManagers": [
         "github-actions"
       ],
