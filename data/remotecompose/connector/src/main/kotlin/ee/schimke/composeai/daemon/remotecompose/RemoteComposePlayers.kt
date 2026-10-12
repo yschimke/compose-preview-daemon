@@ -33,6 +33,18 @@ enum class RemoteComposeClock {
 }
 
 /**
+ * The clock a document drawn in this process should play against:
+ * [RemoteComposeClock.ROBOLECTRIC_UPTIME] inside a Robolectric sandbox, where the render advances
+ * the shadow looper rather than real time, and the player's own [RemoteComposeClock.SYSTEM]
+ * everywhere else. Shared by every path that turns bytes into a [RemoteComposeDocumentSource] — the
+ * live capture and the IR / carried-document replay — so a replayed document's animations and press
+ * feedback advance with the held clock instead of with however long the host took to render.
+ */
+internal fun hostRemoteComposeClock(): RemoteComposeClock =
+  if (android.os.Build.FINGERPRINT == "robolectric") RemoteComposeClock.ROBOLECTRIC_UPTIME
+  else RemoteComposeClock.SYSTEM
+
+/**
  * One way of drawing a Remote Compose document.
  *
  * The connector draws only through this, so the code that binds to a player library — alpha, and

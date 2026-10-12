@@ -12,11 +12,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewWrapperProvider
 import ee.schimke.composeai.daemon.protocol.RemoteComposePlayerKind
-import ee.schimke.composeai.daemon.remotecompose.RemoteComposeClock
 import ee.schimke.composeai.daemon.remotecompose.RemoteComposeDocumentSource
 import ee.schimke.composeai.daemon.remotecompose.RemoteComposePlayers
 import ee.schimke.composeai.daemon.remotecompose.androidx.capture.AndroidxRemoteCapture
 import ee.schimke.composeai.daemon.remotecompose.androidx.capture.captureAndroidxRemoteDocument
+import ee.schimke.composeai.daemon.remotecompose.hostRemoteComposeClock
 import ee.schimke.composeai.data.render.IrSidecarChannel
 import kotlinx.coroutines.runBlocking
 
@@ -217,11 +217,7 @@ fun RemoteOverridablePreview(
           // current preview id). Best-effort — never fail the render over IR capture. See
           // IrSidecarChannel.
           runCatching { IrSidecarChannel.offer(IrSidecarChannel.FORMAT_REMOTECOMPOSE, stamped) }
-          RemoteComposeDocumentSource(
-            bytes,
-            if (android.os.Build.FINGERPRINT == "robolectric") RemoteComposeClock.ROBOLECTRIC_UPTIME
-            else RemoteComposeClock.SYSTEM,
-          )
+          RemoteComposeDocumentSource(bytes, hostRemoteComposeClock())
         }
       }
     }

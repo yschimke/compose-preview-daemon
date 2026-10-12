@@ -6,6 +6,8 @@ import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import ee.schimke.composeai.daemon.protocol.SemanticsInputTarget
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO
 import kotlin.math.abs
 import org.junit.Assert.assertEquals
@@ -933,27 +935,31 @@ class AndroidInteractiveSessionTest {
       )
     host.start()
     try {
+      // Wait on the host's close callback, not on `isClosed`. `close()` flips `isClosed` as its
+      // first step, then waits up to CLOSE_TIMEOUT_SEC for the sandbox round-trip before it
+      // releases the host's held-session slot and runs this callback. Polling `isClosed` and then
+      // re-acquiring raced that window: on a slow runner the follow-up acquire landed while the
+      // slot was still held and threw "interactive session already held".
+      val closeCompleted = CountDownLatch(1)
       val session =
         host.acquireInteractiveSession(
           previewId = INTERACTIVE_PREVIEW_ID,
           classLoader = javaClass.classLoader!!,
+          onSessionClosed = { closeCompleted.countDown() },
         )
       val typed = session as AndroidInteractiveSession
       assertFalse("session must be open immediately after acquire", typed.isClosed)
       assertNull("autoClosedReason should be null on a fresh session", typed.autoClosedReason())
 
-      // Wait long enough for the watchdog to fire and complete its close round-trip. Lease is
-      // 500ms; watchdog ticks at 500ms/4 = 125ms; close round-trip is < 1s. Polling once a tick
-      // for up to 10s is generous against a slow CI but fast in normal cases.
-      val deadline = System.currentTimeMillis() + 10_000L
-      while (!typed.isClosed && System.currentTimeMillis() < deadline) {
-        Thread.sleep(100L)
-      }
+      // Lease is 500ms and the watchdog ticks every 125ms, so the close starts within ~625ms. The
+      // bound only has to cover that plus close()'s own CLOSE_TIMEOUT_SEC (10s) latch wait; a
+      // passing run returns as soon as the callback fires.
       assertTrue(
-        "watchdog should have auto-closed the idle session within 10s of acquire " +
-          "(idleLeaseMs=500)",
-        typed.isClosed,
+        "watchdog should have auto-closed the idle session and released the host slot within " +
+          "30s of acquire (idleLeaseMs=500)",
+        closeCompleted.await(30L, TimeUnit.SECONDS),
       )
+      assertTrue("session must report closed once the close completed", typed.isClosed)
       val reason = typed.autoClosedReason()
       assertNotNull("autoClosedReason should be populated by the watchdog path", reason)
       assertTrue(

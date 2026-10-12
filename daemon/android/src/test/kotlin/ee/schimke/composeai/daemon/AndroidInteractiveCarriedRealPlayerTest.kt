@@ -91,9 +91,17 @@ class AndroidInteractiveCarriedRealPlayerTest {
 
   private fun frame(session: InteractiveSession): BufferedImage {
     // Two renders, keeping the second: give a press, its ripple and any value animation a frame to
-    // land before comparing.
-    session.render(requestId = RenderHost.nextRequestId())
-    return decode(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!)
+    // land before comparing. Each render advances the held clock by an explicit FRAME_ADVANCE_MS.
+    // Left null, `render` advances it by the wall-clock gap since the previous render (32ms up to
+    // 1s), so on a slow runner the androidx-view player's transient press indication had already
+    // played out by the "tapped" frame and that frame matched the resting one.
+    session.render(requestId = RenderHost.nextRequestId(), advanceTimeMs = FRAME_ADVANCE_MS)
+    return decode(
+      session
+        .render(requestId = RenderHost.nextRequestId(), advanceTimeMs = FRAME_ADVANCE_MS)
+        .artifact
+        .pathOrNull()!!
+    )
   }
 
   private fun carried(playerId: String): PreviewOverrides =
@@ -129,6 +137,12 @@ class AndroidInteractiveCarriedRealPlayerTest {
     const val PLAYER_PREVIEW_ID: String = "ee.schimke.composeai.serve.RcPlayerDaemonKt.Player"
 
     const val SIZE_PX: Int = 400
+
+    /**
+     * Held-clock advance per render: one frame, the same 32ms the session applies to a first render
+     * or to back-to-back renders. Fixed so the frames compared are the same on every host.
+     */
+    const val FRAME_ADVANCE_MS: Long = 32L
 
     /**
      * The players whose tap moves the stepper's value and keeps it moved. `androidx-view`
