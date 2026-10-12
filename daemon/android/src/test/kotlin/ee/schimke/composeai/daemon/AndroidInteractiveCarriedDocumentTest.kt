@@ -127,6 +127,30 @@ class AndroidInteractiveCarriedDocumentTest {
       host.held(PLAYER_PREVIEW_ID, carried(GREEN_DOCUMENT)) { frame ->
         assertMostly("the slot survives a refused document", frame, REPLAY_GREEN)
       }
+
+      // Recording is a held lane too: an id the manifest does not know records the carried bytes.
+      val recording =
+        host.acquireRecordingSession(
+          previewId = "com.example.unknown.NotInTheManifestKt.Recorded",
+          recordingId = "carried-recording",
+          classLoader = LOADER,
+          fps = 1,
+          scale = 1.0f,
+          overrides = carried(GREEN_DOCUMENT, widthPx = 64, heightPx = 48),
+          live = false,
+        )
+      try {
+        val result = recording.stop()
+        assertEquals("framed by the override width", 64, result.frameWidthPx)
+        assertEquals("framed by the override height", 48, result.frameHeightPx)
+        assertMostly(
+          "a recording plays the carried document",
+          decode(java.io.File(result.framesDir, "frame-00000.png").absolutePath),
+          REPLAY_GREEN,
+        )
+      } finally {
+        recording.close()
+      }
     } finally {
       host.shutdown()
     }

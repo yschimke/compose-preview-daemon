@@ -1991,6 +1991,9 @@ open class RobolectricHost(
         )
     val baseSpec =
       resolver(previewId)
+        // As for an interactive session: a carried document is the content, so an id the manifest
+        // does not know still records it.
+        ?: carriedDocumentSpec(previewId, overrides)
         ?: throw UnsupportedOperationException(
           "RobolectricHost.previewSpecResolver returned null for previewId='$previewId'; " +
             "recording session not allocated"
