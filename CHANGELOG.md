@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.16.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.16.0...v3.16.1) (2026-10-13)
+
+
+### Bug Fixes
+
+* **android:** let the View player's taps take effect in a held session ([#262](https://github.com/yschimke/compose-preview-daemon/issues/262)) ([276fa1c](https://github.com/yschimke/compose-preview-daemon/commit/276fa1cc11e125397e64d26be0f63380e94778f9))
+* **core:** keep the read loop up through a classpath-dirty exit ([#264](https://github.com/yschimke/compose-preview-daemon/issues/264)) ([2ab67e2](https://github.com/yschimke/compose-preview-daemon/commit/2ab67e2138e8089d79d25e5c1ae88fab9cd476c3))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.10.0 ([#259](https://github.com/yschimke/compose-preview-daemon/issues/259)) ([3102693](https://github.com/yschimke/compose-preview-daemon/commit/3102693fa633f1b62ba332014c28e7e5c1f14de8))
+* **deps:** update dependency org.jetbrains.skiko:skiko-awt to v0.153.0 ([#267](https://github.com/yschimke/compose-preview-daemon/issues/267)) ([cc482be](https://github.com/yschimke/compose-preview-daemon/commit/cc482beac9c526ca43a4aab6e6628e232b493aca))
+* **figma-svg:** audit emitted text before reporting lost font families ([#266](https://github.com/yschimke/compose-preview-daemon/issues/266)) ([e29463c](https://github.com/yschimke/compose-preview-daemon/commit/e29463c1016b9136127ee11c15fbb2945c998948))
+
+
+### CI
+
+* **renovate:** propose updates on every run instead of weekly ([#260](https://github.com/yschimke/compose-preview-daemon/issues/260)) ([4184267](https://github.com/yschimke/compose-preview-daemon/commit/41842672bdf9e8d5c2f8915beab7071a2f5d2c98))
+* run policy checks for workflow-opened release PRs ([#265](https://github.com/yschimke/compose-preview-daemon/issues/265)) ([1808a38](https://github.com/yschimke/compose-preview-daemon/commit/1808a387f2863fe95b18317b01fc03222272439e))
+
 ## [3.16.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.15.4...v3.16.0) (2026-10-12)
 
 
