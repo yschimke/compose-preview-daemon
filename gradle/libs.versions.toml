@@ -239,7 +239,7 @@ junit = "4.13.2"
 #
 # A Renovate bump here is WELCOME and is the point: it re-points the probe at the newest skiko, and
 # the test then says whether the late binding still holds against it.
-skiko-encode-probe = "0.150.1"
+skiko-encode-probe = "0.153.0"
 truth = "1.4.5"
 maven-publish = "0.37.0"
 # Checker Framework qualifier annotations. ATF (`accessibility-test-framework`,
@@ -340,7 +340,7 @@ composeai-contracts = "3.30.0"
 # weight (rc-players#597; 2.2.1 drew every row at the file's default instance), draw-list sounds and
 # per-frame redraw of clock-driven canvases, then 2.4.0's StateLayout enter/exit and shared elements
 # matched by their AnimationSpec id.
-rcplayers = "2.9.0"
+rcplayers = "2.12.0"
 
 [libraries]
 

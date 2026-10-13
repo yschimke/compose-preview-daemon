@@ -323,4 +323,120 @@ class FigmaSvgTofuFallbackTest {
     val svg = dir.resolve("unembeddable").resolve(ComposeFigmaSvgDataProducer.FILE_SVG).readText()
     assertTrue("a face that cannot be embedded must still box", svg.contains(TofuFont.FAMILY))
   }
+
+  @Test
+  fun `an unused resolved face does not degrade visible text whose own face is embedded`() {
+    val face = dir.resolve("roboto-flex.ttf")
+    face.writeBytes(
+      requireNotNull(javaClass.getResourceAsStream("/fonts/roboto-flex-latin.ttf")).use {
+        it.readBytes()
+      }
+    )
+    FigmaSvgRenderedFonts.record("Roboto Flex")
+    FigmaSvgRenderedFonts.record("Space Grotesk") // an offscreen section or invisible spacing Text
+    ComposeFigmaSvgDataProducer.writeSvg(
+      rootDir = dir,
+      previewId = "unused-face",
+      layout = layout(),
+      semantics = payload(family = face.absolutePath),
+      fontResolver = FigmaFontResolver { _, _, _ -> null },
+    )
+    val svg = dir.resolve("unused-face").resolve(ComposeFigmaSvgDataProducer.FILE_SVG).readText()
+    System.getProperty("fontAuditEvidenceFile")?.let {
+      java.io.File(it).apply {
+        parentFile.mkdirs()
+        writeText(svg)
+      }
+    }
+    assertTrue("the visible face is still embedded", svg.contains("Roboto Flex"))
+    assertFalse(
+      "resolving a face outside the emitted text must not box the visible text",
+      svg.contains(TofuFont.FAMILY),
+    )
+    assertFalse("the unused face is not a publication failure", warnings("unused-face").exists())
+  }
+
+  @Test
+  fun `an unknown explicit font identity still degrades even when another face is named`() {
+    FigmaSvgRenderedFonts.record("Orbitron")
+    FigmaSvgRenderedFonts.record("Space Grotesk")
+    ComposeFigmaSvgDataProducer.writeSvg(
+      rootDir = dir,
+      previewId = "lost-identity",
+      layout = layout(),
+      semantics = payload(family = "/missing/font.ttf"),
+    )
+    assertTrue(warnings("lost-identity").exists())
+  }
+
+  @Test
+  fun `a named paragraph with an unresolved visible span still degrades`() {
+    FigmaSvgRenderedFonts.record("Orbitron")
+    FigmaSvgRenderedFonts.record("Space Grotesk")
+    val captured = payload(family = "Orbitron")
+    val text = captured.root.children.single()
+    val mixed =
+      captured.copy(
+        root =
+          captured.root.copy(
+            children =
+              listOf(
+                text.copy(
+                  typography =
+                    text.typography!!.copy(
+                      spans =
+                        listOf(
+                          ComposeSemanticsTextSpan(start = 0, end = 4, fontFamily = "Orbitron"),
+                          ComposeSemanticsTextSpan(
+                            start = 4,
+                            end = 8,
+                            fontFamily = "/missing/font.ttf",
+                          ),
+                        )
+                    )
+                )
+              )
+          )
+      )
+    ComposeFigmaSvgDataProducer.writeSvg(
+      rootDir = dir,
+      previewId = "lost-span",
+      layout = layout(),
+      semantics = mixed,
+    )
+    assertTrue("a visible unresolved span must still warn", warnings("lost-span").exists())
+  }
+
+  @Test
+  fun `an uncovered family-less text range keeps the global audit`() {
+    FigmaSvgRenderedFonts.record("Orbitron")
+    FigmaSvgRenderedFonts.record("Space Grotesk")
+    val captured = payload()
+    val text = captured.root.children.single()
+    val mixed =
+      captured.copy(
+        root =
+          captured.root.copy(
+            children =
+              listOf(
+                text.copy(
+                  typography =
+                    text.typography!!.copy(
+                      spans =
+                        listOf(
+                          ComposeSemanticsTextSpan(start = 0, end = 4, fontFamily = "Orbitron")
+                        )
+                    )
+                )
+              )
+          )
+      )
+    ComposeFigmaSvgDataProducer.writeSvg(
+      rootDir = dir,
+      previewId = "lost-gap",
+      layout = layout(),
+      semantics = mixed,
+    )
+    assertTrue("the uncovered range still has no named face", warnings("lost-gap").exists())
+  }
 }

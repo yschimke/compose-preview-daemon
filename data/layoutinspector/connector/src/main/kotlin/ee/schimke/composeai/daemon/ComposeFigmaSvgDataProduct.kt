@@ -15,6 +15,7 @@ import ee.schimke.composeai.data.layoutinspector.FigmaSvgFontFace
 import ee.schimke.composeai.data.layoutinspector.FigmaSvgLayer
 import ee.schimke.composeai.data.layoutinspector.FigmaSvgModel
 import ee.schimke.composeai.data.layoutinspector.FigmaSvgRasterTarget
+import ee.schimke.composeai.data.layoutinspector.FigmaSvgText
 import ee.schimke.composeai.data.layoutinspector.LayoutInspectorPayload
 import ee.schimke.composeai.data.render.PreviewContext
 import ee.schimke.composeai.io.SystemFileSystem
@@ -199,7 +200,12 @@ object ComposeFigmaSvgDataProducer {
     // the font's presence rather than on anything being lost.
     val emittedCodePoints = codePoints(model.root)
     val unnamed =
-      if (emittedCodePoints.isEmpty()) emptyList() else FigmaSvgRenderedFonts.unnamedIn(named)
+      if (
+        emittedCodePoints.isEmpty() ||
+          visibleFontFamiliesAreAccountedFor(model.root, fonts?.familyOverrides.orEmpty())
+      )
+        emptyList()
+      else FigmaSvgRenderedFonts.unnamedIn(named)
     val svg =
       when {
         // The render drew with a face this export can't name. Emitting the default here is what
@@ -265,6 +271,56 @@ object ComposeFigmaSvgDataProducer {
       node.children.forEach(::walk)
     }
     walk(layer)
+  }
+
+  /**
+   * Font resolution can compose an offscreen section or whitespace without emitting its glyphs.
+   * Such a face must not box visible text whose own resolved face is fully identified. Keep the
+   * global guard for any family-less run or unresolved font handle: those remain ambiguous.
+   */
+  private fun visibleFontFamiliesAreAccountedFor(
+    root: FigmaSvgLayer,
+    overrides: Map<String, String>,
+  ): Boolean {
+    val recorded = FigmaSvgRenderedFonts.snapshot().map { it.lowercase() }.toSet()
+    val generics = setOf("sans-serif", "serif", "monospace", "cursive", "fantasy", "system-ui")
+    fun identified(family: String?): Boolean {
+      val name = family?.trim()?.takeIf { it.isNotEmpty() } ?: return false
+      return overrides.containsKey(name) ||
+        name.lowercase() in recorded ||
+        name.lowercase() in generics
+    }
+    fun textIdentified(text: FigmaSvgText): Boolean {
+      if (text.content.isBlank()) {
+        return text.lines.orEmpty().all { it.content.isBlank() } || identified(text.fontFamily)
+      }
+      val spans = text.spans.orEmpty().sortedBy { it.start }
+      if (spans.isEmpty()) return identified(text.fontFamily)
+      var covered = 0
+      for (span in spans) {
+        val start = span.start.coerceIn(0, text.content.length)
+        val end = span.end.coerceIn(start, text.content.length)
+        if (
+          start > covered &&
+            text.content.substring(covered, start).isNotBlank() &&
+            !identified(text.fontFamily)
+        )
+          return false
+        if (
+          text.content.substring(start, end).isNotBlank() &&
+            !identified(span.fontFamily ?: text.fontFamily)
+        )
+          return false
+        covered = maxOf(covered, end)
+      }
+      return text.content.substring(covered).isBlank() || identified(text.fontFamily)
+    }
+    fun walk(layer: FigmaSvgLayer): Boolean {
+      if (layer.text?.let { !textIdentified(it) } == true) return false
+      if (layer.curvedTexts.any { it.text.isNotBlank() && !identified(it.fontFamily) }) return false
+      return layer.children.all(::walk)
+    }
+    return walk(root)
   }
 
   /** Every code point drawn in [layer]'s subtree, so the tofu face maps exactly what is emitted. */
