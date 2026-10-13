@@ -413,6 +413,21 @@ looper clock are independent; establish which layer advances the looper clock du
 capture. **Validation needed:** a single-test reproducer with an `AndroidView` whose
 `onDraw` reads `SystemClock`, outside the daemon.
 
+## R12 — Resolved fonts are not proof of emitted glyphs
+
+**Owner:** our Figma SVG exporter. **Status:** regression fix prepared (2026-10-13),
+not an upstream Robolectric defect. Font resolution records faces from whitespace and
+eagerly composed offscreen content as well as visible text. Comparing that global set
+with exported text families incorrectly reports an unused face as lost.
+
+The exporter now checks whether every emitted nonblank text run has an identified
+family before applying the global ambiguity guard. Family-less gaps, unresolved spans
+and unknown font handles retain the guard. A regression using embedded Roboto Flex
+and an unused resolved Space Grotesk reproduces the warning; before/after PNGs are
+identical because the visible text was already correctly named. All 266 connector tests
+and the module ABI check pass. MeshCore's five remaining publication warnings motivated
+this investigation; their full application export still needs validation with the fix.
+
 ## How to turn an item into upstream feedback
 
 Attach a minimal project or a source-level patch, exact released/source versions,

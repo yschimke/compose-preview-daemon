@@ -19,9 +19,9 @@ data class FigmaSvgFontWarnings(
 )
 
 /**
- * Per-preview record of the font families a render **actually drew with**, so the
- * `compose/figma-svg` export can tell "this text legitimately uses the platform default" apart from
- * "we lost the branded family somewhere".
+ * Per-preview record of the font families a render **resolved**, so the `compose/figma-svg` export
+ * can tell "this text legitimately uses the platform default" apart from "we lost the branded
+ * family somewhere".
  *
  * Those two look identical from inside the export — both arrive as a text node with no captured
  * family — but only one of them is a defect. A stock-Material preview genuinely has no explicit
@@ -32,9 +32,10 @@ data class FigmaSvgFontWarnings(
  * Populated by the Android render's font recorder (`FontResolverRecorder`) as resolutions happen,
  * rather than at post-capture: the recorder and the SVG export are independent post-capture
  * extensions with no ordering guarantee between them, so the data has to be in place before either
- * runs. Lives in this module because the export reads it and the recorder (in `:daemon:android`)
- * already depends on this one — the same direction `FontResolutionDiagnostics` is driven from two
- * render paths.
+ * runs. A resolution can belong to whitespace or offscreen content; the exporter scopes unmatched
+ * faces to visible runs whose own family cannot be identified. Lives in this module because the
+ * export reads it and the recorder (in `:daemon:android`) already depends on this one — the same
+ * direction `FontResolutionDiagnostics` is driven from two render paths.
  */
 object FigmaSvgRenderedFonts {
 
@@ -55,7 +56,7 @@ object FigmaSvgRenderedFonts {
     if (name.isNotEmpty()) families.add(name)
   }
 
-  /** The families this preview drew with. */
+  /** The families this preview resolved, including eagerly composed offscreen text. */
   fun snapshot(): Set<String> = synchronized(families) { families.toSet() }
 
   /**
