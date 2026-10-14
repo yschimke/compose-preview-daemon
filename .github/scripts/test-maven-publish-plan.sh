@@ -97,6 +97,8 @@ dependencies { implementation(libs.bundles.net) }
 // Baked into the artifact, as compose-ai-tools' Gradle plugin bakes in the daemon version.
 val embeddedPlayerVersion = libs.versions.rcplayers.get()
 EOF
+mkdir -p lib/gamma/src/jvmMain/kotlin
+echo 'class Gamma' > lib/gamma/src/jvmMain/kotlin/Gamma.kt
 cat > build-logic/src/main/kotlin/Conventions.kt <<'EOF'
 package conventions
 
@@ -311,6 +313,37 @@ check catalog_sibling_retargeted "alpha beta"
 # for the module that reads it (gamma), while beta's library on the same version stays a floor.
 change_catalog_sibling_version_read() { sed -i 's/rcplayers = "1.0.0"/rcplayers = "1.1.0"/' gradle/libs.versions.toml; }
 check catalog_sibling_version_read "gamma"
+
+# A module whose only change is in test source sets publishes nothing: no artifact carries them.
+change_module_test_only() {
+  mkdir -p alpha/src/test/kotlin lib/gamma/src/jvmTest/kotlin beta/src/androidUnitTest/kotlin
+  echo 'class AlphaTest' > alpha/src/test/kotlin/AlphaTest.kt
+  echo 'class GammaTest' > lib/gamma/src/jvmTest/kotlin/GammaTest.kt
+  echo 'class BetaTest' > beta/src/androidUnitTest/kotlin/BetaTest.kt
+}
+check module_test_only ""
+
+# ...but `src/testFixtures` is published as a variant (`:daemon:desktop`, `:daemon:android`).
+change_module_test_fixtures() {
+  mkdir -p alpha/src/testFixtures/kotlin
+  echo 'class AlphaFixture' > alpha/src/testFixtures/kotlin/AlphaFixture.kt
+}
+check module_test_fixtures "alpha beta"
+
+# A test change beside a main change still publishes the module.
+change_module_test_and_main() {
+  mkdir -p alpha/src/test/kotlin alpha/src/main/kotlin
+  echo 'class AlphaTest' > alpha/src/test/kotlin/AlphaTest.kt
+  echo 'class Alpha' > alpha/src/main/kotlin/Alpha.kt
+}
+check module_test_and_main "alpha beta"
+
+# A main source moved into a test directory is still a main-source change (`--no-renames`).
+change_module_main_moved_to_test() {
+  mkdir -p lib/gamma/src/jvmTest/kotlin
+  git mv lib/gamma/src/jvmMain/kotlin/Gamma.kt lib/gamma/src/jvmTest/kotlin/Gamma.kt
+}
+check module_main_moved_to_test "gamma"
 
 # v3.7.0: verification-only build logic is not a shared input.
 change_verification_only() { echo 'val gate = 1' >> build-logic/src/main/kotlin/ee/schimke/composeai/buildlogic/ComposeAiAbiValidationPlugin.kt; }
