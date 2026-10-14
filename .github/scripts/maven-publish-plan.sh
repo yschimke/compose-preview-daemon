@@ -441,7 +441,7 @@ def shared_verdict(tag, files):
 # Main source sets here (`main`, `commonMain`, `jvmMain`, `wasmJsMain`, `rcplayerBinding`) do not
 # match. `--no-renames` keeps a main source moved into a test directory visible as a deletion from
 # main. Ported from compose-ai-tools#5971.
-TEST_SOURCE = re.compile(r"(^|/)src/(?!testFixtures/)(test[A-Za-z]*|[a-z][A-Za-z]*Test[A-Za-z]*)/")
+TEST_SOURCE = re.compile(r"(^|/)src/(?!testFixtures/)(test[A-Za-z0-9]*|[a-z][A-Za-z0-9]*Test[A-Za-z0-9]*)/")
 
 def changed_since(version, directory):
     """Did anything published from `directory` move between the tag for `version` and head?"""
