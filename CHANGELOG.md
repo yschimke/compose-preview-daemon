@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.16.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.16.1...v3.16.2) (2026-10-14)
+
+
+### Bug Fixes
+
+* **android:** make the interactive-session idle-lease and carried-player tests deterministic ([#263](https://github.com/yschimke/compose-preview-daemon/issues/263)) ([3284af3](https://github.com/yschimke/compose-preview-daemon/commit/3284af300823a920c25f00d5514c4391c63dcb40))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.31.0 ([#269](https://github.com/yschimke/compose-preview-daemon/issues/269)) ([5c4e0be](https://github.com/yschimke/compose-preview-daemon/commit/5c4e0bedd2723958e4818e40bd1770177a148b98))
+
 ## [3.16.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.16.0...v3.16.1) (2026-10-13)
 
 
