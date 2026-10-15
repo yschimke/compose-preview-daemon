@@ -13,12 +13,13 @@ import java.time.ZoneId
  *
  * Robolectric's `SystemClock` is deterministic under `LooperMode.PAUSED` — it starts at 100ms since
  * boot and only moves when something advances it. `System.currentTimeMillis()` is NOT: Robolectric
- * rewrites that call into [org.robolectric.shadows.ShadowSystem.currentTimeMillis] only inside
- * *instrumented* classes, and the instrumented set is `android.`, `com.android.internal.`, a
- * handful of XML parsers — plus whatever `instrumentedPackages` names. Everything else (the
- * consumer's own code, and every library) reads the host's real wall clock. So any surface that
- * paints the time re-renders differently every minute, with no source change, and the visual-diff
- * bot reports it as a real diff on every PR.
+ * rewrites that call into [org.robolectric.shadows.ShadowSystem.currentTimeMillis] (which, paused,
+ * returns `SystemClock.uptimeMillis()` — a 1970 wall time) only inside *instrumented* classes, and
+ * the instrumented set is `android.`, `com.android.internal.`, a handful of XML parsers — plus
+ * whatever `instrumentedPackages` names. Everything else (the consumer's own code, and every
+ * library) reads the host's real wall clock. So any surface that paints the time re-renders
+ * differently every minute, with no source change, and the visual-diff bot reports it as a real
+ * diff on every PR.
  *
  * That hits [AppTourRenderer]'s `kind=ACTIVITY` / `kind=APP_TOUR` lane hardest, because there the
  * *app's own* top-level screen is the subject and there is no seam to inject a fixed clock through
@@ -33,6 +34,17 @@ import java.time.ZoneId
  * [ShadowAsyncImagePainter]: the shadow has to be registered (generated `robolectric.properties`
  * for the Gradle path, `SandboxHoldingRunner` for the daemon), and its target class has to be
  * instrumented, because Robolectric cannot shadow a class it did not rewrite.
+ *
+ * ### The consumer's own code
+ *
+ * A time label the consumer wrote itself (compose-ai-tools#5945) is reached through
+ * [ConsumerClock]: `-Dcomposeai.render.clockPackages=<prefixes>` names the consumer's packages,
+ * those are instrumented, and [ShadowConsumerClock] — a shadow of Robolectric's own `ShadowSystem`,
+ * the fixed target of the rewritten call — hands calls *from those classes* [currentTimeMillis],
+ * while the framework keeps the emulated clock. In the daemon, the user module's classes are often
+ * defined by a child loader Robolectric never sees; `ConsumerClockRewriter` rewrites their call
+ * sites to [currentTimeMillis] directly. Off by default: with the property unset nothing is
+ * instrumented and the consumer reads the host clock as before.
  *
  * ### Why not move `SystemClock` instead
  *
@@ -55,9 +67,12 @@ import java.time.ZoneId
  * ## What it cannot reach
  *
  * `java.` is on Robolectric's do-not-acquire list, so `Calendar.getInstance()`, `new Date()` and
- * `java.time.*.now()` read the host clock from inside the JDK where no rewrite is possible. A
- * preview that formats `LocalTime.now()` itself still drifts; the fix for that one is the authoring
- * seam (hoist the clock, or branch on `LocalInspectionMode`), not the renderer.
+ * `java.time.*.now()` read the host clock from inside the JDK where no rewrite is possible — and
+ * that holds for consumer code too: only a consumer class's *own* `System.currentTimeMillis()` call
+ * site is redirected, not one inside the JDK it calls. A preview that formats `LocalTime.now()`
+ * itself still drifts; the fix for that one is the authoring seam (hoist the clock, or branch on
+ * `LocalInspectionMode`), not the renderer. Library code outside the configured packages (other
+ * than Wear's `TimeText`) also still reads the host clock.
  *
  * The Desktop / CMP lane has no Robolectric and therefore no interception point at all, so this is
  * an Android-only guarantee — see [ee.schimke.composeai.plugin.PreviewExtension.fixedTime].
@@ -98,8 +113,8 @@ object PreviewClock {
 
   /**
    * The wall clock a render should see: the pinned instant, or the host's real clock when pinning
-   * is switched off. This is what [ShadowWearTimeSource] hands back in place of
-   * `System.currentTimeMillis()`.
+   * is switched off. This is what [ShadowWearTimeSource], [ShadowConsumerClock] and the daemon's
+   * `ConsumerClockRewriter` hand back in place of `System.currentTimeMillis()`.
    */
   @JvmStatic fun currentTimeMillis(): Long = pinnedTimeMillis() ?: System.currentTimeMillis()
 

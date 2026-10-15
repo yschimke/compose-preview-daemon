@@ -1,6 +1,8 @@
 package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.config.DaemonProperties
+import ee.schimke.composeai.renderer.ConsumerClock
+import ee.schimke.composeai.renderer.ShadowConsumerClock
 import ee.schimke.composeai.renderer.ShadowFontsContractCompat
 import ee.schimke.composeai.renderer.ShadowPausedClockHardwareRenderer
 import org.junit.runners.model.FrameworkMethod
@@ -99,10 +101,26 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     // Wear preview paints is the host's and the render diffs every minute (issue #3239).
     // `addInstrumentedPackage` matches class-name prefixes, so naming the class instruments exactly
     // it. Mirrors the `instrumentedPackages=` line the Gradle path's generated
-    // `robolectric.properties` carries; [ee.schimke.composeai.renderer.PreviewClock] is the other
-    // half, pinning the emulated clock the rewritten call now reads.
+    // `robolectric.properties` carries; [ee.schimke.composeai.renderer.ShadowWearTimeSource] is the
+    // other half, replacing that class's clock read with
+    // [ee.schimke.composeai.renderer.PreviewClock].
     if (isWearComposeMaterialCoreAvailable(javaClass.classLoader)) {
       builder.addInstrumentedPackage(WEAR_MATERIAL_CORE_RESOURCES)
+    }
+    // Consumer clock pinning (compose-ai-tools#5945). `composeai.render.clockPackages` names the
+    // consumer's own packages; instrumenting them makes Robolectric rewrite their
+    // `System.currentTimeMillis()` call sites into `ShadowSystem.currentTimeMillis()`, and
+    // instrumenting that one class lets [ee.schimke.composeai.renderer.ShadowConsumerClock]
+    // (registered in `getExtraShadows`) hand those callers the pinned instant. The exact class,
+    // not a package prefix that would also catch `ShadowSystemClock` and its siblings, is what the
+    // properties path gets automatically from `AndroidConfigurer.withConfig`, which
+    // `getExtraShadows` bypasses. Empty when unset, so an unconfigured daemon is unchanged. The
+    // user module's own classes, when the child loader defines them, are pinned by
+    // [ConsumerClockRewriter] instead: Robolectric never sees those bytes.
+    val clockPackages = ConsumerClock.packages()
+    if (clockPackages.isNotEmpty()) {
+      clockPackages.forEach { builder.addInstrumentedPackage(it) }
+      builder.addInstrumentedClass(ConsumerClock.SHADOW_SYSTEM)
     }
     // B2.0: optional user-package exclusion. Empty when sysprop is unset; existing in-process
     // tests that rely on the default sandbox-classpath path are unaffected.
@@ -205,6 +223,11 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     // (issue #3239).
     if (isWearComposeMaterialCoreAvailable(javaClass.classLoader)) {
       shadows += ee.schimke.composeai.renderer.ShadowWearTimeSource::class.java
+    }
+    // Consumer clock shadow — pairs with the `clockPackages` block in `createClassLoaderConfig`,
+    // and registered under the same condition so an unconfigured sandbox is unchanged.
+    if (ConsumerClock.packages().isNotEmpty()) {
+      shadows += ShadowConsumerClock::class.java
     }
     return shadows.toTypedArray()
   }

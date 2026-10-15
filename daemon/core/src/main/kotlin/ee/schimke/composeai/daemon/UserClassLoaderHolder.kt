@@ -19,6 +19,11 @@ import java.net.URLClassLoader
  *   classes load from the app loader and composable lookup fails on classloader-identity skew.
  * @param onSwap called with each newly allocated loader (Android mirrors it into
  *   `DaemonHostBridge`).
+ * @param transformer rewrites the bytes of the classes the child defines itself, before they are
+ *   defined. The child is a plain [URLClassLoader], so nothing else ever instruments them — on
+ *   Android this is the only way a rewrite reaches the user module's own classes (Robolectric's
+ *   instrumentation applies to the sandbox loader, not to this child). `null` defines them as
+ *   compiled.
  */
 public class UserClassLoaderHolder(
   private val urls: List<URL>,
@@ -26,7 +31,15 @@ public class UserClassLoaderHolder(
     Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()
   },
   private val onSwap: ((URLClassLoader) -> Unit)? = null,
+  private val transformer: UserClassTransformer? = null,
 ) {
+
+  /** The pre-[transformer] shape, kept so code compiled against it still links. */
+  public constructor(
+    urls: List<URL>,
+    parentSupplier: () -> ClassLoader,
+    onSwap: ((URLClassLoader) -> Unit)?,
+  ) : this(urls, parentSupplier, onSwap, null)
 
   private val lock = Any()
   private var current: URLClassLoader? = null
@@ -78,7 +91,7 @@ public class UserClassLoaderHolder(
 
   private fun allocateLocked(): URLClassLoader {
     val resolvedParent = parentSupplier()
-    val fresh = ChildFirstURLClassLoader(urls.toTypedArray(), resolvedParent)
+    val fresh = ChildFirstURLClassLoader(urls.toTypedArray(), resolvedParent, transformer)
     current = fresh
     trackedLoaders.add(WeakReference(fresh))
     // An mtime that does not advance across saves means the compile rewrote nothing.
@@ -94,8 +107,31 @@ public class UserClassLoaderHolder(
    * Child-first, because the user classes may also be on the parent's classpath with stale bytes.
    * [mustDelegateToParent] packages always go to the parent.
    */
-  private class ChildFirstURLClassLoader(urls: Array<URL>, parent: ClassLoader) :
-    URLClassLoader(urls, parent) {
+  private class ChildFirstURLClassLoader(
+    urls: Array<URL>,
+    parent: ClassLoader,
+    private val transformer: UserClassTransformer?,
+  ) : URLClassLoader(urls, parent) {
+
+    override fun findClass(name: String): Class<*> {
+      if (transformer == null || !transformer.appliesTo(name)) return super.findClass(name)
+      val resource =
+        findResource(name.replace('.', '/') + ".class") ?: throw ClassNotFoundException(name)
+      val original = resource.openStream().use { it.readBytes() }
+      val bytes = transformer.transform(name, original)
+      val codeSource =
+        java.security.CodeSource(codeSourceRoot(resource), null as Array<java.security.CodeSigner>?)
+      return defineClass(name, bytes, 0, bytes.size, codeSource)
+    }
+
+    /** The class-path entry [resource] came from, as [URLClassLoader] would report it. */
+    private fun codeSourceRoot(resource: URL): URL {
+      val spec = resource.toString()
+      return when {
+        spec.startsWith("jar:") -> URL(spec.removePrefix("jar:").substringBefore("!/"))
+        else -> urLs.firstOrNull { spec.startsWith(it.toString()) } ?: resource
+      }
+    }
 
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
       synchronized(getClassLoadingLock(name)) {

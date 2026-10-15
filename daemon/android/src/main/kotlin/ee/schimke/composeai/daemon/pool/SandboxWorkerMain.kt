@@ -1,6 +1,7 @@
 package ee.schimke.composeai.daemon.pool
 
 import ee.schimke.composeai.daemon.AppComposeSelection
+import ee.schimke.composeai.daemon.ConsumerClockRewriter
 import ee.schimke.composeai.daemon.RenderRequest
 import ee.schimke.composeai.daemon.RobolectricHost
 import ee.schimke.composeai.daemon.StartupTimings
@@ -97,6 +98,9 @@ object SandboxWorkerMain {
               UserClassLoaderHolder(
                 urls = userClassUrls.get(),
                 parentSupplier = { sandboxClassLoader },
+                // Read per holder, not once at boot: a spare learns the catalog's
+                // `composeai.render.clockPackages` only when it is adopted.
+                transformer = ConsumerClockRewriter.fromSystemProperties(),
               )
             }
           } else null,

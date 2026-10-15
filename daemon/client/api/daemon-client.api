@@ -344,6 +344,7 @@ public final class ee/schimke/composeai/daemon/client/ManagedDaemon$State : java
 
 public final class ee/schimke/composeai/daemon/client/RobolectricConfig {
 	public static final field APP_TOUR_PACKAGE Ljava/lang/String;
+	public static final field CLOCK_PACKAGES_PROPERTY Ljava/lang/String;
 	public static final field Companion Lee/schimke/composeai/daemon/client/RobolectricConfig$Companion;
 	public static final field FILE_NAME Ljava/lang/String;
 	public static final field RENDERER_PACKAGE Ljava/lang/String;
@@ -351,8 +352,11 @@ public final class ee/schimke/composeai/daemon/client/RobolectricConfig {
 	public synthetic fun <init> (IZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun appTourLaneBody ()Ljava/lang/String;
 	public final fun composableLaneBody ()Ljava/lang/String;
+	public final fun getClockPackages ()Ljava/util/List;
 	public final fun getSdkLevel ()I
 	public final fun getUseConsumerApplication ()Z
+	public final fun systemProperties ()Ljava/util/Map;
+	public final fun withClockPackages (Ljava/util/List;)Lee/schimke/composeai/daemon/client/RobolectricConfig;
 	public final fun writeTo (Ljava/io/File;)Ljava/io/File;
 }
 
