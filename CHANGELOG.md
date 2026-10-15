@@ -1,5 +1,34 @@
 # Changelog
 
+## [3.17.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.16.2...v3.17.0) (2026-10-15)
+
+
+### Features
+
+* raise the Robolectric SDK ceiling to API 37 ([#279](https://github.com/yschimke/compose-preview-daemon/issues/279)) ([e90e9e9](https://github.com/yschimke/compose-preview-daemon/commit/e90e9e939246c93426e73b6c4594844c9b6dabec))
+
+
+### Bug Fixes
+
+* **deps:** update androidx-wear to v1.7.1 ([#276](https://github.com/yschimke/compose-preview-daemon/issues/276)) ([a802cd6](https://github.com/yschimke/compose-preview-daemon/commit/a802cd6094fab0f3554f661fa19b5f2567ad623e))
+* **deps:** update dependency androidx.collection:collection to v1.7.0 ([#277](https://github.com/yschimke/compose-preview-daemon/issues/277)) ([e271e8b](https://github.com/yschimke/compose-preview-daemon/commit/e271e8be9764f9b513597a44260d6513f81770b1))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.32.0 ([#272](https://github.com/yschimke/compose-preview-daemon/issues/272)) ([2b63a2b](https://github.com/yschimke/compose-preview-daemon/commit/2b63a2b95b02a7dcef218dc6ae37e0778ae9945c))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.33.0 ([#281](https://github.com/yschimke/compose-preview-daemon/issues/281)) ([ffb2dd7](https://github.com/yschimke/compose-preview-daemon/commit/ffb2dd78905bf46ebc746ba83a5d0a8f407aeb14))
+* **deps:** update dependency io.github.classgraph:classgraph to v4.8.197 ([#271](https://github.com/yschimke/compose-preview-daemon/issues/271)) ([bacf394](https://github.com/yschimke/compose-preview-daemon/commit/bacf394218d767b7d9139638533fb00322b7deaf))
+
+
+### CI
+
+* **release:** ignore test source sets in the Maven publish plan ([#274](https://github.com/yschimke/compose-preview-daemon/issues/274)) ([6c8b6fa](https://github.com/yschimke/compose-preview-daemon/commit/6c8b6fa7d094d0cc5ec8d8709ad3a48e049fcffc))
+
+
+### Chores
+
+* **deps:** update actions/setup-node action to v7.1.0 ([#278](https://github.com/yschimke/compose-preview-daemon/issues/278)) ([a5c4f19](https://github.com/yschimke/compose-preview-daemon/commit/a5c4f19a1865e64c4baa92069a67369657892dfb))
+* **deps:** update dependency yschimke/compose-preview-xr to v2.0.2 ([#280](https://github.com/yschimke/compose-preview-daemon/issues/280)) ([99f93bc](https://github.com/yschimke/compose-preview-daemon/commit/99f93bc521d48af6622213ad4e64e7411988f9e3))
+* **deps:** update github-actions ([#270](https://github.com/yschimke/compose-preview-daemon/issues/270)) ([2afbcf7](https://github.com/yschimke/compose-preview-daemon/commit/2afbcf72c58a14d05c04cdd28f1180d69eea4764))
+* **deps:** update gradle to v9.8.1 ([#275](https://github.com/yschimke/compose-preview-daemon/issues/275)) ([4a8274b](https://github.com/yschimke/compose-preview-daemon/commit/4a8274b1801abd5739107d67654b5c02f8e69d51))
+
 ## [3.16.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.16.1...v3.16.2) (2026-10-14)
 
 
