@@ -83,6 +83,27 @@ class SandboxSparePoolTest {
   }
 
   @Test
+  fun `the sandbox sdk is boot-critical, so it splits signatures and reaches the spare`() {
+    // A spare boots Robolectric before the configure request lands, so an SDK left out of its
+    // command would boot the default level and be adopted by an API 37 catalog regardless.
+    val pool = pool(SandboxSparePool.Config(maxSpares = 0))
+    val api35 =
+      descriptor(
+        systemProperties =
+          mapOf("robolectric.offline" to "true", DaemonProperties.Names.SANDBOX_SDK to "35")
+      )
+    val api37 =
+      descriptor(
+        systemProperties =
+          mapOf("robolectric.offline" to "true", DaemonProperties.Names.SANDBOX_SDK to "37")
+      )
+
+    assertThat(pool.signatureOf(api37)).isNotEqualTo(pool.signatureOf(api35))
+    assertThat(pool.spareCommand(api37, archiveSlot = 1))
+      .contains("-D${DaemonProperties.Names.SANDBOX_SDK}=37")
+  }
+
+  @Test
   fun `a spare is launched generic, in spare mode, with its own archive`() {
     val pool = pool(SandboxSparePool.Config(maxSpares = 1, perSignature = 1))
     val command = pool.spareCommand(descriptor(), archiveSlot = 1)

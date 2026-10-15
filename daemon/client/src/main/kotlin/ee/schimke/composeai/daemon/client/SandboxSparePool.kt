@@ -434,6 +434,8 @@ public class SandboxSparePool(
       setOf(
         DaemonProperties.Names.USER_CLASS_PACKAGES,
         DaemonProperties.Names.USE_CONSUMER_APPLICATION,
+        // Robolectric reads the SDK at sandbox bootstrap, before the configure request lands.
+        DaemonProperties.Names.SANDBOX_SDK,
         DaemonProperties.Names.MAX_HEAP_MB,
         DaemonProperties.Names.SANDBOX_BOOT_TIMEOUT_MS,
         DaemonProperties.Names.WARM_RENDER_ON_BOOT,
