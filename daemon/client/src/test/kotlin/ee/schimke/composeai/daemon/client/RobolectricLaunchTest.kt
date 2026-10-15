@@ -61,6 +61,8 @@ class RobolectricLaunchTest {
   fun `config clamps the sdk level like the backend does`() {
     assertThat(RobolectricLaunch.config(sdkLevel = 99).sdkLevel).isEqualTo(AndroidSdk.MAX_SDK)
     assertThat(RobolectricLaunch.config(sdkLevel = 4).sdkLevel).isEqualTo(AndroidSdk.MIN_SDK)
+    // Robolectric 4.17 ships API 37; a compileSdk 37 consumer must not be clamped to 36.
+    assertThat(RobolectricLaunch.config(sdkLevel = 37).sdkLevel).isEqualTo(37)
     assertThat(RobolectricLaunch.config(sdkLevel = 33).composableLaneBody())
       .isEqualTo(
         DaemonBackend.Android(File("/sdk/android.jar"), sdkLevel = 33)

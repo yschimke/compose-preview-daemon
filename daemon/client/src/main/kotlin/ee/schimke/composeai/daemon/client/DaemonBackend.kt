@@ -129,8 +129,12 @@ public object AndroidSdk {
   /** Floor of the bundled Robolectric's `android-all-instrumented` range (API 21). */
   public const val MIN_SDK: Int = 21
 
-  /** Ceiling of the bundled Robolectric's supported range (API 36). */
-  public const val MAX_SDK: Int = 36
+  /**
+   * Ceiling of the bundled Robolectric's supported range (API 37, since 4.17). Rendering at 37 also
+   * needs espresso-core 3.7.0+ on the classpath; older Espresso reflects the removed
+   * `InputManager.getInstance()`. compose-ai-tools' plugin injects that floor.
+   */
+  public const val MAX_SDK: Int = 37
 
   /** Used when the caller pins none. Recent and widely available. */
   public const val DEFAULT_SDK: Int = 35
