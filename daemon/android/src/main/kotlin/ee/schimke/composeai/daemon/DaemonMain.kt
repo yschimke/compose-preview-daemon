@@ -100,7 +100,11 @@ fun main(args: Array<String>) {
   val userClassloaderHolderFactory: ((sandboxClassLoader: ClassLoader) -> UserClassLoaderHolder)? =
     if (hasUserClasses) {
       { sandboxClassLoader ->
-        UserClassLoaderHolder(urls = userClassUrls, parentSupplier = { sandboxClassLoader })
+        UserClassLoaderHolder(
+          urls = userClassUrls,
+          parentSupplier = { sandboxClassLoader },
+          transformer = ConsumerClockRewriter.fromSystemProperties(),
+        )
       }
     } else null
 
@@ -183,6 +187,7 @@ fun main(args: Array<String>) {
                       "the host called publishChildLoader?"
                   )
               },
+              transformer = ConsumerClockRewriter.fromSystemProperties(),
             )
           }
         else null

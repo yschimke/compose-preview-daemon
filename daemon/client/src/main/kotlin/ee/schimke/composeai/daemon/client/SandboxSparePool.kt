@@ -440,6 +440,9 @@ public class SandboxSparePool(
         DaemonProperties.Names.SANDBOX_BOOT_TIMEOUT_MS,
         DaemonProperties.Names.WARM_RENDER_ON_BOOT,
         DaemonProperties.Names.STARTUP_QUIET,
+        // `SandboxHoldingRunner` instruments these packages and `ShadowSystem` when the sandbox
+        // boots, so a spare booted without them cannot pin a sandbox-loaded consumer class's clock.
+        RobolectricConfig.CLOCK_PACKAGES_PROPERTY,
       )
 
     private val HANDSHAKE = Regex("""pid=(\d+) port=(\d+)""")

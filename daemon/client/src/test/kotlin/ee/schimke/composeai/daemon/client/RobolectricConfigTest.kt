@@ -71,4 +71,54 @@ class RobolectricConfigTest {
     assertThat(composable.readText()).startsWith("sdk=35\n")
     assertThat(composable.readText()).doesNotContain("sdk=33")
   }
+
+  @Test
+  fun `no clock packages writes the files exactly as before`() {
+    val config = RobolectricConfig(sdkLevel = 35)
+    assertThat(config.clockPackages).isEmpty()
+    assertThat(config.systemProperties()).isEmpty()
+    assertThat(config.withClockPackages(listOf(" ", "")).composableLaneBody())
+      .isEqualTo(config.composableLaneBody())
+    assertThat(config.composableLaneBody()).doesNotContain("instrumentedPackages=")
+    assertThat(config.composableLaneBody()).doesNotContain("ShadowConsumerClock")
+  }
+
+  /**
+   * Both halves of consumer clock pinning (compose-ai-tools#5945), on both lanes: the consumer's
+   * packages instrumented, `ShadowConsumerClock` registered (Robolectric instruments its
+   * `ShadowSystem` target itself), and the same list handed to the render JVM.
+   */
+  @Test
+  fun `clock packages instrument the consumer and register the clock shadow on both lanes`() {
+    val config =
+      RobolectricConfig(sdkLevel = 35, useConsumerApplication = true)
+        .withClockPackages(listOf(" com.example.app.", "com.example.lib.", "com.example.app."))
+
+    assertThat(config.sdkLevel).isEqualTo(35)
+    assertThat(config.useConsumerApplication).isTrue()
+    assertThat(config.clockPackages).containsExactly("com.example.app.", "com.example.lib.")
+    for (body in listOf(config.composableLaneBody(), config.appTourLaneBody())) {
+      assertThat(body.lines()).contains("instrumentedPackages=com.example.app.,com.example.lib.")
+      assertThat(body.lines())
+        .contains(
+          "shadows=ee.schimke.composeai.renderer.ShadowFontsContractCompat," +
+            "ee.schimke.composeai.renderer.ShadowConsumerClock"
+        )
+    }
+    assertThat(config.systemProperties())
+      .containsExactly(
+        RobolectricConfig.CLOCK_PACKAGES_PROPERTY,
+        "com.example.app.,com.example.lib.",
+      )
+  }
+
+  @Test
+  fun `clock packages overlapping the runtime are dropped`() {
+    val config =
+      RobolectricConfig(sdkLevel = 35)
+        .withClockPackages(
+          listOf("java.", "android.", "org.robolectric.", "ee.schimke.composeai.", "com.example.")
+        )
+    assertThat(config.clockPackages).containsExactly("com.example.")
+  }
 }

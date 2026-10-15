@@ -45,6 +45,7 @@ unmeasured. Evidence confidence is separate from priority.
 | 10 | **P3 · R09 — reload lifetime investigation** | Our growing leak is fixed. Remaining initial AWT loader root is bounded, so no established ongoing growth benefit. | Unknown for normal unit/screenshot tests; custom application reloads distinguish our case. | No confirmed Robolectric bug; ownership unresolved. | Minimize AWT/TCCL retention first; escalate priority only if growth or substantial retained memory is established. |
 | 11 | **P3 · R11 — two input clocks in a held Compose session** | Fixed locally (input dropped by a hosted `View` player); upstream value is documentation, not a speedup. | Any Robolectric Compose test that injects input into an `AndroidView` whose `View` reads `SystemClock`, once the looper clock and `mainClock` have drifted. | High confidence in mechanism (measured, before/after test); ownership split across Compose ui-test, Robolectric and Roborazzi, not established. | Reduce to a one-file Robolectric + Compose test before deciding where, if anywhere, to report it. |
 | 12 | **P3 · R13 — API 37 needs espresso-core 3.7.0+** | Blocking at API 37 until the floor is on the classpath; fixed by compose-ai-tools injecting the floor. | Every Robolectric API 37 test that injects input through Espresso before 3.7. | Confirmed end to end; the owner is AndroidX Test, which already fixed it in 3.7.0. | None beyond suggesting a note in Robolectric's API 37 release notes. |
+| 13 | **P3 · R14 — caller-scoped wall clock for instrumented code** | Fixed locally with a shadow of `ShadowSystem` plus a stack-walk caller check; upstream value is a supported way to give instrumented app code a fixed wall clock. | Any Robolectric screenshot test of a component that formats `System.currentTimeMillis()`; ordinary app code is uninstrumented, so it reads the host clock today. | High confidence in mechanism (source + end-to-end tests); no upstream discussion yet. | Ask whether a configurable wall-clock offset, or a caller-aware `Interceptor` hook, would be accepted. |
 
 ## Applicability beyond the daemon
 
@@ -465,6 +466,49 @@ this investigation; their full application export still needs validation with th
   `DefaultSdkPicker` falls back to the manifest's target SDK. The daemon therefore pins one sandbox
   class per level (`SandboxRunnerSdk36`, `SandboxRunnerSdk37`) and picks one from
   `composeai.daemon.sandboxSdk`. A supported runtime hook for the SDK would remove the subclasses.
+
+## R14 — A fixed wall clock for the app's own code needs a shadow of a shadow
+
+- **Category:** missing API / embedding friction. **Owner:** Robolectric (interceptor design);
+  our workaround is local.
+- **Evidence/version:** Robolectric 4.17 sources, 2026-10-15 (compose-ai-tools#5945: two renders of
+  one commit differed only in a consumer time label, `8:26` vs `2:18`).
+  `AndroidInterceptors.SystemTimeInterceptor` intercepts `System.currentTimeMillis()` /
+  `System.nanoTime()`, but only in *instrumented* classes, and binds them through
+  `InvokeDynamicSupport.bootstrapIntrinsic` to `ShadowSystem.currentTimeMillis()`, which in
+  `PAUSED` mode returns `SystemClock.uptimeMillis()` — 100 ms past the epoch. So instrumenting an
+  app's packages makes its clock deterministic but reads 1 January 1970.
+  `bootstrapIntrinsic` receives the caller's `Lookup` and drops it, and
+  `Interceptor.getMethodHandle(methodName, type)` has no caller parameter, so an interceptor cannot
+  be scoped to the app's classes. `RobolectricTestRunner.findInterceptors()` can be overridden, but
+  only by a runner subclass — `ParameterizedRobolectricTestRunner` is `final` with a private inner
+  runner, so a `robolectric.properties`-configured lane cannot reach it.
+- **Also observed:** `AndroidConfigurer.withConfig` calls `addInstrumentedClass` for the
+  `@Implements` target of every shadow in `Config.shadows` (annotation or `robolectric.properties`),
+  so a properties-registered shadow instruments its exact target with no `instrumentedPackages`
+  entry. `RobolectricTestRunner.getExtraShadows` does **not** go through `withConfig`, so a runner
+  that adds shadows there must instrument the target itself. By this reading the
+  `instrumentedPackages=androidx.wear.compose.materialcore.ResourcesKt` line that accompanies
+  `ShadowWearTimeSource` is redundant on the properties path (still needed in the daemon); not
+  verified by removing it.
+- **Impact:** a screenshot of any component that formats the current time is non-reproducible
+  unless the app injects a clock. Moving `SystemClock` instead is rejected for the reasons in
+  `PreviewClock`'s KDoc (forward-only, overdue delayed messages, 54 years of uptime, ordering).
+- **Current workaround:** `ShadowConsumerClock` shadows `org.robolectric.shadows.ShadowSystem`
+  (instrumented as an exact class), walks a few stack frames to the class that made the original
+  `System.*` call, and returns `PreviewClock`'s pinned instant (and the host `nanoTime`) only when
+  that class matches `composeai.render.clockPackages`; every other caller gets `ShadowSystem`'s own
+  value through a `@Direct` reflector. The consumer packages are added to `instrumentedPackages`.
+  The daemon's user-class child loader defines the module's own classes outside the sandbox
+  loader, so there an ASM rewrite (`ConsumerClockRewriter`) retargets the call instead.
+- **Proposed upstream change:** either a configurable wall-clock base for `ShadowSystem`
+  (`currentTimeMillis = base + uptime`, set per sandbox, without moving `SystemClock`), or pass the
+  caller class to `Interceptor.getMethodHandle` so an interceptor can bind per call site at
+  bootstrap rather than walking the stack per call.
+- **Validation status:** `ConsumerClockRenderTest` (properties-shaped `@Config`, Wear M2/M3
+  `TimeText` plus a consumer label, byte-identical PNGs a second apart, a `fixedTime=off` control
+  that differs) and `ConsumerClockDaemonRenderTest` (real `RobolectricHost` render). No upstream
+  issue filed.
 
 ## How to turn an item into upstream feedback
 

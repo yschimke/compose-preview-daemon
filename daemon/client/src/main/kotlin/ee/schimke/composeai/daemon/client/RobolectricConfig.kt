@@ -27,6 +27,47 @@ public class RobolectricConfig(
 ) {
 
   /**
+   * The consumer's own class-name prefixes whose `System.currentTimeMillis()` reads the pinned
+   * preview clock (compose-ai-tools#5945). Empty — the default — writes exactly the files this
+   * class wrote before it existed. Set through [withClockPackages].
+   */
+  public var clockPackages: List<String> = emptyList()
+    private set
+
+  /**
+   * A copy of this config that pins the wall clock the consumer's own code reads: the composable
+   * lane's and app-tour lane's files gain `instrumentedPackages=<packages>` and register
+   * `ShadowConsumerClock` (whose `@Implements` target, `ShadowSystem`, Robolectric then instruments
+   * by itself), and [systemProperties] names the same list for the render JVM, where the shadow
+   * reads it to tell the consumer's calls from the framework's. Both halves are needed: the shadow
+   * can only intercept calls from classes Robolectric rewrote.
+   *
+   * [packages] are class-name prefixes matched with `startsWith`, exactly as Robolectric matches
+   * `instrumentedPackages` — the Gradle module namespace or a Bazel Android target's `packageName`,
+   * ideally with a trailing `.`. Blank entries are dropped, and so is any prefix that overlaps the
+   * JDK, Kotlin, Robolectric, the Android framework or this renderer's own packages (mirroring the
+   * renderer's `ConsumerClock`), because instrumenting those is unsound.
+   */
+  public fun withClockPackages(packages: List<String>): RobolectricConfig =
+    RobolectricConfig(sdkLevel, useConsumerApplication).also {
+      it.clockPackages =
+        packages
+          .map { p -> p.trim() }
+          .filter { p ->
+            p.isNotEmpty() && PROTECTED_ROOTS.none { r -> r.startsWith(p) || p.startsWith(r) }
+          }
+          .distinct()
+    }
+
+  /**
+   * System properties the render JVM needs alongside these files — `composeai.render.clockPackages`
+   * when [clockPackages] is set, otherwise nothing. Merge into the child's `-D`s.
+   */
+  public fun systemProperties(): Map<String, String> =
+    if (clockPackages.isEmpty()) emptyMap()
+    else mapOf(CLOCK_PACKAGES_PROPERTY to clockPackages.joinToString(","))
+
+  /**
    * The composable lane's file, for [RENDERER_PACKAGE].
    *
    * `shadows=` registers the GoogleFont shadow that makes a downloadable `Font(GoogleFont(...))`
@@ -36,7 +77,7 @@ public class RobolectricConfig(
     appendLine("sdk=$sdkLevel")
     appendLine("graphicsMode=NATIVE")
     if (!useConsumerApplication) appendLine("application=android.app.Application")
-    append("shadows=$FONT_SHADOW")
+    appendClockAndShadows()
   }
 
   /**
@@ -53,7 +94,17 @@ public class RobolectricConfig(
   public fun appTourLaneBody(): String = buildString {
     appendLine("sdk=$sdkLevel")
     appendLine("graphicsMode=NATIVE")
-    append("shadows=$FONT_SHADOW")
+    appendClockAndShadows()
+  }
+
+  /** `shadows=`, plus the consumer-clock half when [clockPackages] is set. */
+  private fun StringBuilder.appendClockAndShadows() {
+    if (clockPackages.isEmpty()) {
+      append("shadows=$FONT_SHADOW")
+      return
+    }
+    appendLine("instrumentedPackages=${clockPackages.joinToString(",")}")
+    append("shadows=$FONT_SHADOW,$CONSUMER_CLOCK_SHADOW")
   }
 
   /**
@@ -84,8 +135,37 @@ public class RobolectricConfig(
      */
     public const val APP_TOUR_PACKAGE: String = "ee.schimke.composeai.apptour"
 
+    /**
+     * The render-JVM system property naming the consumer's class-name prefixes; the renderer's
+     * `ConsumerClock.PROPERTY`. Comma-separated.
+     */
+    public const val CLOCK_PACKAGES_PROPERTY: String = "composeai.render.clockPackages"
+
     private const val FONT_SHADOW: String =
       "ee.schimke.composeai.renderer.ShadowFontsContractCompat"
+
+    private const val CONSUMER_CLOCK_SHADOW: String =
+      "ee.schimke.composeai.renderer.ShadowConsumerClock"
+
+    /** Mirrors the renderer's `ConsumerClock` protected roots; see [withClockPackages]. */
+    private val PROTECTED_ROOTS: List<String> =
+      listOf(
+        "java.",
+        "javax.",
+        "jdk.",
+        "sun.",
+        "com.sun.",
+        "kotlin.",
+        "kotlinx.",
+        "org.junit.",
+        "org.robolectric.",
+        "android.",
+        "com.android.internal.",
+        "dalvik.",
+        "libcore.",
+        "ee.schimke.composeai.renderer.",
+        "ee.schimke.composeai.daemon.",
+      )
 
     internal val RENDERER_PACKAGE_PATH: String = RENDERER_PACKAGE.replace('.', '/')
     internal val APP_TOUR_PACKAGE_PATH: String = APP_TOUR_PACKAGE.replace('.', '/')
