@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.18.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.0...v3.18.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* **deps:** update dependency org.checkerframework:checker-qual to v4.3.1 ([#290](https://github.com/yschimke/compose-preview-daemon/issues/290)) ([b7bc400](https://github.com/yschimke/compose-preview-daemon/commit/b7bc400244e42a0c1fc1f099365edd792aaaab51))
+* exit AndroidRendererMain after a successful render ([#292](https://github.com/yschimke/compose-preview-daemon/issues/292)) ([d0f747f](https://github.com/yschimke/compose-preview-daemon/commit/d0f747f99a932127f84cc961b9133a998fea90ae))
+
 ## [3.18.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.17.1...v3.18.0) (2026-10-15)
 
 
