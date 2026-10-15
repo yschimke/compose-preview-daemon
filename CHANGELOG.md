@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.18.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.17.1...v3.18.0) (2026-10-15)
+
+
+### Features
+
+* pin the wall clock the consumer's own code reads in Android renders ([#287](https://github.com/yschimke/compose-preview-daemon/issues/287)) ([e6815b2](https://github.com/yschimke/compose-preview-daemon/commit/e6815b21cd6b576a8535e4d885a641bc293145a1))
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.35.0 ([#289](https://github.com/yschimke/compose-preview-daemon/issues/289)) ([c3c2bb7](https://github.com/yschimke/compose-preview-daemon/commit/c3c2bb77e1cd03bcbce8c7662978f0a0a355b5e1))
+* run the app's own Compose when the user classpath carries a newer one ([#288](https://github.com/yschimke/compose-preview-daemon/issues/288)) ([f19f397](https://github.com/yschimke/compose-preview-daemon/commit/f19f397838cdfeafbd8fbe309687e1ed5f02ec21))
+* size unsized text at the frame's density in the figma SVG export ([#282](https://github.com/yschimke/compose-preview-daemon/issues/282)) ([0334f09](https://github.com/yschimke/compose-preview-daemon/commit/0334f09270ad390f43f8ca673348cbccb6d53b54))
+
 ## [3.17.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.17.0...v3.17.1) (2026-10-15)
 
 
