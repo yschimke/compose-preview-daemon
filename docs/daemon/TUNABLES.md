@@ -37,6 +37,7 @@ flips a knob.
 | --- | --- | --- | --- |
 | `composeai.daemon.userClassDirs` | path list | empty | `File.pathSeparator`-delimited user-class directories the child-first loader serves. |
 | `composeai.daemon.userClassPackages` | path list | empty | Packages excluded from Robolectric instrumentation and served from the user classloader. |
+| `composeai.daemon.appCompose` | String | `auto` | Whose Compose runs when the user classpath carries one: `auto` (the app's when newer or unversioned), `app` (always the app's) or `daemon` (always the bundled one). See docs/daemon/CLASSLOADER.md. |
 | `composeai.daemon.cheapSignalFiles` | path list | empty | Files whose mtime/size form the cheap classpath-dirty signal. |
 | `composeai.daemon.previewsJsonPath` | path | unset | Absolute path to the `previews.json` manifest. Unset boots with an empty preview index. |
 

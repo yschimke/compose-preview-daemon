@@ -486,6 +486,22 @@ public object ClassloaderForensics {
       put("instrumentation", instrumentation(cls))
       put("package", packageInfo(cls))
       put("moduleHash", moduleHash(cls, fqn))
+      put("bytecodeSource", bytecodeSource(cls, fqn))
+    }
+  }
+
+  /**
+   * Where the defining loader reads [fqn]'s bytecode from. A Robolectric sandbox defines classes
+   * without a `CodeSource`, so `codeSource.location` is empty for every acquired class; this is the
+   * only field that says which jar a sandboxed `androidx.compose.*` class came from (the app's or
+   * the daemon's — `composeai.daemon.appCompose`).
+   */
+  private fun bytecodeSource(cls: Class<*>, fqn: String): String {
+    val cl = cls.classLoader ?: return ""
+    return try {
+      cl.getResource(fqn.replace('.', '/') + ".class")?.toString() ?: ""
+    } catch (_: Throwable) {
+      ""
     }
   }
 

@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon.pool
 
+import ee.schimke.composeai.daemon.AppComposeSelection
 import ee.schimke.composeai.daemon.RenderRequest
 import ee.schimke.composeai.daemon.RobolectricHost
 import ee.schimke.composeai.daemon.StartupTimings
@@ -217,6 +218,14 @@ object SandboxWorkerMain {
           send(writer, WorkerResponse.Ok)
         }
         is WorkerRequest.Configure -> {
+          val refusal = appComposeRefusal(request)
+          if (refusal != null) {
+            // Back to listening, unconfigured: the pool cold-boots this slot instead, and the
+            // spare stays warm for a catalog whose Compose matches the one it booted.
+            System.err.println("sandbox worker: refusing adoption: $refusal")
+            send(writer, WorkerResponse.Failed(id = -1, diagnostic = refusal))
+            return true
+          }
           configure(host, request, userClassUrls)
           send(writer, WorkerResponse.Configured(pid = ProcessHandle.current().pid()))
         }
@@ -231,6 +240,39 @@ object SandboxWorkerMain {
         }
       }
     }
+  }
+
+  /**
+   * Why this spare cannot take [request]'s catalog, or `null` when it can. Whose Compose the
+   * sandbox defines is fixed when it boots (`RobolectricHost.appComposeDecision`); a spare boots
+   * with no user classes, so on the daemon's Compose. A catalog whose own Compose would run
+   * (`composeai.daemon.appCompose`) needs a sandbox built over *its* jars, and adopting this one
+   * would silently render it on the wrong Compose.
+   */
+  internal fun appComposeRefusal(request: WorkerRequest.Configure): String? {
+    val props = request.systemProperties
+    val dirs =
+      DaemonProperties.userClassDirs.parse(
+        props[DaemonProperties.Names.USER_CLASS_DIRS]
+          ?: System.getProperty(DaemonProperties.Names.USER_CLASS_DIRS)
+      )
+    val mode =
+      DaemonProperties.appCompose.parse(
+        props[DaemonProperties.Names.APP_COMPOSE]
+          ?: System.getProperty(DaemonProperties.Names.APP_COMPOSE)
+      ) ?: AppComposeSelection.MODE_AUTO
+    val wanted =
+      AppComposeSelection.decide(
+        userUrls = UserClassLoaderHolder.urlsFromPaths(dirs),
+        daemonLoader = RobolectricHost::class.java.classLoader,
+        mode = mode,
+      )
+    val booted = RobolectricHost.appComposeDecision
+    val sameCompose =
+      wanted.preferApp == booted.preferApp &&
+        wanted.appUrls.map { it.toString() } == booted.appUrls.map { it.toString() }
+    return if (sameCompose) null
+    else "catalog needs [${wanted.logLine()}] but this sandbox booted [${booted.logLine()}]"
   }
 
   /**

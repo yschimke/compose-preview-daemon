@@ -158,9 +158,11 @@ public class UserClassLoaderHolder(
      * after the first save it is stale; listed first, it would shadow the recompiled `.class`
      * directory. The sort is stable, preserving AGP's order within each group.
      */
-    public fun urlsFromSysprop(): List<URL> {
-      val files =
-        DaemonProperties.userClassDirs.read().map { java.io.File(it) }.filter { it.exists() }
+    public fun urlsFromSysprop(): List<URL> = urlsFromPaths(DaemonProperties.userClassDirs.read())
+
+    /** [urlsFromSysprop] for a path list that is not (yet) the sysprop, e.g. a spare's adoption. */
+    public fun urlsFromPaths(paths: List<String>): List<URL> {
+      val files = paths.map { java.io.File(it) }.filter { it.exists() }
       return files.sortedBy { if (it.isDirectory) 0 else 1 }.map { it.toURI().toURL() }
     }
 

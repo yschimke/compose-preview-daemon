@@ -2119,6 +2119,20 @@ open class RobolectricHost(
     const val MAX_SANDBOX_SDK: Int = 37
 
     /**
+     * Whose Compose this JVM's sandbox defines (`composeai.daemon.appCompose`, issue
+     * compose-ai-tools#6016). Decided once per process, because Robolectric caches one sandbox per
+     * JVM and its loader is fixed at build time; logged once, so a render that looks wrong can be
+     * traced to the Compose that drew it.
+     */
+    val appComposeDecision: AppComposeSelection.Decision by lazy {
+      AppComposeSelection.decide(
+          userUrls = UserClassLoaderHolder.urlsFromSysprop(),
+          daemonLoader = RobolectricHost::class.java.classLoader,
+        )
+        .also { System.err.println(it.logLine()) }
+    }
+
+    /**
      * The sandbox test class for [sdk]. Robolectric 4.17 picks the SDK from `@Config` on the test
      * class (its global defaults come from a service-loaded provider, not the runner), and an
      * annotation value must be a constant — so each supported level is its own subclass.
@@ -2307,6 +2321,18 @@ open class RobolectricHost(
    * tripping the native-runtime single-classloader constraint.
    */
   private fun runJUnit(workerIndex: Int) {
+    // Robolectric builds the sandbox loader over this thread's context loader, so installing the
+    // app-Compose-first parent here decides whose Compose the whole sandbox defines — renderer and
+    // preview alike. Leaving the context loader alone is today's behaviour.
+    appComposeDecision
+      .takeIf { it.preferApp }
+      ?.let { decision ->
+        Thread.currentThread().contextClassLoader =
+          AppComposeFirstLoader(
+            decision.appUrls,
+            Thread.currentThread().contextClassLoader ?: RobolectricHost::class.java.classLoader,
+          )
+      }
     val result = JUnitCore.runClasses(sandboxRunnerClass())
     if (result.wasSuccessful()) return
     for (failure in result.failures) {
@@ -2767,11 +2793,19 @@ open class RobolectricHost(
         // arguments, and pinning the 4-parameter shape here broke the moment it gained the injected
         // Okio `fileSystem` param the repo's IO convention requires: `getMethod` threw
         // `NoSuchMethodException`, which killed the held-sandbox render loop mid-dispatch.
-        val captureMethod =
-          forensicsClass.methods.firstOrNull { it.name == "capture" }
-            ?: error("ClassloaderForensics has no capture(...) method")
         val fixedArgs =
           arrayOf<Any?>(survey, /* robolectricConfig= */ null, "daemon-subject", outFile)
+        // `capture` is `@JvmOverloads`, so there are several, and `getMethods` order is
+        // unspecified: picking the 3-parameter overload sent the bridge an empty default mask and
+        // a null `fileSystem`, failing the dump intermittently. Take the overload matching our
+        // arguments, else the full signature.
+        val captureMethod =
+          forensicsClass.methods
+            .filter { it.name == "capture" }
+            .let { overloads ->
+              overloads.firstOrNull { it.parameterCount == fixedArgs.size }
+                ?: overloads.maxByOrNull { it.parameterCount }
+            } ?: error("ClassloaderForensics has no capture(...) method")
         if (captureMethod.parameterCount == fixedArgs.size) {
           captureMethod.invoke(instance, *fixedArgs)
         } else {

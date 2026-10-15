@@ -219,6 +219,7 @@ public object DaemonProperties {
 
     public const val USER_CLASS_DIRS: String = "composeai.daemon.userClassDirs"
     public const val USER_CLASS_PACKAGES: String = "composeai.daemon.userClassPackages"
+    public const val APP_COMPOSE: String = "composeai.daemon.appCompose"
     public const val CHEAP_SIGNAL_FILES: String = "composeai.daemon.cheapSignalFiles"
     public const val PREVIEWS_JSON_PATH: String = "composeai.daemon.previewsJsonPath"
 
@@ -366,6 +367,16 @@ public object DaemonProperties {
     PathListProperty(
       Names.USER_CLASS_PACKAGES,
       "Packages excluded from Robolectric instrumentation and served from the user classloader.",
+      G_CLASSPATH,
+    )
+
+  public val appCompose: StringProperty =
+    StringProperty(
+      Names.APP_COMPOSE,
+      "auto",
+      "Whose Compose runs when the user classpath carries one: `auto` (the app's when newer or " +
+        "unversioned), `app` (always the app's) or `daemon` (always the bundled one). " +
+        "See docs/daemon/CLASSLOADER.md.",
       G_CLASSPATH,
     )
 
@@ -769,6 +780,7 @@ public object DaemonProperties {
       sandboxBootTimeoutMs,
       userClassDirs,
       userClassPackages,
+      appCompose,
       cheapSignalFiles,
       previewsJsonPath,
       historyDir,

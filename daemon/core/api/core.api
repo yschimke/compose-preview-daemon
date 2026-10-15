@@ -17,6 +17,39 @@ public final class ee/schimke/composeai/daemon/ApngEncoder {
 	public static synthetic fun encodeFromPngFrames$default (Lee/schimke/composeai/daemon/ApngEncoder;Ljava/util/List;SSILjava/io/File;Lokio/FileSystem;ILjava/lang/Object;)V
 }
 
+public final class ee/schimke/composeai/daemon/AppComposeFirstLoader : java/lang/ClassLoader {
+	public fun <init> (Ljava/util/List;Ljava/lang/ClassLoader;)V
+	public fun getResource (Ljava/lang/String;)Ljava/net/URL;
+	public fun getResources (Ljava/lang/String;)Ljava/util/Enumeration;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ee/schimke/composeai/daemon/AppComposeSelection {
+	public static final field COMPOSER_RESOURCE Ljava/lang/String;
+	public static final field INSTANCE Lee/schimke/composeai/daemon/AppComposeSelection;
+	public static final field MODE_APP Ljava/lang/String;
+	public static final field MODE_AUTO Ljava/lang/String;
+	public static final field MODE_DAEMON Ljava/lang/String;
+	public static final field RUNTIME_VERSION_RESOURCE Ljava/lang/String;
+	public final fun compareVersions (Ljava/lang/String;Ljava/lang/String;)I
+	public final fun decide (Ljava/util/List;Ljava/lang/ClassLoader;Ljava/lang/String;)Lee/schimke/composeai/daemon/AppComposeSelection$Decision;
+	public static synthetic fun decide$default (Lee/schimke/composeai/daemon/AppComposeSelection;Ljava/util/List;Ljava/lang/ClassLoader;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/daemon/AppComposeSelection$Decision;
+	public final fun isPreferredResource (Ljava/lang/String;)Z
+}
+
+public final class ee/schimke/composeai/daemon/AppComposeSelection$Decision {
+	public fun <init> (Ljava/lang/String;ZLjava/net/URL;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public final fun getAppComposeSource ()Ljava/net/URL;
+	public final fun getAppUrls ()Ljava/util/List;
+	public final fun getAppVersion ()Ljava/lang/String;
+	public final fun getDaemonVersion ()Ljava/lang/String;
+	public final fun getMode ()Ljava/lang/String;
+	public final fun getPreferApp ()Z
+	public final fun getReason ()Ljava/lang/String;
+	public final fun logLine ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class ee/schimke/composeai/daemon/AssertionVerdict {
 }
 
@@ -1711,6 +1744,7 @@ public final class ee/schimke/composeai/daemon/UserClassLoaderHolder {
 
 public final class ee/schimke/composeai/daemon/UserClassLoaderHolder$Companion {
 	public final fun classFileFingerprint (Ljava/lang/ClassLoader;Ljava/lang/String;)Ljava/lang/String;
+	public final fun urlsFromPaths (Ljava/util/List;)Ljava/util/List;
 	public final fun urlsFromSysprop ()Ljava/util/List;
 }
 
@@ -1769,6 +1803,7 @@ public final class ee/schimke/composeai/daemon/config/CsvListProperty : ee/schim
 public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public static final field INSTANCE Lee/schimke/composeai/daemon/config/DaemonProperties;
 	public final fun getALL ()Ljava/util/List;
+	public final fun getAppCompose ()Lee/schimke/composeai/daemon/config/StringProperty;
 	public final fun getAtrace ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getBY_NAME ()Ljava/util/Map;
 	public final fun getBackgroundSandboxBoot ()Lee/schimke/composeai/daemon/config/BooleanProperty;
@@ -1832,6 +1867,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 }
 
 public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
+	public static final field APP_COMPOSE Ljava/lang/String;
 	public static final field ATRACE Ljava/lang/String;
 	public static final field BACKGROUND_SANDBOX_BOOT Ljava/lang/String;
 	public static final field BTA_COMPILER_PLUGINS Ljava/lang/String;

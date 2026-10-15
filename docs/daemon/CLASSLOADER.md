@@ -147,6 +147,91 @@ second copy of the controller, the daemon's seed and the preview's read
 would land on different statics, and every content override (e.g.
 `previewOverrideString("label", "Filled")`) would silently no-op.
 
+### Whose Compose runs (`composeai.daemon.appCompose`)
+
+Issue [compose-ai-tools#6016](https://github.com/yschimke/compose-ai-tools/issues/6016).
+The Android daemon distribution bundles its own Compose on the parent
+classpath. The Gradle lane never notices: there the consumer's own Compose
+*is* the parent classpath (the renderer is compiled `compileOnly` against a
+compat floor, docs/RENDERER_COMPATIBILITY.md), and `userClassDirs` carries
+only build-output directories. The **Bazel** (`compose-preview bazel`) and
+**bundle** (`bundle daemon`, `ServeBundleDaemon`) lanes are different: the
+target's runtime jars — Compose included, possibly a newer or unreleased one —
+ride `userClassDirs` onto the child loader, and `mustDelegateToParent` sends
+every `androidx.` lookup to the parent first. Measured behaviour before the fix
+(`AppComposeEscapeHatchTest`, `AppComposeSelectionTest.childLoaderPrefersTheDaemonsAndroidxClasses`):
+
+- every Compose class the daemon also bundles is the daemon's copy — the
+  app's jar is never read for it; and
+- a class only the app's Compose carries falls through `URLClassLoader`'s
+  fallback and is defined by the **child** loader, linked against the
+  daemon's Compose. A newer Compose therefore ran *split* across two loaders,
+  not merely downgraded.
+
+Why the obvious fixes are wrong:
+
+- **Child-first `androidx.` for the preview only.** The renderer calls
+  Compose itself (`setContent`, `captureToImage`, semantics, the ui-test
+  rule). A preview on the child's Compose and a renderer on the sandbox's
+  would pass a `Composer` across the seam — `ClassCastException` /
+  `LinkageError`. It also breaks the shared-state rule above.
+- **Loading the renderer into the child as well.** The renderer lives in
+  `ee.schimke.composeai.daemon.*`, which must stay one copy (bridge, overrides),
+  and the child is disposable per recompile; it would mean re-homing the
+  whole render body per swap.
+
+**What the daemon does.** Robolectric's `SandboxClassLoader` defines every
+acquired class — all of `androidx.` — itself, but reads the bytecode through
+`URLClassLoader.getResourceAsStream`, i.e. its **parent's** `getResource`
+first, and takes that parent from the thread context loader when the sandbox
+is built. When the decision below says the app's Compose runs,
+`RobolectricHost.runJUnit` installs an `AppComposeFirstLoader` as that context
+loader: it answers `androidx/…` and `META-INF/androidx.*` resources from the
+user classpath first and everything else from the daemon's classpath. The
+sandbox then defines **one** Compose, from the app's bytes, for the renderer,
+the bundled libraries and the preview alike; the child still delegates
+`androidx.` to the sandbox, and the shared-state packages stay parent-only.
+It is the Gradle lane's "consumer's Compose wins, renderer runs on it"
+arrangement, reproduced without a resolver. `AppComposeFirstLoader` is
+deliberately not a `URLClassLoader`: Robolectric would take its URLs as the
+sandbox's whole classpath and expose the user's classes to the sandbox loader.
+
+**The decision** (`AppComposeSelection.decide`, logged once per JVM as
+`compose-ai-daemon: [appCompose] mode=… runs=app|daemon app=… daemon=… reason=…`):
+
+| `composeai.daemon.appCompose` | User classpath has `androidx/compose/runtime/Composer.class` | Runs |
+|---|---|---|
+| any | no | daemon (`user-classpath-has-no-compose`) |
+| `daemon` | yes | daemon (`escape-hatch`) — the pre-fix behaviour |
+| `app` | yes | app (`forced`) |
+| `auto` (default) | yes, version newer, unknown or the daemon has none | app (`app-newer`, `app-version-unknown`, `daemon-has-no-compose`) |
+| `auto` (default) | yes, same or older version | daemon (`same-version`, `app-older`) |
+
+Versions are read from `META-INF/androidx.compose.runtime_runtime.version`.
+An **older** app Compose keeps the daemon's because that is the direction that
+already works — the preview, compiled against the older Compose, runs
+forward-compatibly — whereas preferring it would run the daemon's bundled
+libraries (Material 3, ui-test) below the Compose they were compiled against.
+`app` is there for a lane that wants it anyway.
+
+Consequences and limits:
+
+- **Per JVM, fixed at sandbox boot.** Robolectric caches one sandbox per
+  process. A `fileChanged({ kind: "classpath" })` that brings a different
+  Compose needs a process restart to change whose Compose runs. A pre-booted
+  **spare** worker booted with no user classes, so on the daemon's Compose; it
+  refuses a `configure` whose catalog would run its own
+  (`SandboxWorkerMain.appComposeRefusal`) and the pool cold-boots that slot.
+- **Only `androidx/` prefers the app.** Kotlin, `kotlinx.coroutines`,
+  Robolectric and the daemon keep the daemon's copy. A Compose that needs a
+  newer coroutines or stdlib than the daemon bundles still fails, as it would
+  with a Gradle resolution that did not upgrade them.
+- **Android resources** are unchanged: the resource APK / `R` values come from
+  whatever the lane already supplies. `androidx/**/R*.class` on the user
+  classpath is preferred along with the rest of `androidx/`.
+- **Desktop** is unchanged: its parent is the daemon's own app loader, not a
+  rebuildable sandbox.
+
 ### Compose compiler plugin's per-class metadata
 
 The Compose compiler emits per-`@Composable` synthetic metadata
