@@ -44,6 +44,7 @@ unmeasured. Evidence confidence is separate from priority.
 | 9 | **P3 · R07 — Activity-free window host** | Potential setup saving and simpler offscreen hosting; broad compatibility remains unproven. | Conditional benefit for isolated View/composable screenshot tools; Activity-dependent cases still need a fallback. | Medium/low readiness: experimental host, integration bugs found, shared ecosystem ownership. | Validate focus/IME/popups/themes and establish Robolectric vs Compose/Roborazzi ownership. |
 | 10 | **P3 · R09 — reload lifetime investigation** | Our growing leak is fixed. Remaining initial AWT loader root is bounded, so no established ongoing growth benefit. | Unknown for normal unit/screenshot tests; custom application reloads distinguish our case. | No confirmed Robolectric bug; ownership unresolved. | Minimize AWT/TCCL retention first; escalate priority only if growth or substantial retained memory is established. |
 | 11 | **P3 · R11 — two input clocks in a held Compose session** | Fixed locally (input dropped by a hosted `View` player); upstream value is documentation, not a speedup. | Any Robolectric Compose test that injects input into an `AndroidView` whose `View` reads `SystemClock`, once the looper clock and `mainClock` have drifted. | High confidence in mechanism (measured, before/after test); ownership split across Compose ui-test, Robolectric and Roborazzi, not established. | Reduce to a one-file Robolectric + Compose test before deciding where, if anywhere, to report it. |
+| 12 | **P3 · R13 — API 37 needs espresso-core 3.7.0+** | Blocking at API 37 until the floor is on the classpath; fixed by compose-ai-tools injecting the floor. | Every Robolectric API 37 test that injects input through Espresso before 3.7. | Confirmed end to end; the owner is AndroidX Test, which already fixed it in 3.7.0. | None beyond suggesting a note in Robolectric's API 37 release notes. |
 
 ## Applicability beyond the daemon
 
@@ -434,6 +435,28 @@ and an unused resolved Space Grotesk reproduces the warning; before/after PNGs a
 identical because the visible text was already correctly named. All 266 connector tests
 and the module ABI check pass. MeshCore's five remaining publication warnings motivated
 this investigation; their full application export still needs validation with the fix.
+
+## R13 — API 37 sandboxes need espresso-core 3.7.0+
+
+- **Category:** ecosystem compatibility at a new SDK level. **Owner:** AndroidX Test (Espresso),
+  not Robolectric. Robolectric 4.17 boots API 37 correctly; the failure is in a library on the
+  test classpath.
+- **Evidence/version:** Robolectric 4.17, `android-all-instrumented` `17-robolectric-15733970-i7`,
+  JDK 21, 2026-10-15. Rendering compose-ai-tools' `samples/android` at `sdk=37` with
+  `ui-test-junit4` 1.9.x, which pulls in espresso-core 3.5.x, failed every preview with
+  `NoSuchMethodException: android.hardware.input.InputManager.getInstance []`. Espresso 3.5's
+  `InputManagerEventInjectionStrategy` reflects that hidden static, which API 37 removed. Espresso
+  3.7.0 calls `Context.getSystemService(InputManager)` on SDK 23+ instead. With 3.7.0 forced, 169
+  of 174 previews rendered; the other 5 hit a sandbox-local `libfontmanager` GLIBC error unrelated
+  to the SDK level.
+- **Impact:** without the floor, every render at API 37 fails, so `AndroidSdk.MAX_SDK = 37` only
+  works when the consumer resolves espresso-core 3.7.0 or newer.
+- **Current workaround:** compose-ai-tools' Gradle plugin injects `espresso-core:3.7.0` into the
+  unit-test bucket as a floor (yschimke/compose-ai-tools#5989). A consumer's newer pin still wins.
+- **Proposed upstream change:** none needed; Espresso already fixed it in 3.7.0. Worth a note in
+  Robolectric's API 37 release notes, because the stack trace points at the sandbox rather than at
+  Espresso.
+- **Validation status:** confirmed by the end-to-end render above. No upstream issue filed.
 
 ## How to turn an item into upstream feedback
 
