@@ -45,4 +45,10 @@ fun main(args: Array<String>) {
     }
     kotlin.system.exitProcess(2)
   }
+  // Robolectric leaves its sandbox main thread (`SDK <n> Main Thread`) alive and non-daemon, so
+  // returning from main would keep the JVM up until the caller's timeout, and a caller that then
+  // kills it reports every preview as failed. Exit explicitly once the renders are written.
+  System.out.flush()
+  System.err.flush()
+  kotlin.system.exitProcess(0)
 }
