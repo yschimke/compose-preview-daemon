@@ -183,4 +183,40 @@ class FigmaSvgResolvedTextMetricsTest {
     // Pre-v12 captures carry no per-line width; forcing one would be inventing a measurement.
     assertFalse(render(resolved = true, lineWidth = null).contains("textLength"))
   }
+
+  /**
+   * A text whose style never names a size — a bare `BasicText`, or the UI builder's Remote widget
+   * text under a theme that leaves it unset — carries no `typography`, and Compose drew it at its
+   * 14sp default. The export must size it against the frame: a raw 14px was half the drawn size on
+   * a 2x widget.
+   */
+  @Test
+  fun unsizedTextTakesComposesDefaultAtTheFramesDensity() {
+    dir.resolve("u").deleteRecursively()
+    ComposeFigmaSvgDataProducer.writeSvg(
+      rootDir = dir,
+      previewId = "u",
+      layout = layout(),
+      semantics =
+        ComposeSemanticsPayload(
+          ComposeSemanticsNode(
+            nodeId = "root",
+            boundsInRoot = "0,0,400,200",
+            children =
+              listOf(
+                ComposeSemanticsNode(
+                  nodeId = "Text",
+                  boundsInRoot = "8,8,392,120",
+                  text = "Hello widget",
+                )
+              ),
+          )
+        ),
+      density = 2f,
+      fontScale = 1.5f,
+    )
+    val size = fontSizeOf(dir.resolve("u").resolve(ComposeFigmaSvgDataProducer.FILE_SVG).readText())
+    assertNotNull("export emits a sized <text>", size)
+    assertEquals(14.0 * 2 * 1.5, size!!, 0.01)
+  }
 }

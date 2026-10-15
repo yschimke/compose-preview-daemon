@@ -206,6 +206,11 @@ object ComposeFigmaSvgDataProducer {
       )
         emptyList()
       else FigmaSvgRenderedFonts.unnamedIn(named)
+    // A text whose style never names a size is drawn at Compose's 14sp default, and the capture
+    // records no size for it (a node that declares nothing typographic omits `typography`). The
+    // writer's own fallback is a bare 14px, which is right only at 1x: a 2x Remote widget's text
+    // exported at half the size it was drawn. Resolve the default against this frame instead.
+    val defaultFontSizePx = (COMPOSE_DEFAULT_FONT_SIZE_SP * density * fontScale).toDouble()
     val svg =
       when {
         // The render drew with a face this export can't name. Emitting the default here is what
@@ -227,16 +232,26 @@ object ComposeFigmaSvgDataProducer {
           )
           FigmaLayeredSvg.render(
             model,
-            FigmaLayeredSvg.Options(defaultFontFamily = TofuFont.FAMILY),
+            FigmaLayeredSvg.Options(
+              defaultFontSizePx = defaultFontSizePx,
+              defaultFontFamily = TofuFont.FAMILY,
+            ),
             (fonts?.faces.orEmpty()) + tofu,
             fonts?.familyOverrides.orEmpty(),
           )
         }
-        fonts == null || fonts.faces.isEmpty() -> FigmaLayeredSvg.render(model)
+        fonts == null || fonts.faces.isEmpty() ->
+          FigmaLayeredSvg.render(
+            model,
+            FigmaLayeredSvg.Options(defaultFontSizePx = defaultFontSizePx),
+          )
         else ->
           FigmaLayeredSvg.render(
             model,
-            FigmaLayeredSvg.Options(defaultFontFamily = defaultFamily),
+            FigmaLayeredSvg.Options(
+              defaultFontSizePx = defaultFontSizePx,
+              defaultFontFamily = defaultFamily,
+            ),
             fonts.faces,
             fonts.familyOverrides,
           )
@@ -251,6 +266,9 @@ object ComposeFigmaSvgDataProducer {
       writeRasters(previewDir, frame, cropped, fileSystem)
     }
   }
+
+  /** `TextStyle`'s size when none is set: what Compose's `resolveDefaults` lays text out at. */
+  private const val COMPOSE_DEFAULT_FONT_SIZE_SP: Float = 14f
 
   /** The face a generic/absent family maps to — Compose's default Material typeface. */
   const val DEFAULT_EMBED_FAMILY: String = "Roboto"
