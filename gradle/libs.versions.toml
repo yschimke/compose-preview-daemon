@@ -251,7 +251,7 @@ maven-publish = "0.37.0"
 # getter. Adding `compileOnly(libs.checker.qual)` is enough to silence the
 # warning without exporting the annotation to consumers (it's marker-only;
 # zero runtime impact).
-checker-qual = "4.3.0"
+checker-qual = "4.3.1"
 # KMP port of Google's Material Color Utilities. Powers the wallpaper data
 # extension's seed → ColorScheme derivation (HCT tonal palettes, palette
 # styles, contrast level) so the result matches what Android's wallpaper-
