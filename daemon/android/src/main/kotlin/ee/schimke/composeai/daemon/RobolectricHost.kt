@@ -397,7 +397,7 @@ open class RobolectricHost(
   override val backendKind: ee.schimke.composeai.daemon.protocol.BackendKind =
     ee.schimke.composeai.daemon.protocol.BackendKind.ANDROID
 
-  override val androidSdk: Int = ANDROID_SDK
+  override val androidSdk: Int = resolvedSandboxSdk()
 
   /**
    * Issue #1203 — Android dispatches keyDown / keyUp through `rule.onRoot().performKeyInput` in the
@@ -2093,17 +2093,46 @@ open class RobolectricHost(
   /** Sends the poison pill, waits up to [timeoutMs] for the worker thread to exit. Idempotent. */
   companion object {
     /**
-     * Android SDK level the daemon's Robolectric sandbox targets. Pinned to 35 because the daemon
-     * runs under JDK 17 (per `docs/AGENT_GUIDE.md`) and Robolectric refuses SDK 36 unless the JVM
-     * is JDK 21+ (`DefaultSdkProvider.verifySupportedSdk`). Consumers on `compileSdk = 36` whose
-     * own APK manifest carries `minSdkVersion ≤ 35` still parse cleanly here — older
-     * `compileSdkVersion` against a newer framework is allowed.
-     *
-     * When the project's toolchain moves to JDK 21, this can follow
-     * [GenerateRobolectricPropertiesTask.MAX_SUPPORTED_SDK] in the gradle-plugin and we can pin the
-     * daemon to whatever Robolectric currently supports.
+     * The default sandbox SDK, used when the launcher names none. 35 is the highest level
+     * Robolectric boots under JDK 17 (`DefaultSdkProvider.verifySupportedSdk` refuses 36+ below JDK
+     * 21), which is what this repository's own tests run on.
      */
     const val ANDROID_SDK: Int = 35
+
+    /**
+     * The SDK the sandbox actually boots: [DaemonProperties.sandboxSdk], which a launcher sets to
+     * the consumer's resolved level (`DaemonBackend.Android.effectiveSdkLevel`), within
+     * [ANDROID_SDK]..[MAX_SANDBOX_SDK]. Held at [ANDROID_SDK] below JDK 21 rather than letting
+     * Robolectric fail the whole pool at bootstrap. A request below 35 boots 35, as it always has:
+     * an older `compileSdk` against a newer framework parses fine.
+     *
+     * Hard-coding 35 here once meant an API 37 consumer's previews ran their *semantics* pass on
+     * the API 35 framework while their PNGs rendered on 37, so any preview reading an API-37-only
+     * member (`Build.VERSION.SDK_INT_FULL`) failed only in the daemon.
+     */
+    fun resolvedSandboxSdk(
+      requested: Int = DaemonProperties.sandboxSdk.read(),
+      javaFeature: Int = javaFeatureVersion(),
+    ): Int = if (javaFeature < 21) ANDROID_SDK else requested.coerceIn(ANDROID_SDK, MAX_SANDBOX_SDK)
+
+    /** Highest SDK a [SandboxRunner] subclass pins; raise it with a new subclass. */
+    const val MAX_SANDBOX_SDK: Int = 37
+
+    /**
+     * The sandbox test class for [sdk]. Robolectric 4.17 picks the SDK from `@Config` on the test
+     * class (its global defaults come from a service-loaded provider, not the runner), and an
+     * annotation value must be a constant — so each supported level is its own subclass.
+     */
+    fun sandboxRunnerClass(sdk: Int = resolvedSandboxSdk()): Class<out SandboxRunner> =
+      when (sdk) {
+        37 -> SandboxRunnerSdk37::class.java
+        36 -> SandboxRunnerSdk36::class.java
+        else -> SandboxRunner::class.java
+      }
+
+    /** `Runtime.version()` is not on the Android compile classpath, so parse the spec version. */
+    private fun javaFeatureVersion(): Int =
+      System.getProperty("java.specification.version")?.substringAfter("1.")?.toIntOrNull() ?: 17
 
     /**
      * Placeholder class / function a [carriedDocumentSpec] names. Never loaded: a held session with
@@ -2278,7 +2307,7 @@ open class RobolectricHost(
    * tripping the native-runtime single-classloader constraint.
    */
   private fun runJUnit(workerIndex: Int) {
-    val result = JUnitCore.runClasses(SandboxRunner::class.java)
+    val result = JUnitCore.runClasses(sandboxRunnerClass())
     if (result.wasSuccessful()) return
     for (failure in result.failures) {
       System.err.println("RobolectricHost SandboxRunner[$workerIndex] failed: ${failure.message}")
@@ -2308,9 +2337,9 @@ open class RobolectricHost(
    * The dummy test class. Loaded by Robolectric's `InstrumentingClassLoader` once `@RunWith`
    * triggers sandbox bootstrap. Its single `@Test` method holds the sandbox open until it returns.
    *
-   * `@Config(sdk = [ANDROID_SDK])` matches the SDK pinned in renderer-android's generated
-   * `robolectric.properties`. We declare it here directly because the daemon module doesn't
-   * generate that file (the consumer module does for the existing JUnit path).
+   * `@Config(sdk = [ANDROID_SDK])` is the default level. [SandboxRunnerSdk36] and
+   * [SandboxRunnerSdk37] re-pin it for consumers on a newer framework; [sandboxRunnerClass] picks
+   * one from [resolvedSandboxSdk].
    *
    * **`application` deliberately omitted.** The Application override (default
    * `android.app.Application`, opt-out via `composePreview.useConsumerApplication = true`) is
@@ -2334,7 +2363,7 @@ open class RobolectricHost(
   @RunWith(SandboxHoldingRunner::class)
   @Config(sdk = [ANDROID_SDK])
   @GraphicsMode(GraphicsMode.Mode.NATIVE)
-  class SandboxRunner {
+  open class SandboxRunner {
 
     /**
      * Lazily-constructed [RenderEngine] — created inside the sandbox so its companion-object
@@ -5037,3 +5066,9 @@ private fun heldSurfaceRoot(
     ) ?: return rule.onRoot()
   return rootInteractions[roots.indexOf(resolved)]
 }
+
+/** [RobolectricHost.SandboxRunner] at API 36; see [RobolectricHost.sandboxRunnerClass]. */
+@Config(sdk = [36]) class SandboxRunnerSdk36 : RobolectricHost.SandboxRunner()
+
+/** [RobolectricHost.SandboxRunner] at API 37; see [RobolectricHost.sandboxRunnerClass]. */
+@Config(sdk = [37]) class SandboxRunnerSdk37 : RobolectricHost.SandboxRunner()

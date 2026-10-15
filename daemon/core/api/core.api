@@ -1816,6 +1816,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public final fun getResDirs ()Lee/schimke/composeai/daemon/config/PathListProperty;
 	public final fun getSandboxBootTimeoutMs ()Lee/schimke/composeai/daemon/config/LongProperty;
 	public final fun getSandboxCount ()Lee/schimke/composeai/daemon/config/IntProperty;
+	public final fun getSandboxSdk ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getSandboxWorkerPort ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getSandboxWorkerSlot ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getSandboxWorkerSpare ()Lee/schimke/composeai/daemon/config/BooleanProperty;
@@ -1877,6 +1878,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
 	public static final field RES_DIRS Ljava/lang/String;
 	public static final field SANDBOX_BOOT_TIMEOUT_MS Ljava/lang/String;
 	public static final field SANDBOX_COUNT Ljava/lang/String;
+	public static final field SANDBOX_SDK Ljava/lang/String;
 	public static final field SANDBOX_WORKER_PORT Ljava/lang/String;
 	public static final field SANDBOX_WORKER_SLOT Ljava/lang/String;
 	public static final field SANDBOX_WORKER_SPARE Ljava/lang/String;

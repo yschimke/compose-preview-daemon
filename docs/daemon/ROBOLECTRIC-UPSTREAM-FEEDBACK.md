@@ -457,6 +457,14 @@ this investigation; their full application export still needs validation with th
   Robolectric's API 37 release notes, because the stack trace points at the sandbox rather than at
   Espresso.
 - **Validation status:** confirmed by the end-to-end render above. No upstream issue filed.
+- **Follow-up, 2026-10-15:** the daemon sandbox still booted API 35 for an API 37 consumer.
+  `SandboxRunner` carried `@Config(sdk = [35])`, so jetchat's semantics pass hit
+  `NoSuchFieldError: SDK_INT_FULL` while its PNGs rendered on 37. Removing the annotation's `sdk`
+  and setting one from `SandboxHoldingRunner.buildGlobalConfig` does **not** work in 4.17:
+  `ConfigConfigurer` takes its defaults from a service-loaded `GlobalConfigProvider`, and
+  `DefaultSdkPicker` falls back to the manifest's target SDK. The daemon therefore pins one sandbox
+  class per level (`SandboxRunnerSdk36`, `SandboxRunnerSdk37`) and picks one from
+  `composeai.daemon.sandboxSdk`. A supported runtime hook for the SDK would remove the subclasses.
 
 ## How to turn an item into upstream feedback
 

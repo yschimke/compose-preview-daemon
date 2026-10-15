@@ -5,6 +5,7 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.robolectric.annotation.Config
 
 /**
  * B1.3 DoD: submit 10 dummy renders to a single host instance; assert all complete and the sandbox
@@ -18,8 +19,24 @@ import org.junit.Test
 class RobolectricHostTest {
 
   @Test
-  fun advertisesPinnedAndroidSdk() {
+  fun advertisesDefaultAndroidSdk() {
     assertEquals(35, RobolectricHost().androidSdk)
+  }
+
+  @Test
+  fun sandboxSdkFollowsTheRequestOnJdk21AndHoldsAt35Below() {
+    assertEquals(37, RobolectricHost.resolvedSandboxSdk(requested = 37, javaFeature = 21))
+    assertEquals(35, RobolectricHost.resolvedSandboxSdk(requested = 37, javaFeature = 17))
+    assertEquals(35, RobolectricHost.resolvedSandboxSdk(requested = 33, javaFeature = 21))
+    assertEquals(37, RobolectricHost.resolvedSandboxSdk(requested = 99, javaFeature = 21))
+  }
+
+  @Test
+  fun eachSandboxSdkHasARunnerPinnedToIt() {
+    for (sdk in RobolectricHost.ANDROID_SDK..RobolectricHost.MAX_SANDBOX_SDK) {
+      val config = RobolectricHost.sandboxRunnerClass(sdk).getAnnotation(Config::class.java)
+      assertEquals(listOf(sdk), config.sdk.toList())
+    }
   }
 
   @Test

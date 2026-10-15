@@ -21,6 +21,7 @@ jvmArgs:
   --add-opens=java.base/jdk.internal.access=ALL-UNNAMED
   -XX:CICompilerCount=2
 systemProperties:
+  composeai.daemon.sandboxSdk=35
   composeai.daemon.userClassDirs=/app/classes
   composeai.fonts.cacheDir=<fontsCache>
   robolectric.conscryptMode=OFF

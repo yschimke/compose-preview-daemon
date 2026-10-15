@@ -65,6 +65,7 @@ flips a knob.
 | `composeai.daemon.backgroundSandboxBoot` | Boolean | `false` | Whether `initialize` may return once the first sandbox is ready, the rest booting behind it. The Gradle-plugin descriptor sets this `true`; the raw sysprop default is off. |
 | `composeai.daemon.warmRenderOnBoot` | Boolean | `true` | Whether each background-booted slot performs a boot-time warm render. |
 | `composeai.daemon.useConsumerApplication` | Boolean | `false` | Whether Robolectric instantiates the consumer manifest's `Application` instead of the pinned `android.app.Application` stub. |
+| `composeai.daemon.sandboxSdk` | Int | `35` | Android API level the Robolectric sandbox boots. Clamped to 35 below JDK 21, where Robolectric refuses API 36+. |
 | `composeai.daemon.maxRendersPerSandbox` | Int | `1000` | Renders a sandbox handles before it is recycled regardless of drift signals. |
 | `composeai.daemon.maxHeapMb` | Int | `1024` | Post-GC heap ceiling for the daemon JVM, in MiB. Also becomes `-Xmx`. |
 | `composeai.daemon.sandboxWorker.port` | Int | `0` | Loopback port a spawned sandbox worker connects back on. Set by `SandboxProcessPool`; `SandboxWorkerMain` fails fast when unset. |

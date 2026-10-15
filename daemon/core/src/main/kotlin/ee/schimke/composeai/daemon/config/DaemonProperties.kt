@@ -244,6 +244,7 @@ public object DaemonProperties {
     public const val BACKGROUND_SANDBOX_BOOT: String = "composeai.daemon.backgroundSandboxBoot"
     public const val WARM_RENDER_ON_BOOT: String = "composeai.daemon.warmRenderOnBoot"
     public const val USE_CONSUMER_APPLICATION: String = "composeai.daemon.useConsumerApplication"
+    public const val SANDBOX_SDK: String = "composeai.daemon.sandboxSdk"
     public const val MAX_RENDERS_PER_SANDBOX: String = "composeai.daemon.maxRendersPerSandbox"
     public const val MAX_HEAP_MB: String = "composeai.daemon.maxHeapMb"
     public const val SANDBOX_WORKER_PORT: String = "composeai.daemon.sandboxWorker.port"
@@ -517,6 +518,16 @@ public object DaemonProperties {
       G_SANDBOX,
     )
 
+  public val sandboxSdk: IntProperty =
+    IntProperty(
+      Names.SANDBOX_SDK,
+      35,
+      "Android API level the Robolectric sandbox boots. Clamped to 35 below JDK 21, where " +
+        "Robolectric refuses API 36+.",
+      G_SANDBOX,
+      min = 21,
+    )
+
   public val maxRendersPerSandbox: IntProperty =
     IntProperty(
       Names.MAX_RENDERS_PER_SANDBOX,
@@ -776,6 +787,7 @@ public object DaemonProperties {
       backgroundSandboxBoot,
       warmRenderOnBoot,
       useConsumerApplication,
+      sandboxSdk,
       maxRendersPerSandbox,
       maxHeapMb,
       sandboxWorkerPort,

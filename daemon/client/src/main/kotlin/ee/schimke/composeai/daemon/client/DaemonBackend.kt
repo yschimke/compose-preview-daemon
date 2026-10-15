@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon.client
 
+import ee.schimke.composeai.daemon.config.DaemonProperties
 import java.io.File
 import java.util.Properties
 
@@ -60,7 +61,14 @@ public sealed interface DaemonBackend {
     /** [RobolectricLaunch.jvmArgs] — a renderer fact, and identical for a jar-less caller. */
     override fun jvmArgs(): List<String> = RobolectricLaunch.jvmArgs()
 
-    override fun systemProperties(): Map<String, String> = RobolectricLaunch.systemProperties()
+    /**
+     * [RobolectricLaunch.systemProperties] plus the sandbox SDK. The daemon's sandbox class is not
+     * in a package [robolectricConfig] covers, so this property is how [effectiveSdkLevel] reaches
+     * it.
+     */
+    override fun systemProperties(): Map<String, String> =
+      RobolectricLaunch.systemProperties() +
+        (DaemonProperties.sandboxSdk.name to effectiveSdkLevel.toString())
 
     override val requiredArtifacts: List<DaemonRuntimeArtifact>
       get() = listOf(DaemonRuntimeArtifact.DAEMON_ANDROID, DaemonRuntimeArtifact.RENDERER)

@@ -1,6 +1,7 @@
 package ee.schimke.composeai.daemon.client
 
 import com.google.common.truth.Truth.assertThat
+import ee.schimke.composeai.daemon.config.DaemonProperties
 import java.io.File
 import org.junit.Test
 
@@ -31,8 +32,11 @@ class RobolectricLaunchTest {
   }
 
   @Test
-  fun `the backend's system properties are the renderer's, exactly`() {
-    assertThat(RobolectricLaunch.systemProperties()).isEqualTo(backend.systemProperties())
+  fun `the backend's system properties are the renderer's plus the sandbox sdk`() {
+    assertThat(backend.systemProperties() - DaemonProperties.sandboxSdk.name)
+      .isEqualTo(RobolectricLaunch.systemProperties())
+    assertThat(backend.systemProperties()[DaemonProperties.sandboxSdk.name])
+      .isEqualTo(backend.effectiveSdkLevel.toString())
   }
 
   @Test
@@ -49,7 +53,8 @@ class RobolectricLaunchTest {
       names.forEach { System.setProperty(it, "sentinel-$it") }
       val properties = RobolectricLaunch.systemProperties()
       names.forEach { assertThat(properties[it]).isEqualTo("sentinel-$it") }
-      assertThat(properties).isEqualTo(backend.systemProperties())
+      assertThat(properties)
+        .isEqualTo(backend.systemProperties() - DaemonProperties.sandboxSdk.name)
     } finally {
       saved.forEach { (name, value) ->
         if (value == null) System.clearProperty(name) else System.setProperty(name, value)
