@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.17.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.17.0...v3.17.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* boot the daemon sandbox at the consumer's SDK, not always 35 ([#283](https://github.com/yschimke/compose-preview-daemon/issues/283)) ([9588c24](https://github.com/yschimke/compose-preview-daemon/commit/9588c24f7732ba08468c2552972ce666cef89a74))
+* **deps:** update kotlin to v2.4.21 ([#284](https://github.com/yschimke/compose-preview-daemon/issues/284)) ([7cf7053](https://github.com/yschimke/compose-preview-daemon/commit/7cf705340b9b2c3424185365a2bc0291432db229))
+
 ## [3.17.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.16.2...v3.17.0) (2026-10-15)
 
 
