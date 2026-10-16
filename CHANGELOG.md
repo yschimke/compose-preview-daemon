@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.18.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.2...v3.18.3) (2026-10-16)
+
+
+### Bug Fixes
+
+* **app-compose:** answer legacy android/support classes from the app's AndroidX jars ([#296](https://github.com/yschimke/compose-preview-daemon/issues/296)) ([e4ae8c3](https://github.com/yschimke/compose-preview-daemon/commit/e4ae8c3cafaf080b76188bdcc517785de169199c))
+
+
+### CI
+
+* **release:** publish the GitHub release only once Maven Central serves it ([#297](https://github.com/yschimke/compose-preview-daemon/issues/297)) ([bdd877d](https://github.com/yschimke/compose-preview-daemon/commit/bdd877d6e10f16012a43bbb3f95e11084b315f61))
+
 ## [3.18.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.1...v3.18.2) (2026-10-16)
 
 
