@@ -4159,7 +4159,16 @@ open class RobolectricHost(
         return null
       }
       val payload = ComposeSemanticsDataProducer.buildPayload(root)
-      return when (val res = SemanticsTargets.resolve(payload, target)) {
+      // compose-ai-tools#5945: a role + text target (`Button` + "Example Button") spans two
+      // unmerged nodes, so when the unmerged tree has no single match, retry against the merged
+      // tree, where the button node carries its child's text. Unmerged matches still win.
+      val resolution =
+        MergedSemanticsTargeting.resolve(payload, target) {
+          runCatching { rule.onRoot(useUnmergedTree = false).fetchSemanticsNode() }
+            .getOrNull()
+            ?.let { ComposeSemanticsDataProducer.buildPayload(it) }
+        }
+      return when (val res = resolution) {
         is TargetResolution.Resolved -> {
           cmd.replyMatched?.set(true)
           Offset(res.point.x.toFloat(), res.point.y.toFloat())
@@ -4578,16 +4587,19 @@ open class RobolectricHost(
      * Resolve a node by its `SemanticsProperties.ContentDescription` and invoke the named
      * `SemanticsActions` action against it — the screen-reader path. Used by
      * [InteractiveCommand.DispatchSemanticsAction] for `record_preview`'s `a11y.action.*` script
-     * events. Returns `true` when a node matched the description AND the matched node exposed the
-     * requested action; `false` otherwise (caller surfaces unsupported evidence with a specific
-     * reason).
+     * events. Returns `true` when a node matched the description AND that node or one of its
+     * ancestors exposed the requested action; `false` otherwise (caller surfaces unsupported
+     * evidence with a specific reason).
      *
      * Matching uses `useUnmergedTree = true` so a node merged into a parent (the inner `Icon` of an
-     * `IconButton` carrying the contentDescription) remains reachable. When multiple nodes match
-     * (e.g. two buttons with the same contentDescription), we pick the smallest by area — same
-     * heuristic the pixel-hit paths use for overlapping nodes — to bias toward the most-specific
-     * match. Note: a future iteration could surface "ambiguous match" as a distinct evidence
-     * message rather than silently picking one.
+     * `IconButton` carrying the contentDescription) remains reachable. Such a node rarely carries
+     * the action itself — `OnClick` sits on the enclosing button — so the action goes to the
+     * nearest ancestor that exposes it (compose-ai-tools#5945), which is the node the merged tree
+     * presents to a screen reader. When multiple nodes match (e.g. two buttons with the same
+     * contentDescription), candidates are tried smallest-area first — same heuristic the pixel-hit
+     * paths use for overlapping nodes — to bias toward the most-specific match. Note: a future
+     * iteration could surface "ambiguous match" as a distinct evidence message rather than silently
+     * picking one.
      *
      * Each `actionKind` arm maps to one
      * [`SemanticsActions`](https://developer.android.com/reference/kotlin/androidx/compose/ui/semantics/SemanticsActions)
@@ -4614,8 +4626,19 @@ open class RobolectricHost(
         rule.onAllNodes(hasContentDescription(cmd.nodeContentDescription), useUnmergedTree = true)
       val nodes = matchers.fetchSemanticsNodes(atLeastOneRootRequired = false)
       if (nodes.isEmpty()) return false
+      val bySize = nodes.sortedBy { node -> node.boundsInRoot.width * node.boundsInRoot.height }
+      // compose-ai-tools#5945: the description usually sits on a child (`Icon` inside an
+      // `IconButton`) while the action sits on the clickable ancestor. Walk up from each match to
+      // the nearest node exposing the requested action; a match that exposes it itself still wins.
+      val requiredKey = semanticsActionKeyFor(cmd.actionKind)
       val target =
-        nodes.minByOrNull { node -> node.boundsInRoot.width * node.boundsInRoot.height } ?: nodes[0]
+        requiredKey?.let { key ->
+          MergedSemanticsTargeting.actionTarget(
+            candidates = bySize,
+            parent = { it.parent },
+            exposes = { it.config.contains(key) },
+          )
+        } ?: bySize[0]
       return when (cmd.actionKind) {
         "click",
         // TalkBack's "double-tap to activate" verb (issue #1956): activating the focused control
@@ -4635,6 +4658,30 @@ open class RobolectricHost(
         else -> false
       }
     }
+
+    /**
+     * The `SemanticsActions` key [performSemanticsActionByContentDescription] invokes for
+     * [actionKind], or `null` for a kind it does not handle.
+     */
+    private fun semanticsActionKeyFor(
+      actionKind: String
+    ): androidx.compose.ui.semantics.SemanticsPropertyKey<*>? =
+      when (actionKind) {
+        "click",
+        "activate" -> SemanticsActions.OnClick
+        "longClick" -> SemanticsActions.OnLongClick
+        "focus" -> SemanticsActions.RequestFocus
+        "expand" -> SemanticsActions.Expand
+        "collapse" -> SemanticsActions.Collapse
+        "dismiss" -> SemanticsActions.Dismiss
+        "scrollForward",
+        "scrollDown",
+        "scrollBackward",
+        "scrollUp",
+        "scrollLeft",
+        "scrollRight" -> SemanticsActions.ScrollBy
+        else -> null
+      }
 
     /**
      * TalkBack linear navigation (issue #1956): advance the held session's focus [cursor] to the

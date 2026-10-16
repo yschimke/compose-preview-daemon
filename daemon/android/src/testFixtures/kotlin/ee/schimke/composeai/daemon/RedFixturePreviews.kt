@@ -39,9 +39,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -872,6 +874,44 @@ fun TaggedClickTargetSquare() {
   val color = if (clicked) Color(0xFF66BB6A) else Color(0xFFEF5350)
   Box(modifier = Modifier.fillMaxSize().background(color)) {
     Box(modifier = Modifier.size(24.dp).testTag("target-box").clickable { clicked = true })
+  }
+}
+
+/**
+ * compose-ai-tools#5945 fixture — a standard Material `Button` whose role and text live on two
+ * different unmerged semantics nodes: `Role.Button` + `OnClick` on the button, the text on its
+ * child `Text`. The card turns green when the button is clicked. Pinned to the top-left corner so a
+ * centre pixel click misses it: only a `{ role: Button, text: Example Button }` target that
+ * resolves to the button can flip it.
+ */
+@Composable
+fun MaterialTextButtonSquare() {
+  var clicked by
+    androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+  val color = if (clicked) Color(0xFF66BB6A) else Color(0xFFEF5350)
+  MaterialTheme(colorScheme = lightColorScheme()) {
+    Box(modifier = Modifier.fillMaxSize().background(color)) {
+      Button(onClick = { clicked = true }) { Text("Example Button") }
+    }
+  }
+}
+
+/**
+ * compose-ai-tools#5945 fixture — a `FilledIconButton` whose `contentDescription` sits on the child
+ * `Icon` while `OnClick` sits on the button. The card turns green when the button is clicked, so an
+ * `a11y.action.click` by `nodeContentDescription = "Settings Button"` has to reach the button.
+ */
+@Composable
+fun FilledIconButtonSquare() {
+  var clicked by
+    androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+  val color = if (clicked) Color(0xFF66BB6A) else Color(0xFFEF5350)
+  MaterialTheme(colorScheme = lightColorScheme()) {
+    Box(modifier = Modifier.fillMaxSize().background(color)) {
+      FilledIconButton(onClick = { clicked = true }) {
+        Icon(Icons.Filled.Settings, contentDescription = "Settings Button")
+      }
+    }
   }
 }
 

@@ -1208,6 +1208,93 @@ class AndroidInteractiveSessionTest {
     }
   }
 
+  /**
+   * compose-ai-tools#5945 — a `{ role: Button, text: Example Button }` target on a standard
+   * `Button(onClick) { Text("Example Button") }`. The role is on the button and the text on its
+   * child in the unmerged tree, so no unmerged node matches both and the dispatch used to throw
+   * `SemanticsTargetUnresolvedException(NO_MATCH)`. It must resolve through the merged tree to the
+   * button and click it.
+   */
+  @Test
+  fun heldClickResolvesRoleAndTextSplitAcrossAMaterialButton() {
+    withMaterialSession(MATERIAL_TEXT_BUTTON_PREVIEW_ID, "interactive-material-text-button") {
+      session ->
+      session.dispatch(
+        InteractiveInputParams(
+          frameStreamId = "irrelevant-on-host-side",
+          kind = InteractiveInputKind.CLICK,
+          target = SemanticsInputTarget(role = "Button", text = "Example Button"),
+        )
+      )
+    }
+  }
+
+  /**
+   * compose-ai-tools#5945 — `a11y.action.click` by `nodeContentDescription = "Settings Button"` on
+   * a `FilledIconButton { Icon(contentDescription = "Settings Button") }`. The description is on
+   * the `Icon`, `OnClick` on the button; the action used to report "no node … exposes the 'click'
+   * semantic". It must reach the button.
+   */
+  @Test
+  fun semanticsClickByContentDescriptionReachesTheClickableAncestor() {
+    withMaterialSession(FILLED_ICON_BUTTON_PREVIEW_ID, "interactive-filled-icon-button") { session
+      ->
+      assertTrue(
+        "a11y click on the Icon's contentDescription must reach the FilledIconButton's OnClick",
+        session.dispatchSemanticsAction(
+          actionKind = "click",
+          nodeContentDescription = "Settings Button",
+        ),
+      )
+    }
+  }
+
+  /**
+   * Boot a held session on a red-until-clicked Material fixture, run [act], and assert the card
+   * turned green. The button covers a corner of the card, so the colour thresholds are "mostly",
+   * not the ≥95% the full-bleed fixtures use.
+   */
+  private fun withMaterialSession(
+    previewId: String,
+    outputDirName: String,
+    act: (InteractiveSession) -> Unit,
+  ) {
+    System.setProperty(
+      RenderEngine.OUTPUT_DIR_PROP,
+      tempFolder.newFolder(outputDirName).absolutePath,
+    )
+    System.setProperty("roborazzi.test.record", "true")
+    val host = RobolectricHost(sandboxCount = 2, previewSpecResolver = previewSpecResolver())
+    host.start()
+    try {
+      val session =
+        host.acquireInteractiveSession(previewId = previewId, classLoader = javaClass.classLoader!!)
+      try {
+        val before =
+          decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
+        val redBefore = pixelMatchPct(before, RED_RGB, perChannelTolerance = 8)
+        assertTrue(
+          "$previewId should start mostly red (got ${"%.2f".format(redBefore * 100)}%)",
+          redBefore >= 0.6,
+        )
+
+        act(session)
+
+        val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
+        val greenAfter = pixelMatchPct(after, GREEN_RGB, perChannelTolerance = 8)
+        assertTrue(
+          "$previewId should be mostly green after the button was clicked (got " +
+            "${"%.2f".format(greenAfter * 100)}%)",
+          greenAfter >= 0.6,
+        )
+      } finally {
+        session.close()
+      }
+    } finally {
+      host.shutdown()
+    }
+  }
+
   @Test
   fun missingResourceHeldSessionFallsBackToPlaceholderUnderTheServeOptIn() {
     // Regression for the `wear-m3` live-mode failure: a preview whose `stringResource(...)` isn't
@@ -1390,6 +1477,26 @@ class AndroidInteractiveSessionTest {
           showBackground = true,
           outputBaseName = "interactive-clicktoggle",
         )
+      MATERIAL_TEXT_BUTTON_PREVIEW_ID ->
+        RenderSpec(
+          className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+          functionName = "MaterialTextButtonSquare",
+          widthPx = MATERIAL_WIDTH_PX,
+          heightPx = MATERIAL_HEIGHT_PX,
+          density = 1.0f,
+          showBackground = true,
+          outputBaseName = "interactive-material-text-button",
+        )
+      FILLED_ICON_BUTTON_PREVIEW_ID ->
+        RenderSpec(
+          className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+          functionName = "FilledIconButtonSquare",
+          widthPx = MATERIAL_WIDTH_PX,
+          heightPx = MATERIAL_HEIGHT_PX,
+          density = 1.0f,
+          showBackground = true,
+          outputBaseName = "interactive-filled-icon-button",
+        )
       TAGGED_TARGET_PREVIEW_ID ->
         RenderSpec(
           className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
@@ -1567,6 +1674,12 @@ class AndroidInteractiveSessionTest {
     private const val WRAPPER_REQUIRED_PREVIEW_ID = "interactive-wrapper-required"
     private const val MISSING_RESOURCE_PREVIEW_ID = "interactive-missing-resource"
     private const val POST_DELAYED_PREVIEW_ID = "interactive-post-delayed"
+    private const val MATERIAL_TEXT_BUTTON_PREVIEW_ID = "interactive-material-text-button"
+    private const val FILLED_ICON_BUTTON_PREVIEW_ID = "interactive-filled-icon-button"
+
+    /** Room for a Material button at density 1 while the card stays the dominant colour. */
+    private const val MATERIAL_WIDTH_PX = 240
+    private const val MATERIAL_HEIGHT_PX = 240
     private const val INTERACTIVE_WIDTH_PX = 96
     private const val INTERACTIVE_HEIGHT_PX = 96
     private const val RED_RGB = 0xEF5350
