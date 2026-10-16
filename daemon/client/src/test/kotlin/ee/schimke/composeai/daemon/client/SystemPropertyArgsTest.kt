@@ -1,6 +1,7 @@
 package ee.schimke.composeai.daemon.client
 
 import com.google.common.truth.Truth.assertThat
+import ee.schimke.composeai.daemon.config.DaemonProperties
 import java.io.File
 import java.util.concurrent.TimeUnit
 import org.junit.Test
@@ -13,9 +14,9 @@ import org.junit.Test
 class SystemPropertyArgsTest {
   @Test
   fun `ordinary properties stay on the command line unchanged`() {
-    val properties = mapOf("composeai.daemon.a" to "1", "composeai.daemon.b" to "two words")
+    val properties = mapOf("composeai.test.a" to "1", "composeai.test.b" to "two words")
     assertThat(SubprocessDaemonClientFactory.systemPropertyArgs(properties))
-      .containsExactly("-Dcomposeai.daemon.a=1", "-Dcomposeai.daemon.b=two words")
+      .containsExactly("-Dcomposeai.test.a=1", "-Dcomposeai.test.b=two words")
       .inOrder()
   }
 
@@ -28,7 +29,7 @@ class SystemPropertyArgsTest {
     assertThat(dirs.length).isGreaterThan(128 * 1024)
     val properties =
       mapOf(
-        "composeai.daemon.userClassDirs" to dirs,
+        DaemonProperties.Names.USER_CLASS_DIRS to dirs,
         "composeai.test.quoted" to "a \"quoted\" \\ value",
       )
 
