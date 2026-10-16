@@ -373,6 +373,9 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 coil2-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil2" }
 coil3-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+# API 37 removed the InputManager.getInstance() that espresso-core < 3.7.0 reflects (R13 in
+# docs/daemon/ROBOLECTRIC-UPSTREAM-FEEDBACK.md); a floor, since ui-test-junit4 pulls 3.5.x.
+espresso-core = { module = "androidx.test.espresso:espresso-core", version = "3.7.0" }
 classgraph = { module = "io.github.classgraph:classgraph", version.ref = "classgraph" }
 compose-bom-stable = { module = "androidx.compose:compose-bom", version.ref = "compose-bom-stable" }
 compose-bom-compat = { module = "androidx.compose:compose-bom", version.ref = "compose-bom-compat" }

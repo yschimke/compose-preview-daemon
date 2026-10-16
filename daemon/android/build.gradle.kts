@@ -267,6 +267,10 @@ dependencies {
   testImplementation(libs.activity.compose)
   testImplementation("androidx.compose.ui:ui-test-junit4")
   testImplementation("androidx.compose.ui:ui-test-manifest")
+  // The floor the Gradle plugin also applies (compose-ai-tools#5989): ui-test-junit4 brings
+  // espresso-core 3.5.x, which fails every render on API 37 (R13). This runtime classpath is the
+  // compose-preview-android-daemon sidecar's, so the one-shot renderer gets the floor too.
+  testImplementation(libs.espresso.core)
   testImplementation(libs.robolectric)
   testImplementation(libs.junit)
   testImplementation(libs.roborazzi)

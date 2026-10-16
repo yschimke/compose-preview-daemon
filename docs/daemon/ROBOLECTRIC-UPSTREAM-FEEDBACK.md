@@ -455,6 +455,9 @@ this investigation; their full application export still needs validation with th
   works when the consumer resolves espresso-core 3.7.0 or newer.
 - **Current workaround:** compose-ai-tools' Gradle plugin injects `espresso-core:3.7.0` into the
   unit-test bucket as a floor (yschimke/compose-ai-tools#5989). A consumer's newer pin still wins.
+  The `compose-preview-android-daemon` sidecar, which `bundle render` runs (Bazel included), takes
+  the same floor from `:daemon:android`'s test runtime classpath; before that it shipped 3.5.1, and
+  compose-preview-bazel's SDK 37 job failed every render with this same stack trace.
 - **Proposed upstream change:** none needed; Espresso already fixed it in 3.7.0. Worth a note in
   Robolectric's API 37 release notes, because the stack trace points at the sandbox rather than at
   Espresso.
