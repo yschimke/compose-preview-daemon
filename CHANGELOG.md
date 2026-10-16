@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.18.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.3...v3.18.4) (2026-10-16)
+
+
+### Bug Fixes
+
+* **interactive:** resolve semantic targets and a11y actions against the merged tree ([#299](https://github.com/yschimke/compose-preview-daemon/issues/299)) ([45d7f29](https://github.com/yschimke/compose-preview-daemon/commit/45d7f2922e88eb523cd023e38f0d1791986434b2))
+
 ## [3.18.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.2...v3.18.3) (2026-10-16)
 
 
