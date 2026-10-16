@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.18.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.1...v3.18.2) (2026-10-16)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.13.0 ([#293](https://github.com/yschimke/compose-preview-daemon/issues/293)) ([9d62417](https://github.com/yschimke/compose-preview-daemon/commit/9d6241744bc37008cf99ef2abce2b0740d4df925))
+* ship espresso-core 3.7.0 in the Android daemon sidecar so API 37 renders work ([#294](https://github.com/yschimke/compose-preview-daemon/issues/294)) ([48b9ab5](https://github.com/yschimke/compose-preview-daemon/commit/48b9ab562918752af49fac53d68459ccedc002be))
+
 ## [3.18.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.0...v3.18.1) (2026-10-15)
 
 
