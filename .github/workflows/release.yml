@@ -85,6 +85,7 @@ jobs:
           echo "set=$plan" >> "$GITHUB_OUTPUT"
 
       - name: Publish
+        id: publish
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
@@ -119,6 +120,26 @@ jobs:
           printf 'publishing %d task(s):\n' "${#tasks[@]}" >&2
           printf '  %s\n' "${tasks[@]}" >&2
           ./gradlew "${tasks[@]}" "${args[@]}"
+          echo "uploaded=true" >> "$GITHUB_OUTPUT"
+
+      # The upload returns once Central has accepted the deployment, minutes before the CDN serves
+      # it. The `release` job un-drafts the GitHub Release only after this, so a published release
+      # means a resolvable one: compose-ai-tools#6041 bumped to 3.18.2 the moment it was published
+      # and every Gradle job failed on `Could not find ...compose-preview-daemon-bom:3.18.2`. The
+      # BOM is the probe because every release that uploads anything uploads it, and consumers
+      # import it before resolving any other coordinate.
+      - name: Wait until Maven Central serves the release
+        if: ${{ steps.publish.outputs.uploaded == 'true' }}
+        timeout-minutes: 90
+        run: |
+          set -euo pipefail
+          url="https://repo.maven.apache.org/maven2/ee/schimke/composeai/compose-preview-daemon-bom/${PLUGIN_VERSION}/compose-preview-daemon-bom-${PLUGIN_VERSION}.pom"
+          start=$(date +%s)
+          until curl -fsSL -o /dev/null "$url"; do
+            echo "not yet served after $(( $(date +%s) - start ))s: $url"
+            sleep 30
+          done
+          echo "served after $(( $(date +%s) - start ))s: $url"
 
 
   sidecars:
