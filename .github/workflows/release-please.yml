@@ -181,7 +181,7 @@ jobs:
       actions: write
       pull-requests: read
     steps:
-      - name: Run required policy checks on the current release PR
+      - name: Run the required checks on the current release PR
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -194,5 +194,12 @@ jobs:
           fi
           number="$(jq -r .number <<<"$pr")"
           branch="$(jq -r .headRefName <<<"$pr")"
+          # GITHUB_TOKEN starts no pull_request run, so without these the required CI and format
+          # checks never report and the release PR cannot merge until someone dispatches them by
+          # hand. Dispatched with this token the actor is github-actions[bot], so their Gradle jobs
+          # take the release-branch skip in ci.yml / format.yml and report "skipped": main's push
+          # run already built every source input the release PR carries.
+          gh workflow run ci.yml --ref "$branch"
+          gh workflow run format.yml --ref "$branch"
           gh workflow run pr-title.yml --ref "$branch" -f pr="$number"
           gh workflow run no-agent-attribution.yml --ref "$branch" -f pr="$number"
