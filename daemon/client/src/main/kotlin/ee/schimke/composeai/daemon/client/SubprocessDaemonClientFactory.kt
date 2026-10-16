@@ -135,16 +135,23 @@ public class SubprocessDaemonClientFactory(
     const val MAX_INLINE_PROPERTIES = 96 * 1024
 
     /**
+     * Windows passes one command line to `CreateProcess`, at most 32,767 characters in all. The
+     * classpath is already an argfile, so the properties share that budget with the launcher, JVM
+     * args and main class.
+     */
+    const val MAX_WINDOWS_INLINE_PROPERTIES = 16 * 1024
+
+    private val isWindows = System.getProperty("os.name").orEmpty().startsWith("Windows")
+
+    /**
      * The `-D` arguments for [properties]: inline as before, or one `@argfile` holding them all
      * when one is too long for `execve` ([MAX_INLINE_PROPERTY]) or together they would crowd the
      * limit.
      */
     fun systemPropertyArgs(properties: Map<String, String>, directory: File? = null): List<String> {
       val inline = properties.map { (k, v) -> "-D$k=$v" }
-      if (
-        inline.none { it.length > MAX_INLINE_PROPERTY } &&
-          inline.sumOf { it.length } <= MAX_INLINE_PROPERTIES
-      ) {
+      val limit = if (isWindows) MAX_WINDOWS_INLINE_PROPERTIES else MAX_INLINE_PROPERTIES
+      if (inline.none { it.length > MAX_INLINE_PROPERTY } && inline.sumOf { it.length } <= limit) {
         return inline
       }
       val file = File.createTempFile("composeai-props", ".args", directory)
