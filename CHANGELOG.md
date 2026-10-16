@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.18.5](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.4...v3.18.5) (2026-10-16)
+
+
+### Bug Fixes
+
+* **client:** pass oversized -D properties through an argfile ([#301](https://github.com/yschimke/compose-preview-daemon/issues/301)) ([5045b0c](https://github.com/yschimke/compose-preview-daemon/commit/5045b0cd3bb5ada8d6f1c4d738d7a5bf59e98559))
+
 ## [3.18.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.3...v3.18.4) (2026-10-16)
 
 
