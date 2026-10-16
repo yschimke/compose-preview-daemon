@@ -185,12 +185,17 @@ public object AppComposeSelection {
 
   /**
    * Whether [name] (a resource path) is answered from the user classpath first: every `androidx/`
-   * resource — classes, AndroidX `R` classes, version markers under `META-INF/androidx.` — and
-   * nothing else, so the app's own classes never become visible to the sandbox loader (they stay
-   * the child loader's) and Kotlin, coroutines, Robolectric and the daemon keep the daemon's copy.
+   * resource — classes, AndroidX `R` classes, version markers under `META-INF/androidx.` — plus the
+   * legacy `android/support/` classes AndroidX jars still ship (`androidx.core:core` carries
+   * `android.support.v4.app.SupportActivity`, which the app's `ComponentActivity` extends; the
+   * child loader delegates `android.` to the sandbox, so it must find them there). Nothing else, so
+   * the app's own classes never become visible to the sandbox loader (they stay the child loader's)
+   * and Kotlin, coroutines, Robolectric and the daemon keep the daemon's copy.
    */
   public fun isPreferredResource(name: String): Boolean =
-    name.startsWith("androidx/") || name.startsWith("META-INF/androidx.")
+    name.startsWith("androidx/") ||
+      name.startsWith("android/support/") ||
+      name.startsWith("META-INF/androidx.")
 }
 
 /**

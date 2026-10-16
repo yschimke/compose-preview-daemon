@@ -35,6 +35,7 @@ class AppComposeSelectionTest {
       put("androidx/compose/ui/R\$id.class", marker.toByteArray())
       put("kotlinx/coroutines/Job.class", marker.toByteArray())
       put("com/example/app/MainKt.class", marker.toByteArray())
+      if (marker == "APP") put("android/support/v4/app/SupportActivity.class", marker.toByteArray())
       if (version != null) put(AppComposeSelection.RUNTIME_VERSION_RESOURCE, version.toByteArray())
     }
     return jar
@@ -163,9 +164,10 @@ class AppComposeSelectionTest {
   }
 
   /**
-   * The loader Robolectric is handed answers `androidx/` from the app first and everything else —
-   * Kotlin, coroutines, the app's own classes — from the daemon, and never pretends to be a
-   * `URLClassLoader` (Robolectric would then take its URLs as the whole sandbox classpath).
+   * The loader Robolectric is handed answers `androidx/` (and the legacy `android/support/` classes
+   * AndroidX jars ship) from the app first and everything else — Kotlin, coroutines, the app's own
+   * classes — from the daemon, and never pretends to be a `URLClassLoader` (Robolectric would then
+   * take its URLs as the whole sandbox classpath).
    */
   @Test
   fun appComposeFirstLoaderPrefersOnlyAndroidxResources() {
@@ -184,6 +186,11 @@ class AppComposeSelectionTest {
     )
     assertEquals("DAEMON", loader.getResource("kotlinx/coroutines/Job.class")!!.text())
     assertEquals("DAEMON", loader.getResource("com/example/app/MainKt.class")!!.text())
+    // Only the app ships it (inside androidx.core); the sandbox must still find it.
+    assertEquals(
+      "APP",
+      loader.getResource("android/support/v4/app/SupportActivity.class")!!.text(),
+    )
     assertEquals(
       listOf("app.jar", "daemon.jar"),
       Collections.list(loader.getResources(AppComposeSelection.COMPOSER_RESOURCE)).map {
