@@ -339,7 +339,10 @@ object PreviewParameterSupport {
     previewArgs: List<Any?>,
     composer: androidx.compose.runtime.Composer,
   ): Boolean {
-    if (instance != null) return false
+    // Robolectric adds a no-arg constructor to instrumented Kotlin file facades. Receiver
+    // resolution can therefore supply an instance even for a static preview (clock pinning now
+    // instruments consumer packages). Static Method.invoke ignores that receiver; only the method's
+    // modifiers determine whether this defaults-mask path can handle the call.
     val method = composableMethod.asMethod()
     if (!java.lang.reflect.Modifier.isStatic(method.modifiers)) return false
     if (!method.hasComposableDefaults()) return false
@@ -381,7 +384,7 @@ object PreviewParameterSupport {
     for (c in 0 until changedInts) arguments[realParams + 1 + c] = 0
     for (d in 0 until defaultInts) arguments[realParams + 1 + changedInts + d] = masks[d]
     method.isAccessible = true
-    method.invoke(null, *arguments)
+    method.invoke(instance, *arguments)
     return true
   }
 

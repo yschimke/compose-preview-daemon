@@ -68,3 +68,9 @@ fun ConsumerWearM2Screen(onTimeText: (String) -> Unit, onLabel: (String) -> Unit
     }
   }
 }
+
+/** Partial seeds must keep the defaults of instrumented static preview parameters. */
+@Composable
+fun ConsumerDefaultedLabel(enabled: Boolean = true, count: Int = 7) {
+  Text("enabled=$enabled count=$count")
+}

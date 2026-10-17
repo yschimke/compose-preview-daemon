@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import com.example.consumerclock.ConsumerClockSource
 import com.example.consumerclock.ConsumerTimeLabel
@@ -68,6 +69,22 @@ class ConsumerClockRenderTest {
     System.clearProperty(ConsumerClock.PROPERTY)
     System.clearProperty(PreviewClock.PROPERTY)
     System.clearProperty("roborazzi.test.record")
+  }
+
+  @Test
+  fun `instrumented static preview keeps primitive defaults under a partial seed`() {
+    val entry =
+      RenderPreviewEntry(
+        id = "ConsumerDefaultedLabel",
+        functionName = "ConsumerDefaultedLabel",
+        className = "com.example.consumerclock.ConsumerClockFixturesKt",
+      )
+    // The same constructor the clock-instrumented Wear catalog acquires. This receiver is
+    // ignored by the JVM for a static method, but used to make invokeWithDefaultMask abstain.
+    val container = Class.forName(entry.className)
+    assertTrue(container.declaredConstructors.any { it.parameterCount == 0 })
+    rule.setContent { strategyFor(PreviewKind.COMPOSE).Render(entry, 227, 227, listOf(null, 3)) }
+    rule.onNodeWithText("enabled=true count=3").assertExists()
   }
 
   @Test

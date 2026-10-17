@@ -536,6 +536,21 @@ this investigation; their full application export still needs validation with th
   naming extra classpath entries searched before the parent for acquired classes.
 - **Validation status:** workaround tested in-process; no upstream issue filed.
 
+## R16 — Instrumented static preview containers acquire a constructor
+
+- **Category/owner:** our renderer invocation bug, not an upstream Robolectric defect.
+- **Evidence/version:** Robolectric 4.17 `ClassInstrumentor.addNoArgsConstructor` adds a constructor
+  to Kotlin file facades when consumer clock packages are instrumented. The tools 2.66.0 default
+  enables that instrumentation; wear-m3-catalog#850 then failed 806 parameterized variant renders
+  with primitive null-unboxing or argument-type errors at `PreviewRenderStrategy.kt:180`.
+- **Cause/fix:** receiver resolution can now instantiate a static method's container. The
+  defaults-mask helper rejected any non-null receiver and fell through to Compose reflection,
+  which passes unseeded primitive nulls verbatim. Test the method's static modifier instead; Java
+  reflection ignores its receiver argument for a static invocation.
+- **Validation status:** added an instrumented consumer partial-seed regression in
+  `ConsumerClockRenderTest`; formatter checked locally, sandbox execution pending CI. No upstream
+  issue needed and clock pinning remains enabled.
+
 ## How to turn an item into upstream feedback
 
 Attach a minimal project or a source-level patch, exact released/source versions,
