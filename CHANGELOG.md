@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.18.6](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.5...v3.18.6) (2026-10-17)
+
+
+### Bug Fixes
+
+* **daemon:** launch sandbox workers through a -D argfile and exit on a failed start ([#306](https://github.com/yschimke/compose-preview-daemon/issues/306)) ([089a29c](https://github.com/yschimke/compose-preview-daemon/commit/089a29c0de13ed8a273ca192cce59ad1ac778671))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.13.1 ([#304](https://github.com/yschimke/compose-preview-daemon/issues/304)) ([1662b66](https://github.com/yschimke/compose-preview-daemon/commit/1662b666516ccee7bbee2ecfe1aa0b26a76045f4))
+
+
+### CI
+
+* dispatch CI and format checks on the release PR ([#303](https://github.com/yschimke/compose-preview-daemon/issues/303)) ([4d765ac](https://github.com/yschimke/compose-preview-daemon/commit/4d765acbd6767a01a558a94ac7b8321997012c17))
+
 ## [3.18.5](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.4...v3.18.5) (2026-10-16)
 
 
