@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.18.7](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.6...v3.18.7) (2026-10-17)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.36.0 ([#310](https://github.com/yschimke/compose-preview-daemon/issues/310)) ([259d0b2](https://github.com/yschimke/compose-preview-daemon/commit/259d0b2871fe512340ab111ea72514e7185af6c5))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.14.0 ([#307](https://github.com/yschimke/compose-preview-daemon/issues/307)) ([32fa03d](https://github.com/yschimke/compose-preview-daemon/commit/32fa03d833737b2a73fe7fa40da0360c7985e853))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.15.0 ([#311](https://github.com/yschimke/compose-preview-daemon/issues/311)) ([f5ac81a](https://github.com/yschimke/compose-preview-daemon/commit/f5ac81aad065303296b608a4c0de23bc8bbbbe16))
+* **renderer:** retain defaults for instrumented static previews ([#309](https://github.com/yschimke/compose-preview-daemon/issues/309)) ([dcfabb3](https://github.com/yschimke/compose-preview-daemon/commit/dcfabb332beb08dc329b698fb6e9b61d021a498a))
+
 ## [3.18.6](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.5...v3.18.6) (2026-10-17)
 
 
