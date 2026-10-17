@@ -2,6 +2,7 @@ package ee.schimke.composeai.daemon.pool
 
 import ee.schimke.composeai.daemon.RenderRequest
 import ee.schimke.composeai.daemon.RenderResult
+import ee.schimke.composeai.daemon.SystemPropertyArgs
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import java.io.BufferedReader
 import java.io.BufferedWriter
@@ -415,7 +416,9 @@ class SandboxProcessPool(
           classpathHasNonEmptyDirectory = hasNonEmptyDirectory(classpath),
         )
       )
-      addAll(workerSysprops(index, port).map { (k, v) -> "-D$k=$v" })
+      // The forwarded set includes composeai.daemon.userClassDirs, ~290 KiB on a large Bazel
+      // target: past MAX_ARG_STRLEN it must travel in an argfile, as the daemon's own launch does.
+      addAll(SystemPropertyArgs.of(workerSysprops(index, port)))
       add("-cp")
       add(classpath)
       add(SandboxWorkerMain::class.java.name)

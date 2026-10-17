@@ -1731,6 +1731,16 @@ public final class ee/schimke/composeai/daemon/StartupTimings$Mark {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ee/schimke/composeai/daemon/SystemPropertyArgs {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/SystemPropertyArgs;
+	public static final field MAX_INLINE_PROPERTIES I
+	public static final field MAX_INLINE_PROPERTY I
+	public static final field MAX_WINDOWS_INLINE_PROPERTIES I
+	public final fun of (Ljava/util/Map;Ljava/io/File;)Ljava/util/List;
+	public static synthetic fun of$default (Lee/schimke/composeai/daemon/SystemPropertyArgs;Ljava/util/Map;Ljava/io/File;ILjava/lang/Object;)Ljava/util/List;
+	public final fun quote (Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class ee/schimke/composeai/daemon/UserClassLoaderHolder {
 	public static final field Companion Lee/schimke/composeai/daemon/UserClassLoaderHolder$Companion;
 	public static final field USER_CLASS_DIRS_PROP Ljava/lang/String;

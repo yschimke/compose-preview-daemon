@@ -734,7 +734,18 @@ fun main(args: Array<String>) {
       // A real daemon process: end the JVM on `exit` / idle timeout / classpathDirty grace.
       onExit = JsonRpcServer.EXIT_PROCESS,
     )
-  server.run()
+  try {
+    server.run()
+  } catch (t: Throwable) {
+    // A failed host start (a worker JVM that could not exec, say) ends main, but the sandbox and
+    // pool threads it left are not daemon threads: without this the JVM, and the client waiting on
+    // it, would hang instead of seeing the daemon exit. Halt, not exit: a shutdown hook joining one
+    // of those threads would hang the same way.
+    System.err.println("compose-ai-tools daemon-android: fatal: ${t.javaClass.name}: ${t.message}")
+    t.printStackTrace()
+    System.err.flush()
+    Runtime.getRuntime().halt(1)
+  }
 }
 
 /**

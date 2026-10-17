@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon.client
 
+import ee.schimke.composeai.daemon.SystemPropertyArgs
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.protocol.DaemonLaunchDescriptor
 import ee.schimke.composeai.io.classpathArgFile
@@ -126,48 +127,15 @@ public class SubprocessDaemonClientFactory(
   internal companion object {
     const val ANDROID_VARIANT = "android"
 
-    /**
-     * Linux refuses any single `execve` argument over `MAX_ARG_STRLEN` (32 pages, 128 KiB) with
-     * `E2BIG`, whatever `ARG_MAX` allows. `composeai.daemon.userClassDirs` on a target with ~1,500
-     * runtime jars is ~290 KiB, so past these sizes every `-D` goes through an argfile instead.
-     */
-    const val MAX_INLINE_PROPERTY = 32 * 1024
-    const val MAX_INLINE_PROPERTIES = 96 * 1024
+    const val MAX_INLINE_PROPERTY = SystemPropertyArgs.MAX_INLINE_PROPERTY
+    const val MAX_INLINE_PROPERTIES = SystemPropertyArgs.MAX_INLINE_PROPERTIES
+    const val MAX_WINDOWS_INLINE_PROPERTIES = SystemPropertyArgs.MAX_WINDOWS_INLINE_PROPERTIES
 
-    /**
-     * Windows passes one command line to `CreateProcess`, at most 32,767 characters in all. The
-     * classpath is already an argfile, so the properties share that budget with the launcher, JVM
-     * args and main class.
-     */
-    const val MAX_WINDOWS_INLINE_PROPERTIES = 16 * 1024
+    /** The `-D` arguments for [properties], spilled to an `@argfile` past the OS limits. */
+    fun systemPropertyArgs(properties: Map<String, String>, directory: File? = null): List<String> =
+      SystemPropertyArgs.of(properties, directory)
 
-    private val isWindows = System.getProperty("os.name").orEmpty().startsWith("Windows")
-
-    /**
-     * The `-D` arguments for [properties]: inline as before, or one `@argfile` holding them all
-     * when one is too long for `execve` ([MAX_INLINE_PROPERTY]) or together they would crowd the
-     * limit.
-     */
-    fun systemPropertyArgs(properties: Map<String, String>, directory: File? = null): List<String> {
-      val inline = properties.map { (k, v) -> "-D$k=$v" }
-      val limit = if (isWindows) MAX_WINDOWS_INLINE_PROPERTIES else MAX_INLINE_PROPERTIES
-      if (inline.none { it.length > MAX_INLINE_PROPERTY } && inline.sumOf { it.length } <= limit) {
-        return inline
-      }
-      val file = File.createTempFile("composeai-props", ".args", directory)
-      file.deleteOnExit()
-      // The launcher decodes argfiles in the platform encoding, as `classpathArgFile` writes them.
-      val charset = runCatching {
-        java.nio.charset.Charset.forName(System.getProperty("sun.jnu.encoding"))
-      }
-        .getOrDefault(java.nio.charset.Charset.defaultCharset())
-      file.writeText(inline.joinToString("\n", postfix = "\n") { quoteForArgFile(it) }, charset)
-      return listOf("@" + file.absolutePath)
-    }
-
-    /** One argfile token: quoted, with `\` and `"` escaped as the launcher un-escapes them. */
-    fun quoteForArgFile(token: String): String =
-      "\"" + token.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+    fun quoteForArgFile(token: String): String = SystemPropertyArgs.quote(token)
 
     /** `DaemonMain`'s pool size when `composeai.daemon.warmSpare` (default on) is unset-else. */
     const val DEFAULT_ANDROID_SANDBOX_COUNT = 5
