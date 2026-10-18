@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.18.8](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.7...v3.18.8) (2026-10-18)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.16.0 ([#316](https://github.com/yschimke/compose-preview-daemon/issues/316)) ([38c8493](https://github.com/yschimke/compose-preview-daemon/commit/38c8493d493356f248fff4596b28f860cf8e9be8))
+* **release:** fail when Maven task planning fails ([#312](https://github.com/yschimke/compose-preview-daemon/issues/312)) ([2da42ee](https://github.com/yschimke/compose-preview-daemon/commit/2da42ee2e09ca6d66a19436c14f88b61eb9d9caf))
+* **renderer:** hide the host action bar synchronously under edge-to-edge ([#315](https://github.com/yschimke/compose-preview-daemon/issues/315)) ([135fcc3](https://github.com/yschimke/compose-preview-daemon/commit/135fcc3db156ebdf8e02f0c837f03094d60b9fa7))
+
 ## [3.18.7](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.6...v3.18.7) (2026-10-17)
 
 
