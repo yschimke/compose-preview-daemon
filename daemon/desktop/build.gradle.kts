@@ -427,6 +427,7 @@ val forwardComposeInteractionExportTest =
     description =
       "Runs the figma-svg interaction-state export on Compose Multiplatform $forwardCompose " +
         "with material3 $forwardMaterial3."
+    systemProperty("composeai.dialog.evidenceLine", "forward")
     val testSourceSet = sourceSets.test.get()
     testClassesDirs = testSourceSet.output.classesDirs
     classpath =
@@ -436,6 +437,7 @@ val forwardComposeInteractionExportTest =
         forwardComposeTestRuntime
     filter {
       includeTestsMatching("ee.schimke.composeai.daemon.ForwardMaterialInteractionExportTest")
+      includeTestsMatching("ee.schimke.composeai.daemon.RenderEngineDialogSettleTest")
     }
     shouldRunAfter(tasks.test)
   }
