@@ -249,5 +249,8 @@ jobs:
       # re-uploads every coordinate, too narrow skips a module Central cannot take a second time.
       - name: Test the Maven publish plan
         run: .github/scripts/test-maven-publish-plan.sh
+
+      - name: Release publication failure handling
+        run: python3 .github/scripts/test-release-publish.py
       - run: node scripts/codegen/gen-spatial-scene.mjs --check
       - run: node scripts/codegen/gen-xr-render-service.mjs --check

@@ -105,7 +105,13 @@ jobs:
           if [ "${PLANNED}" = "true" ]; then
             args+=("-Pcomposeai.publishSet=${PUBLISH_SET}")
           fi
-          mapfile -t tasks < <(./gradlew --quiet printPublishTasks "${args[@]}" | cut -f1)
+          # Capture first: mapfile cannot observe a process substitution's failure.
+          # With pipefail, a failed planning build aborts instead of becoming an empty release.
+          task_plan=$(./gradlew --quiet printPublishTasks "${args[@]}" | cut -f1)
+          tasks=()
+          if [ -n "$task_plan" ]; then
+            mapfile -t tasks <<< "$task_plan"
+          fi
           # An empty task list is valid only for a planned-empty release. A bare `./gradlew` is not
           # a no-op that fails loudly — this build declares no `defaultTasks`, so it runs `help` and
           # exits 0 — therefore retain the failure for an unplanned/recovery release.
