@@ -41,6 +41,38 @@ class PreviewHostThemeTest {
     org.junit.Assert.assertFalse(bar.isShowing)
   }
 
+  /**
+   * compose-ai-tools#5945: from targetSdk 35 the window is edge-to-edge, so the content lays out at
+   * y = 0 *under* the action bar instead of below it, and a capture cropped to the content shows
+   * the bar. `ActionBar.hide()` on a visible activity only starts a 250 ms hide animation, which
+   * the paused render clock never finishes, so the bar must be gone synchronously.
+   */
+  @Test
+  @Config(sdk = [35])
+  fun `the action bar container is gone at once under enforced edge-to-edge`() {
+    app.applicationInfo.theme = 0
+    val targetSdk = app.applicationInfo.targetSdkVersion
+    app.applicationInfo.targetSdkVersion = 35
+    try {
+      val controller = Robolectric.buildActivity(ComponentActivity::class.java)
+      controller.get().setTheme(android.R.style.Theme_Material_Light)
+      // postResume is what turns the action bar's hide animation on, as for the render's
+      // activity.
+      val activity = controller.create().start().resume().postResume().visible().get()
+      val containerId = activity.resources.getIdentifier("action_bar_container", "id", "android")
+      val container = activity.window.decorView.findViewById<android.view.View>(containerId)
+      assertNotNull(container)
+      assertEquals(android.view.View.VISIBLE, container.visibility)
+
+      PreviewHostTheme.applyTo(activity)
+
+      org.junit.Assert.assertFalse(requireNotNull(activity.actionBar).isShowing)
+      assertEquals(android.view.View.GONE, container.visibility)
+    } finally {
+      app.applicationInfo.targetSdkVersion = targetSdk
+    }
+  }
+
   private val app
     get() = ApplicationProvider.getApplicationContext<android.app.Application>()
 

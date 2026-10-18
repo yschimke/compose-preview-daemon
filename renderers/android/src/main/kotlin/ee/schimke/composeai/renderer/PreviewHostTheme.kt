@@ -2,6 +2,7 @@ package ee.schimke.composeai.renderer
 
 import android.app.Activity
 import android.content.Context
+import android.view.View
 
 /**
  * The Android theme the preview host activity runs under.
@@ -86,10 +87,7 @@ object PreviewHostTheme {
    * can't leak into the capture.
    */
   fun applyTo(activity: Activity): Int {
-    // Roborazzi hides the preview host's action bar at capture time. Do it before composition
-    // instead, so content that records its initial viewport (Remote Compose) sees the same
-    // available height as the final frame. This is host chrome, not part of the authored UI.
-    activity.actionBar?.hide()
+    hideHostChrome(activity)
     val themeResId = resolveThemeResId(activity)
     if (themeResId == 0) {
       // Once per JVM: a mistyped theme name would otherwise be silently inert, and the only
@@ -108,6 +106,38 @@ object PreviewHostTheme {
       }
       .getOrDefault(0)
   }
+
+  /**
+   * Hides the host activity's platform action bar, synchronously.
+   *
+   * Roborazzi hides it at capture time; doing it before composition means content that records its
+   * initial viewport (Remote Compose) sees the same available height as the final frame. It is host
+   * chrome, never part of the authored UI, whatever the `@Preview` asks for: `showSystemUi` draws
+   * the status and navigation bars as [SystemBarsFrame], and Android Studio's preview has no action
+   * bar either.
+   *
+   * `ActionBar.hide()` alone is not enough (compose-ai-tools#5945). On a resumed activity it starts
+   * a 250 ms hide animation and leaves the container visible until it ends, and the render's paused
+   * clock never gets there. Below targetSdk 35 that went unseen, because the content lays out below
+   * the bar and the capture crops to the content. From targetSdk 35 the window is edge-to-edge: the
+   * content starts at y = 0, under the bar, so the bar lands in the frame. Setting the containers
+   * `GONE` here takes effect before the first frame, with or without the animation.
+   */
+  private fun hideHostChrome(activity: Activity) {
+    val bar = activity.actionBar ?: return
+    activity.runOnUiThread {
+      bar.hide()
+      val decor = activity.window?.peekDecorView() ?: return@runOnUiThread
+      for (name in HOST_CHROME_IDS) {
+        val id = activity.resources.getIdentifier(name, "id", "android")
+        if (id != 0) decor.findViewById<View>(id)?.visibility = View.GONE
+      }
+    }
+  }
+
+  /** The platform decor's action bar containers (`com.android.internal.R.id`). */
+  private val HOST_CHROME_IDS =
+    listOf("action_bar_container", "split_action_bar", "title_container")
 
   /** Guards the one-shot unresolved-theme warning in [applyTo]. Reset by tests. */
   @Volatile internal var warnedUnresolved: Boolean = false
