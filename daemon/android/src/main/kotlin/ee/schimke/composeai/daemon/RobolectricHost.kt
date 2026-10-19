@@ -2321,6 +2321,39 @@ open class RobolectricHost(
    * tripping the native-runtime single-classloader constraint.
    */
   private fun runJUnit(workerIndex: Int) {
+    try {
+      runSandboxRunner(workerIndex)
+    } catch (t: Throwable) {
+      // Thrown outside JUnit's own reporting (a read-only `~/.robolectric-download-lock`, a
+      // loader that cannot be built): without this the worker dies silently, the slot latch never
+      // trips, and `start()` sits out the whole boot timeout while the client waits on
+      // `initialize` (compose-ai-tools#6114).
+      System.err.println("RobolectricHost SandboxRunner[$workerIndex] threw: $t")
+      t.printStackTrace()
+      recordBootFailure(
+        workerIndex,
+        IllegalStateException(
+          "RobolectricHost SandboxRunner[$workerIndex] threw during bootstrap",
+          t,
+        ),
+      )
+    }
+  }
+
+  /**
+   * Fails slot [workerIndex]'s boot with [error] when its sandbox-ready latch has not tripped, so
+   * the awaiting `start()` reports the real cause at once. A failure after the latch (a render-loop
+   * crash during shutdown) is not a boot error: `start()` returned long ago.
+   */
+  private fun recordBootFailure(workerIndex: Int, error: Throwable) {
+    val latch = DaemonHostBridge.slot(workerIndex).sandboxReadyLatchRef.get()
+    if (latch.count > 0L) {
+      workerBootErrors.set(workerIndex, error)
+      latch.countDown()
+    }
+  }
+
+  private fun runSandboxRunner(workerIndex: Int) {
     // Robolectric builds the sandbox loader over this thread's context loader, so installing the
     // app-Compose-first parent here decides whose Compose the whole sandbox defines — renderer and
     // preview alike. Leaving the context loader alone is today's behaviour.
@@ -2340,23 +2373,18 @@ open class RobolectricHost(
       failure.exception?.printStackTrace()
     }
     // If we exit JUnit before the slot's sandbox-ready latch was tripped, no other path will
-    // unblock `start()`. Stash the underlying exception and trip the latch ourselves so the
-    // awaiting `start()` loop reports the real cause instead of the 600s timeout.
-    // Failures that happen *after* the latch was already counted down (e.g. a render-loop
-    // crash during shutdown) are still logged above but not promoted to a boot error —
-    // `start()` has long since returned by then.
-    val slot = DaemonHostBridge.slot(workerIndex)
-    val latch = slot.sandboxReadyLatchRef.get()
-    if (latch.count > 0L) {
-      val first = result.failures.firstOrNull()
-      val cause = first?.exception
-      val message =
+    // unblock `start()`: report the underlying exception so it fails with the real cause instead
+    // of the 600s timeout.
+    val first = result.failures.firstOrNull()
+    recordBootFailure(
+      workerIndex,
+      IllegalStateException(
         "RobolectricHost SandboxRunner[$workerIndex] aborted during sandbox bootstrap " +
           "(${result.failures.size} JUnit failure(s)). First: " +
-          (first?.message ?: "<no message>")
-      workerBootErrors.set(workerIndex, IllegalStateException(message, cause))
-      latch.countDown()
-    }
+          (first?.message ?: "<no message>"),
+        first?.exception,
+      ),
+    )
   }
 
   /**
