@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.21.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.20.1...v3.21.0) (2026-10-19)
+
+
+### Features
+
+* answer initialize before the sandbox is ready and report boot progress ([#332](https://github.com/yschimke/compose-preview-daemon/issues/332)) ([75428d2](https://github.com/yschimke/compose-preview-daemon/commit/75428d263bda1d1a79f659dddd07604bad2ade64))
+
+
+### Bug Fixes
+
+* **deps:** update dependency androidx.tracing:tracing to v2.0.4 ([#331](https://github.com/yschimke/compose-preview-daemon/issues/331)) ([567242f](https://github.com/yschimke/compose-preview-daemon/commit/567242f2398a328efa0fdad5c263802ec48e2ddc))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.37.0 ([#333](https://github.com/yschimke/compose-preview-daemon/issues/333)) ([15d167a](https://github.com/yschimke/compose-preview-daemon/commit/15d167a946d354f38f90769c15453e1a5e7a47bc))
+
 ## [3.20.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.20.0...v3.20.1) (2026-10-19)
 
 
