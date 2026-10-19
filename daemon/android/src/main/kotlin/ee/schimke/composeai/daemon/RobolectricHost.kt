@@ -3933,6 +3933,7 @@ open class RobolectricHost(
       val previousContext = Thread.currentThread().contextClassLoader
       Thread.currentThread().contextClassLoader = classLoader
       try {
+        ee.schimke.composeai.renderer.PreviewHostTheme.suppressHostTitle()
         rule.apply(statement, description).evaluate()
       } catch (t: Throwable) {
         // Rule lifecycle failed (e.g. setContent threw; ActivityScenario couldn't launch). If

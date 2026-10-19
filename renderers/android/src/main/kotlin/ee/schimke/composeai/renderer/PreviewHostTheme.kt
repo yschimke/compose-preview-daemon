@@ -1,8 +1,15 @@
 package ee.schimke.composeai.renderer
 
 import android.app.Activity
+import android.app.Application
 import android.content.Context
+import android.os.Bundle
 import android.view.View
+import android.view.Window
+import androidx.activity.ComponentActivity
+import androidx.test.core.app.ApplicationProvider
+import java.util.Collections
+import java.util.WeakHashMap
 
 /**
  * The Android theme the preview host activity runs under.
@@ -133,6 +140,54 @@ object PreviewHostTheme {
         if (id != 0) decor.findViewById<View>(id)?.visibility = View.GONE
       }
     }
+  }
+
+  /**
+   * Requests [Window.FEATURE_NO_TITLE] for the render rule's host [ComponentActivity] before its
+   * window installs a decor, so the platform action bar is never inflated, laid out or drawn. Call
+   * before `rule.apply(…).evaluate()`; once per application, so repeat calls are free.
+   *
+   * [hideHostChrome] alone runs too late (compose-ai-tools#5945): `ActivityScenario` has already
+   * created, resumed and drawn the activity once by the time the rule's statement runs, and
+   * `requestWindowFeature` is a no-op after `installDecor()`. Only the exact host class is touched,
+   * so a consumer's own activity (an app tour's, say) keeps the chrome it asks for.
+   */
+  fun suppressHostTitle(
+    application: Application = ApplicationProvider.getApplicationContext()
+  ) {
+    if (!titleSuppressed.add(application)) return
+    application.registerActivityLifecycleCallbacks(NoTitleCallbacks)
+  }
+
+  private val titleSuppressed: MutableSet<Application> =
+    Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))
+
+  private object NoTitleCallbacks : Application.ActivityLifecycleCallbacks {
+    private fun requestNoTitle(activity: Activity) {
+      if (activity.javaClass != ComponentActivity::class.java) return
+      // Throws once content is set; by then [hideHostChrome] is what's left.
+      runCatching { activity.requestWindowFeature(Window.FEATURE_NO_TITLE) }
+    }
+
+    // API 29+: before `onCreate`, the earliest point the window exists.
+    override fun onActivityPreCreated(activity: Activity, savedInstanceState: Bundle?) =
+      requestNoTitle(activity)
+
+    // Below API 29: from `Activity.onCreate`, still before `ComponentActivity` touches the decor.
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) =
+      requestNoTitle(activity)
+
+    override fun onActivityStarted(activity: Activity) {}
+
+    override fun onActivityResumed(activity: Activity) {}
+
+    override fun onActivityPaused(activity: Activity) {}
+
+    override fun onActivityStopped(activity: Activity) {}
+
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+
+    override fun onActivityDestroyed(activity: Activity) {}
   }
 
   /** The platform decor's action bar containers (`com.android.internal.R.id`). */

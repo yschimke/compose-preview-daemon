@@ -73,6 +73,36 @@ class PreviewHostThemeTest {
     }
   }
 
+  /**
+   * compose-ai-tools#5945, the rest of it: hiding the containers after launch still left a bar
+   * drawn during the launch traversal, so the host window must never get a title at all.
+   */
+  @Test
+  @Config(sdk = [35])
+  fun `the host activity's window never gets an action bar`() {
+    app.applicationInfo.theme = 0
+    PreviewHostTheme.suppressHostTitle(app)
+    PreviewHostTheme.suppressHostTitle(app)
+    val controller = Robolectric.buildActivity(ComponentActivity::class.java)
+    controller.get().setTheme(android.R.style.Theme_Material_Light)
+    val activity = controller.create().start().resume().visible().get()
+    assertNull(activity.actionBar)
+    val containerId = activity.resources.getIdentifier("action_bar_container", "id", "android")
+    assertNull(activity.window.decorView.findViewById<android.view.View>(containerId))
+  }
+
+  /** A consumer's own activity (an app tour launches the real ones) keeps the chrome it asks for. */
+  @Test
+  fun `a consumer activity keeps its action bar`() {
+    PreviewHostTheme.suppressHostTitle(app)
+    val controller = Robolectric.buildActivity(ConsumerActivity::class.java)
+    controller.get().setTheme(android.R.style.Theme_Material_Light)
+    val activity = controller.create().start().resume().visible().get()
+    assertNotNull(activity.actionBar)
+  }
+
+  class ConsumerActivity : ComponentActivity()
+
   private val app
     get() = ApplicationProvider.getApplicationContext<android.app.Application>()
 

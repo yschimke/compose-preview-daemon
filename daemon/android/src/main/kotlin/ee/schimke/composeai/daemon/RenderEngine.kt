@@ -1395,6 +1395,7 @@ class RenderEngine(
       System.err.println(
         "compose-ai-daemon: [render] phase=evaluateRule.start outputBaseName=${spec.outputBaseName}"
       )
+      ee.schimke.composeai.renderer.PreviewHostTheme.suppressHostTitle()
       trace.section("render:evaluateRule") { rule.apply(statement, description).evaluate() }
       System.err.println(
         "compose-ai-daemon: [render] phase=evaluateRule.done outputBaseName=${spec.outputBaseName}"
@@ -1706,6 +1707,7 @@ class RenderEngine(
             }
         }
       }
+    ee.schimke.composeai.renderer.PreviewHostTheme.suppressHostTitle()
     rule.apply(statement, description).evaluate()
 
     if (!handled) {
@@ -1917,6 +1919,7 @@ class RenderEngine(
     val previousContext = Thread.currentThread().contextClassLoader
     Thread.currentThread().contextClassLoader = classLoader
     try {
+      ee.schimke.composeai.renderer.PreviewHostTheme.suppressHostTitle()
       rule.apply(statement, description).evaluate()
     } finally {
       Thread.currentThread().contextClassLoader = previousContext
@@ -2249,6 +2252,7 @@ class RenderEngine(
     val previousContext = Thread.currentThread().contextClassLoader
     Thread.currentThread().contextClassLoader = classLoader
     try {
+      ee.schimke.composeai.renderer.PreviewHostTheme.suppressHostTitle()
       rule.apply(statement, description).evaluate()
     } finally {
       Thread.currentThread().contextClassLoader = previousContext

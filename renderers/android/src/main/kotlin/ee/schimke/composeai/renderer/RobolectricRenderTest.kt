@@ -2703,6 +2703,7 @@ abstract class RobolectricRenderTestBase(
           }
         }
       }
+    PreviewHostTheme.suppressHostTitle()
     rule.apply(statement, description).evaluate()
   }
 
