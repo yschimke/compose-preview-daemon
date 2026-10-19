@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.20.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.20.0...v3.20.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* write a render to the manifest-declared renderOutput ([#329](https://github.com/yschimke/compose-preview-daemon/issues/329)) ([14552da](https://github.com/yschimke/compose-preview-daemon/commit/14552da786f869a141ecd261616a61314d13965c))
+
 ## [3.20.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.19.0...v3.20.0) (2026-10-19)
 
 
