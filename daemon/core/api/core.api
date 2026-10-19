@@ -203,6 +203,13 @@ public final class ee/schimke/composeai/daemon/DaemonVersion {
 	public final fun getValue ()Ljava/lang/String;
 }
 
+public final class ee/schimke/composeai/daemon/DeclaredRenderOutput {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/DeclaredRenderOutput;
+	public final fun forRow (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public final fun resolve (Ljava/io/File;Ljava/lang/String;)Ljava/io/File;
+	public final fun stillOutput (Ljava/util/List;)Ljava/lang/String;
+}
+
 public final class ee/schimke/composeai/daemon/DisableOutcome {
 	public fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
 	public final fun component1 ()Ljava/util/List;
@@ -1552,10 +1559,14 @@ public final class ee/schimke/composeai/daemon/RenderTarget$Preview$Companion {
 public final class ee/schimke/composeai/daemon/RenderTarget$Spec : ee/schimke/composeai/daemon/RenderTarget {
 	public static final field Companion Lee/schimke/composeai/daemon/RenderTarget$Spec$Companion;
 	public fun <init> (Lee/schimke/composeai/daemon/RenderSpec;)V
+	public fun <init> (Lee/schimke/composeai/daemon/RenderSpec;Ljava/lang/String;)V
+	public synthetic fun <init> (Lee/schimke/composeai/daemon/RenderSpec;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lee/schimke/composeai/daemon/RenderSpec;
-	public final fun copy (Lee/schimke/composeai/daemon/RenderSpec;)Lee/schimke/composeai/daemon/RenderTarget$Spec;
-	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/RenderTarget$Spec;Lee/schimke/composeai/daemon/RenderSpec;ILjava/lang/Object;)Lee/schimke/composeai/daemon/RenderTarget$Spec;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Lee/schimke/composeai/daemon/RenderSpec;Ljava/lang/String;)Lee/schimke/composeai/daemon/RenderTarget$Spec;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/RenderTarget$Spec;Lee/schimke/composeai/daemon/RenderSpec;Ljava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/daemon/RenderTarget$Spec;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOutputPath ()Ljava/lang/String;
 	public final fun getSpec ()Lee/schimke/composeai/daemon/RenderSpec;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;

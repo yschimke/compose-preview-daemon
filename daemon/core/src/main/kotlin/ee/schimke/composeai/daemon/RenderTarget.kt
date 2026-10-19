@@ -37,8 +37,20 @@ public sealed interface RenderTarget {
     val dataKinds: Set<String>? = null,
   ) : RenderTarget
 
-  /** A fully resolved spec: nothing left to look up, render exactly this. */
-  @Serializable @SerialName("spec") public data class Spec(val spec: RenderSpec) : RenderTarget
+  /**
+   * A fully resolved spec: nothing left to look up, render exactly this.
+   *
+   * [outputPath] is the absolute file the still PNG goes to when the preview manifest declares one
+   * ([DeclaredRenderOutput]); `null` keeps the engine's `<outputDir>/<outputBaseName>.png`. It
+   * lives here rather than on [RenderSpec] because it says *where* to write, not *what* to draw,
+   * and because [RenderSpec]'s constructor is called from jars compiled against older releases. The
+   * single-argument constructor stays for the same reason.
+   */
+  @Serializable
+  @SerialName("spec")
+  public data class Spec
+  @JvmOverloads
+  public constructor(val spec: RenderSpec, val outputPath: String? = null) : RenderTarget
 
   /**
    * No renderable target: the host answers with its stub render. Exercises queue plumbing and

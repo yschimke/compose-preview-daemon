@@ -2741,8 +2741,9 @@ open class RobolectricHost(
      * can no longer arrive here looking like a deliberate stub request.
      */
     private fun dispatchRender(slot: SandboxSlot, id: Long, targetJson: String): RenderResult {
+      val target = RenderTarget.decode(targetJson)
       val spec =
-        when (val target = RenderTarget.decode(targetJson)) {
+        when (target) {
           is RenderTarget.Spec -> target.spec
           // Forensic dump — docs/daemon/CLASSLOADER-FORENSICS.md § Implementation seam. It runs
           // *here*, inside the sandbox classloader (Robolectric's `InstrumentingClassLoader`) with
@@ -2774,7 +2775,14 @@ open class RobolectricHost(
       return AndroidxTraceSections.traced(
         "composeai:render:${spec.previewId ?: spec.outputBaseName}"
       ) {
-        engine.render(spec, id, classLoader, sandboxStats = sandboxStats)
+        engine.render(
+          spec,
+          id,
+          classLoader,
+          sandboxStats = sandboxStats,
+          // The manifest-declared still path, when the router resolved one (#6114).
+          outputFileOverride = (target as RenderTarget.Spec).outputPath?.let(::File),
+        )
       }
     }
 
