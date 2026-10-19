@@ -176,6 +176,43 @@ class EarlyInitializeTest {
     second.close()
   }
 
+  @Test
+  fun `a later client waiting on the socket front end gets an error when the boot fails`() {
+    val socket = dir.resolve("f.sock")
+    val frontEnd = DaemonSocketFrontEnd(socket, 60_000L, log = {})
+    frontEnd.start()
+    val server =
+      JsonRpcServer(
+        input = frontEnd.serverInput,
+        output = frontEnd.serverOutput,
+        host = SlowStartHost(gate, failure = IllegalStateException("no android-all")),
+        daemonVersion = "test",
+        onExit = {},
+      )
+    Thread({ runCatching { server.run() } }, "early-front-end-failing-server")
+      .apply { isDaemon = true }
+      .start()
+
+    val first = Client(socketChannel(socket))
+    val firstInit = first.request(1, "initialize", initializeParams(bootProgress = true))
+    assertEquals(true, firstInit.result()?.get("booting")?.jsonPrimitive?.booleanOrNull)
+    first.close()
+
+    val second = Client(socketChannel(socket))
+    second.send(1, "initialize", initializeParams(bootProgress = false))
+    assertNull("a client that did not opt in waits", second.poll(500) { it.id() == 1 })
+    gate.countDown()
+    val reply = second.collectUntil { it.id() == 1 }.last()
+    assertNull("a failed boot is not a successful handshake: $reply", reply["result"])
+    assertTrue("$reply", reply["error"].toString().contains("no android-all"))
+    second.close()
+  }
+
+  private fun socketChannel(socket: Path): SocketChannel =
+    SocketChannel.open(StandardProtocolFamily.UNIX).apply {
+      connect(UnixDomainSocketAddress.of(socket))
+    }
+
   /**
    * A host whose start() blocks on [gate], reporting slot 0 like a one-sandbox Robolectric host.
    */

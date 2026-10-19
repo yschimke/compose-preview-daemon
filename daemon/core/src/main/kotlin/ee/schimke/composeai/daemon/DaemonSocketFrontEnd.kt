@@ -93,6 +93,9 @@ public class DaemonSocketFrontEnd(
   /** Whether the server answered early and its host has not reported a terminal phase yet. */
   private var hostBooting = false
 
+  /** Why the host failed to start, once a `failed` `bootProgress` has passed; the daemon exits. */
+  private var bootFailure: String? = null
+
   /** Later clients that did not opt in to `bootProgress`, waiting for the host to come up. */
   private val readyWaiters = mutableListOf<Waiter>()
 
@@ -243,23 +246,33 @@ public class DaemonSocketFrontEnd(
    * [initializeLock] so a terminal `bootProgress` cannot pass between the decision and the send.
    */
   private fun answerLocked(waiter: Waiter, result: JsonElement) {
+    val failure = bootFailure
     when {
+      failure != null -> waiter.connection.send(error(waiter.id, ERR_INTERNAL, failure))
       !hostBooting -> waiter.connection.send(response(waiter.id, withoutBooting(result)))
       waiter.bootProgress -> waiter.connection.send(response(waiter.id, result))
       else -> readyWaiters += waiter
     }
   }
 
-  /** compose-ai-tools#6114 — a terminal `bootProgress` releases every client waiting on it. */
+  /**
+   * compose-ai-tools#6114 — a terminal `bootProgress` releases every client waiting on it: `ready`
+   * with the handshake, `failed` with an error, since the daemon is about to exit.
+   */
   private fun trackBoot(obj: JsonObject) {
     if (!isBootProgress(obj)) return
-    val phase = (obj["params"] as? JsonObject)?.get("phase")?.jsonPrimitive?.contentOrNull
-    if (phase !in TERMINAL_BOOT_PHASES) return
+    val params = obj["params"] as? JsonObject
+    val phase = params?.get("phase")?.jsonPrimitive?.contentOrNull
+    if (phase != BOOT_READY && phase != BOOT_FAILED) return
     synchronized(initializeLock) {
       if (!hostBooting) return
       hostBooting = false
+      if (phase == BOOT_FAILED) {
+        val reason = params["message"]?.jsonPrimitive?.contentOrNull ?: "no reason given"
+        bootFailure = "the daemon's host failed to start: $reason"
+      }
       val result = initializeResult ?: return
-      readyWaiters.forEach { it.connection.send(response(it.id, withoutBooting(result))) }
+      readyWaiters.forEach { answerLocked(it, result) }
       readyWaiters.clear()
     }
   }
@@ -483,7 +496,9 @@ public class DaemonSocketFrontEnd(
 
     private const val BOOT_PROGRESS_METHOD = "bootProgress"
 
-    private val TERMINAL_BOOT_PHASES = setOf("ready", "failed")
+    private const val BOOT_READY = "ready"
+    private const val BOOT_FAILED = "failed"
+    private const val ERR_INTERNAL = -32603
 
     /**
      * `initialize` params minus the fields that only describe the client: its version, and whether
