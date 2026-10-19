@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.20.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.19.0...v3.20.0) (2026-10-19)
+
+
+### Features
+
+* route custom wrappers' RemoteContentPreview through the connector ([#327](https://github.com/yschimke/compose-preview-daemon/issues/327)) ([d2c9c7d](https://github.com/yschimke/compose-preview-daemon/commit/d2c9c7d22019798678eefafb74b5d00a13f21053))
+
+
+### Bug Fixes
+
+* a sandbox runner that throws fails the boot at once ([#326](https://github.com/yschimke/compose-preview-daemon/issues/326)) ([74d7d9d](https://github.com/yschimke/compose-preview-daemon/commit/74d7d9dd7495be3412d7a9cdb354379766985e38))
+* serve the nearest cached font face offline and warn instead of failing ([#325](https://github.com/yschimke/compose-preview-daemon/issues/325)) ([3ba4a38](https://github.com/yschimke/compose-preview-daemon/commit/3ba4a38280196d343ff4d5a06c74f721da55e097))
+
 ## [3.19.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.9...v3.19.0) (2026-10-19)
 
 
