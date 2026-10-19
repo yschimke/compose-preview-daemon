@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.18.9](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.8...v3.18.9) (2026-10-19)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.16.1 ([#317](https://github.com/yschimke/compose-preview-daemon/issues/317)) ([07b1203](https://github.com/yschimke/compose-preview-daemon/commit/07b120396fefaebcb15b74e9cdf66fa4bf1d74ff))
+* **deps:** update dependency io.github.classgraph:classgraph to v4.8.198 ([#319](https://github.com/yschimke/compose-preview-daemon/issues/319)) ([151b9e7](https://github.com/yschimke/compose-preview-daemon/commit/151b9e7b1c85442d4fed045b3c8f3e1df5b5ce4d))
+* never give the render host activity a title bar ([#320](https://github.com/yschimke/compose-preview-daemon/issues/320)) ([3de45eb](https://github.com/yschimke/compose-preview-daemon/commit/3de45ebf12f07f29381560017989c4a89949ea16))
+
 ## [3.18.8](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.7...v3.18.8) (2026-10-18)
 
 
