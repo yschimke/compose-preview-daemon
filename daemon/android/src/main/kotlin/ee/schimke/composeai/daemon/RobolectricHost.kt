@@ -2912,6 +2912,7 @@ open class RobolectricHost(
       if (System.getProperty("roborazzi.test.record") == null) {
         System.setProperty("roborazzi.test.record", "true")
       }
+      redirectRoborazziResults()
 
       // Missing-resource fallback — same opt-in the one-shot `RenderEngine.render` path reads (the
       // detached live / serve daemons set it; see

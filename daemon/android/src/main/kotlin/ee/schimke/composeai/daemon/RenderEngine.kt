@@ -269,6 +269,7 @@ class RenderEngine(
     if (System.getProperty("roborazzi.test.record") == null) {
       System.setProperty("roborazzi.test.record", "true")
     }
+    redirectRoborazziResults()
 
     outputDir.mkdirs()
     val outputFile = File(outputDir, "${spec.outputBaseName}.png")
@@ -3363,3 +3364,22 @@ fun RenderSpec.gutterHorizontalPx(): Int =
 fun RenderSpec.gutterVerticalPx(): Int =
   ee.schimke.composeai.renderer.captureGutterEdgePx(gutterTopDp, density) +
     ee.schimke.composeai.renderer.captureGutterEdgePx(gutterBottomDp, density)
+
+/**
+ * Points Roborazzi's per-capture result JSON (`build/test-results/roborazzi/results/…`, relative to
+ * the working directory by default) at a scratch directory deleted on exit, unless the launcher
+ * named one. The daemon's working directory is often the consumer's source tree — a Bazel workspace
+ * root, say — and nothing reads those files (compose-ai-tools#5945). The reporter itself stays the
+ * default one, which the deferred still-encoding path requires.
+ */
+internal fun redirectRoborazziResults() {
+  if (System.getProperty(ROBORAZZI_RESULT_DIR_PROPERTY) != null) return
+  synchronized(ROBORAZZI_RESULT_DIR_PROPERTY) {
+    if (System.getProperty(ROBORAZZI_RESULT_DIR_PROPERTY) != null) return
+    val dir = java.nio.file.Files.createTempDirectory("composeai-roborazzi-results").toFile()
+    Runtime.getRuntime().addShutdownHook(Thread { dir.deleteRecursively() })
+    System.setProperty(ROBORAZZI_RESULT_DIR_PROPERTY, dir.path)
+  }
+}
+
+private const val ROBORAZZI_RESULT_DIR_PROPERTY = "roborazzi.result.dir"

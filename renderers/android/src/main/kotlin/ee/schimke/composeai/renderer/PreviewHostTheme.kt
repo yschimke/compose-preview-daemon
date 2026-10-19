@@ -152,9 +152,7 @@ object PreviewHostTheme {
    * `requestWindowFeature` is a no-op after `installDecor()`. Only the exact host class is touched,
    * so a consumer's own activity (an app tour's, say) keeps the chrome it asks for.
    */
-  fun suppressHostTitle(
-    application: Application = ApplicationProvider.getApplicationContext()
-  ) {
+  fun suppressHostTitle(application: Application = ApplicationProvider.getApplicationContext()) {
     if (!titleSuppressed.add(application)) return
     application.registerActivityLifecycleCallbacks(NoTitleCallbacks)
   }

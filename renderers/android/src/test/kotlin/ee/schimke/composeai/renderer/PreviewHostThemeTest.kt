@@ -91,7 +91,9 @@ class PreviewHostThemeTest {
     assertNull(activity.window.decorView.findViewById<android.view.View>(containerId))
   }
 
-  /** A consumer's own activity (an app tour launches the real ones) keeps the chrome it asks for. */
+  /**
+   * A consumer's own activity (an app tour launches the real ones) keeps the chrome it asks for.
+   */
   @Test
   fun `a consumer activity keeps its action bar`() {
     PreviewHostTheme.suppressHostTitle(app)
