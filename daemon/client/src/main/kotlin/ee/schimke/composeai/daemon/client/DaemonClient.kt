@@ -627,13 +627,15 @@ public class DaemonClient(
 
   private fun sendAndAwait(id: Long, request: JsonRpcRequest, timeout: Duration): JsonObject {
     val slot = responseSlots.computeIfAbsent(id) { LinkedBlockingQueue() }
-    sendFrame(json.encodeToString(JsonRpcRequest.serializer(), request))
-    val response = slot.poll(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
-    responseSlots.remove(id)
-    return response
-      ?: error(
-        "DaemonClient: response for id=$id (method=${request.method}) timed out after $timeout"
-      )
+    try {
+      sendFrame(json.encodeToString(JsonRpcRequest.serializer(), request))
+      return slot.poll(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
+        ?: error(
+          "DaemonClient: response for id=$id (method=${request.method}) timed out after $timeout"
+        )
+    } finally {
+      responseSlots.remove(id, slot)
+    }
   }
 
   private fun sendNotification(method: String, params: kotlinx.serialization.json.JsonElement) {
@@ -658,7 +660,9 @@ public class DaemonClient(
         val obj = json.parseToJsonElement(frame.toString(Charsets.UTF_8)).jsonObject
         val responseId = obj["id"]?.jsonPrimitive?.long
         if (responseId != null) {
-          responseSlots.computeIfAbsent(responseId) { LinkedBlockingQueue() }.put(obj)
+          // A timed-out request no longer owns a slot. Late or unsolicited replies must not
+          // create queues that no caller will ever remove.
+          responseSlots[responseId]?.offer(obj)
         } else {
           val method = obj["method"]?.jsonPrimitive?.contentOrNull
           if (method != null) {
