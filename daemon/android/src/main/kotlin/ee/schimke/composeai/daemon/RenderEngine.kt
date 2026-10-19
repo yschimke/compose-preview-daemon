@@ -228,6 +228,13 @@ class RenderEngine(
      * mode regardless of context (used by tests).
      */
     runAccessibility: Boolean? = null,
+    /**
+     * Where the still PNG goes. `null` (the default) is `<outputDir>/<outputBaseName>.png`; the
+     * manifest router passes the preview's declared `renderOutput` instead (compose-ai-tools#6114),
+     * so the file a client asked for is the one written and the one `pngPath` names. Only the
+     * still: the scroll and long-SVG modes keep writing their own artefacts.
+     */
+    outputFileOverride: File? = null,
   ): RenderResult {
     // Resolved per render: a spare worker learns its catalog's tree after the engine exists.
     val outputDir = outputDir()
@@ -273,7 +280,9 @@ class RenderEngine(
     }
 
     outputDir.mkdirs()
-    val outputFile = File(outputDir, "${spec.outputBaseName}.png")
+    val outputFile =
+      outputFileOverride?.also { it.absoluteFile.parentFile?.mkdirs() }
+        ?: File(outputDir, "${spec.outputBaseName}.png")
     var decodedStillFrame: java.awt.image.BufferedImage? = null
     val startNs = System.nanoTime()
     val trace = PerfettoTraceDataProducer.recorder(spec.outputBaseName, backend = "android")

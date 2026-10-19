@@ -8,6 +8,7 @@ import ee.schimke.composeai.io.SystemFileSystem
 import java.io.File
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
@@ -41,6 +42,12 @@ class PreviewManifestRouter(
   userClassloaderHolderFactory: ((sandboxClassLoader: ClassLoader) -> UserClassLoaderHolder)? =
     null,
   interactiveSessionListener: InteractiveSessionListener? = null,
+  /**
+   * The manifest file's directory, against which each capture's `renderOutput` resolves. `null` (a
+   * manifest handed over in memory) disables declared outputs: every render keeps the default
+   * `<outputDir>/<outputBaseName>.png`.
+   */
+  private val manifestDir: File? = null,
 ) :
   RobolectricHost(
     userClassloaderHolder = userClassloaderHolder,
@@ -115,7 +122,7 @@ class PreviewManifestRouter(
         // the file-backed registry resolves from it.
         outputBaseName = base.outputBaseName + (row?.let { "_$it" } ?: ""),
       )
-    return RenderTarget.Spec(spec)
+    return RenderTarget.Spec(spec, outputPath = declaredOutputPath(addressed.entry, row))
   }
 
   /**
@@ -136,6 +143,21 @@ class PreviewManifestRouter(
 
   /** A previewId resolved against the manifest: the entry to render, and which row of it. */
   internal data class Addressed(val entry: PreviewManifestEntry, val row: String?)
+
+  /**
+   * The absolute path the manifest declares for this render's still, or `null` to keep the default
+   * `<outputDir>/<outputBaseName>.png` (compose-ai-tools#6114).
+   *
+   * [DeclaredRenderOutput.stillOutput] decides whether [entry]'s captures name one unambiguous
+   * still; a `@PreviewParameter` [row] gets the same `_<row>` suffix its `outputBaseName` does, so
+   * rendering row 4 cannot overwrite row 0's declared file. `renderOutput` is relative to the
+   * manifest's directory, never to the render output directory.
+   */
+  internal fun declaredOutputPath(entry: PreviewManifestEntry, row: String?): String? {
+    val dir = manifestDir ?: return null
+    val declared = DeclaredRenderOutput.stillOutput(entry.captures) ?: return null
+    return DeclaredRenderOutput.resolve(dir, DeclaredRenderOutput.forRow(declared, row)).path
+  }
 
   companion object {
     private val json = Json { ignoreUnknownKeys = true }
@@ -270,6 +292,12 @@ data class PreviewManifestEntry(
    */
   val previewParameterProviderClassName: String? = null,
   val previewParameterLimit: Int? = null,
+  /**
+   * Discovery's planned outputs, kept as raw objects: only `renderOutput` and whether a capture
+   * describes the plain still are read ([DeclaredRenderOutput.stillOutput]), and an allow-list over
+   * the raw keys is what lets a capture field this daemon does not know yet fall back safely.
+   */
+  val captures: List<JsonObject> = emptyList(),
 ) {
   fun resolved(): ResolvedRenderParams {
     val p = params

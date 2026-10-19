@@ -206,6 +206,9 @@ fun main(args: Array<String>) {
           RobolectricHost.InteractiveSessionListener { event ->
             recompositionRegistry.onSessionLifecycle(event)
           },
+        // Captures' `renderOutput` is relative to the manifest, so the still lands where the
+        // manifest declares it (compose-ai-tools#6114).
+        manifestDir = manifestFile.absoluteFile.parentFile,
       )
     } else {
       if (sandboxCount > 1) {

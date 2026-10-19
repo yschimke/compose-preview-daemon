@@ -189,6 +189,13 @@ class RenderEngine(
      * with a sandbox-age that resets on every test render.
      */
     sandboxStats: SandboxLifecycleStats = SandboxLifecycleStats(),
+    /**
+     * Where the still PNG goes. `null` (the default) is `<outputDir>/<outputBaseName>.png`; the
+     * manifest router passes the preview's declared `renderOutput` instead (compose-ai-tools#6114),
+     * so the file a client asked for is the one written and the one `pngPath` names. Only the
+     * still: the scroll, long-SVG and Lottie-GIF modes keep writing their own artefacts.
+     */
+    outputFileOverride: File? = null,
   ): RenderResult {
     // The rewritten Compose SlotTable opt-in, applied against the classloader this render composes
     // on — before its first composition, which is what the runtime latches. The daemon renders many
@@ -238,7 +245,13 @@ class RenderEngine(
     val trace = PerfettoTraceDataProducer.recorder(spec.outputBaseName, backend = "desktop")
     val state =
       trace.section("compose:setUp") {
-        setUp(spec, classLoader, inspectionMode = spec.inspectionMode ?: true, trace = trace)
+        setUp(
+          spec,
+          classLoader,
+          inspectionMode = spec.inspectionMode ?: true,
+          trace = trace,
+          outputFileOverride = outputFileOverride,
+        )
       }
     val result =
       try {
@@ -321,6 +334,8 @@ class RenderEngine(
      * is no longer a well-defined thing to be showing.
      */
     settleEligible: Boolean = true,
+    /** See [render]'s parameter of the same name; `null` is `<outputDir>/<outputBaseName>.png`. */
+    outputFileOverride: File? = null,
   ): SceneState {
     // Also here, not just in [render]: a daemon whose FIRST request is `interactive/start` or
     // `recording/start` reaches a held composition through `DesktopHost.acquireInteractiveSession`
@@ -330,7 +345,9 @@ class RenderEngine(
     // old composer and make a later one-shot render's application too late to matter.
     LinkBufferComposer.applyAndDescribe(classLoader)?.let(System.err::println)
     outputDir.mkdirs()
-    val outputFile = File(outputDir, "${spec.outputBaseName}.png")
+    val outputFile =
+      outputFileOverride?.also { it.absoluteFile.parentFile?.mkdirs() }
+        ?: File(outputDir, "${spec.outputBaseName}.png")
     // A failed retry, an interactive render, or a preview whose exact settle was removed must not
     // leave an earlier render's phase declaration claiming the new output is pinned.
     DesktopRenderWarningsSidecar.deleteStale(outputFile, fileSystem)

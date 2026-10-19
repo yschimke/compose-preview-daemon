@@ -834,7 +834,14 @@ open class DesktopHost(
       userClassloaderHolder?.currentChildLoader()
         ?: RenderEngine::class.java.classLoader
         ?: ClassLoader.getSystemClassLoader()
-    return engine.render(spec, request.id, classLoader, sandboxStats = sandboxStats)
+    return engine.render(
+      spec,
+      request.id,
+      classLoader,
+      sandboxStats = sandboxStats,
+      // The manifest-declared still path, when the router resolved one (#6114).
+      outputFileOverride = (request.target as? RenderTarget.Spec)?.outputPath?.let(::File),
+    )
   }
 
   /**

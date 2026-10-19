@@ -315,6 +315,9 @@ fun runDaemon(
         manifest = manifest,
         engine = renderEngine,
         userClassloaderHolder = userClassloaderHolder,
+        // Captures' `renderOutput` is relative to the manifest, so the still lands where the
+        // manifest declares it (compose-ai-tools#6114).
+        manifestDir = manifestFile.absoluteFile.parentFile,
       )
     } else {
       DesktopHost(
