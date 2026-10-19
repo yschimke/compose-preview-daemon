@@ -197,8 +197,9 @@ object GoogleFontFiles {
  *
  * Opt out with `-Dcomposeai.fonts.failOnFallback=false` to downgrade a fallback to a non-fatal
  * warning: the PNG is kept and the fell-back faces are recorded in a `<png>.warnings.json` sidecar
- * instead. Use that for a deliberately-offline render, or a catalog that genuinely tolerates the
- * substitute face.
+ * instead. Use that for a catalog that genuinely tolerates the substitute face. A
+ * deliberately-offline render (`composeai.fonts.offline` or `robolectric.offline`) gets the warning
+ * by default; see [failOnFallback].
  *
  * Collection is per-preview: the render loop calls [beginPreview] before a render and
  * [drainPreview] after, so each preview only owns the fonts *it* asked for. A one-line stderr note
@@ -225,11 +226,29 @@ object FontResolutionDiagnostics {
   private val currentPreview = java.util.Collections.synchronizedList(mutableListOf<FontFallback>())
 
   /**
-   * Whether an unresolved downloadable font fails its preview (default) or degrades to a warning.
-   * Read per call so a test / daemon can flip `composeai.fonts.failOnFallback` between renders.
+   * Whether an unresolved downloadable font fails its preview or degrades to a warning. Read per
+   * call so a test / daemon can flip `composeai.fonts.failOnFallback` between renders.
+   *
+   * An explicit `composeai.fonts.failOnFallback=true|false` always wins. Unset, it defaults to
+   * `true` — except for a deliberately offline render ([offline]), where it defaults to `false`: a
+   * render that cannot reach Google Fonts by design should degrade to the platform face with a
+   * `<png>.warnings.json` sidecar rather than lose every preview whose font is not pre-seeded
+   * (compose-ai-tools#6113). Such a render still fails on fallback when it sets the flag to `true`.
    */
   val failOnFallback: Boolean
-    get() = System.getProperty("composeai.fonts.failOnFallback")?.toBooleanStrictOrNull() ?: true
+    get() =
+      System.getProperty("composeai.fonts.failOnFallback")?.toBooleanStrictOrNull() ?: !offline
+
+  /**
+   * Whether this process renders without network access by configuration: `composeai.fonts.offline`
+   * (the font cache never downloads) or `robolectric.offline` (the sandbox is air-gapped, as in a
+   * Bazel or other hermetic render, where a font download would fail anyway).
+   */
+  val offline: Boolean
+    get() = isTrue("composeai.fonts.offline") || isTrue("robolectric.offline")
+
+  private fun isTrue(name: String): Boolean =
+    System.getProperty(name)?.equals("true", ignoreCase = true) == true
 
   /** Reset the per-preview buffer. Called by the render loop before each preview's render. */
   fun beginPreview() {

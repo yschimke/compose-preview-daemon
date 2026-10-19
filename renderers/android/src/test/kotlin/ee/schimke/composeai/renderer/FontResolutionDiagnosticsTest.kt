@@ -24,7 +24,12 @@ class FontResolutionDiagnosticsTest {
   @get:Rule val tempDir = TemporaryFolder()
 
   private val fontProps =
-    listOf("composeai.fonts.failOnFallback", "composeai.fonts.cacheDir", "composeai.fonts.offline")
+    listOf(
+      "composeai.fonts.failOnFallback",
+      "composeai.fonts.cacheDir",
+      "composeai.fonts.offline",
+      "robolectric.offline",
+    )
   private lateinit var savedProps: Map<String, String?>
 
   @Before
@@ -55,6 +60,29 @@ class FontResolutionDiagnosticsTest {
     // A non-boolean value falls back to the safe default (fatal).
     System.setProperty("composeai.fonts.failOnFallback", "maybe")
     assertTrue(FontResolutionDiagnostics.failOnFallback)
+  }
+
+  @Test
+  fun `failOnFallback defaults to a warning for an offline render`() {
+    System.setProperty("composeai.fonts.offline", "true")
+    assertFalse(FontResolutionDiagnostics.failOnFallback)
+    System.clearProperty("composeai.fonts.offline")
+    assertTrue(FontResolutionDiagnostics.failOnFallback)
+
+    System.setProperty("robolectric.offline", "true")
+    assertFalse(FontResolutionDiagnostics.failOnFallback)
+    System.setProperty("robolectric.offline", "false")
+    assertTrue(FontResolutionDiagnostics.failOnFallback)
+  }
+
+  @Test
+  fun `an explicit failOnFallback stays authoritative offline`() {
+    System.setProperty("composeai.fonts.offline", "true")
+    System.setProperty("robolectric.offline", "true")
+    System.setProperty("composeai.fonts.failOnFallback", "true")
+    assertTrue(FontResolutionDiagnostics.failOnFallback)
+    System.setProperty("composeai.fonts.failOnFallback", "false")
+    assertFalse(FontResolutionDiagnostics.failOnFallback)
   }
 
   @Test

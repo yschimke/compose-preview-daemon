@@ -200,6 +200,107 @@ class GoogleFontsTest {
   }
 
   @Test
+  fun `offline GoogleFontCache serves the family's variable file when the exact weight is absent`() {
+    val dir = tempDir.newFolder("fonts")
+    val variable = File(dir, "inter-variable.ttf").apply { writeBytes(FAKE_TTF_BYTES) }
+    File(dir, "inter-700.ttf").writeBytes(FAKE_TTF_BYTES)
+    val cache = offlineCache(dir)
+    assertEquals(variable, cache.load(GoogleFontKey("Inter", 400, italic = false)))
+  }
+
+  @Test
+  fun `offline GoogleFontCache prefers the italic variable file for an italic request`() {
+    val dir = tempDir.newFolder("fonts")
+    File(dir, "inter-variable.ttf").writeBytes(FAKE_TTF_BYTES)
+    val italic = File(dir, "inter-variable-italic.ttf").apply { writeBytes(FAKE_TTF_BYTES) }
+    assertEquals(italic, offlineCache(dir).load(GoogleFontKey("Inter", 400, italic = true)))
+  }
+
+  @Test
+  fun `offline GoogleFontCache serves the nearest cached static weight of the same style`() {
+    val dir = tempDir.newFolder("fonts")
+    File(dir, "inter-300.ttf").writeBytes(FAKE_TTF_BYTES)
+    val medium = File(dir, "inter-500.ttf").apply { writeBytes(FAKE_TTF_BYTES) }
+    File(dir, "inter-600-italic.ttf").writeBytes(FAKE_TTF_BYTES)
+    // A different family whose slug starts with this one's must not be read as a weight of it.
+    File(dir, "inter-tight-600.ttf").writeBytes(FAKE_TTF_BYTES)
+    // Truncated or empty files are never served.
+    File(dir, "inter-600.ttf").writeBytes(ByteArray(0))
+    assertEquals(medium, offlineCache(dir).load(GoogleFontKey("Inter", 600, italic = false)))
+  }
+
+  @Test
+  fun `offline GoogleFontCache never serves an italic face for an upright request`() {
+    val dir = tempDir.newFolder("fonts")
+    File(dir, "inter-400-italic.ttf").writeBytes(FAKE_TTF_BYTES)
+    File(dir, "inter-variable-italic.ttf").writeBytes(FAKE_TTF_BYTES)
+    assertNull(offlineCache(dir).load(GoogleFontKey("Inter", 400, italic = false)))
+  }
+
+  @Test
+  fun `offline GoogleFontCache lets an upright face stand in for a missing italic`() {
+    val dir = tempDir.newFolder("fonts")
+    val upright = File(dir, "inter-400.ttf").apply { writeBytes(FAKE_TTF_BYTES) }
+    assertEquals(upright, offlineCache(dir).load(GoogleFontKey("Inter", 400, italic = true)))
+  }
+
+  @Test
+  fun `offline GoogleFontCache still prefers the exact file`() {
+    val dir = tempDir.newFolder("fonts")
+    File(dir, "inter-variable.ttf").writeBytes(FAKE_TTF_BYTES)
+    val exact = File(dir, "inter-400.ttf").apply { writeBytes(FAKE_TTF_BYTES) }
+    assertEquals(exact, offlineCache(dir).load(GoogleFontKey("Inter", 400, italic = false)))
+  }
+
+  @Test
+  fun `online GoogleFontCache does not substitute a nearby weight when the download fails`() {
+    // Reproducibility: a transient failure must not resolve a key to a differently-metricked face
+    // (see downloadFromGoogleFonts). Online, the exact weight is the only answer.
+    val dir = tempDir.newFolder("fonts")
+    File(dir, "inter-variable.ttf").writeBytes(FAKE_TTF_BYTES)
+    File(dir, "inter-500.ttf").writeBytes(FAKE_TTF_BYTES)
+    val cache = GoogleFontCache(dir, offline = false, downloader = { _, _ -> false })
+    assertNull(cache.load(GoogleFontKey("Inter", 400, italic = false)))
+  }
+
+  @Test
+  fun `online GoogleFontCache downloads the exact weight even when a variable file is cached`() {
+    val dir = tempDir.newFolder("fonts")
+    File(dir, "inter-variable.ttf").writeBytes(FAKE_TTF_BYTES)
+    var downloads = 0
+    val cache =
+      GoogleFontCache(
+        dir,
+        offline = false,
+        downloader = { _, dest ->
+          downloads++
+          dest.writeBytes(FAKE_TTF_BYTES)
+          true
+        },
+      )
+    assertEquals(File(dir, "inter-400.ttf"), cache.load(GoogleFontKey("Inter", 400, false)))
+    assertEquals(1, downloads)
+  }
+
+  @Test
+  fun `nearestWeight picks the minimal distance and breaks ties the CSS way`() {
+    assertNull(nearestWeight(400, emptyList()))
+    assertEquals(500, nearestWeight(600, listOf(100, 500, 900)))
+    // Ties: from 400 up, the heavier face; below 400, the lighter one.
+    assertEquals(500, nearestWeight(400, listOf(300, 500)))
+    assertEquals(500, nearestWeight(450, listOf(400, 500)))
+    assertEquals(200, nearestWeight(300, listOf(200, 400)))
+    assertEquals(900, nearestWeight(1000, listOf(100, 900)))
+  }
+
+  private fun offlineCache(dir: File) =
+    GoogleFontCache(
+      dir,
+      offline = true,
+      downloader = { _, _ -> error("offline mode must not invoke the downloader") },
+    )
+
+  @Test
   fun `GoogleFontCache returns null and leaves no file when downloader fails`() {
     val dir = tempDir.newFolder("fonts")
     val key = GoogleFontKey("Ghost", 400, italic = false)

@@ -75,7 +75,8 @@ interface GoogleFontSource {
  *
  * The cache is shared across projects on purpose — a font keyed by `(family, weight, italic)` is
  * identical everywhere — so it resolves once per machine and every later render reuses it.
- * [offline] turns a miss into a null rather than a fetch, for deliberately air-gapped renders.
+ * [offline] turns a miss into a lookup of the closest face the cache already holds rather than a
+ * fetch, for deliberately air-gapped renders (see [load]).
  */
 class GoogleFontCache(
   private val cacheDir: File,
@@ -103,7 +104,72 @@ class GoogleFontCache(
     this.variableDownloader = variableDownloader
   }
 
-  override fun load(key: GoogleFontKey): File? = fetch(key.fileName()) { downloader(key, it) }
+  /**
+   * The cached face for [key], downloading the exact `(family, weight, italic)` on a miss.
+   *
+   * When [offline], a miss on the exact file is not yet a failure: the cache is searched for the
+   * closest face it *does* hold ([offlineFallback]) — the family's variable file, else the nearest
+   * cached static weight — because a pre-seeded cache for an air-gapped render rarely holds every
+   * weight a typography asks for, and the right family at a neighbouring weight is far closer than
+   * the platform default (compose-ai-tools#6113).
+   *
+   * Online, the exact weight is always downloaded first and a failed download stays a miss. That
+   * keeps the reproducibility contract [downloadFromGoogleFonts] documents: a transient network
+   * blip must not resolve a key to a differently-metricked face. The fallback is never written back
+   * under the exact filename either, so the first online run still fetches the real face.
+   */
+  override fun load(key: GoogleFontKey): File? =
+    fetch(key.fileName()) { downloader(key, it) } ?: if (offline) offlineFallback(key) else null
+
+  /**
+   * The closest face to [key] already in [cacheDir], or null when the cache holds nothing of the
+   * family.
+   *
+   * Preference order, first hit wins:
+   * 1. the family's variable file in the requested style (`<slug>-variable[-italic].ttf`) — it
+   *    covers every weight, and the renderer instances it at the requested `wght`;
+   * 2. the nearest cached static weight in the requested style (`<slug>-<weight>[-italic].ttf`), by
+   *    [nearestWeight];
+   * 3. for an italic request only, steps 1 and 2 in the upright style. An upright request never
+   *    takes an italic file, mirroring [pickVariableFileName]: a roman specimen silently rendering
+   *    slanted is worse than the family's upright standing in for its italic.
+   */
+  internal fun offlineFallback(key: GoogleFontKey): File? {
+    val styles = if (key.italic) listOf(true, false) else listOf(false)
+    for (italic in styles) {
+      File(cacheDir, variableFileName(key.name, italic))
+        .takeIf { it.isUsable() }
+        ?.let {
+          return it
+        }
+      val statics = cachedStaticWeights(key.name, italic)
+      nearestWeight(key.weight, statics.keys)?.let {
+        return statics.getValue(it)
+      }
+    }
+    return null
+  }
+
+  /** The family's cached static faces in one style, keyed by their weight. */
+  private fun cachedStaticWeights(family: String, italic: Boolean): Map<Int, File> {
+    val pattern =
+      Regex(
+        Regex.escape(GoogleFontKey.slugify(family)) +
+          "-(\\d+)" +
+          (if (italic) "-italic" else "") +
+          "\\.ttf"
+      )
+    return cacheDir
+      .listFiles()
+      .orEmpty()
+      .mapNotNull { file ->
+        val weight = pattern.matchEntire(file.name)?.groupValues?.get(1)?.toIntOrNull()
+        if (weight != null && file.isUsable()) weight to file else null
+      }
+      .toMap()
+  }
+
+  private fun File.isUsable(): Boolean = isFile && length() > 0
 
   override fun loadVariable(family: String, italic: Boolean): File? =
     fetch(variableFileName(family, italic)) { variableDownloader(family, italic, it) }
@@ -133,6 +199,21 @@ class GoogleFontCache(
     return file
   }
 }
+
+/**
+ * The weight in [available] closest to [requested], or null when [available] is empty.
+ *
+ * Minimal `|weight - requested|` first, because a face one step away is visually closest. A tie (a
+ * 400 request against cached 300 and 500) is broken the way CSS font matching (CSS Fonts 4, §5.2
+ * "font-weight") orders its search: below 400 prefer the lighter face, from 400 up prefer the
+ * heavier one. Pure CSS ordering is not used outright because it can pick a face far heavier than a
+ * nearer lighter one (a 600 request takes 900 over 500), which reads as a different style rather
+ * than an approximation.
+ */
+internal fun nearestWeight(requested: Int, available: Collection<Int>): Int? =
+  available.minWithOrNull(
+    compareBy<Int> { kotlin.math.abs(it - requested) }.thenBy { if (requested < 400) it else -it }
+  )
 
 /**
  * Cache filename for a family's variable file. Deliberately *not* [GoogleFontKey.fileName]'s shape:
