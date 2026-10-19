@@ -47,6 +47,7 @@ unmeasured. Evidence confidence is separate from priority.
 | 12 | **P3 · R13 — API 37 needs espresso-core 3.7.0+** | Blocking at API 37 until the floor is on the classpath; fixed by compose-ai-tools injecting the floor. | Every Robolectric API 37 test that injects input through Espresso before 3.7. | Confirmed end to end; the owner is AndroidX Test, which already fixed it in 3.7.0. | None beyond suggesting a note in Robolectric's API 37 release notes. |
 | 13 | **P3 · R14 — caller-scoped wall clock for instrumented code** | Fixed locally with a shadow of `ShadowSystem` plus a stack-walk caller check; upstream value is a supported way to give instrumented app code a fixed wall clock. | Any Robolectric screenshot test of a component that formats `System.currentTimeMillis()`; ordinary app code is uninstrumented, so it reads the host clock today. | High confidence in mechanism (source + end-to-end tests); no upstream discussion yet. | Ask whether a configurable wall-clock offset, or a caller-aware `Interceptor` hook, would be accepted. |
 | 14 | **P3 · R15 — no hook to choose the sandbox classpath** | Medium: the Bazel/bundle lanes rendered on the daemon's Compose instead of the app's; worked around via the context loader. | Narrow: embedders whose sandbox classpath differs from the JVM's. | High confidence in source observation; workaround tested in-process. | Propose an extra-classpath option on `InstrumentationConfiguration`. |
+| 15 | **P3 · R17 — shadowing a composable function** | Fixed locally: a custom `@PreviewWrapper` that ends in `RemoteContentPreview` now captures through the connector. Upstream value is documentation, not a speedup. | Any Robolectric user shadowing a `@Composable` top-level function in a non-default package. | High confidence (end-to-end test with a negative control); no upstream discussion. | None until a second case needs it; then ask whether shadows of composable functions are a supported pattern. |
 
 ## Applicability beyond the daemon
 
@@ -550,6 +551,36 @@ this investigation; their full application export still needs validation with th
 - **Validation status:** added an instrumented consumer partial-seed regression in
   `ConsumerClockRenderTest`; formatter checked locally, sandbox execution pending CI. No upstream
   issue needed and clock pinning remains enabled.
+
+## R17 — Shadowing a composable function needs its package instrumented and its lowered signature
+
+- **Category/owner:** embedding pattern, not a bug. Our daemon owns the workaround; whether
+  shadowing a `@Composable` function is a supported pattern is Robolectric's call, and the
+  signature contract is the Compose compiler's.
+- **Evidence/version:** Robolectric 4.17, Remote Compose `1.0.0-alpha18` (`remote-tooling-preview`),
+  2026-10-19 (compose-ai-tools#6116, compose-preview-daemon#327). `RemoteContentPreviewKt` lives
+  under `androidx.`, which Robolectric does not instrument by default, so a `@Implements` shadow
+  of it is inert until `InstrumentationConfiguration.Builder.addInstrumentedClass` names the class.
+  The shadow's `@Implementation` must match the compiler-lowered JVM descriptor —
+  `(Modifier, Profile, Function2, Composer, int, int)V` — including the `$changed`/`$default`
+  ints; Compose emits no separate `$default` method, so default arguments arrive as mask bits the
+  shadow must read with the same meaning.
+- **Impact:** without it, a project's own `@PreviewWrapper` that calls upstream
+  `RemoteContentPreview(profile = …)` rendered through the stock function: no `.rc` bytes reached
+  the IR sidecar, and the daemon's player selection, knobs and clock were skipped.
+- **Current workaround:** `ShadowRemoteContentPreview` in `:data-remotecompose-connector`
+  redeclares the composable with upstream's defaults so the compiler lowers it to the same
+  descriptor, and forwards to `RemoteOverridablePreview`. `SandboxHoldingRunner` instruments
+  exactly that class and registers the shadow only when `remote-tooling-preview` and
+  `remote-creation` are on the classpath (`isRemoteContentPreviewAvailable`).
+- **Upgrade risk:** a Remote Compose release that changes `RemoteContentPreview`'s parameters, or a
+  Compose compiler that changes the lowering, silently unbinds the shadow.
+  `RemoteContentPreviewShadowTest` compares the shadow's descriptor with upstream's, so the bump
+  fails a test instead.
+- **Validation status:** `RemoteContentPreviewShadowTest` (descriptor match, end-to-end capture,
+  and a negative control that fails without the shadow) and
+  `SandboxHoldingRunnerRemoteContentPreviewShadowTest` (registration gated on the classpath
+  probe). No upstream issue filed.
 
 ## How to turn an item into upstream feedback
 
