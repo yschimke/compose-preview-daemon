@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon.client
 
+import ee.schimke.composeai.daemon.protocol.BootProgressParams
 import ee.schimke.composeai.daemon.protocol.ChangeType
 import ee.schimke.composeai.daemon.protocol.ClientCapabilities
 import ee.schimke.composeai.daemon.protocol.CompileSourcesParams
@@ -73,6 +74,32 @@ public interface DaemonSession : Closeable {
     maxRenderMs: Long? = null,
     timeout: Duration = 30.seconds,
   ): InitializeResult
+
+  /**
+   * [initialize], asking the daemon to answer before its host is up and to report the boot through
+   * [onBootProgress] as it goes (compose-ai-tools#6114); returns once the daemon can render. The
+   * default ignores the request and calls [initialize]: an implementation without a boot to report
+   * keeps the original contract, which is what a caller of this method also gets.
+   */
+  public fun initializeWithBootProgress(
+    workspaceRoot: String,
+    moduleId: String,
+    moduleProjectDir: String,
+    capabilities: ClientCapabilities = ClientCapabilities(visibility = true, metrics = true),
+    attachDataProducts: List<String>? = null,
+    maxRenderMs: Long? = null,
+    timeout: Duration = 30.seconds,
+    onBootProgress: (BootProgressParams) -> Unit,
+  ): InitializeResult =
+    initialize(
+      workspaceRoot,
+      moduleId,
+      moduleProjectDir,
+      capabilities,
+      attachDataProducts,
+      maxRenderMs,
+      timeout,
+    )
 
   /** Which previews the client is showing; the daemon prioritises these. */
   public fun setVisible(ids: List<String>)

@@ -92,6 +92,10 @@ public final class ee/schimke/composeai/daemon/client/DaemonBackend$Desktop : ee
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ee/schimke/composeai/daemon/client/DaemonBootFailedException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
 public final class ee/schimke/composeai/daemon/client/DaemonClient : ee/schimke/composeai/daemon/client/DaemonSession, java/io/Closeable {
 	public fun <init> (Ljava/io/InputStream;Ljava/io/OutputStream;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/io/InputStream;Ljava/io/OutputStream;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -108,6 +112,7 @@ public final class ee/schimke/composeai/daemon/client/DaemonClient : ee/schimke/
 	public fun historyList-HG0u8IE (Lee/schimke/composeai/daemon/protocol/HistoryListParams;J)Lee/schimke/composeai/daemon/protocol/HistoryListResult;
 	public fun historyRead-SxA4cEA (Ljava/lang/String;ZJ)Lee/schimke/composeai/daemon/protocol/HistoryReadResultDto;
 	public fun initialize-B8UsjHI (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/ClientCapabilities;Ljava/util/List;Ljava/lang/Long;J)Lee/schimke/composeai/daemon/protocol/InitializeResult;
+	public fun initializeWithBootProgress-GajXJrc (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/ClientCapabilities;Ljava/util/List;Ljava/lang/Long;JLkotlin/jvm/functions/Function1;)Lee/schimke/composeai/daemon/protocol/InitializeResult;
 	public fun interactiveInput (Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/InteractiveInputKind;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public fun recordingEncode-SxA4cEA (Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/RecordingFormat;J)Lee/schimke/composeai/daemon/protocol/RecordingEncodeResult;
 	public fun recordingScript (Ljava/lang/String;Ljava/util/List;)V
@@ -210,6 +215,8 @@ public abstract interface class ee/schimke/composeai/daemon/client/DaemonSession
 	public static synthetic fun historyRead-SxA4cEA$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;ZJILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/HistoryReadResultDto;
 	public abstract fun initialize-B8UsjHI (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/ClientCapabilities;Ljava/util/List;Ljava/lang/Long;J)Lee/schimke/composeai/daemon/protocol/InitializeResult;
 	public static synthetic fun initialize-B8UsjHI$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/ClientCapabilities;Ljava/util/List;Ljava/lang/Long;JILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/InitializeResult;
+	public fun initializeWithBootProgress-GajXJrc (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/ClientCapabilities;Ljava/util/List;Ljava/lang/Long;JLkotlin/jvm/functions/Function1;)Lee/schimke/composeai/daemon/protocol/InitializeResult;
+	public static synthetic fun initializeWithBootProgress-GajXJrc$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/ClientCapabilities;Ljava/util/List;Ljava/lang/Long;JLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/InitializeResult;
 	public abstract fun interactiveInput (Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/InteractiveInputKind;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public static synthetic fun interactiveInput$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/InteractiveInputKind;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public abstract fun recordingEncode-SxA4cEA (Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/RecordingFormat;J)Lee/schimke/composeai/daemon/protocol/RecordingEncodeResult;
@@ -245,6 +252,8 @@ public final class ee/schimke/composeai/daemon/client/DaemonSession$DefaultImpls
 	public static synthetic fun historyList-HG0u8IE$default (Lee/schimke/composeai/daemon/client/DaemonSession;Lee/schimke/composeai/daemon/protocol/HistoryListParams;JILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/HistoryListResult;
 	public static synthetic fun historyRead-SxA4cEA$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;ZJILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/HistoryReadResultDto;
 	public static synthetic fun initialize-B8UsjHI$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/ClientCapabilities;Ljava/util/List;Ljava/lang/Long;JILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/InitializeResult;
+	public static fun initializeWithBootProgress-GajXJrc (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/ClientCapabilities;Ljava/util/List;Ljava/lang/Long;JLkotlin/jvm/functions/Function1;)Lee/schimke/composeai/daemon/protocol/InitializeResult;
+	public static synthetic fun initializeWithBootProgress-GajXJrc$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/ClientCapabilities;Ljava/util/List;Ljava/lang/Long;JLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/InitializeResult;
 	public static synthetic fun interactiveInput$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/InteractiveInputKind;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Float;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public static synthetic fun recordingEncode-SxA4cEA$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Lee/schimke/composeai/daemon/protocol/RecordingFormat;JILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/RecordingEncodeResult;
 	public static synthetic fun recordingStart-9VgGkz4$default (Lee/schimke/composeai/daemon/client/DaemonSession;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Float;Lee/schimke/composeai/daemon/protocol/PreviewOverrides;JILjava/lang/Object;)Lee/schimke/composeai/daemon/protocol/RecordingStartResult;

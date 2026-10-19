@@ -98,6 +98,7 @@ Params:
   capabilities: {
     visibility: boolean;             // client will send setVisible/setFocus
     metrics: boolean;                // client wants per-render metrics in renderFinished
+    bootProgress?: boolean;          // accept an early answer + `bootProgress` (see below)
   };
   options?: {
     maxHeapMb?: number;              // overrides daemon.maxHeapMb
@@ -169,10 +170,34 @@ Result:
     path: string;                    // absolute path to the daemon's working previews.json
     previewCount: number;
   };
+  booting?: boolean;                 // true: answered before the host can render (see below)
 }
 ```
 
 Mismatched `protocolVersion` → daemon responds with `InvalidRequest` and exits.
+
+#### Answering before the host is ready (compose-ai-tools#6114)
+
+By default `initialize` is answered only once the host can render, which on a cold Robolectric
+start is ten seconds or more of silence. A client that sets `capabilities.bootProgress: true` asks
+for an answer as soon as the daemon has read the request:
+
+- If the host is still booting, the daemon answers with `booting: true`, then sends `bootProgress`
+  notifications (§ 6) until exactly one terminal phase: `ready` (render service is up) or `failed`
+  (the host could not start; the daemon exits). The first, `starting`, follows the answer directly
+  and is sent even before the client's `initialized`.
+- Requests sent between the answer and `ready` — `renderNow` included — are **queued, not refused**:
+  the daemon holds them and dispatches them in arrival order straight after `ready`. Only
+  `initialized`, `shutdown` and `exit` are handled at once.
+- If the host is already up (a warm socket daemon, the desktop backend, a fast boot that won the
+  race), the answer is the ordinary one, with no `booting` field and no `bootProgress`.
+
+A client keys its wait off `booting`, never off having asked: a daemon that predates the field
+ignores the capability and answers late, as before. A client that does not set it sees no change at
+all — the daemon reads its `initialize` while the host boots but dispatches nothing until the host
+is up, and sends it no `bootProgress`. Behind the socket front end (`composeai.daemon.socketPath`)
+the opt-in is per client: a later client that did not opt in waits for the host, one that did gets
+the cached early answer, and once the host is up every later client is answered without `booting`.
 
 ### `initialized` (notification, client → daemon)
 
@@ -739,6 +764,27 @@ Sent when no warm spare is ready and the next render is blocked on sandbox build
 ```
 
 Render service is available again after a `daemonWarming` interval.
+
+### `bootProgress`
+
+Only to a client that set `capabilities.bootProgress` **and** was answered `booting: true` (§ 3).
+
+```ts
+{
+  phase: string;                     // "starting" | "sandboxBooting" | "sandboxReady" | "ready" | "failed"
+  slot?: number;                     // the sandbox slot, for sandboxBooting / sandboxReady
+  readySlots: number;                // slots that can render now
+  totalSlots: number;                // slots the host boots in all; 0 when it does not boot in slots
+  elapsedMs: number;                 // since the daemon JVM started (the stderr startup timeline's clock)
+  message?: string;                  // detail; on "failed", why
+}
+```
+
+`starting` first, then per slot `sandboxBooting` / `sandboxReady`, then one terminal `ready` or
+`failed`. With `backgroundSandboxBoot` the pool reaches `ready` on slot 0 and may keep sending
+`sandboxReady` for the other slots afterwards. Phases are strings so a later, finer-grained phase
+does not break an older client: treat an unknown phase as non-terminal progress. Fixtures:
+`daemon-bootProgress.json`, `daemon-bootProgress-ready.json`, `daemon-bootProgress-failed.json`.
 
 ### `log`
 

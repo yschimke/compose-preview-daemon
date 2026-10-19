@@ -22,6 +22,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
@@ -40,6 +41,11 @@ import kotlinx.serialization.json.longOrNull
  *   next is accepted, so no client sees another's notifications.
  * - A later client whose `initialize` options differ from the first's is refused: they are
  *   session-wide in the server, and silently ignoring them would drop what the client asked for.
+ *   `capabilities.bootProgress` is per client, not per session, and is not compared.
+ * - An early `initialize` (compose-ai-tools#6114): the first client's answer may say `booting`.
+ *   Until a terminal `bootProgress` passes, a later client that opted in gets that answer and the
+ *   progress that follows; one that did not waits for the host, as it always did. Once the host is
+ *   up every later client is answered `booting = false`.
  * - Held sessions (`interactive/`, `stream/`, `recording/`, `xr/`) are refused; they outlive a
  *   request and belong to a stdio daemon with one owner.
  * - Request ids are rewritten so two clients that both start at `1` never collide; a response is
@@ -81,8 +87,17 @@ public class DaemonSocketFrontEnd(
   private val initializeLock = Any()
   private var initializeResult: JsonElement? = null
   private var initializeSent = false
-  private val initializeWaiters = mutableListOf<Pair<Connection, JsonElement>>()
+  private val initializeWaiters = mutableListOf<Waiter>()
   private var initializeParams: JsonElement? = null
+
+  /** Whether the server answered early and its host has not reported a terminal phase yet. */
+  private var hostBooting = false
+
+  /** Later clients that did not opt in to `bootProgress`, waiting for the host to come up. */
+  private val readyWaiters = mutableListOf<Waiter>()
+
+  /** A client's `initialize` the front end answers itself, once it can. */
+  private class Waiter(val connection: Connection, val id: JsonElement, val bootProgress: Boolean)
 
   /** Preview ids a `renderNow` queued that have not finished; guarded by its own monitor. */
   private val inFlight = HashSet<String>()
@@ -197,7 +212,8 @@ public class DaemonSocketFrontEnd(
   /** Forwards the first `initialize`; answers every other from its result, waiting if need be. */
   private fun initialize(connection: Connection, obj: JsonObject, id: JsonElement) {
     val params = sessionOptions(obj["params"])
-    val answer: JsonElement?
+    val waiter = Waiter(connection, id, wantsBootProgress(obj["params"]))
+    connection.bootProgress = waiter.bootProgress
     synchronized(initializeLock) {
       if (initializeSent && params != initializeParams) {
         connection.send(
@@ -209,10 +225,10 @@ public class DaemonSocketFrontEnd(
         )
         return
       }
-      answer = initializeResult
+      val answer = initializeResult
       when {
-        answer != null -> Unit
-        initializeSent -> initializeWaiters += connection to id
+        answer != null -> answerLocked(waiter, answer)
+        initializeSent -> initializeWaiters += waiter
         else -> {
           initializeSent = true
           initializeParams = params
@@ -220,7 +236,32 @@ public class DaemonSocketFrontEnd(
         }
       }
     }
-    if (answer != null) connection.send(response(id, answer))
+  }
+
+  /**
+   * Answers [waiter] from the cached [result], or parks it until the host is up; under
+   * [initializeLock] so a terminal `bootProgress` cannot pass between the decision and the send.
+   */
+  private fun answerLocked(waiter: Waiter, result: JsonElement) {
+    when {
+      !hostBooting -> waiter.connection.send(response(waiter.id, withoutBooting(result)))
+      waiter.bootProgress -> waiter.connection.send(response(waiter.id, result))
+      else -> readyWaiters += waiter
+    }
+  }
+
+  /** compose-ai-tools#6114 — a terminal `bootProgress` releases every client waiting on it. */
+  private fun trackBoot(obj: JsonObject) {
+    if (!isBootProgress(obj)) return
+    val phase = (obj["params"] as? JsonObject)?.get("phase")?.jsonPrimitive?.contentOrNull
+    if (phase !in TERMINAL_BOOT_PHASES) return
+    synchronized(initializeLock) {
+      if (!hostBooting) return
+      hostBooting = false
+      val result = initializeResult ?: return
+      readyWaiters.forEach { it.connection.send(response(it.id, withoutBooting(result))) }
+      readyWaiters.clear()
+    }
   }
 
   /** Blocks until every render a `renderNow` queued has sent `renderFinished` or `renderFailed`. */
@@ -287,7 +328,11 @@ public class DaemonSocketFrontEnd(
           if (target.initialize) obj["result"]?.let(::publishInitializeResult)
         } else {
           trackFinished(obj)
-          current?.send(bytes.withHeader())
+          trackBoot(obj)
+          val to = current
+          // `bootProgress` is for a client that asked for it; any other never sees one.
+          if (isBootProgress(obj) && to?.bootProgress != true) continue
+          to?.send(bytes.withHeader())
         }
       }
     } catch (_: IOException) {
@@ -298,12 +343,12 @@ public class DaemonSocketFrontEnd(
   }
 
   private fun publishInitializeResult(result: JsonElement) {
-    val waiters =
-      synchronized(initializeLock) {
-        initializeResult = result
-        initializeWaiters.toList().also { initializeWaiters.clear() }
-      }
-    waiters.forEach { (connection, id) -> connection.send(response(id, result)) }
+    synchronized(initializeLock) {
+      initializeResult = result
+      hostBooting = (result as? JsonObject)?.get("booting")?.jsonPrimitive?.booleanOrNull == true
+      initializeWaiters.forEach { answerLocked(it, result) }
+      initializeWaiters.clear()
+    }
   }
 
   private fun idleLoop() {
@@ -342,6 +387,9 @@ public class DaemonSocketFrontEnd(
   private class Connection(private val socket: SocketChannel) {
     val input: InputStream = socket.inputStream()
     private val output: OutputStream = socket.outputStream()
+
+    /** Whether this client's `initialize` opted in to `bootProgress`. */
+    @Volatile var bootProgress: Boolean = false
 
     fun send(bytes: ByteArray) {
       synchronized(this) {
@@ -433,9 +481,35 @@ public class DaemonSocketFrontEnd(
 
     private val HELD_SESSION_PREFIXES = listOf("interactive/", "stream/", "recording/", "xr/")
 
-    /** `initialize` params minus the fields that only describe the client. */
+    private const val BOOT_PROGRESS_METHOD = "bootProgress"
+
+    private val TERMINAL_BOOT_PHASES = setOf("ready", "failed")
+
+    /**
+     * `initialize` params minus the fields that only describe the client: its version, and whether
+     * it takes an early answer (compose-ai-tools#6114).
+     */
     private fun sessionOptions(params: JsonElement?): JsonElement? =
-      (params as? JsonObject)?.let { JsonObject(it - "clientVersion") } ?: params
+      (params as? JsonObject)?.let { p ->
+        val caps = p["capabilities"] as? JsonObject
+        val trimmed = p - "clientVersion"
+        if (caps == null) JsonObject(trimmed)
+        else JsonObject(trimmed + ("capabilities" to JsonObject(caps - "bootProgress")))
+      } ?: params
+
+    private fun isBootProgress(obj: JsonObject): Boolean =
+      obj["method"]?.jsonPrimitive?.contentOrNull == BOOT_PROGRESS_METHOD
+
+    private fun wantsBootProgress(params: JsonElement?): Boolean =
+      ((params as? JsonObject)?.get("capabilities") as? JsonObject)
+        ?.get("bootProgress")
+        ?.jsonPrimitive
+        ?.booleanOrNull == true
+
+    /** The cached answer as a client that connects once the host is up must see it. */
+    private fun withoutBooting(result: JsonElement): JsonElement =
+      (result as? JsonObject)?.takeIf { "booting" in it }?.let { JsonObject(it - "booting") }
+        ?: result
 
     private fun error(id: JsonElement, code: Int, message: String): ByteArray =
       frame(

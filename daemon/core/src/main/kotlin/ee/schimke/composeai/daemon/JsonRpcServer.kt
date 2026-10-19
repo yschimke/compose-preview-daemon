@@ -9,6 +9,8 @@ import ee.schimke.composeai.daemon.history.HistoryRpcHandlers
 import ee.schimke.composeai.daemon.history.PreviewMetadataSnapshot
 import ee.schimke.composeai.daemon.history.PruneReason
 import ee.schimke.composeai.daemon.history.encodeHistoryEntry
+import ee.schimke.composeai.daemon.protocol.BootPhase
+import ee.schimke.composeai.daemon.protocol.BootProgressParams
 import ee.schimke.composeai.daemon.protocol.ClasspathDirtyParams
 import ee.schimke.composeai.daemon.protocol.ClasspathDirtyReason
 import ee.schimke.composeai.daemon.protocol.CompileResultKind
@@ -88,6 +90,11 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -528,15 +535,64 @@ public class JsonRpcServer(
    */
   public fun run() {
     StartupTimings.mark("JsonRpcServer.run() entered")
-    host.start()
+    // compose-ai-tools#6114 — the host boots on this thread while one reader thread reads the
+    // client from the start, so a client that opted in (`capabilities.bootProgress`) can be
+    // answered before the host is up. For every other client nothing is dispatched until the host
+    // has started — the old order — and a boot failure leaves here by the same exception.
+    host.setBootProgressListener(::onHostBootProgress)
+    writerThread.start()
+    var loopFailure: Throwable? = null
+    val readerThread =
+      Thread(
+          {
+            try {
+              readLoop(ContentLengthFramer(input))
+            } catch (t: Throwable) {
+              loopFailure = t
+            }
+          },
+          "compose-ai-daemon-reader",
+        )
+        .apply {
+          // A daemon thread, so a failed host start is not held open by a read that never ends.
+          isDaemon = true
+          start()
+        }
+    try {
+      host.start()
+    } catch (t: Throwable) {
+      sendBootProgress(BootPhase.FAILED, message = "${t.javaClass.simpleName}: ${t.message}")
+      awaitOutboundFlushed()
+      outbound.put(SHUTDOWN_SENTINEL)
+      throw t
+    }
     StartupTimings.mark("host.start() returned (sandbox ready)")
     // H4 — auto-prune starts after initialize so `initialize.options.historyPrune` can override
     // sysprop/default config before the scheduler captures its interval.
-    writerThread.start()
     renderWatcherThread.start()
+    synchronized(bootLock) {
+      sendBootProgress(BootPhase.READY)
+      val held = heldFrames.toList()
+      heldFrames.clear()
+      if (held.isNotEmpty()) {
+        StartupTimings.mark("dispatching ${held.size} frame(s) that arrived while the host booted")
+      }
+      // Dispatched under the lock so the reader, which takes it to decide whether to hold, cannot
+      // overtake them with a newer frame.
+      for (frame in held) dispatchFrameSafely(frame)
+      hostReady = true
+    }
     StartupTimings.mark("read loop entering")
+    serveUntilClosed {
+      readerThread.join()
+      loopFailure?.let { throw it }
+    }
+  }
+
+  /** The read loop's aftermath, shared by both start orders; see [run]. */
+  private fun serveUntilClosed(serve: () -> Unit) {
     try {
-      readLoop()
+      serve()
       // The read loop exited — either an EOF on the input stream (client transport closed,
       // typically because the panel crashed or the websocket dropped) or a recoverable error
       // we couldn't continue past. Close any held interactive sessions IMMEDIATELY before the
@@ -574,11 +630,149 @@ public class JsonRpcServer(
   }
 
   // --------------------------------------------------------------------------
+  // Early initialize (compose-ai-tools#6114)
+  // --------------------------------------------------------------------------
+
+  /** Whether [bytes] is an `initialize` whose client opted in to `bootProgress`. */
+  private fun wantsBootProgress(bytes: ByteArray): Boolean = runCatching {
+    val obj = json.parseToJsonElement(bytes.toString(Charsets.UTF_8)).jsonObject
+    if (obj["method"]?.jsonPrimitive?.contentOrNull != "initialize") return@runCatching false
+    val params = obj["params"]?.jsonObject ?: return@runCatching false
+    params["protocolVersion"]?.jsonPrimitive?.intOrNull == PROTOCOL_VERSION &&
+      params["capabilities"]?.jsonObject?.get("bootProgress")?.jsonPrimitive?.booleanOrNull == true
+  }
+    .getOrDefault(false)
+
+  /**
+   * Decides, while the host boots, whether [bytes] waits for it. The first frame of a client that
+   * opted in (`capabilities.bootProgress`) is answered now and switches to the early order:
+   * everything but the handshake and the way out is held — `renderNow` included: queued, not
+   * refused — and the rest dispatches. Otherwise every frame is held, which is the old order, in
+   * which nothing was read until the host had started.
+   */
+  private fun holdWhileBooting(bytes: ByteArray): Boolean =
+    synchronized(bootLock) {
+      if (hostReady) return@synchronized false
+      val first = !sawFirstFrame
+      sawFirstFrame = true
+      val hold =
+        when {
+          answeringEarly -> methodOf(bytes) !in PASSES_WHILE_BOOTING
+          first && wantsBootProgress(bytes) -> {
+            answeringEarly = true
+            StartupTimings.mark("initialize received before host ready (client opted in)")
+            false
+          }
+          else -> true
+        }
+      if (hold) heldFrames += bytes
+      hold
+    }
+
+  private fun methodOf(bytes: ByteArray): String? = runCatching {
+    json
+      .parseToJsonElement(bytes.toString(Charsets.UTF_8))
+      .jsonObject["method"]
+      ?.jsonPrimitive
+      ?.contentOrNull
+  }
+    .getOrNull()
+
+  private fun onHostBootProgress(phase: String, slot: Int?, readySlots: Int, totalSlots: Int) {
+    lastHostBoot = HostBoot(phase, slot, readySlots, totalSlots)
+    sendBootProgress(phase, slot)
+  }
+
+  /**
+   * Sends one `bootProgress` — only to a client that was answered early, and never after the
+   * terminal phase but for slots still booting in the background. Bypasses the `initialized` gate
+   * in [sendNotification]: the client asked for these, and the first goes out with the answer.
+   */
+  private fun sendBootProgress(phase: String, slot: Int? = null, message: String? = null) {
+    // [progressLock], not [bootLock]: a host thread reporting a background slot must never wait
+    // behind held frames being dispatched under [bootLock].
+    synchronized(progressLock) {
+      if (!bootProgressClient) return
+      val boot = lastHostBoot
+      val params =
+        BootProgressParams.Builder(phase)
+          .also {
+            it.slot = slot
+            it.readySlots = boot.readySlots
+            it.totalSlots = boot.totalSlots
+            it.elapsedMs = StartupTimings.elapsedMs()
+            it.message = message
+          }
+          .build()
+      val n =
+        JsonRpcNotification(
+          method = BootPhase.METHOD,
+          params = encode(BootProgressParams.serializer(), params),
+        )
+      enqueueFrame(json.encodeToString(JsonRpcNotification.serializer(), n))
+    }
+  }
+
+  /** Lets a `failed` reach the client before the exception ends the process. */
+  private fun awaitOutboundFlushed() {
+    val deadline = System.currentTimeMillis() + 2_000
+    while (outbound.isNotEmpty() && System.currentTimeMillis() < deadline) {
+      try {
+        Thread.sleep(20)
+      } catch (_: InterruptedException) {
+        Thread.currentThread().interrupt()
+        return
+      }
+    }
+  }
+
+  private fun dispatchFrameSafely(bytes: ByteArray) {
+    try {
+      dispatchFrame(bytes)
+    } catch (e: Throwable) {
+      // Don't let one malformed message kill the read loop — surface to
+      // stderr (free-form log per PROTOCOL.md § 1) and continue.
+      System.err.println("compose-ai-daemon: dispatch error: ${e.message}")
+      e.printStackTrace(System.err)
+    }
+  }
+
+  private data class HostBoot(
+    val phase: String?,
+    val slot: Int?,
+    val readySlots: Int,
+    val totalSlots: Int,
+  )
+
+  /** Guards [hostReady], [answeringEarly], [bootProgressClient] and [heldFrames]. */
+  private val bootLock = Any()
+
+  /** Whether the host has started and frames dispatch as they arrive. */
+  @Volatile private var hostReady = false
+
+  /** Set once the client's first frame opted in; `initialize` then answers `booting = true`. */
+  private var answeringEarly = false
+
+  /** Whether [holdWhileBooting] has seen the client's first frame. */
+  private var sawFirstFrame = false
+
+  /** Whether `initialize` was answered with `booting = true`; gates [sendBootProgress]. */
+  @Volatile private var bootProgressClient = false
+
+  /** Orders `bootProgress` against the early answer; never held while taking [bootLock]. */
+  private val progressLock = Any()
+
+  /** Frames that arrived while the host booted behind an early answer, in arrival order. */
+  private val heldFrames = ArrayList<ByteArray>()
+
+  /** The host's latest milestone, for the slot counts on every `bootProgress`. */
+  @Volatile private var lastHostBoot = HostBoot(null, null, 0, 0)
+
+  // --------------------------------------------------------------------------
   // Read loop
   // --------------------------------------------------------------------------
 
-  private fun readLoop() {
-    val reader = ContentLengthFramer(input)
+  private fun readLoop(reader: ContentLengthFramer) {
     while (readLoopOpen.get()) {
       val bytes =
         try {
@@ -592,14 +786,8 @@ public class JsonRpcServer(
         } catch (_: IOException) {
           break
         }
-      try {
-        dispatchFrame(bytes)
-      } catch (e: Throwable) {
-        // Don't let one malformed message kill the read loop — surface to
-        // stderr (free-form log per PROTOCOL.md § 1) and continue.
-        System.err.println("compose-ai-daemon: dispatch error: ${e.message}")
-        e.printStackTrace(System.err)
-      }
+      if (!hostReady && holdWhileBooting(bytes)) continue
+      dispatchFrameSafely(bytes)
     }
   }
 
@@ -741,7 +929,7 @@ public class JsonRpcServer(
     // After the prune options above have been applied.
     historyManager?.startAutoPrune(initialDelayMs = autoPruneInitialDelayMs)
     val result =
-      InitializeResult(
+      InitializeResult.Builder(
         protocolVersion = PROTOCOL_VERSION,
         daemonVersion = daemonVersion,
         pid = currentPid(),
@@ -774,8 +962,24 @@ public class JsonRpcServer(
             previewCount = previewIndex.size,
           ),
       )
-    sendResponse(req.id, encode(InitializeResult.serializer(), result))
-    StartupTimings.mark("initialize responded")
+    // compose-ai-tools#6114 — decided, answered and followed by `starting` under one lock, so the
+    // host finishing meanwhile cannot slip a `ready` in ahead of the answer, or be missed.
+    synchronized(bootLock) {
+      synchronized(progressLock) {
+        val booting = params.capabilities.bootProgress && answeringEarly && !hostReady
+        bootProgressClient = booting
+        result.booting = booting
+        sendResponse(req.id, encode(InitializeResult.serializer(), result.build()))
+        if (booting) {
+          sendBootProgress(BootPhase.STARTING)
+          // Milestones the host passed before the client was there to hear them.
+          lastHostBoot.let { last -> last.phase?.let { sendBootProgress(it, last.slot) } }
+        }
+      }
+    }
+    StartupTimings.mark(
+      if (result.booting) "initialize responded (host still booting)" else "initialize responded"
+    )
   }
 
   private fun HistoryPruneConfig.withOptions(options: HistoryPruneOptions): HistoryPruneConfig =
@@ -3642,6 +3846,9 @@ public class JsonRpcServer(
      * on `protocolVersion` mismatch so they get a clean handshake failure instead.
      */
     public const val PROTOCOL_VERSION: Int = 2
+
+    /** compose-ai-tools#6114 — what dispatches while the host boots behind an early answer. */
+    private val PASSES_WHILE_BOOTING = setOf("initialize", "initialized", "shutdown", "exit")
 
     /**
      * The `onExit` a **real daemon process** wants: end the JVM with the server's exit code. Named

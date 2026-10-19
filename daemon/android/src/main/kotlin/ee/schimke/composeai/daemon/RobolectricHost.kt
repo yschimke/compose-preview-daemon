@@ -25,6 +25,7 @@ import ee.schimke.composeai.daemon.bridge.InteractiveCommand
 import ee.schimke.composeai.daemon.bridge.SandboxSlot
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.pool.SandboxProcessPool
+import ee.schimke.composeai.daemon.protocol.BootPhase
 import ee.schimke.composeai.daemon.protocol.DataExtensionDescriptor
 import ee.schimke.composeai.daemon.protocol.SemanticsInputTarget
 import ee.schimke.composeai.daemon.protocol.SemanticsTargetCandidate
@@ -501,7 +502,22 @@ open class RobolectricHost(
   private val slotReady = java.util.concurrent.atomic.AtomicIntegerArray(sandboxCount)
 
   private fun markSlotReady(slot: Int) {
-    if (slotReady.compareAndSet(slot, 0, 1)) readySlotCount.incrementAndGet()
+    if (slotReady.compareAndSet(slot, 0, 1)) {
+      val ready = readySlotCount.incrementAndGet()
+      reportBoot(BootPhase.SANDBOX_READY, slot, ready)
+    }
+  }
+
+  /** compose-ai-tools#6114 — where [reportBoot] sends milestones; see [setBootProgressListener]. */
+  @Volatile private var bootProgressListener: BootProgressListener? = null
+
+  override fun setBootProgressListener(listener: BootProgressListener?) {
+    bootProgressListener = listener
+  }
+
+  private fun reportBoot(phase: String, slot: Int, ready: Int = readySlotCount.get()) {
+    val listener = bootProgressListener ?: return
+    runCatching { listener.onBootProgress(phase, slot, ready, sandboxCount) }
   }
 
   /**
@@ -790,7 +806,10 @@ open class RobolectricHost(
     val pending = (1 until sandboxCount).filter { slotReady.get(it) == 0 }
     if (pending.isEmpty()) return
     fun bootAsync(slot: Int): FutureTask<Boolean> =
-      FutureTask<Boolean> { pool.bootWorker(slot - 1) }
+      FutureTask<Boolean> {
+          reportBoot(BootPhase.SANDBOX_BOOTING, slot)
+          pool.bootWorker(slot - 1)
+        }
         .also { task ->
           Thread(task, "compose-ai-daemon-worker-boot-$slot").apply {
             isDaemon = true
@@ -983,6 +1002,7 @@ open class RobolectricHost(
    * exactly as before, so an unrecoverable slot degrades no worse than the pre-retry behaviour.
    */
   private fun bootSlotWithRetries(i: Int, timeoutMs: Long) {
+    reportBoot(BootPhase.SANDBOX_BOOTING, i)
     var attempt = 0
     while (true) {
       workerThreads[i].start()

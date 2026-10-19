@@ -1,5 +1,7 @@
 package ee.schimke.composeai.daemon.client
 
+import ee.schimke.composeai.daemon.protocol.BootPhase
+import ee.schimke.composeai.daemon.protocol.BootProgressParams
 import ee.schimke.composeai.daemon.protocol.ChangeType
 import ee.schimke.composeai.daemon.protocol.ClientCapabilities
 import ee.schimke.composeai.daemon.protocol.CompileSourcesParams
@@ -102,6 +104,82 @@ public class DaemonClient(
 
   /** Drives `initialize` + `initialized`. Returns the daemon's [InitializeResult]. */
   override fun initialize(
+    workspaceRoot: String,
+    moduleId: String,
+    moduleProjectDir: String,
+    capabilities: ClientCapabilities,
+    attachDataProducts: List<String>?,
+    maxRenderMs: Long?,
+    timeout: Duration,
+  ): InitializeResult =
+    sendInitialize(
+      workspaceRoot,
+      moduleId,
+      moduleProjectDir,
+      capabilities,
+      attachDataProducts,
+      maxRenderMs,
+      timeout,
+    )
+
+  /**
+   * [initialize], asking the daemon to answer before its host is up and to report the boot as it
+   * goes (compose-ai-tools#6114). Each `bootProgress` reaches [onBootProgress] on the reader thread
+   * (it must not block), so a caller can show "booting sandbox 0…" rather than nothing for the ten
+   * or more seconds a cold Robolectric start takes, and can tell a slow boot from a hung one.
+   *
+   * Returns once the daemon can render — exactly when [initialize] would — so a caller needs no
+   * other change. A daemon that predates the capability, or whose host was already up, simply
+   * answers late and reports nothing. [timeout] bounds the whole wait, answer and boot together.
+   * Throws [DaemonBootFailedException] when the daemon reports that its host failed to start.
+   */
+  override fun initializeWithBootProgress(
+    workspaceRoot: String,
+    moduleId: String,
+    moduleProjectDir: String,
+    capabilities: ClientCapabilities,
+    attachDataProducts: List<String>?,
+    maxRenderMs: Long?,
+    timeout: Duration,
+    onBootProgress: (BootProgressParams) -> Unit,
+  ): InitializeResult {
+    val deadlineNs = System.nanoTime() + timeout.inWholeNanoseconds
+    val terminal = LinkedBlockingQueue<BootProgressParams>()
+    bootProgressListener = { progress ->
+      runCatching { onBootProgress(progress) }
+      if (progress.phase in TERMINAL_BOOT_PHASES) terminal.offer(progress)
+    }
+    try {
+      val result =
+        sendInitialize(
+          workspaceRoot,
+          moduleId,
+          moduleProjectDir,
+          capabilities.newBuilder().also { it.bootProgress = true }.build(),
+          attachDataProducts,
+          maxRenderMs,
+          timeout,
+        )
+      if (!result.booting) return result
+      val leftMs = ((deadlineNs - System.nanoTime()) / 1_000_000L).coerceAtLeast(0)
+      val end =
+        terminal.poll(leftMs, TimeUnit.MILLISECONDS)
+          ?: error(
+            "DaemonClient: daemon answered initialize but did not finish booting in $timeout"
+          )
+      if (end.phase == BootPhase.FAILED) {
+        throw DaemonBootFailedException(end.message ?: "the daemon's host failed to start")
+      }
+      return result
+    } finally {
+      bootProgressListener = null
+    }
+  }
+
+  /** compose-ai-tools#6114 — set only inside [initializeWithBootProgress]. */
+  @Volatile private var bootProgressListener: ((BootProgressParams) -> Unit)? = null
+
+  private fun sendInitialize(
     workspaceRoot: String,
     moduleId: String,
     moduleProjectDir: String,
@@ -667,6 +745,13 @@ public class DaemonClient(
           val method = obj["method"]?.jsonPrimitive?.contentOrNull
           if (method != null) {
             val params = obj["params"]?.jsonObject
+            if (method == BootPhase.METHOD && params != null) {
+              bootProgressListener?.let { listener ->
+                runCatching {
+                  listener(json.decodeFromJsonElement(BootProgressParams.serializer(), params))
+                }
+              }
+            }
             runCatching { onNotification(method, params) }
           }
         }
@@ -751,3 +836,9 @@ public class DataProductWireException(
       )
   }
 }
+
+/** The daemon reported (`bootProgress` phase `failed`) that its host could not start. */
+public class DaemonBootFailedException(message: String) : IllegalStateException(message)
+
+/** The `bootProgress` phases after which nothing more is coming for the boot that answered. */
+private val TERMINAL_BOOT_PHASES = setOf(BootPhase.READY, BootPhase.FAILED)

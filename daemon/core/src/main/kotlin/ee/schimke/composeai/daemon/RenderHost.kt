@@ -26,6 +26,15 @@ public interface RenderHost {
   public fun shutdown(timeoutMs: Long = 30_000)
 
   /**
+   * Registers [listener] for the boot milestones this host reaches while [start] runs, and after it
+   * for slots that boot in the background (compose-ai-tools#6114). [JsonRpcServer] relays them as
+   * `bootProgress` notifications to a client that took an early `initialize`. Call before [start];
+   * `null` unregisters. The default reports nothing — a host that boots as one unit needs no
+   * per-slot detail, since the server itself reports `starting` and the terminal phase.
+   */
+  public fun setBootProgressListener(listener: BootProgressListener?) {}
+
+  /**
    * The disposable user-class loader holder this host renders against (docs/daemon/CLASSLOADER.md),
    * or `null` for hosts that load no user classes (fakes). Under a multi-sandbox pool this is slot
    * 0's holder only; mutate through [swapUserClassLoaders], which reaches every slot.
@@ -220,3 +229,15 @@ public data class PreviewParameterRow(
   /** The addressable previewId for this row. */
   val id: String,
 )
+
+/**
+ * Receives a host's boot milestones; see [RenderHost.setBootProgressListener]. Called from
+ * whichever thread booted the slot; implementations must not block.
+ */
+public fun interface BootProgressListener {
+  /**
+   * [phase] is a `BootPhase` value — `sandboxBooting` or `sandboxReady` from a host — for sandbox
+   * [slot]; [readySlots] of [totalSlots] can render now.
+   */
+  public fun onBootProgress(phase: String, slot: Int?, readySlots: Int, totalSlots: Int)
+}

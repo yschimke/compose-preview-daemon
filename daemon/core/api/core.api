@@ -71,6 +71,10 @@ public final class ee/schimke/composeai/daemon/AssertionVerdict$Passed : ee/schi
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class ee/schimke/composeai/daemon/BootProgressListener {
+	public abstract fun onBootProgress (Ljava/lang/String;Ljava/lang/Integer;II)V
+}
+
 public final class ee/schimke/composeai/daemon/BtaSysprops {
 	public static final field INSTANCE Lee/schimke/composeai/daemon/BtaSysprops;
 	public final fun lookup (Ljava/lang/String;)Ljava/lang/String;
@@ -1276,6 +1280,7 @@ public abstract interface class ee/schimke/composeai/daemon/RenderHost {
 	public fun getUserClassloaderHolder ()Lee/schimke/composeai/daemon/UserClassLoaderHolder;
 	public fun previewParameterRows (Ljava/lang/String;)Ljava/util/List;
 	public fun recordingScriptEventDescriptors ()Ljava/util/List;
+	public fun setBootProgressListener (Lee/schimke/composeai/daemon/BootProgressListener;)V
 	public abstract fun shutdown (J)V
 	public static synthetic fun shutdown$default (Lee/schimke/composeai/daemon/RenderHost;JILjava/lang/Object;)V
 	public abstract fun start ()V
@@ -1303,6 +1308,7 @@ public final class ee/schimke/composeai/daemon/RenderHost$DefaultImpls {
 	public static fun getUserClassloaderHolder (Lee/schimke/composeai/daemon/RenderHost;)Lee/schimke/composeai/daemon/UserClassLoaderHolder;
 	public static fun previewParameterRows (Lee/schimke/composeai/daemon/RenderHost;Ljava/lang/String;)Ljava/util/List;
 	public static fun recordingScriptEventDescriptors (Lee/schimke/composeai/daemon/RenderHost;)Ljava/util/List;
+	public static fun setBootProgressListener (Lee/schimke/composeai/daemon/RenderHost;Lee/schimke/composeai/daemon/BootProgressListener;)V
 	public static synthetic fun shutdown$default (Lee/schimke/composeai/daemon/RenderHost;JILjava/lang/Object;)V
 	public static synthetic fun submit$default (Lee/schimke/composeai/daemon/RenderHost;Lee/schimke/composeai/daemon/RenderRequest;JILjava/lang/Object;)Lee/schimke/composeai/daemon/RenderResult;
 	public static fun swapUserClassLoaders (Lee/schimke/composeai/daemon/RenderHost;)V
