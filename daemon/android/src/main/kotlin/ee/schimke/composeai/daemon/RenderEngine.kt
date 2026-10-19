@@ -237,6 +237,8 @@ class RenderEngine(
     // previews per JVM, so the flag is a whole-session property here rather than a per-request one;
     // re-applying it per render is idempotent and costs a `getProperty`. Unset (default) is silent.
     LinkBufferComposer.applyAndDescribe(classLoader)?.let(System.err::println)
+    // Before the mode dispatch below: the scroll and long-SVG paths capture through Roborazzi too.
+    redirectRoborazziResults()
     // Issue #1528 — scroll-scenario dispatch. When the dispatcher's `data/fetch` re-render path
     // queues `mode=scroll-long` / `scroll-gif`, route into the renderer's scroll handlers
     // (`renderer.handleLongCapture` / `renderer.handleGifCapture`) instead of the default
@@ -269,7 +271,6 @@ class RenderEngine(
     if (System.getProperty("roborazzi.test.record") == null) {
       System.setProperty("roborazzi.test.record", "true")
     }
-    redirectRoborazziResults()
 
     outputDir.mkdirs()
     val outputFile = File(outputDir, "${spec.outputBaseName}.png")
