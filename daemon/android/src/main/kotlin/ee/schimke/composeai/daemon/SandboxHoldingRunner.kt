@@ -107,6 +107,14 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     if (isWearComposeMaterialCoreAvailable(javaClass.classLoader)) {
       builder.addInstrumentedPackage(WEAR_MATERIAL_CORE_RESOURCES)
     }
+    // Remote Compose `RemoteContentPreview` interception (compose-ai-tools#6116): instrument
+    // exactly the upstream file class so [ShadowRemoteContentPreview] (registered in
+    // `getExtraShadows` under the same condition) can route a custom `@PreviewWrapper`'s call
+    // through the connector's capture + player. Robolectric cannot shadow a class it did not
+    // instrument, and `androidx.` is not in its default set.
+    if (isRemoteContentPreviewAvailable(javaClass.classLoader)) {
+      builder.addInstrumentedClass(ShadowRemoteContentPreview.TARGET_CLASS)
+    }
     // Consumer clock pinning (compose-ai-tools#5945). `composeai.render.clockPackages` names the
     // consumer's own packages; instrumenting them makes Robolectric rewrite their
     // `System.currentTimeMillis()` call sites into `ShadowSystem.currentTimeMillis()`, and
@@ -224,6 +232,18 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     if (isWearComposeMaterialCoreAvailable(javaClass.classLoader)) {
       shadows += ee.schimke.composeai.renderer.ShadowWearTimeSource::class.java
     }
+    // Remote Compose `RemoteContentPreview` shadow — pairs with the `addInstrumentedClass` call in
+    // `createClassLoaderConfig`. Without it a project's own `@PreviewWrapper` that ends in upstream
+    // `RemoteContentPreview(profile = …)` captures and plays through the stock function: no `.rc`
+    // bytes reach the IR sidecar and the daemon's player selection, knobs and clock are skipped.
+    // Same NoClassDefFoundError guard as the other connector shadows.
+    if (isRemoteContentPreviewAvailable(javaClass.classLoader)) {
+      try {
+        shadows += ShadowRemoteContentPreview::class.java
+      } catch (_: NoClassDefFoundError) {
+        // connector not on classpath — skip the RemoteContentPreview shadow
+      }
+    }
     // Consumer clock shadow — pairs with the `clockPackages` block in `createClassLoaderConfig`,
     // and registered under the same condition so an unconfigured sandbox is unchanged.
     if (ConsumerClock.packages().isNotEmpty()) {
@@ -327,6 +347,26 @@ internal fun isCoil2Available(loader: ClassLoader?): Boolean {
   val effective = loader ?: ClassLoader.getSystemClassLoader() ?: return false
   return try {
     Class.forName("coil.compose.AsyncImagePainter", false, effective)
+    true
+  } catch (_: ClassNotFoundException) {
+    false
+  } catch (_: NoClassDefFoundError) {
+    false
+  }
+}
+
+/**
+ * Returns `true` when upstream `RemoteContentPreview` (`remote-tooling-preview`) and the rest of
+ * Remote Compose ([isRemoteComposeAvailable]) are on the supplied classloader — the condition for
+ * instrumenting and shadowing it with [ShadowRemoteContentPreview]. Both are probed because the
+ * shadow's replacement captures through `remote-creation`: a consumer with the tooling artifact but
+ * not the creation one has nothing the connector could capture with.
+ */
+internal fun isRemoteContentPreviewAvailable(loader: ClassLoader?): Boolean {
+  if (!isRemoteComposeAvailable(loader)) return false
+  val effective = loader ?: ClassLoader.getSystemClassLoader() ?: return false
+  return try {
+    Class.forName(ShadowRemoteContentPreview.TARGET_CLASS, false, effective)
     true
   } catch (_: ClassNotFoundException) {
     false

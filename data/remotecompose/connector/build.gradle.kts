@@ -120,6 +120,9 @@ dependencies {
   compileOnly(libs.compose.remote.creation)
   compileOnly(libs.compose.remote.creation.compose)
   compileOnly(libs.compose.remote.tooling.preview)
+  // `ShadowRemoteContentPreview` is a Robolectric shadow; the daemon's sandbox supplies
+  // Robolectric at runtime, same as the ambient / gestures / permissions connectors' shadows.
+  compileOnly(libs.robolectric)
   // Player-side APIs used by `RemoteOverridablePreview` to wire daemon-supplied named-value
   // overrides into the running `RemoteComposePlayer` via its `StateUpdater`. Same `compileOnly`
   // pattern as the creation deps above — only consumers that actually pull `compose-remote`
@@ -142,6 +145,9 @@ dependencies {
   compileOnly(libs.rcplayer.compose)
   testImplementation(libs.compose.remote.player.core)
   testImplementation(libs.compose.remote.creation.compose)
+  // `ShadowRemoteContentPreview` is checked against the upstream function it replaces.
+  testImplementation(libs.compose.remote.tooling.preview)
+  testImplementation(libs.compose.remote.creation)
   testImplementation(libs.compose.remote.core)
   // Every library a backend or the capture binds to, so `RemoteComposePlayersTest` can check their
   // linkage against the line this module is built with.

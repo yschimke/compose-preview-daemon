@@ -41,4 +41,30 @@ class RemoteComposeClasspathDetectionTest {
       isRemoteComposeAvailable(null),
     )
   }
+
+  @Test
+  fun remoteContentPreviewIsAbsentWhenRemoteComposeMissingFromLoader() {
+    // Gates the `RemoteContentPreview` instrumentation + shadow in `SandboxHoldingRunner`: a
+    // plain-Android consumer must get neither, so its sandbox config is unchanged.
+    val emptyLoader = URLClassLoader(emptyArray(), ClassLoader.getSystemClassLoader().parent)
+    assertFalse(
+      "RemoteContentPreviewKt must be reported absent on a classloader that does not ship it",
+      isRemoteContentPreviewAvailable(emptyLoader),
+    )
+  }
+
+  @Test
+  fun remoteContentPreviewRequiresTheRestOfRemoteCompose() {
+    // The shadow's replacement captures through remote-creation, so the tooling class alone is
+    // not enough: whenever HostAction is absent the answer is false, whatever else is present.
+    val loader = ClassLoader.getSystemClassLoader()
+    if (!isRemoteComposeAvailable(loader)) {
+      assertFalse(isRemoteContentPreviewAvailable(loader))
+    }
+    assertEquals(
+      "A null loader must delegate RemoteContentPreview detection to the system classloader",
+      isRemoteContentPreviewAvailable(loader),
+      isRemoteContentPreviewAvailable(null),
+    )
+  }
 }
