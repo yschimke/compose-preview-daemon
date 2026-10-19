@@ -17,6 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -34,7 +35,13 @@ import kotlinx.serialization.json.longOrNull
  * [serverOutput], and the front end relays one socket connection at a time onto them.
  * - The first client's `initialize` reaches the server; its result is cached and answered locally
  *   to every later client, whose `initialized` is dropped.
- * - A client's `shutdown` and `exit` end only its connection.
+ * - A client's `shutdown` is answered once the renders it queued have finished, and `exit` ends
+ *   only its connection. A client that drops without `shutdown` is drained the same way before the
+ *   next is accepted, so no client sees another's notifications.
+ * - A later client whose `initialize` options differ from the first's is refused: they are
+ *   session-wide in the server, and silently ignoring them would drop what the client asked for.
+ * - Held sessions (`interactive/`, `stream/`, `recording/`, `xr/`) are refused; they outlive a
+ *   request and belong to a stdio daemon with one owner.
  * - Request ids are rewritten so two clients that both start at `1` never collide; a response is
  *   routed back to the connection that asked, under its own id, and dropped if that client left.
  * - Notifications go to whichever client is connected.
@@ -75,12 +82,23 @@ public class DaemonSocketFrontEnd(
   private var initializeResult: JsonElement? = null
   private var initializeSent = false
   private val initializeWaiters = mutableListOf<Pair<Connection, JsonElement>>()
+  private var initializeParams: JsonElement? = null
+
+  /** Preview ids a `renderNow` queued that have not finished; guarded by its own monitor. */
+  private val inFlight = HashSet<String>()
+
+  /** Ids that finished before their `renderNow` response was relayed. */
+  private val finishedEarly = HashSet<String>()
+
+  /** `renderNow` requests forwarded but not yet answered; guarded by [inFlight]'s monitor. */
+  private var renderNowsUnanswered = 0
 
   /** A forwarded request awaiting the server's response; [connection] is null for our own. */
   private class Pending(
     val connection: Connection?,
     val clientId: JsonElement,
     val initialize: Boolean = false,
+    val renderNow: Boolean = false,
     val onResponse: (() -> Unit)? = null,
   )
 
@@ -116,9 +134,15 @@ public class DaemonSocketFrontEnd(
         clientReaderLoop(connection)
       } finally {
         current = null
+        // A client that dropped mid-render: finish its renders before the next client connects,
+        // so their notifications go nowhere rather than to someone else.
+        awaitRenders()
         lastDisconnectNs = System.nanoTime()
-        // The initialize result is cached for the next client even if this one left first.
-        pending.entries.removeIf { it.value.connection === connection && !it.value.initialize }
+        // The server answers every forwarded request; an initialize or renderNow reply still
+        // matters once its client has gone (the cached handshake, the drain), so only others go.
+        pending.entries.removeIf {
+          it.value.connection === connection && !it.value.initialize && !it.value.renderNow
+        }
         connection.close()
       }
     }
@@ -144,14 +168,25 @@ public class DaemonSocketFrontEnd(
             toServer.write(frame(obj))
           }
         }
-        method == "shutdown" && id != null -> connection.send(response(id, JsonNull))
+        method == "shutdown" && id != null -> {
+          awaitRenders()
+          connection.send(response(id, JsonNull))
+        }
         method == "exit" && id == null -> return
         method == STOP_METHOD -> {
           if (id != null) connection.send(response(id, JsonNull))
           stopServer("stop requested")
           return
         }
-        method != null && id != null -> forward(Pending(connection, id), obj)
+        method != null && HELD_SESSION_PREFIXES.any(method::startsWith) -> {
+          if (id != null) {
+            connection.send(
+              error(id, ERR_METHOD_NOT_FOUND, "$method is not served over the daemon socket")
+            )
+          }
+        }
+        method != null && id != null ->
+          forward(Pending(connection, id, renderNow = method == "renderNow"), obj)
         method != null -> toServer.write(frame(obj))
         // A response to a server request: the server sends none, so there is nothing to route.
         else -> Unit
@@ -161,14 +196,26 @@ public class DaemonSocketFrontEnd(
 
   /** Forwards the first `initialize`; answers every other from its result, waiting if need be. */
   private fun initialize(connection: Connection, obj: JsonObject, id: JsonElement) {
+    val params = sessionOptions(obj["params"])
     val answer: JsonElement?
     synchronized(initializeLock) {
+      if (initializeSent && params != initializeParams) {
+        connection.send(
+          error(
+            id,
+            ERR_INVALID_PARAMS,
+            "this daemon was initialized with different options; start a separate one",
+          )
+        )
+        return
+      }
       answer = initializeResult
       when {
         answer != null -> Unit
         initializeSent -> initializeWaiters += connection to id
         else -> {
           initializeSent = true
+          initializeParams = params
           forward(Pending(connection, id, initialize = true), obj)
         }
       }
@@ -176,7 +223,50 @@ public class DaemonSocketFrontEnd(
     if (answer != null) connection.send(response(id, answer))
   }
 
+  /** Blocks until every render a `renderNow` queued has sent `renderFinished` or `renderFailed`. */
+  private fun awaitRenders() {
+    val deadline = System.nanoTime() + RENDER_DRAIN_MS * 1_000_000L
+    synchronized(inFlight) {
+      while ((inFlight.isNotEmpty() || renderNowsUnanswered > 0) && !stopping.get()) {
+        val leftMs = (deadline - System.nanoTime()) / 1_000_000L
+        if (leftMs <= 0) {
+          log("compose-ai-daemon: socket front end gave up waiting for $inFlight")
+          inFlight.clear()
+          renderNowsUnanswered = 0
+          return
+        }
+        (inFlight as Object).wait(minOf(leftMs, IDLE_POLL_MS))
+      }
+    }
+  }
+
+  /** Records what a `renderNow` reply queued; an error reply queued nothing. */
+  private fun trackQueued(result: JsonElement?) {
+    val queued =
+      (result as? JsonObject)
+        ?.get("queued")
+        ?.let { it as? JsonArray }
+        ?.mapNotNull { it.jsonPrimitive.contentOrNull }
+        .orEmpty()
+    synchronized(inFlight) {
+      renderNowsUnanswered = (renderNowsUnanswered - 1).coerceAtLeast(0)
+      queued.forEach { if (!finishedEarly.remove(it)) inFlight += it }
+      (inFlight as Object).notifyAll()
+    }
+  }
+
+  private fun trackFinished(obj: JsonObject) {
+    val method = obj["method"]?.jsonPrimitive?.contentOrNull
+    if (method != "renderFinished" && method != "renderFailed") return
+    val id = (obj["params"] as? JsonObject)?.get("id")?.jsonPrimitive?.contentOrNull ?: return
+    synchronized(inFlight) {
+      if (!inFlight.remove(id)) finishedEarly += id
+      (inFlight as Object).notifyAll()
+    }
+  }
+
   private fun forward(target: Pending, obj: JsonObject) {
+    if (target.renderNow) synchronized(inFlight) { renderNowsUnanswered++ }
     val serverId = nextServerId.getAndIncrement()
     pending[serverId] = target
     toServer.write(frame(JsonObject(obj + ("id" to JsonPrimitive(serverId)))))
@@ -192,9 +282,11 @@ public class DaemonSocketFrontEnd(
         if (obj["method"] == null && serverId != null) {
           val target = pending.remove(serverId) ?: continue
           target.onResponse?.invoke()
+          if (target.renderNow) trackQueued(obj["result"])
           target.connection?.send(frame(JsonObject(obj + ("id" to target.clientId))))
           if (target.initialize) obj["result"]?.let(::publishInitializeResult)
         } else {
+          trackFinished(obj)
           current?.send(bytes.withHeader())
         }
       }
@@ -332,6 +424,30 @@ public class DaemonSocketFrontEnd(
     public const val STOP_METHOD: String = "daemon/stop"
 
     private const val IDLE_POLL_MS = 1_000L
+
+    /** The longest a client's `shutdown`, or the next client, waits for queued renders. */
+    private const val RENDER_DRAIN_MS = 10 * 60_000L
+
+    private const val ERR_METHOD_NOT_FOUND = -32601
+    private const val ERR_INVALID_PARAMS = -32602
+
+    private val HELD_SESSION_PREFIXES = listOf("interactive/", "stream/", "recording/", "xr/")
+
+    /** `initialize` params minus the fields that only describe the client. */
+    private fun sessionOptions(params: JsonElement?): JsonElement? =
+      (params as? JsonObject)?.let { JsonObject(it - "clientVersion") } ?: params
+
+    private fun error(id: JsonElement, code: Int, message: String): ByteArray =
+      frame(
+        JsonObject(
+          mapOf(
+            "jsonrpc" to JsonPrimitive("2.0"),
+            "id" to id,
+            "error" to
+              JsonObject(mapOf("code" to JsonPrimitive(code), "message" to JsonPrimitive(message))),
+          )
+        )
+      )
 
     /** A front end when [DaemonProperties.socketPath] is set, else `null` (serve stdio). */
     public fun fromSystemProperties(): DaemonSocketFrontEnd? =

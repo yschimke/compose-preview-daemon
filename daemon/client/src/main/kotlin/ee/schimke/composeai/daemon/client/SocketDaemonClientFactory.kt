@@ -34,6 +34,11 @@ public class SocketDaemonClientFactory(
 
   override fun spawn(workspaceId: WorkspaceId, descriptor: DaemonLaunchDescriptor): DaemonSpawn {
     require(descriptor.enabled) { "daemon disabled for ${descriptor.modulePath}" }
+    // A socket daemon outlives its caller, so nothing would be left to enforce a hard TTL or own
+    // a jail: those launches stay with [SubprocessDaemonClientFactory].
+    require(descriptor.hardTtlSeconds == null && descriptor.jailCommand.isEmpty()) {
+      "${descriptor.modulePath}: a jailed or hard-TTL daemon cannot be shared over a socket"
+    }
     val socket = socketPathOf(descriptor)
     connect(socket)?.let {
       return SocketDaemonSpawn(it)

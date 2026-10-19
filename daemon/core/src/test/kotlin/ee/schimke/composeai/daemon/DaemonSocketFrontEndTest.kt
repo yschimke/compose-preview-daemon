@@ -20,6 +20,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -87,6 +88,52 @@ class DaemonSocketFrontEndTest {
   }
 
   @Test
+  fun `shutdown is answered only after the client's renders finish`() {
+    startDaemon()
+    val client = Client(socket)
+    client.request(1, "initialize", INITIALIZE_PARAMS)
+    client.notify("initialized")
+    // Shut down straight after queueing, without waiting for the render.
+    client.send(2, "renderNow", """{"previews":["preview-A"],"tier":"fast"}""")
+    client.send(3, "shutdown")
+    val order = client.collectUntil { it["id"]?.jsonPrimitive?.intOrNull == 3 }
+    val finished = order.indexOfFirst {
+      it["method"]?.jsonPrimitive?.contentOrNull == "renderFinished"
+    }
+    assertTrue("renderFinished must precede the shutdown reply: $order", finished >= 0)
+    client.close()
+  }
+
+  @Test
+  fun `a later client with different initialize options is refused`() {
+    startDaemon()
+    Client(socket).apply {
+      request(1, "initialize", INITIALIZE_PARAMS)
+      notify("initialized")
+      close()
+    }
+    val other = Client(socket)
+    val reply =
+      other.request(
+        1,
+        "initialize",
+        INITIALIZE_PARAMS.replace("\"metrics\":false", "\"metrics\":true"),
+      )
+    assertNotNull("different options must be an error: $reply", reply["error"])
+    other.close()
+  }
+
+  @Test
+  fun `held sessions are refused over the socket`() {
+    startDaemon()
+    val client = Client(socket)
+    client.request(1, "initialize", INITIALIZE_PARAMS)
+    val reply = client.request(2, "interactive/start", """{"previewId":"preview-A"}""")
+    assertNotNull("interactive/start must be refused: $reply", reply["error"])
+    client.close()
+  }
+
+  @Test
   fun `an idle daemon shuts itself down`() {
     startDaemon(keepAliveIdleMs = 200L)
     Client(socket).apply {
@@ -129,6 +176,22 @@ class DaemonSocketFrontEndTest {
     fun request(id: Int, method: String, params: String = "{}"): JsonObject {
       write("""{"jsonrpc":"2.0","id":$id,"method":"$method","params":$params}""")
       return awaitMessage { it["id"]?.jsonPrimitive?.intOrNull == id && it["method"] == null }
+    }
+
+    /** Sends a request without waiting for its reply. */
+    fun send(id: Int, method: String, params: String = "{}") =
+      write("""{"jsonrpc":"2.0","id":$id,"method":"$method","params":$params}""")
+
+    /** Every message up to and including the first [last] matches, in arrival order. */
+    fun collectUntil(last: (JsonObject) -> Boolean): List<JsonObject> {
+      val seen = mutableListOf<JsonObject>()
+      val deadline = System.currentTimeMillis() + 20_000
+      while (System.currentTimeMillis() < deadline) {
+        val next = received.poll(200, TimeUnit.MILLISECONDS) ?: continue
+        seen += next
+        if (last(next)) return seen
+      }
+      throw AssertionError("message never arrived; saw $seen")
     }
 
     fun notify(method: String) = write("""{"jsonrpc":"2.0","method":"$method","params":{}}""")
