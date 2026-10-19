@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.19.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.9...v3.19.0) (2026-10-19)
+
+
+### Features
+
+* serve successive clients over a Unix socket, keeping the daemon warm ([#324](https://github.com/yschimke/compose-preview-daemon/issues/324)) ([63827a4](https://github.com/yschimke/compose-preview-daemon/commit/63827a4da96fd22ee76b92aeed38c9eca1429a26))
+
+
+### Bug Fixes
+
+* release daemon client pending response queues ([#322](https://github.com/yschimke/compose-preview-daemon/issues/322)) ([7df6650](https://github.com/yschimke/compose-preview-daemon/commit/7df6650a35f14cdbccce3c7982d5ddede244e1da))
+
 ## [3.18.9](https://github.com/yschimke/compose-preview-daemon/compare/v3.18.8...v3.18.9) (2026-10-19)
 
 
