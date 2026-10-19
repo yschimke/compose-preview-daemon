@@ -208,6 +208,8 @@ public object DaemonProperties {
    */
   public object Names {
     public const val IDLE_TIMEOUT_MS: String = "composeai.daemon.idleTimeoutMs"
+    public const val SOCKET_PATH: String = "composeai.daemon.socketPath"
+    public const val KEEP_ALIVE_IDLE_MS: String = "composeai.daemon.keepAliveIdleMs"
     public const val METRICS_EVERY_RENDERS: String = "composeai.daemon.metrics.everyRenders"
     public const val RENDER_TIMEOUT_MS: String = "composeai.daemon.renderTimeoutMs"
     public const val CLASSPATH_DIRTY_GRACE_MS: String = "composeai.daemon.classpathDirtyGraceMs"
@@ -300,6 +302,24 @@ public object DaemonProperties {
       5_000L,
       "How long the daemon waits after its last client disconnects before exiting.",
       G_LIFECYCLE,
+    )
+
+  public val socketPath: PathProperty =
+    PathProperty(
+      Names.SOCKET_PATH,
+      "Serve successive clients over a Unix domain socket at this path instead of one client over " +
+        "stdio, keeping the host and its warm sandboxes between them. Unset serves stdio.",
+      G_LIFECYCLE,
+    )
+
+  public val keepAliveIdleMs: LongProperty =
+    LongProperty(
+      Names.KEEP_ALIVE_IDLE_MS,
+      5 * 60_000L,
+      "With `composeai.daemon.socketPath` set, how long the daemon stays up with no client connected before it " +
+        "shuts down.",
+      G_LIFECYCLE,
+      min = 1_000L,
     )
 
   public val renderTimeoutMs: LongProperty =
@@ -772,6 +792,8 @@ public object DaemonProperties {
     listOf(
       metricsEveryRenders,
       idleTimeoutMs,
+      socketPath,
+      keepAliveIdleMs,
       renderTimeoutMs,
       classpathDirtyGraceMs,
       dataFetchRerenderBudgetMs,

@@ -24,6 +24,8 @@ flips a knob.
 | --- | --- | --- | --- |
 | `composeai.daemon.metrics.everyRenders` | Int | `1` | Collect full post-GC metrics on the first render and every N renders thereafter. Unmeasured renders retain timing but omit the structured metrics block. Values below 1 use 1. Increasing this may raise resident memory. |
 | `composeai.daemon.idleTimeoutMs` | Long | `5000` | How long the daemon waits after its last client disconnects before exiting. |
+| `composeai.daemon.socketPath` | path | unset | Serve successive clients over a Unix domain socket at this path instead of one client over stdio, keeping the host and its warm sandboxes between them. Unset serves stdio. |
+| `composeai.daemon.keepAliveIdleMs` | Long | `300000` | With `composeai.daemon.socketPath` set, how long the daemon stays up with no client connected before it shuts down. |
 | `composeai.daemon.renderTimeoutMs` | Long | `300000` | Initial per-render `host.submit` timeout, before `initialize.options.maxRenderMs` lands. Non-positive values keep the default. |
 | `composeai.daemon.classpathDirtyGraceMs` | Long | `2000` | Grace window after a classpath-dirty signal before the daemon acts on it. See PROTOCOL.md § 6. |
 | `composeai.daemon.dataFetchRerenderBudgetMs` | Long | `30000` | Budget for the re-render a `data/fetch` may trigger. See DATA-PRODUCTS.md § Re-render semantics. |

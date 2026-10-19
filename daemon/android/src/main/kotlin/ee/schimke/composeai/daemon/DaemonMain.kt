@@ -719,10 +719,13 @@ fun main(args: Array<String>) {
     )
   }
 
+  // With `composeai.daemon.socketPath` set, serve successive clients over a socket instead, keeping
+  // this host and its warm sandboxes between them (compose-ai-tools#6104).
+  val socketFrontEnd = DaemonSocketFrontEnd.fromSystemProperties()?.also { it.start() }
   val server =
     JsonRpcServer(
-      input = System.`in`,
-      output = realOut,
+      input = socketFrontEnd?.serverInput ?: System.`in`,
+      output = socketFrontEnd?.serverOutput ?: realOut,
       host = host,
       daemonVersion = DaemonVersion.value,
       classpathFingerprint = classpathFingerprint,

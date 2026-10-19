@@ -1525,7 +1525,7 @@ class JsonRpcServerIntegrationTest {
  * "single render thread" guarantee. The [interruptCount] counter spies on `Thread.interrupt()`
  * calls — the no-mid-render-cancellation invariant requires this to stay at zero.
  */
-private class FakeRenderHost(
+internal class FakeRenderHost(
   /**
    * If non-null, every successful render returns this map verbatim as `RenderResult.metrics`. Used
    * by the B2.3 integration tests to drive `JsonRpcServer.renderFinishedFromResult` through its

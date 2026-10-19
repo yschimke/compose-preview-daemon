@@ -66,9 +66,11 @@ fun main(args: Array<String>) {
 
   System.err.println("compose-ai-tools desktop daemon: hello (args=${args.toList()})")
 
+  // With `composeai.daemon.socketPath` set, serve successive clients over a socket instead.
+  val socketFrontEnd = DaemonSocketFrontEnd.fromSystemProperties()?.also { it.start() }
   runDaemon(
-    input = System.`in`,
-    output = realOut,
+    input = socketFrontEnd?.serverInput ?: System.`in`,
+    output = socketFrontEnd?.serverOutput ?: realOut,
     installSigtermHook = true,
     onExit = JsonRpcServer.EXIT_PROCESS,
   )

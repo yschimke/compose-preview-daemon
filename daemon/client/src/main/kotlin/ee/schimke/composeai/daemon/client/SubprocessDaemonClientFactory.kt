@@ -91,23 +91,7 @@ public class SubprocessDaemonClientFactory(
     workspaceId: WorkspaceId,
     descriptor: DaemonLaunchDescriptor,
   ): DaemonSpawn {
-    val javaBin =
-      descriptor.javaLauncher ?: File(System.getProperty("java.home"), "bin/java").absolutePath
-    val command =
-      buildList<String> {
-        // The optional OS jail (playground per-session sandbox). Empty for every ordinary daemon,
-        // so the launched argv is byte-identical to the pre-sandbox one.
-        addAll(descriptor.jailCommand)
-        add(javaBin)
-        addAll(descriptor.jvmArgs)
-        // Inside a jail the parent's temp dir may not exist (bwrap mounts its own /tmp), so the
-        // argfiles go in the one directory both sides can see: the daemon's working directory.
-        val argFileDirectory =
-          File(descriptor.workingDirectory).takeIf { descriptor.jailCommand.isNotEmpty() }
-        addAll(systemPropertyArgs(descriptor.systemProperties, argFileDirectory))
-        add(classpathArgFile(descriptor.classpath, argFileDirectory))
-        add(descriptor.mainClass)
-      }
+    val command = launchCommand(descriptor)
     val process =
       ProcessBuilder(command)
         .directory(File(descriptor.workingDirectory))
@@ -223,5 +207,29 @@ internal class SubprocessDaemonSpawn(private val process: Process) : DaemonSpawn
     if (!process.isAlive) return
     val remainingMillis = (deadlineNanos - System.nanoTime()).coerceAtLeast(0L) / 1_000_000L
     if (remainingMillis > 0L) process.waitFor(remainingMillis, TimeUnit.MILLISECONDS)
+  }
+}
+
+/**
+ * The `java` argv that launches [descriptor]'s daemon: the optional jail, the JVM, its arguments,
+ * the system properties and classpath (spilled to argfiles past the OS limits), and the main class.
+ * Shared by [SubprocessDaemonClientFactory] and [SocketDaemonClientFactory].
+ */
+internal fun launchCommand(descriptor: DaemonLaunchDescriptor): List<String> {
+  val javaBin =
+    descriptor.javaLauncher ?: File(System.getProperty("java.home"), "bin/java").absolutePath
+  return buildList<String> {
+    // The optional OS jail (playground per-session sandbox). Empty for every ordinary daemon,
+    // so the launched argv is byte-identical to the pre-sandbox one.
+    addAll(descriptor.jailCommand)
+    add(javaBin)
+    addAll(descriptor.jvmArgs)
+    // Inside a jail the parent's temp dir may not exist (bwrap mounts its own /tmp), so the
+    // argfiles go in the one directory both sides can see: the daemon's working directory.
+    val argFileDirectory =
+      File(descriptor.workingDirectory).takeIf { descriptor.jailCommand.isNotEmpty() }
+    addAll(SystemPropertyArgs.of(descriptor.systemProperties, argFileDirectory))
+    add(classpathArgFile(descriptor.classpath, argFileDirectory))
+    add(descriptor.mainClass)
   }
 }

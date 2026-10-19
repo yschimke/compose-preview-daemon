@@ -184,6 +184,20 @@ public final class ee/schimke/composeai/daemon/CompositeDataProductRegistry : ee
 	public fun renderModeFor (Ljava/lang/String;)Ljava/lang/String;
 }
 
+public final class ee/schimke/composeai/daemon/DaemonSocketFrontEnd {
+	public static final field Companion Lee/schimke/composeai/daemon/DaemonSocketFrontEnd$Companion;
+	public static final field STOP_METHOD Ljava/lang/String;
+	public fun <init> (Ljava/nio/file/Path;JLkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljava/nio/file/Path;JLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getServerInput ()Ljava/io/InputStream;
+	public final fun getServerOutput ()Ljava/io/OutputStream;
+	public final fun start ()V
+}
+
+public final class ee/schimke/composeai/daemon/DaemonSocketFrontEnd$Companion {
+	public final fun fromSystemProperties ()Lee/schimke/composeai/daemon/DaemonSocketFrontEnd;
+}
+
 public final class ee/schimke/composeai/daemon/DaemonVersion {
 	public static final field INSTANCE Lee/schimke/composeai/daemon/DaemonVersion;
 	public final fun getValue ()Ljava/lang/String;
@@ -1850,6 +1864,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public final fun getIdleTimeoutMs ()Lee/schimke/composeai/daemon/config/LongProperty;
 	public final fun getInteractiveIdleLeaseMs ()Lee/schimke/composeai/daemon/config/LongProperty;
 	public final fun getIrDir ()Lee/schimke/composeai/daemon/config/PathProperty;
+	public final fun getKeepAliveIdleMs ()Lee/schimke/composeai/daemon/config/LongProperty;
 	public final fun getLazyInProcessSandbox ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getMaxHeapMb ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getMaxRendersPerSandbox ()Lee/schimke/composeai/daemon/config/IntProperty;
@@ -1872,6 +1887,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public final fun getSandboxWorkerSlot ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getSandboxWorkerSpare ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getSandboxWorkerSpares ()Lee/schimke/composeai/daemon/config/CsvListProperty;
+	public final fun getSocketPath ()Lee/schimke/composeai/daemon/config/PathProperty;
 	public final fun getStartupQuiet ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getUseConsumerApplication ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getUserClassDirs ()Lee/schimke/composeai/daemon/config/PathListProperty;
@@ -1913,6 +1929,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
 	public static final field INSTANCE Lee/schimke/composeai/daemon/config/DaemonProperties$Names;
 	public static final field INTERACTIVE_IDLE_LEASE_MS Ljava/lang/String;
 	public static final field IR_DIR Ljava/lang/String;
+	public static final field KEEP_ALIVE_IDLE_MS Ljava/lang/String;
 	public static final field LAZY_IN_PROCESS_SANDBOX Ljava/lang/String;
 	public static final field MAX_HEAP_MB Ljava/lang/String;
 	public static final field MAX_RENDERS_PER_SANDBOX Ljava/lang/String;
@@ -1935,6 +1952,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
 	public static final field SANDBOX_WORKER_SLOT Ljava/lang/String;
 	public static final field SANDBOX_WORKER_SPARE Ljava/lang/String;
 	public static final field SANDBOX_WORKER_SPARES Ljava/lang/String;
+	public static final field SOCKET_PATH Ljava/lang/String;
 	public static final field STARTUP_QUIET Ljava/lang/String;
 	public static final field USER_CLASS_DIRS Ljava/lang/String;
 	public static final field USER_CLASS_PACKAGES Ljava/lang/String;

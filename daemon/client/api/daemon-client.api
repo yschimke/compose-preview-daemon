@@ -437,6 +437,20 @@ public final class ee/schimke/composeai/daemon/client/SandboxSparePool$Snapshot 
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class ee/schimke/composeai/daemon/client/SocketDaemonClientFactory : ee/schimke/composeai/daemon/client/DaemonClientFactory {
+	public static final field Companion Lee/schimke/composeai/daemon/client/SocketDaemonClientFactory$Companion;
+	public fun <init> ()V
+	public synthetic fun <init> (JLee/schimke/composeai/daemon/client/ChildEnvironment;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (JLee/schimke/composeai/daemon/client/ChildEnvironment;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun spawn (Lee/schimke/composeai/daemon/client/WorkspaceId;Lee/schimke/composeai/daemon/protocol/DaemonLaunchDescriptor;)Lee/schimke/composeai/daemon/client/DaemonSpawn;
+}
+
+public final class ee/schimke/composeai/daemon/client/SocketDaemonClientFactory$Companion {
+	public final fun connect (Ljava/nio/file/Path;)Ljava/nio/channels/SocketChannel;
+	public final fun socketPathOf (Lee/schimke/composeai/daemon/protocol/DaemonLaunchDescriptor;)Ljava/nio/file/Path;
+	public final fun stop (Ljava/nio/file/Path;)Z
+}
+
 public final class ee/schimke/composeai/daemon/client/SubprocessDaemonClientFactory : ee/schimke/composeai/daemon/client/DaemonClientFactory {
 	public fun <init> ()V
 	public fun <init> (Lee/schimke/composeai/daemon/client/SandboxSparePool;)V
