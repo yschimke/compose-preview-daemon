@@ -57,6 +57,7 @@ public class ee/schimke/composeai/daemon/DesktopHost : ee/schimke/composeai/daem
 	public fun getUserClassloaderHolder ()Lee/schimke/composeai/daemon/UserClassLoaderHolder;
 	public fun previewParameterRows (Ljava/lang/String;)Ljava/util/List;
 	public fun recordingScriptEventDescriptors ()Ljava/util/List;
+	public fun setBootProgressListener (Lee/schimke/composeai/daemon/BootProgressListener;)V
 	public fun shutdown (J)V
 	public fun start ()V
 	public fun submit (Lee/schimke/composeai/daemon/RenderRequest;J)Lee/schimke/composeai/daemon/RenderResult;
