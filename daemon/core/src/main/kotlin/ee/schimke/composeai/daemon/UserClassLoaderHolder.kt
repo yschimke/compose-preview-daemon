@@ -1,9 +1,13 @@
 package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.config.DaemonProperties
+import java.io.File
+import java.io.IOException
+import java.io.InputStream
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.net.URLClassLoader
+import java.util.jar.JarFile
 
 /**
  * Owns the disposable child [URLClassLoader] over the user module's compiled classes
@@ -106,6 +110,19 @@ public class UserClassLoaderHolder(
   /**
    * Child-first, because the user classes may also be on the parent's classpath with stale bytes.
    * [mustDelegateToParent] packages always go to the parent.
+   *
+   * Bytes this loader reads itself (the [transformer] path, and [getResourceAsStream] for its own
+   * jars) come from a [JarFile] this loader opens, never from `URL.openStream()`. A `jar:file:`
+   * stream goes through the JDK's process-wide `JarFileFactory` cache, which keeps the first
+   * `JarFile` it opened for a path for the life of the process. A build that rewrites the jar at
+   * the same path (Bazel does) then reads the old central directory, and the old inode, so a reload
+   * renders the previous bytecode (compose-ai-tools#6140). Each loader generation has its own
+   * handles, so a fresh loader always opens the jar as it is on disk now.
+   *
+   * The handles close with [close]. The holder does not close a loader it retires: a swap does not
+   * preempt an in-flight render, and that render may still define classes from it. A retired
+   * loader's handles are released when it is collected ([liveLoaderCount]), as the JDK cleans an
+   * unreachable [JarFile].
    */
   private class ChildFirstURLClassLoader(
     urls: Array<URL>,
@@ -113,15 +130,97 @@ public class UserClassLoaderHolder(
     private val transformer: UserClassTransformer?,
   ) : URLClassLoader(urls, parent) {
 
+    /** The jars on this loader's own class path, by their file URL as `jar:` URLs spell it. */
+    private val ownJars: Map<String, File> =
+      urls
+        .filter { it.protocol == "file" }
+        .mapNotNull { url -> runCatching { File(url.toURI()) }.getOrNull()?.let { url to it } }
+        .filter { (_, file) -> file.isFile }
+        .flatMap { (url, file) ->
+          // URLClassPath embeds the class-path URL verbatim; the normalised spelling covers the
+          // rest.
+          listOf(url.toString() to file, file.toURI().toURL().toString() to file)
+        }
+        .toMap()
+
+    private val openJars: MutableMap<File, JarFile> = HashMap()
+    private var jarsClosed = false
+
     override fun findClass(name: String): Class<*> {
       if (transformer == null || !transformer.appliesTo(name)) return super.findClass(name)
-      val resource =
-        findResource(name.replace('.', '/') + ".class") ?: throw ClassNotFoundException(name)
-      val original = resource.openStream().use { it.readBytes() }
+      val resourceName = name.replace('.', '/') + ".class"
+      val resource = findResource(resourceName) ?: throw ClassNotFoundException(name)
+      val original =
+        try {
+          readUncached(resource, resourceName)
+        } catch (e: IOException) {
+          throw ClassNotFoundException(name, e)
+        } ?: throw ClassNotFoundException(name)
       val bytes = transformer.transform(name, original)
       val codeSource =
         java.security.CodeSource(codeSourceRoot(resource), null as Array<java.security.CodeSigner>?)
       return defineClass(name, bytes, 0, bytes.size, codeSource)
+    }
+
+    /**
+     * A resource from one of this loader's own jars is read through this generation's [JarFile];
+     * anything else is answered as [URLClassLoader] would.
+     */
+    override fun getResourceAsStream(name: String): InputStream? {
+      val url = getResource(name) ?: return null
+      ownJarOf(url)?.let { jar ->
+        return try {
+          jarFile(jar)?.let { file -> file.getJarEntry(name)?.let(file::getInputStream) }
+        } catch (_: IOException) {
+          null
+        }
+      }
+      return super.getResourceAsStream(name)
+    }
+
+    /**
+     * [resource]'s bytes without the JDK's jar-URL cache: through this generation's [JarFile] for
+     * one of its own jars, otherwise through a connection with `useCaches = false`.
+     */
+    private fun readUncached(resource: URL, resourceName: String): ByteArray? {
+      ownJarOf(resource)?.let { jar ->
+        val file = jarFile(jar) ?: return null
+        val entry = file.getJarEntry(resourceName) ?: return null
+        return file.getInputStream(entry).use { it.readBytes() }
+      }
+      val connection = resource.openConnection().apply { useCaches = false }
+      return connection.getInputStream().use { it.readBytes() }
+    }
+
+    /**
+     * The jar of this loader's own class path that [url] (a `jar:file:…!/entry` URL) points into.
+     */
+    private fun ownJarOf(url: URL): File? {
+      if (url.protocol != "jar") return null
+      val spec = url.toString().removePrefix("jar:")
+      val separator = spec.indexOf("!/")
+      if (separator < 0) return null
+      return ownJars[spec.substring(0, separator)]
+    }
+
+    /** This generation's handle on [jar], opened on first use; `null` once [close] has run. */
+    private fun jarFile(jar: File): JarFile? =
+      synchronized(openJars) {
+        if (jarsClosed) return null
+        openJars.getOrPut(jar) { JarFile(jar) }
+      }
+
+    override fun close() {
+      val handles =
+        synchronized(openJars) {
+          jarsClosed = true
+          openJars.values.toList().also { openJars.clear() }
+        }
+      try {
+        super.close()
+      } finally {
+        handles.forEach { runCatching { it.close() } }
+      }
     }
 
     /** The class-path entry [resource] came from, as [URLClassLoader] would report it. */
