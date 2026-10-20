@@ -35,14 +35,26 @@ public object PreviewReceiver {
     }
   }
 
-  private fun singleton(owner: Class<*>): Any? =
-    try {
-      val field = owner.getDeclaredField("INSTANCE")
-      if (Modifier.isStatic(field.modifiers) && field.type == owner) {
-        field.isAccessible = true
-        field.get(null)
-      } else null
-    } catch (_: NoSuchFieldException) {
-      null
-    }
+  /**
+   * The Kotlin singleton [owner] is: an `object`'s own `INSTANCE`, or — for a companion object,
+   * whose singleton Kotlin stores on the enclosing class — that class's static field of [owner]'s
+   * type. A companion also has a private no-arg constructor, so falling through to it would build a
+   * second instance and rerun its initialisation.
+   */
+  private fun singleton(owner: Class<*>): Any? {
+    val own =
+      try {
+        owner.getDeclaredField("INSTANCE")
+      } catch (_: NoSuchFieldException) {
+        null
+      }
+    val field =
+      own?.takeIf { Modifier.isStatic(it.modifiers) && it.type == owner }
+        ?: owner.enclosingClass?.declaredFields?.firstOrNull {
+          Modifier.isStatic(it.modifiers) && it.type == owner
+        }
+        ?: return null
+    field.isAccessible = true
+    return field.get(null)
+  }
 }

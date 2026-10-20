@@ -32,6 +32,13 @@ class PreviewReceiverTest {
   }
 
   @Test
+  fun `a preview inside a companion object is invoked on the companion itself`() {
+    val method = WithCompanion.Companion::class.java.getDeclaredMethod("itemPreview")
+    assertSame(WithCompanion.Companion, PreviewReceiver.of(method))
+    assertEquals(1, WithCompanion.initialisations)
+  }
+
+  @Test
   fun `a class with no no-arg constructor is named`() {
     val method = NeedsArgument::class.java.getDeclaredMethod("itemPreview")
     val error = runCatching { PreviewReceiver.of(method) }.exceptionOrNull()
@@ -45,6 +52,18 @@ class PreviewReceiverTest {
 
   class ClassPreviews {
     fun itemPreview(): String = "class"
+  }
+
+  class WithCompanion {
+    companion object {
+      var initialisations = 0
+
+      init {
+        initialisations++
+      }
+
+      fun itemPreview(): String = "companion"
+    }
   }
 
   class NeedsArgument(private val label: String) {

@@ -371,8 +371,8 @@ object PreviewParameterSupport {
    * compiled default expression runs and the author's default is what renders.
    *
    * Returns false whenever the shape is not one this can drive: no null to fix, no `$default`
-   * bridge, an instance method, or more than 31 value parameters (past which Kotlin emits a second
-   * mask word and the single-int layout below no longer holds).
+   * bridge, an instance method without an [instance], or more than 31 value parameters (past which
+   * Kotlin emits a second mask word and the single-int layout below no longer holds).
    */
   fun invokeWithDefaultMask(
     composableMethod: ComposableMethod,
@@ -380,8 +380,12 @@ object PreviewParameterSupport {
     previewArgs: List<Any?>,
     composer: androidx.compose.runtime.Composer,
   ): Boolean {
-    if (instance != null) return false
     val method = composableMethod.asMethod()
+    // A static preview ignores [instance]; an instance method — a preview declared in an `object`
+    // or
+    // a class (compose-preview-daemon#343) — needs one.
+    val static = java.lang.reflect.Modifier.isStatic(method.modifiers)
+    if (!static && instance == null) return false
     val realParams = method.parameterCount - 3
     if (realParams !in 1..31 || previewArgs.size > realParams) return false
     val types = method.parameterTypes
@@ -418,7 +422,7 @@ object PreviewParameterSupport {
     arguments[realParams + 1] = 0
     arguments[realParams + 2] = mask
     method.isAccessible = true
-    method.invoke(null, *arguments)
+    method.invoke(if (static) null else instance, *arguments)
     return true
   }
 
