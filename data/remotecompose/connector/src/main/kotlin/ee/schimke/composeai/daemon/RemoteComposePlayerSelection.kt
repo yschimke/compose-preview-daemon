@@ -116,4 +116,18 @@ object RemoteComposePlayerSelection {
 
   /** [PROPERTY] as resolved in this JVM. */
   val configured: RemoteComposePlayerKind by lazy { resolve(System.getProperty(PROPERTY)) }
+
+  /**
+   * Whether [PROPERTY] names a player in this JVM. A build that pinned one is held to it; one that
+   * did not drew [DEFAULT] only because nothing said otherwise, so
+   * [RemoteComposePlayers.buildDefault] may fall back to [FALLBACK] when [DEFAULT] cannot link.
+   */
+  val pinned: Boolean by lazy { fromWire(System.getProperty(PROPERTY)) != null }
+
+  /**
+   * What an unpinned build draws with when [DEFAULT]'s player is absent or cannot link: the view
+   * player, which needs only `remote-player-view`. A Bazel or plain AndroidX consumer ships that
+   * and not the vendored `third-party-rc-embedded-player` (compose-preview-daemon#341).
+   */
+  val FALLBACK: RemoteComposePlayerKind = RemoteComposePlayerKind.VIEW
 }

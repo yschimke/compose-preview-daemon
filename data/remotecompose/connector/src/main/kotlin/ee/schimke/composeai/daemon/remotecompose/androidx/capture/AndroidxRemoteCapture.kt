@@ -114,7 +114,7 @@ internal suspend fun captureAndroidxRemoteDocument(
   val remoteDensity =
     when (captureDensity) {
       RemoteCaptureDensity.HOST -> RemoteDensity.Host
-      RemoteCaptureDensity.FIXED -> RemoteDensity.from(displayInfo)
+      RemoteCaptureDensity.FIXED -> remoteDensityFrom(displayInfo)
     }
   return captureSingleRemoteDocument(
       context,
@@ -126,6 +126,34 @@ internal suspend fun captureAndroidxRemoteDocument(
     )
     .bytes
 }
+
+/**
+ * `RemoteDensity.from(displayInfo)`, whichever way the consumer's `remote-creation-compose`
+ * declares it: a member of `RemoteDensity.Companion`, or (newer lines) a top-level extension on it
+ * compiled into `RemoteDensityKt`. A direct call binds to one of the two at compile time, so on the
+ * other line [AndroidxRemoteCapture.requireLinked] refused every capture by name and, past it, the
+ * call was a `NoSuchMethodError` (compose-preview-daemon#341). Resolved reflectively instead, which
+ * also leaves no constant-pool reference to either form for the linkage check to trip on.
+ */
+internal fun remoteDensityFrom(displayInfo: RemoteCreationDisplayInfo): RemoteDensity {
+  val companion: Any = RemoteDensity.Companion
+  val displayInfoType = RemoteCreationDisplayInfo::class.java
+  val member =
+    try {
+      companion.javaClass.getMethod("from", displayInfoType)
+    } catch (_: NoSuchMethodException) {
+      null
+    }
+  if (member != null) return member.invoke(companion, displayInfo) as RemoteDensity
+  val extension =
+    Class.forName(REMOTE_DENSITY_FILE_CLASS, false, RemoteDensity::class.java.classLoader)
+      .getMethod("from", companion.javaClass, displayInfoType)
+  return extension.invoke(null, companion, displayInfo) as RemoteDensity
+}
+
+/** The file class newer `remote-creation-compose` compiles `RemoteDensity.Companion.from` into. */
+private const val REMOTE_DENSITY_FILE_CLASS: String =
+  "androidx.compose.remote.creation.compose.capture.RemoteDensityKt"
 
 /** The linkage of [captureAndroidxRemoteDocument] against the consumer's creation library. */
 internal object AndroidxRemoteCapture {

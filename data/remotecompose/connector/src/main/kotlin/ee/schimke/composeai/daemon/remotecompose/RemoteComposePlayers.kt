@@ -2,12 +2,14 @@ package ee.schimke.composeai.daemon.remotecompose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import ee.schimke.composeai.daemon.RemoteComposePlayerSelection
 import ee.schimke.composeai.daemon.protocol.RemoteComposePlayerKind
 import ee.schimke.composeai.daemon.protocol.RemoteNamedValue
 import ee.schimke.composeai.data.remotecompose.RemoteComposeLinkage
 import ee.schimke.composeai.data.remotecompose.RemoteComposeLinkageReport
 import java.util.ServiceLoader
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * A captured Remote Compose document, as the bytes a player reads, plus which clock it plays
@@ -175,6 +177,67 @@ object RemoteComposePlayers {
     val id = playerId?.takeIf { it.isNotBlank() } ?: return forKind(kind ?: default)
     return forId(id) ?: throw RemoteComposeUnknownPlayerException(id, knownNames())
   }
+
+  /**
+   * [resolve] with the build-wide setting last, where nothing asked for a player — no [playerId],
+   * no [kind] — resolving through [buildDefault] rather than refusing an unlinked default.
+   */
+  fun resolveOrBuildDefault(
+    playerId: String?,
+    kind: RemoteComposePlayerKind?,
+  ): RemoteComposePlayerBackend =
+    if (playerId.isNullOrBlank() && kind == null) buildDefault()
+    else resolve(playerId, kind, RemoteComposePlayerSelection.configured)
+
+  /**
+   * The build-wide player: [RemoteComposePlayerSelection.configured], linkage-checked. When the
+   * build did not pin one ([RemoteComposePlayerSelection.pinned]) and the default cannot link on
+   * this classpath, [RemoteComposePlayerSelection.FALLBACK] instead, said once on stderr. A pinned
+   * build, a per-preview pin and a per-render request are never swapped: what they name is what
+   * draws, or the render is refused by name.
+   */
+  fun buildDefault(): RemoteComposePlayerBackend =
+    chooseDefault(
+      RemoteComposePlayerSelection.configured,
+      RemoteComposePlayerSelection.pinned,
+      ::forKind,
+    ) { kind, fallback, cause ->
+      if (fallbackReported.compareAndSet(false, true)) {
+        System.err.println(
+          "compose-preview: the default Remote Compose player ($kind) is unavailable on this " +
+            "classpath, drawing with $fallback instead. Pin one with " +
+            "-D${RemoteComposePlayerSelection.PROPERTY}=. Cause: ${cause.message}"
+        )
+      }
+    }
+
+  /** [buildDefault]'s decision, with the loading and the report injected for tests. */
+  internal fun chooseDefault(
+    kind: RemoteComposePlayerKind,
+    pinned: Boolean,
+    load: (RemoteComposePlayerKind) -> RemoteComposePlayerBackend,
+    onFallback: (RemoteComposePlayerKind, RemoteComposePlayerKind, Throwable) -> Unit,
+  ): RemoteComposePlayerBackend {
+    if (pinned) return load(kind)
+    val fallback = RemoteComposePlayerSelection.FALLBACK
+    return try {
+      load(kind)
+    } catch (e: Throwable) {
+      val unavailable =
+        e is RemoteComposeLinkageException || e is LinkageError || e is ReflectiveOperationException
+      if (kind == fallback || !unavailable) throw e
+      val backend =
+        try {
+          load(fallback)
+        } catch (_: Throwable) {
+          throw e
+        }
+      onFallback(kind, fallback, e)
+      backend
+    }
+  }
+
+  private val fallbackReported = AtomicBoolean(false)
 
   /** Every name some player answers to — canonical ids first, then aliases — for diagnostics. */
   fun knownNames(): List<String> {

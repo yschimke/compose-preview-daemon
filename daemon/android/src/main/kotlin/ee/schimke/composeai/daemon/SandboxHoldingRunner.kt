@@ -85,6 +85,13 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     val builder =
       InstrumentationConfiguration.Builder(super.createClassLoaderConfig(method))
         .doNotAcquirePackage("ee.schimke.composeai.daemon.bridge")
+        // The IR hand-off is process-static for the same reason the bridge is: the producer
+        // (`RemoteOverridablePreview`, `TilePreviewRenderer`) offers from inside the sandbox and
+        // the daemon's data product drains on the host, so both must see one `pending` map. A
+        // sandbox copy swallowed every offer (compose-preview-daemon#341). Only the channel and
+        // its capture type are kept out; the rest of `data.render` stays instrumented.
+        .doNotAcquireClass(IR_SIDECAR_CHANNEL)
+        .doNotAcquireClass("$IR_SIDECAR_CHANNEL\$IrCapture")
     // Coil 2's `AsyncImagePainter` lives in a plain library package, which Robolectric does NOT
     // instrument by default — and an uninstrumented class can't be shadowed. Instrument it so
     // [ee.schimke.composeai.renderer.ShadowAsyncImagePainter] (registered in `getExtraShadows`
@@ -92,7 +99,7 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     // (issue #2952). The Gradle `composePreviewRender` path gets the equivalent from the
     // `instrumentedPackages=coil.compose` line in its generated `robolectric.properties`. Inert
     // when the consumer has no coil: there is simply nothing in that package to instrument.
-    if (isCoil2Available(javaClass.classLoader)) {
+    if (isCoil2Available(sandboxParentLoader())) {
       builder.addInstrumentedPackage("coil.compose")
     }
     // Wear's `TimeText` reads the wall clock through `System.currentTimeMillis()` in ONE class,
@@ -104,7 +111,7 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     // `robolectric.properties` carries; [ee.schimke.composeai.renderer.ShadowWearTimeSource] is the
     // other half, replacing that class's clock read with
     // [ee.schimke.composeai.renderer.PreviewClock].
-    if (isWearComposeMaterialCoreAvailable(javaClass.classLoader)) {
+    if (isWearComposeMaterialCoreAvailable(sandboxParentLoader())) {
       builder.addInstrumentedPackage(WEAR_MATERIAL_CORE_RESOURCES)
     }
     // Remote Compose `RemoteContentPreview` interception (compose-ai-tools#6116): instrument
@@ -112,7 +119,7 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     // `getExtraShadows` under the same condition) can route a custom `@PreviewWrapper`'s call
     // through the connector's capture + player. Robolectric cannot shadow a class it did not
     // instrument, and `androidx.` is not in its default set.
-    if (isRemoteContentPreviewAvailable(javaClass.classLoader)) {
+    if (isRemoteContentPreviewAvailable(sandboxParentLoader())) {
       builder.addInstrumentedClass(ShadowRemoteContentPreview.TARGET_CLASS)
     }
     // Consumer clock pinning (compose-ai-tools#5945). `composeai.render.clockPackages` names the
@@ -155,6 +162,16 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
    * for `AmbientPreviewOverrideExtension` / `AmbientInputDispatchObserver` instantiation — those
    * concrete classes call into `AmbientStateController` which directly imports wear API.
    */
+  /**
+   * The loader Robolectric builds this runner's sandbox over: the worker thread's context loader,
+   * which `RobolectricHost` sets to [AppComposeFirstLoader] when the app's Compose runs. The
+   * availability gates must ask *it*, not this class's own loader: on the Bazel and bundle lanes
+   * the consumer's AndroidX jars sit only in `composeai.daemon.userClassDirs`, which that loader
+   * serves to the sandbox and the daemon's own loader cannot see (compose-preview-daemon#341).
+   */
+  private fun sandboxParentLoader(): ClassLoader? =
+    Thread.currentThread().contextClassLoader ?: javaClass.classLoader
+
   override fun getExtraShadows(method: FrameworkMethod): Array<Class<*>> {
     val shadows = mutableListOf<Class<*>>()
     // Wear ambient shadow — only when the wear AAR is on the classpath (issue #1244) AND
@@ -164,7 +181,7 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     // connector being added, the wear AAR check passes but the connector class is absent,
     // causing NoClassDefFoundError mid-sandbox-bootstrap. Catching here lets the daemon
     // limp along without ambient support rather than crashing all sandbox workers.
-    if (isWearAmbientAvailable(javaClass.classLoader)) {
+    if (isWearAmbientAvailable(sandboxParentLoader())) {
       try {
         shadows += ShadowAmbientLifecycleObserver::class.java
         shadows += ShadowAmbientModeManagerImpl::class.java
@@ -179,7 +196,7 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     // is
     // surfaced in `compose/gestures` and its hint can be shown. Same NoClassDefFoundError guard as
     // ambient for artifacts predating the gesture connector.
-    if (isWearGestureAvailable(javaClass.classLoader)) {
+    if (isWearGestureAvailable(sandboxParentLoader())) {
       try {
         shadows += ShadowSdkGestureInputManager::class.java
       } catch (_: NoClassDefFoundError) {
@@ -220,7 +237,7 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     // `className`, so unlike the Wear shadows above it carries no unresolvable symbolic links and
     // could not throw here. Pairs with the `addInstrumentedPackage("coil.compose")` call in
     // `createClassLoaderConfig`; both are needed for the shadow to take effect. See issue #2952.
-    if (isCoil2Available(javaClass.classLoader)) {
+    if (isCoil2Available(sandboxParentLoader())) {
       shadows += ee.schimke.composeai.renderer.ShadowAsyncImagePainter::class.java
     }
     // Wear clock shadow — same shape and same gating rationale as the coil one above, and pairs
@@ -229,7 +246,7 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     // both are needed for it to take effect. Without it a daemon render of a clock-bearing Wear
     // screen paints the host wall clock and disagrees with the batch render's fixed `10:10`
     // (issue #3239).
-    if (isWearComposeMaterialCoreAvailable(javaClass.classLoader)) {
+    if (isWearComposeMaterialCoreAvailable(sandboxParentLoader())) {
       shadows += ee.schimke.composeai.renderer.ShadowWearTimeSource::class.java
     }
     // Remote Compose `RemoteContentPreview` shadow — pairs with the `addInstrumentedClass` call in
@@ -237,7 +254,7 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     // `RemoteContentPreview(profile = …)` captures and plays through the stock function: no `.rc`
     // bytes reach the IR sidecar and the daemon's player selection, knobs and clock are skipped.
     // Same NoClassDefFoundError guard as the other connector shadows.
-    if (isRemoteContentPreviewAvailable(javaClass.classLoader)) {
+    if (isRemoteContentPreviewAvailable(sandboxParentLoader())) {
       try {
         shadows += ShadowRemoteContentPreview::class.java
       } catch (_: NoClassDefFoundError) {
@@ -261,28 +278,12 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
  * that need the wear AAR.
  */
 internal fun isWearAmbientAvailable(loader: ClassLoader?): Boolean {
-  val effective = loader ?: ClassLoader.getSystemClassLoader() ?: return false
-  return try {
-    Class.forName("androidx.wear.ambient.AmbientLifecycleObserver", false, effective)
-    true
-  } catch (_: ClassNotFoundException) {
-    false
-  } catch (_: NoClassDefFoundError) {
-    false
-  }
+  return isClassVisible("androidx.wear.ambient.AmbientLifecycleObserver", loader)
 }
 
 /** Whether this consumer classpath carries Jetpack Compose Glimmer. */
 internal fun isGlimmerAvailable(loader: ClassLoader?): Boolean {
-  val effective = loader ?: ClassLoader.getSystemClassLoader() ?: return false
-  return try {
-    Class.forName("androidx.xr.glimmer.SurfaceKt", false, effective)
-    true
-  } catch (_: ClassNotFoundException) {
-    false
-  } catch (_: NoClassDefFoundError) {
-    false
-  }
+  return isClassVisible("androidx.xr.glimmer.SurfaceKt", loader)
 }
 
 /**
@@ -293,19 +294,10 @@ internal fun isGlimmerAvailable(loader: ClassLoader?): Boolean {
  * doesn't drive `GestureOverrideExtension`'s composition into unresolved gesture types.
  */
 internal fun isWearGestureAvailable(loader: ClassLoader?): Boolean {
-  val effective = loader ?: ClassLoader.getSystemClassLoader() ?: return false
-  return try {
-    Class.forName(
-      "androidx.wear.compose.material3.onehandedgesture.OneHandedGestureModifierKt",
-      false,
-      effective,
-    )
-    true
-  } catch (_: ClassNotFoundException) {
-    false
-  } catch (_: NoClassDefFoundError) {
-    false
-  }
+  return isClassVisible(
+    "androidx.wear.compose.material3.onehandedgesture.OneHandedGestureModifierKt",
+    loader,
+  )
 }
 
 /**
@@ -325,15 +317,7 @@ internal const val WEAR_MATERIAL_CORE_RESOURCES: String =
  * sandbox config honest about what it actually rewrote.
  */
 internal fun isWearComposeMaterialCoreAvailable(loader: ClassLoader?): Boolean {
-  val effective = loader ?: ClassLoader.getSystemClassLoader() ?: return false
-  return try {
-    Class.forName(WEAR_MATERIAL_CORE_RESOURCES, false, effective)
-    true
-  } catch (_: ClassNotFoundException) {
-    false
-  } catch (_: NoClassDefFoundError) {
-    false
-  }
+  return isClassVisible(WEAR_MATERIAL_CORE_RESOURCES, loader)
 }
 
 /**
@@ -344,15 +328,7 @@ internal fun isWearComposeMaterialCoreAvailable(loader: ClassLoader?): Boolean {
  * `LocalAsyncImagePreviewHandler` as a supported hook), so only the 2.x package is probed.
  */
 internal fun isCoil2Available(loader: ClassLoader?): Boolean {
-  val effective = loader ?: ClassLoader.getSystemClassLoader() ?: return false
-  return try {
-    Class.forName("coil.compose.AsyncImagePainter", false, effective)
-    true
-  } catch (_: ClassNotFoundException) {
-    false
-  } catch (_: NoClassDefFoundError) {
-    false
-  }
+  return isClassVisible("coil.compose.AsyncImagePainter", loader)
 }
 
 /**
@@ -364,15 +340,7 @@ internal fun isCoil2Available(loader: ClassLoader?): Boolean {
  */
 internal fun isRemoteContentPreviewAvailable(loader: ClassLoader?): Boolean {
   if (!isRemoteComposeAvailable(loader)) return false
-  val effective = loader ?: ClassLoader.getSystemClassLoader() ?: return false
-  return try {
-    Class.forName(ShadowRemoteContentPreview.TARGET_CLASS, false, effective)
-    true
-  } catch (_: ClassNotFoundException) {
-    false
-  } catch (_: NoClassDefFoundError) {
-    false
-  }
+  return isClassVisible(ShadowRemoteContentPreview.TARGET_CLASS, loader)
 }
 
 /**
@@ -384,13 +352,47 @@ internal fun isRemoteContentPreviewAvailable(loader: ClassLoader?): Boolean {
  * lazy-init line. Mirrors [isWearAmbientAvailable] for the Wear ambient connector.
  */
 internal fun isRemoteComposeAvailable(loader: ClassLoader?): Boolean {
+  return isClassVisible(REMOTE_COMPOSE_HOST_ACTION, loader)
+}
+
+/**
+ * Whether a sandbox built over [loader] can define [className]: [loader] links it, or serves its
+ * bytecode. The second half is what the Bazel and bundle lanes need. There [loader] is the worker
+ * thread's [AppComposeFirstLoader], which answers the consumer's `androidx/` resources from
+ * `composeai.daemon.userClassDirs` but defines no class itself; Robolectric's sandbox loader reads
+ * the bytecode through it and defines the class, so `Class.forName` against it alone reported every
+ * consumer-only AndroidX library as absent (compose-preview-daemon#341). A class that is found but
+ * cannot link (`NoClassDefFoundError`) still counts as absent.
+ */
+internal fun isClassVisible(className: String, loader: ClassLoader?): Boolean {
   val effective = loader ?: ClassLoader.getSystemClassLoader() ?: return false
   return try {
-    Class.forName("androidx.compose.remote.creation.compose.action.HostAction", false, effective)
+    Class.forName(className, false, effective)
     true
   } catch (_: ClassNotFoundException) {
-    false
+    effective.getResource(className.replace('.', '/') + ".class") != null
   } catch (_: NoClassDefFoundError) {
     false
   }
 }
+
+/** The class whose presence means "this classpath carries Remote Compose". */
+internal const val REMOTE_COMPOSE_HOST_ACTION: String =
+  "androidx.compose.remote.creation.compose.action.HostAction"
+
+/**
+ * Whether `composeai.daemon.userClassDirs` carries [className]'s bytecode. For host-side decisions
+ * taken before any sandbox exists (`DaemonMain`'s extension registry), where the consumer's
+ * AndroidX jars are on that classpath alone. Read through a bootstrap-parented loader, so the
+ * daemon's own classpath never answers.
+ */
+internal fun isOnUserClasspath(className: String): Boolean {
+  val urls = UserClassLoaderHolder.urlsFromSysprop()
+  if (urls.isEmpty()) return false
+  return java.net.URLClassLoader(urls.toTypedArray(), null).use {
+    it.findResource(className.replace('.', '/') + ".class") != null
+  }
+}
+
+/** `data.render`'s process-static IR hand-off, shared by host and sandbox. */
+internal const val IR_SIDECAR_CHANNEL: String = "ee.schimke.composeai.data.render.IrSidecarChannel"

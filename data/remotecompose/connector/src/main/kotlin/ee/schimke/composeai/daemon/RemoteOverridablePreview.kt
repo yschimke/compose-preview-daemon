@@ -40,17 +40,18 @@ open class RemoteOverridablePreviewWrapper : PreviewWrapperProvider {
   protected open val profile: Profile = RcPlatformProfiles.ANDROIDX
 
   /**
-   * Player used to replay the captured document — the build-wide
-   * [RemoteComposePlayerSelection.configured], which is the vendored AndroidX `RcPlayer`
-   * ([RemoteComposePlayerKind.EMBEDDED]) unless `-PcomposePreview.rcPlayer=view` says otherwise.
-   * See [RemoteComposePlayerSelection] for what outranks what, and [RemoteViewPreviewWrapper] for
+   * Player used to replay the captured document; null (the default) means the build-wide one,
+   * [RemoteComposePlayers.buildDefault]: the vendored AndroidX `RcPlayer`
+   * ([RemoteComposePlayerKind.EMBEDDED]) unless `-PcomposePreview.rcPlayer=view` says otherwise, or
+   * the view player when nothing pinned one and the embedded player is not on the classpath. See
+   * [RemoteComposePlayerSelection] for what outranks what, and [RemoteViewPreviewWrapper] for
    * pinning the old lane on one preview regardless of the build setting.
    *
    * Read per instance rather than captured once, so a host that sets the property before the first
    * render is honoured; the resolution behind it is memoised per JVM.
    */
-  protected open val player: RemoteComposePlayerKind
-    get() = RemoteComposePlayerSelection.configured
+  protected open val player: RemoteComposePlayerKind?
+    get() = null
 
   /**
    * Whether the capture folds density and font scale in as constants or defers them to the player's
@@ -150,7 +151,7 @@ class RemoteViewPreviewWrapper : RemoteOverridablePreviewWrapper() {
 fun RemoteOverridablePreview(
   profile: Profile,
   modifier: Modifier = Modifier,
-  player: RemoteComposePlayerKind = RemoteComposePlayerSelection.configured,
+  player: RemoteComposePlayerKind? = null,
   captureDensity: RemoteCaptureDensity = RemoteDensitySelection.configured,
   content: @Composable @RemoteComposable () -> Unit,
 ) {
@@ -243,9 +244,14 @@ fun RemoteOverridablePreview(
   // controller's `MutableState`, so a follow-up render with a new override re-runs the bridge.
   val seededOverrides = RemoteComposeController.namedValues.value
 
-  // Resolved (and linkage-checked) before anything draws: a player the consumer's libraries cannot
-  // satisfy is refused by name here, never swapped for the other one.
-  val backend = RemoteComposePlayers.forKind(player)
+  // Resolved (and linkage-checked) before anything draws. A player named here — by a wrapper pin
+  // or an explicit argument — that the consumer's libraries cannot satisfy is refused by name,
+  // never
+  // swapped for the other one; only the unpinned build-wide default may fall back
+  // ([RemoteComposePlayers.buildDefault]).
+  val backend =
+    if (player != null) RemoteComposePlayers.forKind(player)
+    else RemoteComposePlayers.buildDefault()
 
   // Recorded rather than left for a reader to derive from the wrapper — see
   // [RemoteComposeController.recordCapturePlayer].

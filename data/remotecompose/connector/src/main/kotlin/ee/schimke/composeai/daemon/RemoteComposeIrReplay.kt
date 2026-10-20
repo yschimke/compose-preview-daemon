@@ -39,10 +39,9 @@ class RemoteComposeIrReplay {
     // enum (`?rcPlayer=java` → RemoteComposePlayerKind.VIEW). Nothing asked falls back to the
     // build-wide RemoteComposePlayerSelection, whose own default is the embedded player, matching
     // what a capture bakes through and what the viewer opens on.
-    RemoteComposePlayers.resolve(
+    RemoteComposePlayers.resolveOrBuildDefault(
         playerId = RemoteComposeController.playerId.value,
         kind = RemoteComposeController.player.value,
-        default = RemoteComposePlayerSelection.configured,
       )
       .Play(
         document = document,

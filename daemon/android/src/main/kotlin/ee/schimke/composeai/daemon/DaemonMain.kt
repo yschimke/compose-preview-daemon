@@ -415,7 +415,13 @@ fun main(args: Array<String>) {
         // non-Remote-Compose consumer would surface a confusing `NoClassDefFoundError` the first
         // time a render fires the around-composable. Mirrors the Wear-AAR gate
         // (`isWearAmbientAvailable`) used for `:data-ambient-connector`.
-        if (isRemoteComposeAvailable(javaClass.classLoader)) {
+        // The user classpath counts too: on the Bazel and bundle lanes Remote Compose arrives only
+        // through `composeai.daemon.userClassDirs`, which the sandbox reads and this loader does
+        // not (compose-preview-daemon#341).
+        if (
+          isRemoteComposeAvailable(javaClass.classLoader) ||
+            isOnUserClasspath(REMOTE_COMPOSE_HOST_ACTION)
+        ) {
           tryAdd("data/remotecompose") {
             // Remote Compose data product. Registry serves the `compose/remotecompose` payload
             // (named-value map applied / written during the render, ring-buffered HostAction

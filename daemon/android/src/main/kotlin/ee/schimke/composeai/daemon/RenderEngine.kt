@@ -39,6 +39,7 @@ import ee.schimke.composeai.daemon.devices.DeviceDimensions
 import ee.schimke.composeai.daemon.protocol.FigmaSvgBackgroundMode
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import ee.schimke.composeai.data.layoutinspector.ComposeFigmaSvgProduct
+import ee.schimke.composeai.data.render.IrSidecarChannel
 import ee.schimke.composeai.data.render.LinkBufferComposer
 import ee.schimke.composeai.data.render.PreviewBackends
 import ee.schimke.composeai.data.render.PreviewContext
@@ -1402,6 +1403,15 @@ class RenderEngine(
     // the surrounding sandbox bootstrap path is unaffected.
     val previousContext = Thread.currentThread().contextClassLoader
     Thread.currentThread().contextClassLoader = classLoader
+    // Name the preview an IR producer offers its document under — `RemoteOverridablePreview`'s
+    // `.rc`, a tile's protolayout — as the batch renderer's `RobolectricRenderTest` does. Without
+    // it every offer on this path was a no-op and `compose/remotecompose-doc` stayed empty
+    // (compose-preview-daemon#341). A capture left from an earlier render of this preview is
+    // dropped first, so a render that captures nothing never serves the last one's document.
+    spec.previewId?.let { id ->
+      IrSidecarChannel.consume(id)
+      IrSidecarChannel.setCurrentPreviewId(id)
+    }
     try {
       System.err.println(
         "compose-ai-daemon: [render] phase=evaluateRule.start outputBaseName=${spec.outputBaseName}"
@@ -1420,6 +1430,7 @@ class RenderEngine(
       throw t
     } finally {
       Thread.currentThread().contextClassLoader = previousContext
+      if (spec.previewId != null) IrSidecarChannel.setCurrentPreviewId(null)
     }
 
     // Font-fallback gate (reached only on a successful render — a thrown body propagated above).
