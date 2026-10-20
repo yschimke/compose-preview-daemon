@@ -1,9 +1,13 @@
 package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.config.DaemonProperties
+import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.InputStream
 import java.net.URL
 import java.net.URLClassLoader
+import java.net.URLConnection
+import java.net.URLStreamHandler
 import java.util.Collections
 import java.util.Enumeration
 import java.util.jar.JarFile
@@ -215,11 +219,36 @@ public class AppComposeFirstLoader(appUrls: List<URL>, parent: ClassLoader) : Cl
   override fun getResource(name: String): URL? {
     if (AppComposeSelection.isPreferredResource(name)) {
       app.findResource(name)?.let {
-        return it
+        return if (name.endsWith(".class")) dedupedClass(it) else it
       }
     }
     return super.getResource(name)
   }
+
+  /**
+   * [url], read with duplicate local-variable rows removed ([LocalVariableTables]): the sandbox
+   * defines the app's AndroidX classes from these bytes, and an old Kotlin compiler's duplicate
+   * rows would otherwise fail the class load with a `ClassFormatError` (compose-ai-tools#6161). A
+   * class with none is served byte for byte.
+   */
+  private fun dedupedClass(url: URL): URL =
+    URL(
+      null,
+      url.toString(),
+      object : URLStreamHandler() {
+        override fun openConnection(u: URL): URLConnection =
+          object : URLConnection(u) {
+            private val source = url.openConnection()
+
+            override fun connect() = source.connect()
+
+            override fun getInputStream(): InputStream =
+              ByteArrayInputStream(
+                LocalVariableTables.dedupe(source.getInputStream().use { it.readBytes() })
+              )
+          }
+      },
+    )
 
   override fun getResources(name: String): Enumeration<URL> {
     val parentResources = super.getResources(name)

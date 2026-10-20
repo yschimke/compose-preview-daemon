@@ -106,6 +106,10 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-build-tools-api:${libs.versions.kotlin.get()}")
 
   testImplementation(libs.junit)
+
+  // LocalVariableTablesTest builds a class file with a duplicated local-variable row, the shape
+  // old Kotlin compilers emitted (compose-ai-tools#6161).
+  testImplementation(libs.asm)
 }
 
 // Bake the daemon's own version into a resource so `JsonRpcServer.initialize` can report the

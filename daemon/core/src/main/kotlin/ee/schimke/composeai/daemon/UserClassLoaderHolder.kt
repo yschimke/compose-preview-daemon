@@ -147,7 +147,15 @@ public class UserClassLoaderHolder(
     private var jarsClosed = false
 
     override fun findClass(name: String): Class<*> {
-      if (transformer == null || !transformer.appliesTo(name)) return super.findClass(name)
+      if (transformer == null || !transformer.appliesTo(name)) {
+        return try {
+          super.findClass(name)
+        } catch (e: ClassFormatError) {
+          // A prebuilt class with duplicate local-variable rows (compose-ai-tools#6161): define
+          // it without them. Only on failure, so a well-formed class keeps the JDK's own path.
+          defineDeduped(name) ?: throw e
+        }
+      }
       val resourceName = name.replace('.', '/') + ".class"
       val resource = findResource(resourceName) ?: throw ClassNotFoundException(name)
       val original =
@@ -156,7 +164,19 @@ public class UserClassLoaderHolder(
         } catch (e: IOException) {
           throw ClassNotFoundException(name, e)
         } ?: throw ClassNotFoundException(name)
-      val bytes = transformer.transform(name, original)
+      val bytes = transformer.transform(name, LocalVariableTables.dedupe(original))
+      val codeSource =
+        java.security.CodeSource(codeSourceRoot(resource), null as Array<java.security.CodeSigner>?)
+      return defineClass(name, bytes, 0, bytes.size, codeSource)
+    }
+
+    /** [name] defined from its bytes with duplicate local-variable rows removed; null if none. */
+    private fun defineDeduped(name: String): Class<*>? {
+      val resourceName = name.replace('.', '/') + ".class"
+      val resource = findResource(resourceName) ?: return null
+      val original = runCatching { readUncached(resource, resourceName) }.getOrNull() ?: return null
+      val bytes = LocalVariableTables.dedupe(original)
+      if (bytes === original) return null
       val codeSource =
         java.security.CodeSource(codeSourceRoot(resource), null as Array<java.security.CodeSigner>?)
       return defineClass(name, bytes, 0, bytes.size, codeSource)
