@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.21.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.21.2...v3.21.3) (2026-10-20)
+
+
+### Bug Fixes
+
+* load prebuilt classes that carry duplicate local-variable rows ([#347](https://github.com/yschimke/compose-preview-daemon/issues/347)) ([0174b0a](https://github.com/yschimke/compose-preview-daemon/commit/0174b0a4faee68e60b9186a468120474bd1f61fb))
+
 ## [3.21.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.21.1...v3.21.2) (2026-10-20)
 
 
