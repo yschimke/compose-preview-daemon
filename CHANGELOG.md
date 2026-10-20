@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.21.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.21.1...v3.21.2) (2026-10-20)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.17.0 ([#339](https://github.com/yschimke/compose-preview-daemon/issues/339)) ([6138095](https://github.com/yschimke/compose-preview-daemon/commit/613809579324bd6d524ada21b37fdb410b8ebd37))
+* **deps:** update dependency io.github.classgraph:classgraph to v4.8.199 ([#338](https://github.com/yschimke/compose-preview-daemon/issues/338)) ([df89848](https://github.com/yschimke/compose-preview-daemon/commit/df89848a64e6ea15ec77e1c28d22075dbf710a54))
+* render @Preview functions declared inside an object or class ([#345](https://github.com/yschimke/compose-preview-daemon/issues/345)) ([ff204b0](https://github.com/yschimke/compose-preview-daemon/commit/ff204b0ca971f5a4896b5b718abadfc914c1f596))
+* run Remote Compose previews from userClassDirs on the Bazel lane ([#344](https://github.com/yschimke/compose-preview-daemon/issues/344)) ([a8d7d3f](https://github.com/yschimke/compose-preview-daemon/commit/a8d7d3f0543c8f73db205dbeaf5ad5c3359c3e69))
+
 ## [3.21.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.21.0...v3.21.1) (2026-10-20)
 
 
