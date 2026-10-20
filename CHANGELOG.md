@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.21.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.21.0...v3.21.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* reload a jar rewritten in place instead of reading the cached JarFile ([#337](https://github.com/yschimke/compose-preview-daemon/issues/337)) ([3c44289](https://github.com/yschimke/compose-preview-daemon/commit/3c44289ca239136f6380216b24c73e16fdb14772))
+
+
+### Build
+
+* resolve plugins from Google Maven before the plugin portal ([#335](https://github.com/yschimke/compose-preview-daemon/issues/335)) ([527e855](https://github.com/yschimke/compose-preview-daemon/commit/527e855bac80622b0aecd36ab902d545187aa19f))
+
 ## [3.21.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.20.1...v3.21.0) (2026-10-19)
 
 
