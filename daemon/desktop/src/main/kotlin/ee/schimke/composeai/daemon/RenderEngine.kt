@@ -2757,6 +2757,8 @@ fun RenderSpec.captureGutterPx(): ee.schimke.composeai.renderer.PreviewCaptureGu
  */
 @androidx.compose.runtime.Composable
 private fun InvokeComposable(composableMethod: ComposableMethod, previewArgs: List<Any?>) {
+  // A preview declared inside an `object` or a class is an instance method (#343).
+  val receiver = remember(composableMethod) { PreviewReceiver.of(composableMethod.asMethod()) }
   // A **partial** knob seed leaves nulls in the list, and `ComposableMethod.invoke` cannot express
   // that: it forwards a null destined for a primitive parameter verbatim and `Method.invoke` throws
   // on the null `int`. `invokeWithDefaultMask` drives the `$default` bridge itself when it sees one
@@ -2764,13 +2766,13 @@ private fun InvokeComposable(composableMethod: ComposableMethod, previewArgs: Li
   if (
     ee.schimke.composeai.renderer.PreviewParameterSupport.invokeWithDefaultMask(
       composableMethod,
-      null,
+      receiver,
       previewArgs,
       currentComposer,
     )
   )
     return
-  composableMethod.invoke(currentComposer, null, *previewArgs.toTypedArray())
+  composableMethod.invoke(currentComposer, receiver, *previewArgs.toTypedArray())
 }
 
 /**

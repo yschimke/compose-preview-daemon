@@ -1078,6 +1078,11 @@ public final class ee/schimke/composeai/daemon/PreviewParamsDto$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class ee/schimke/composeai/daemon/PreviewReceiver {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/PreviewReceiver;
+	public final fun of (Ljava/lang/reflect/Method;)Ljava/lang/Object;
+}
+
 public final class ee/schimke/composeai/daemon/PreviewRowAddress {
 	public static final field INDEX_PREFIX Ljava/lang/String;
 	public static final field INSTANCE Lee/schimke/composeai/daemon/PreviewRowAddress;
