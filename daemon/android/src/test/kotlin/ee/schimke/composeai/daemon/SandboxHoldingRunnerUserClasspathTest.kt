@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon
 
+import ee.schimke.composeai.daemon.config.DaemonProperties
 import java.io.File
 import java.nio.file.Files
 import org.junit.After
@@ -104,6 +105,6 @@ class SandboxHoldingRunnerUserClasspathTest {
   }
 
   private companion object {
-    const val USER_CLASS_DIRS = "composeai.daemon.userClassDirs"
+    const val USER_CLASS_DIRS = DaemonProperties.Names.USER_CLASS_DIRS
   }
 }
