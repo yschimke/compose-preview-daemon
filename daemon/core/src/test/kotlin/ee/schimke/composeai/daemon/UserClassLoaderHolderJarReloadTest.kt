@@ -54,6 +54,50 @@ class UserClassLoaderHolderJarReloadTest {
     assertEquals("Edited", readResource(holder))
   }
 
+  /** The transformer sees the runtime-versioned class of a multi-release jar, as URLClassLoader. */
+  @Test
+  fun `transformer path loads multi-release versioned classes`() {
+    val work = Files.createTempDirectory("jar-reload-mr-class-").toFile()
+    val jar = File(work, "user.jar")
+    val base = compileGreeting(work, "Default")
+    val versioned = compileGreeting(work, "Versioned")
+    writeJar(
+      jar,
+      mapOf(
+        "META-INF/MANIFEST.MF" to "Manifest-Version: 1.0\nMulti-Release: true\n\n".toByteArray(),
+        CLASS_ENTRY to base.getValue(CLASS_ENTRY),
+        "META-INF/versions/9/$CLASS_ENTRY" to versioned.getValue(CLASS_ENTRY),
+      ),
+    )
+    val holder =
+      UserClassLoaderHolder(
+        urls = listOf(jar.toURI().toURL()),
+        parentSupplier = { UserClassLoaderHolderJarReloadTest::class.java.classLoader },
+        onSwap = null,
+        transformer = IdentityTransformer,
+      )
+
+    assertEquals("Versioned", greet(holder))
+  }
+
+  /** A multi-release jar answers with the runtime-versioned entry, as URLClassLoader would. */
+  @Test
+  fun `resource streams honour multi-release entries`() {
+    val work = Files.createTempDirectory("jar-reload-mr-").toFile()
+    val jar = File(work, "user.jar")
+    writeJar(
+      jar,
+      mapOf(
+        "META-INF/MANIFEST.MF" to "Manifest-Version: 1.0\nMulti-Release: true\n\n".toByteArray(),
+        RESOURCE to "Base".toByteArray(),
+        "META-INF/versions/9/$RESOURCE" to "Versioned".toByteArray(),
+      ),
+    )
+    val holder = UserClassLoaderHolder(urls = listOf(jar.toURI().toURL()))
+
+    assertEquals("Versioned", readResource(holder))
+  }
+
   private fun assertReloadsEditedJar(
     transformer: UserClassTransformer?,
     rewrite: (File, (File) -> Unit) -> Unit,

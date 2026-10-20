@@ -207,7 +207,12 @@ public class UserClassLoaderHolder(
     private fun jarFile(jar: File): JarFile? =
       synchronized(openJars) {
         if (jarsClosed) return null
-        openJars.getOrPut(jar) { JarFile(jar) }
+        // Runtime-versioned, as URLClassPath opens it: a multi-release jar resolves a logical name
+        // to
+        // its `META-INF/versions/N/` entry, so the bytes match what URLClassLoader would define.
+        openJars.getOrPut(jar) {
+          JarFile(jar, true, java.util.zip.ZipFile.OPEN_READ, JarFile.runtimeVersion())
+        }
       }
 
     override fun close() {
