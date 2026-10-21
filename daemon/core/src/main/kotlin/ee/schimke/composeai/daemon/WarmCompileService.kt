@@ -134,7 +134,9 @@ internal constructor(
   public companion object {
     internal const val ENTRY_CLASS: String =
       "ee.schimke.composeai.daemon.warm.impl.WarmCompilerEntry"
-    internal const val IMPL_JAR_RESOURCE: String = "warm-compiler-impl.jar"
+
+    /** The bundled impl jar for compiler [version], one per supported compiler line. */
+    internal fun implJarResource(version: String): String = "warm/warm-compiler-impl-$version.jar"
 
     /** The Compose option the Build Tools API path passes too; see `composeCompilerPlugins`. */
     private const val COMPOSE_SOURCE_INFORMATION: String =
@@ -215,12 +217,13 @@ internal class ReflectiveWarmCompiler private constructor(private val entry: Any
       workDir: File,
       config: Map<String, Any?>,
     ): ReflectiveWarmCompiler {
-      val implJar = extractImplJar(workDir)
+      val urls = implClasspath.map { File(it).toURI().toURL() }
+      val implJar = extractImplJar(workDir, compilerVersion(urls))
       // Parent is the platform loader: the compiler brings its own Kotlin stdlib, and nothing of
       // the daemon's class path may leak into it.
       val loader =
         URLClassLoader(
-          (implClasspath.map { File(it) } + implJar).map { it.toURI().toURL() }.toTypedArray(),
+          (urls + implJar.toURI().toURL()).toTypedArray(),
           ClassLoader.getPlatformClassLoader(),
         )
       val entry =
@@ -236,15 +239,24 @@ internal class ReflectiveWarmCompiler private constructor(private val entry: Any
       return ReflectiveWarmCompiler(entry)
     }
 
-    private fun extractImplJar(workDir: File): File {
+    /**
+     * The compiler version the Build Tools API impl jars carry, read without keeping them loaded.
+     */
+    private fun compilerVersion(urls: List<java.net.URL>): String =
+      URLClassLoader(urls.toTypedArray(), ClassLoader.getPlatformClassLoader()).use { probe ->
+        probe
+          .loadClass("org.jetbrains.kotlin.config.KotlinCompilerVersion")
+          .getField("VERSION")
+          .get(null) as String
+      }
+
+    private fun extractImplJar(workDir: File, version: String): File {
+      val resource = WarmCompileService.implJarResource(version)
       val bytes =
-        WarmCompileService::class
-          .java
-          .getResourceAsStream(WarmCompileService.IMPL_JAR_RESOURCE)
-          ?.use { it.readBytes() }
-          ?: error("${WarmCompileService.IMPL_JAR_RESOURCE} is not bundled in daemon-core")
+        WarmCompileService::class.java.getResourceAsStream(resource)?.use { it.readBytes() }
+          ?: error("no warm compiler is bundled for Kotlin $version")
       workDir.mkdirs()
-      val target = File(workDir, WarmCompileService.IMPL_JAR_RESOURCE)
+      val target = File(workDir, resource.substringAfterLast('/'))
       if (!target.isFile || !target.readBytes().contentEquals(bytes)) target.writeBytes(bytes)
       return target
     }

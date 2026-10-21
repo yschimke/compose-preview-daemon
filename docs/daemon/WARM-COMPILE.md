@@ -48,14 +48,23 @@ compile rebuilds the cached state.
 
 ## Isolation and versions
 
-The impl jar ships inside `daemon-core` as a resource and is loaded next to the BTA impl jars the
-launch descriptor supplies (which carry kotlin-compiler-embeddable), in a class loader parented to
-the platform loader. The daemon talks to it through JDK types only.
-
 The internal API differs between compiler versions, and the Gradle plugin resolves the BTA impl at
-the **consumer's** Kotlin version, so the jar refuses to load unless the compiler on its class path
-is the version it was built against (written into `built-against.txt` at build time). On any other
-version the daemon logs it once and uses the Build Tools API as before.
+the **consumer's** Kotlin version. So `:daemon:warm-compiler-impl` builds one jar per supported
+compiler line from shared sources (`src/main`: the entry, the ABI gate) and a version-specific
+pipeline (`src/k24` against `libs.versions.kotlin`, `src/k25` against `warmCompilerKotlinNext`,
+currently 2.5.0-Beta2, whose frontend replaces search scopes with `JvmClasspath` and threads a
+`javaInterop` through the session context). Both run the same tests (`test`, `testK25`).
+
+`daemon-core` ships the jars as resources (`warm/warm-compiler-impl-<version>.jar`). On the first
+`compileSources` the daemon reads `KotlinCompilerVersion` from the launch descriptor's BTA impl
+jars, extracts the matching jar and loads it next to them, in a class loader parented to the
+platform loader; it talks to it through JDK types only. Each jar also checks the compiler it was
+built against (`built-against.txt`) before doing anything. On a version with no jar the daemon logs
+it once and uses the Build Tools API as before.
+
+Kotlin 2.5's Build Tools API caches compiler-plugin class loaders per `BuildSession`. The warm
+compiler already loads the Compose plugin once; the Build Tools API fallback would need its
+`BuildSession` kept open across compiles to benefit (`daemon-bta`, compose-preview-contracts).
 
 ## Results
 
@@ -72,6 +81,9 @@ pixels of every iteration:
 | leaf screen edit, save→pixels | 1318 ms | 446 ms |
 | shared component edit, save→pixels | 1253 ms | 397 ms |
 | `compileSources` | 960–1060 ms | 110–170 ms |
+
+`-Pharness.saveLoop.kotlin=2.5.0-Beta2` runs the same benchmark the way a 2.5 consumer's descriptor
+would; on it every warm save stayed warm (`compileSources` 134–178 ms).
 
 `:daemon:warm-compiler-impl`'s tests check that a warm compile installs bytes identical to a full
 stock compile of the module, and that each refusal above leaves the class directory untouched.

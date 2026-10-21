@@ -298,10 +298,15 @@ val harnessComposePlugin =
     isTransitive = false
   }
 
+// `-Pharness.saveLoop.kotlin=<version>` stands in for a consumer on another Kotlin version: the
+// Gradle plugin resolves these at the consumer's version, and so does this.
+val saveLoopKotlin =
+  providers.gradleProperty("harness.saveLoop.kotlin").orNull ?: libs.versions.kotlin.get()
+
 dependencies {
-  harnessBtaImpl("org.jetbrains.kotlin:kotlin-build-tools-impl:${libs.versions.kotlin.get()}")
+  harnessBtaImpl("org.jetbrains.kotlin:kotlin-build-tools-impl:$saveLoopKotlin")
   harnessComposePlugin(
-    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:${libs.versions.kotlin.get()}"
+    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:$saveLoopKotlin"
   )
 }
 

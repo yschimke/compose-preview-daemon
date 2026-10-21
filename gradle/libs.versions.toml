@@ -4,6 +4,9 @@
 # and leaves the repo's main language unscanned. Bump once the CodeQL bundle catches up (the
 # alternative, disabling Kotlin extraction, would trade away the scan itself).
 kotlin = "2.4.21"
+# The next compiler line `:daemon:warm-compiler-impl` also builds against, so the warm compiler
+# keeps working for consumers already on it (docs/daemon/WARM-COMPILE.md).
+warmCompilerKotlinNext = "2.5.0-Beta2"
 # Kotlin language/api floor for published modules. Set lower than `kotlin`
 # so consumers on an older Kotlin can still link against our artifacts —
 # tapmoc enforces this and fails the build if a transitive API dep raises
