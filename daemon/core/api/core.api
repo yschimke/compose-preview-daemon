@@ -1805,6 +1805,16 @@ public abstract interface class ee/schimke/composeai/daemon/UserClassTransformer
 	public abstract fun transform (Ljava/lang/String;[B)[B
 }
 
+public final class ee/schimke/composeai/daemon/WarmCompileService : ee/schimke/composeai/daemon/bta/BtaCompileService {
+	public static final field Companion Lee/schimke/composeai/daemon/WarmCompileService$Companion;
+	public fun compile (Ljava/util/List;Lee/schimke/composeai/daemon/protocol/SourceChangeSet;)Lee/schimke/composeai/daemon/bta/BtaCompileService$Outcome;
+}
+
+public final class ee/schimke/composeai/daemon/WarmCompileService$Companion {
+	public final fun wrapIfEnabled (Lee/schimke/composeai/daemon/bta/BtaCompileService;Lkotlin/jvm/functions/Function1;)Lee/schimke/composeai/daemon/bta/BtaCompileService;
+	public static synthetic fun wrapIfEnabled$default (Lee/schimke/composeai/daemon/WarmCompileService$Companion;Lee/schimke/composeai/daemon/bta/BtaCompileService;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lee/schimke/composeai/daemon/bta/BtaCompileService;
+}
+
 public final class ee/schimke/composeai/daemon/XrFrame {
 	public fun <init> (JIILjava/lang/String;Ljava/lang/String;)V
 	public final fun component1 ()J
@@ -1920,6 +1930,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public final fun getUseConsumerApplication ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getUserClassDirs ()Lee/schimke/composeai/daemon/config/PathListProperty;
 	public final fun getUserClassPackages ()Lee/schimke/composeai/daemon/config/PathListProperty;
+	public final fun getWarmCompile ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getWarmRenderOnBoot ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getWarmSpare ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getWorkspaceRoot ()Lee/schimke/composeai/daemon/config/PathProperty;
@@ -1986,6 +1997,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
 	public static final field USER_CLASS_DIRS Ljava/lang/String;
 	public static final field USER_CLASS_PACKAGES Ljava/lang/String;
 	public static final field USE_CONSUMER_APPLICATION Ljava/lang/String;
+	public static final field WARM_COMPILE Ljava/lang/String;
 	public static final field WARM_RENDER_ON_BOOT Ljava/lang/String;
 	public static final field WARM_SPARE Ljava/lang/String;
 	public static final field WORKSPACE_ROOT Ljava/lang/String;

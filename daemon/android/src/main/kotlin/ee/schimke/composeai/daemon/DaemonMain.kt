@@ -715,6 +715,9 @@ fun main(args: Array<String>) {
   // nothing until that switch is flipped.
   val btaCompileService =
     ee.schimke.composeai.daemon.bta.DefaultBtaCompileService.fromSysprops(BtaSysprops::lookup)
+      // `composeai.daemon.warmCompile` puts the warm compiler in front
+      // (docs/daemon/WARM-COMPILE.md).
+      ?.let { WarmCompileService.wrapIfEnabled(it) }
   if (btaCompileService != null) {
     System.err.println(
       "compose-ai-tools daemon-android: in-process compile available (Kotlin Build Tools API " +

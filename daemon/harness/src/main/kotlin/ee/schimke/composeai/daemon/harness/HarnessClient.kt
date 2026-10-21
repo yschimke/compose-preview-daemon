@@ -496,6 +496,38 @@ private constructor(
     return json.decodeFromJsonElement(RenderNowResult.serializer(), resultElem)
   }
 
+  /** Drives `compileSources` — the editor's in-process compile on save. */
+  fun compileSources(
+    sources: List<String>,
+    changes: ee.schimke.composeai.daemon.protocol.SourceChangeSet?,
+    timeout: Duration = 120.seconds,
+  ): ee.schimke.composeai.daemon.protocol.CompileSourcesResult {
+    val id = nextId.getAndIncrement()
+    val params =
+      ee.schimke.composeai.daemon.protocol.CompileSourcesParams(
+        sources = sources,
+        changes = changes,
+      )
+    val request =
+      JsonRpcRequest(
+        id = id,
+        method = "compileSources",
+        params =
+          json.encodeToJsonElement(
+            ee.schimke.composeai.daemon.protocol.CompileSourcesParams.serializer(),
+            params,
+          ),
+      )
+    val response = sendAndPoll(id, request, timeout)
+    val resultElem =
+      response["result"]
+        ?: error("compileSources: no result — error=${response["error"]}, full=$response")
+    return json.decodeFromJsonElement(
+      ee.schimke.composeai.daemon.protocol.CompileSourcesResult.serializer(),
+      resultElem,
+    )
+  }
+
   /**
    * Blocks until a notification with [method] arrives, dropping any earlier notifications with
    * other methods (FIFO-but-filtered semantics — matches what a VS Code client would do when it

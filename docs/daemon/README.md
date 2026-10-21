@@ -47,6 +47,8 @@ the CI-canonical render path.
 
 - **[CLASSLOADER.md](CLASSLOADER.md)** — disposable user classloader.
   The save-loop fix.
+- **[WARM-COMPILE.md](WARM-COMPILE.md)** — the opt-in warm in-process compiler behind
+  `compileSources`.
 - **[CLASSLOADER-FORENSICS.md](CLASSLOADER-FORENSICS.md)** — short
   runbook for the classloader forensic dump tools.
 - **[ROBOLECTRIC-PRIMER.md](ROBOLECTRIC-PRIMER.md)** — primer on

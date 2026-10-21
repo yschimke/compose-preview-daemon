@@ -281,3 +281,46 @@ val regenerateBaselines =
     filter { includeTestsMatching("*RealModeTest") }
     outputs.upToDateWhen { false }
   }
+
+// The in-process compile the Gradle plugin's launch descriptor configures: the Build Tools API impl
+// (which carries kotlin-compiler-embeddable) and the Compose compiler plugin, at the Kotlin version
+// this build compiles with. `SaveToPixelsRealModeTest` hands them to the daemon as the
+// `composeai.daemon.bta.*` system properties, to time a save from `compileSources` to the PNG.
+val harnessBtaImpl =
+  configurations.create("harnessBtaImpl") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+  }
+val harnessComposePlugin =
+  configurations.create("harnessComposePlugin") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    isTransitive = false
+  }
+
+dependencies {
+  harnessBtaImpl("org.jetbrains.kotlin:kotlin-build-tools-impl:${libs.versions.kotlin.get()}")
+  harnessComposePlugin(
+    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:${libs.versions.kotlin.get()}"
+  )
+}
+
+tasks.withType<Test>().configureEach {
+  val btaImpl: FileCollection = files(harnessBtaImpl)
+  val composePlugin: FileCollection = files(harnessComposePlugin)
+  inputs.files(btaImpl, composePlugin)
+  jvmArgumentProviders.add(
+    CommandLineArgumentProvider {
+      listOf(
+        "-Dcomposeai.harness.btaImplClasspath=${btaImpl.asPath}",
+        "-Dcomposeai.harness.composePlugin=${composePlugin.asPath}",
+      )
+    }
+  )
+  // The save-to-pixels benchmark's knobs, forwarded from `-Pharness.saveLoop.*`.
+  for (key in listOf("modes", "iterations", "warmup", "extraJvmArgs", "trace")) {
+    providers.gradleProperty("harness.saveLoop.$key").orNull?.let {
+      systemProperty("composeai.harness.saveLoop.$key", it)
+    }
+  }
+}

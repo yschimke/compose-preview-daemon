@@ -1,0 +1,145 @@
+package ee.schimke.composeai.daemon
+
+import ee.schimke.composeai.daemon.bta.BtaCompileService
+import ee.schimke.composeai.daemon.protocol.SourceChangeSet
+import java.nio.file.Path
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/** Routing between the warm compiler and its Build Tools API fallback. */
+class WarmCompileServiceTest {
+
+  private class FakeFallback : BtaCompileService {
+    val calls = mutableListOf<SourceChangeSet?>()
+    var outcome: BtaCompileService.Outcome = BtaCompileService.Outcome.Ok
+
+    override fun compile(
+      sources: List<Path>,
+      changes: SourceChangeSet?,
+    ): BtaCompileService.Outcome {
+      calls += changes
+      return outcome
+    }
+  }
+
+  private class FakeWarm(var next: Map<String, Any?> = mapOf("status" to "ok")) :
+    WarmCompileService.WarmCompiler {
+    val compiled = mutableListOf<List<String>>()
+    var invalidations = 0
+
+    override fun compile(sources: List<String>): Map<String, Any?> {
+      compiled += sources
+      return next
+    }
+
+    override fun invalidate() {
+      invalidations++
+    }
+  }
+
+  private val sources = listOf(Path.of("/m/A.kt"), Path.of("/m/B.kt"))
+
+  private fun service(fallback: FakeFallback, warm: () -> WarmCompileService.WarmCompiler) =
+    WarmCompileService(fallback, warm, log = {})
+
+  @Test
+  fun `a local edit compiles warm and never reaches the fallback`() {
+    val fallback = FakeFallback()
+    val warm = FakeWarm()
+    val outcome =
+      service(fallback) { warm }.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt")))
+    assertEquals(BtaCompileService.Outcome.Ok, outcome)
+    assertEquals(listOf(listOf("/m/A.kt")), warm.compiled)
+    assertTrue(fallback.calls.isEmpty())
+  }
+
+  @Test
+  fun `an unsupported edit falls back with every file compiled warm since`() {
+    val fallback = FakeFallback()
+    val warm = FakeWarm()
+    val service = service(fallback) { warm }
+    service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt")))
+    warm.next = mapOf("status" to "unsupported", "reason" to "ABI changed")
+    service.compile(sources, SourceChangeSet(modified = listOf("/m/B.kt")))
+
+    assertEquals(listOf(SourceChangeSet(modified = listOf("/m/A.kt", "/m/B.kt"))), fallback.calls)
+    assertEquals(1, warm.invalidations)
+
+    // Once the fallback caught up, the next fallback carries only its own change.
+    service.compile(sources, null)
+    assertEquals(null, fallback.calls.last())
+  }
+
+  @Test
+  fun `compile errors come back without a fallback`() {
+    val fallback = FakeFallback()
+    val warm =
+      FakeWarm(
+        mapOf(
+          "status" to "errors",
+          "errors" to
+            listOf(
+              mapOf(
+                "file" to "/m/A.kt",
+                "line" to 3,
+                "column" to 5,
+                "message" to "Unresolved reference",
+              )
+            ),
+        )
+      )
+    val outcome =
+      service(fallback) { warm }.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt")))
+    outcome as BtaCompileService.Outcome.CompileError
+    assertEquals(3, outcome.errors.single().line)
+    assertTrue(fallback.calls.isEmpty())
+  }
+
+  @Test
+  fun `removed files, unknown change sets and non-Kotlin sources go straight to the fallback`() {
+    val fallback = FakeFallback()
+    val warm = FakeWarm()
+    val service = service(fallback) { warm }
+    service.compile(sources, null)
+    service.compile(sources, SourceChangeSet(modified = emptyList(), removed = listOf("/m/B.kt")))
+    service.compile(sources, SourceChangeSet(modified = listOf("/m/J.java")))
+    assertEquals(3, fallback.calls.size)
+    assertTrue(warm.compiled.isEmpty())
+  }
+
+  @Test
+  fun `a warm compiler that cannot load is never tried again`() {
+    val fallback = FakeFallback()
+    var attempts = 0
+    val service =
+      service(fallback) {
+        attempts++
+        error("built against Kotlin 2.4.21 but the compiler on the class path is 2.3.0")
+      }
+    repeat(3) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }
+    assertEquals(1, attempts)
+    assertEquals(3, fallback.calls.size)
+  }
+
+  @Test
+  fun `a warm compiler that throws mid-compile falls back and is reset`() {
+    val fallback = FakeFallback()
+    val warm =
+      object : WarmCompileService.WarmCompiler {
+        var invalidated = false
+
+        override fun compile(sources: List<String>): Map<String, Any?> =
+          throw IllegalStateException("boom")
+
+        override fun invalidate() {
+          invalidated = true
+        }
+      }
+    val outcome =
+      service(fallback) { warm }.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt")))
+    assertEquals(BtaCompileService.Outcome.Ok, outcome)
+    assertEquals(1, fallback.calls.size)
+    assertTrue(warm.invalidated)
+  }
+}
