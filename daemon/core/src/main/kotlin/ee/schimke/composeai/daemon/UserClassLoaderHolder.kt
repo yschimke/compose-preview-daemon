@@ -4,6 +4,7 @@ import ee.schimke.composeai.daemon.config.DaemonProperties
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.lang.ref.Cleaner
 import java.lang.ref.WeakReference
 import java.net.URL
 import java.net.URLClassLoader
@@ -47,6 +48,16 @@ public class UserClassLoaderHolder(
 
   private val lock = Any()
   private var current: URLClassLoader? = null
+
+  /**
+   * Whether a [swap] keeps the first loader warm as a base and reloads only the changed classes in
+   * a tip loader over it ([DaemonProperties.tipReload]). Internal so tests can set it per holder.
+   */
+  internal var tipReload: Boolean = DaemonProperties.tipReload.read()
+
+  /** In [tipReload] mode, the warm loader every tip delegates unchanged classes to. */
+  private var base: ChildFirstURLClassLoader? = null
+  private var baseDirectories: UserClassDirectories? = null
   private val trackedLoaders: MutableList<WeakReference<URLClassLoader>> = mutableListOf()
 
   /** The current child loader, allocated lazily; stable until [swap]. */
@@ -59,7 +70,8 @@ public class UserClassLoaderHolder(
 
   /**
    * Drops the current child loader; the next [currentChildLoader] allocates a fresh one. Not
-   * pre-allocated, so a burst of file changes does not pile up loaders.
+   * pre-allocated, so a burst of file changes does not pile up loaders. In [tipReload] mode the
+   * fresh one is a tip over the retained base whenever the change allows it.
    */
   public fun swap() {
     synchronized(lock) {
@@ -94,8 +106,22 @@ public class UserClassLoaderHolder(
   }
 
   private fun allocateLocked(): URLClassLoader {
+    allocateTipLocked()?.let {
+      return it
+    }
     val resolvedParent = parentSupplier()
-    val fresh = ChildFirstURLClassLoader(urls.toTypedArray(), resolvedParent, transformer)
+    val directories = UserClassDirectories.capture(urls)
+    val fresh =
+      try {
+        ChildFirstURLClassLoader(directories, resolvedParent, transformer, owned = null)
+      } catch (failure: Throwable) {
+        directories.run()
+        throw failure
+      }
+    if (tipReload) {
+      base = fresh
+      baseDirectories = directories
+    }
     current = fresh
     trackedLoaders.add(WeakReference(fresh))
     // An mtime that does not advance across saves means the compile rewrote nothing.
@@ -108,8 +134,55 @@ public class UserClassLoaderHolder(
   }
 
   /**
+   * A tip over the warm [base] for the current output, or `null` when there is no base or the
+   * change needs a fresh one (a jar or resource changed). An unchanged output reuses the base.
+   */
+  private fun allocateTipLocked(): URLClassLoader? {
+    if (!tipReload) return null
+    val warm = base ?: return null
+    val directories = baseDirectories ?: return null
+    val tip =
+      try {
+        directories.tip(warm::ownBytes)
+      } catch (failure: Exception) {
+        System.err.println(
+          "compose-ai-daemon: [classloader] tip capture failed, reloading all: $failure"
+        )
+        null
+      }
+    if (tip == null) {
+      System.err.println(
+        "compose-ai-daemon: [classloader] tip unavailable, replacing the base loader"
+      )
+      base = null
+      baseDirectories = null
+      return null
+    }
+    val owned = tip.owned.orEmpty()
+    val fresh =
+      if (owned.isEmpty()) warm
+      else
+        try {
+          ChildFirstURLClassLoader(tip, warm, transformer, owned)
+        } catch (failure: Throwable) {
+          tip.run()
+          throw failure
+        }
+    current = fresh
+    if (fresh !== warm) trackedLoaders.add(WeakReference(fresh))
+    System.err.println(
+      "compose-ai-daemon: [classloader] allocate tip loader over " +
+        "base=${System.identityHashCode(warm).toString(16)} " +
+        "loaderId=${System.identityHashCode(fresh).toString(16)} reloadedClasses=${owned.size}"
+    )
+    onSwap?.invoke(fresh)
+    return fresh
+  }
+
+  /**
    * Child-first, because the user classes may also be on the parent's classpath with stale bytes.
-   * [mustDelegateToParent] packages always go to the parent.
+   * [mustDelegateToParent] packages always go to the parent. A tip loader ([owned] non-null)
+   * defines exactly the [owned] classes and delegates every other one to its parent, the base.
    *
    * Bytes this loader reads itself (the [transformer] path, and [getResourceAsStream] for its own
    * jars) come from a [JarFile] this loader opens, never from `URL.openStream()`. A `jar:file:`
@@ -125,14 +198,19 @@ public class UserClassLoaderHolder(
    * unreachable [JarFile].
    */
   private class ChildFirstURLClassLoader(
-    urls: Array<URL>,
+    directories: UserClassDirectories,
     parent: ClassLoader,
     private val transformer: UserClassTransformer?,
-  ) : URLClassLoader(urls, parent) {
+    private val owned: Set<String>?,
+  ) : URLClassLoader(directories.urls.toTypedArray(), parent) {
+
+    // Keep retired generations until their loader is closed or collected: an in-flight render
+    // may still resolve classes or resources after swap(), even if compilation deleted them.
+    private val directoryCleanup = directoryCleaner.register(this, directories)
 
     /** The jars on this loader's own class path, by their file URL as `jar:` URLs spell it. */
     private val ownJars: Map<String, File> =
-      urls
+      directories.urls
         .filter { it.protocol == "file" }
         .mapNotNull { url -> runCatching { File(url.toURI()) }.getOrNull()?.let { url to it } }
         .filter { (_, file) -> file.isFile }
@@ -245,7 +323,14 @@ public class UserClassLoaderHolder(
         super.close()
       } finally {
         handles.forEach { runCatching { it.close() } }
+        directoryCleanup.clean()
       }
+    }
+
+    /** [resourceName]'s bytes from this loader's own URLs only, never its parent's. */
+    fun ownBytes(resourceName: String): ByteArray? {
+      val resource = findResource(resourceName) ?: return null
+      return readUncached(resource, resourceName)
     }
 
     /** The class-path entry [resource] came from, as [URLClassLoader] would report it. */
@@ -267,6 +352,11 @@ public class UserClassLoaderHolder(
         if (UserClassLoaderHolder.mustDelegateToParent(name)) {
           return super.loadClass(name, resolve)
         }
+        if (owned != null) {
+          if (name !in owned) return super.loadClass(name, resolve)
+          // Owned but absent means deleted since the base: never fall back to the base's copy.
+          return findClass(name).also { if (resolve) resolveClass(it) }
+        }
         return try {
           val found = findClass(name)
           if (resolve) resolveClass(found)
@@ -279,6 +369,7 @@ public class UserClassLoaderHolder(
   }
 
   public companion object {
+    private val directoryCleaner = Cleaner.create()
     /** Sysprop: `File.pathSeparator`-delimited user-class directories, set by the launcher. */
     public const val USER_CLASS_DIRS_PROP: String = DaemonProperties.Names.USER_CLASS_DIRS
 

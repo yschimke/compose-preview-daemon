@@ -25,23 +25,64 @@ child would never get a chance.
   desktop). The user's compiled-class directory is **not** on its URLs.
 - **First render:** `RenderEngine` lazily allocates a child
   `URLClassLoader` whose parent is the long-lived classloader and
-  whose URLs are the user's `build/intermediates/...` directory.
+  whose directory URLs point to a private copy of the user's compiled output.
   `Class.forName(spec.className, true, currentChildLoader)` resolves
   the preview class via the child. Parent classes (Compose runtime,
   AndroidX) flow up via parent-first delegation.
 - **`fileChanged({ kind: "source" })` arrives:** the daemon drops the
   strong reference to the current child loader, then allocates a new
   one. The next render goes through the new loader, which reads the
-  current bytecode off disk on demand. Old child loader becomes
+  current bytecode from its own directory generation on demand. Old child loader becomes
   GC-able once any retained Compose state is cleared.
 - **Daemon shutdown:** drop both loaders. Parent's
   `InstrumentingClassLoader` releases its sandbox; child is just a
   `URLClassLoader`, trivially closeable.
 
-Cost per recompile cycle: tens of ms — `URLClassLoader` allocation is
-free; first lookup pays the `.class` file read; subsequent lookups in
-the same render are cached. The 4–5s Robolectric sandbox bootstrap is
-paid **once at daemon spawn**.
+Each allocation copies the user class directories, including resources. This adds IO proportional
+to those directories, while retaining the warm parent and its expensive Robolectric bootstrap.
+Dependency JAR URLs are unchanged; they retain the existing per-loader JAR handling.
+
+The directory copy protects an already allocated loader when a failed incremental compilation
+deletes or rewrites its original output, including classes not yet resolved by that loader.
+`swap()` remains lazy and callers must only notify it after a successful compile. This does not
+protect a session that has never allocated a loader, a later daemon restart, mutable JARs, or a
+compile racing the initial copy. It is not a durable last-good build store.
+
+Retired copies survive while their loader is reachable, so an in-flight render can finish. Copies
+are removed on explicit loader close, garbage collection, or normal JVM shutdown. Forced process
+termination can leave temporary directories behind.
+
+## Tip reload (`composeai.daemon.tipReload`)
+
+Off by default. When on, the first child loader becomes a **base** that lives for the session, and
+each `swap()` layers a **tip** loader over it instead of replacing every user class:
+
+```
+framework parent (Robolectric / Compose, warm)
+  └─ base: every user class as first loaded (warm, kept)
+       └─ tip: changed classes + every class that references them (replaced per swap)
+```
+
+On the next allocation the holder compares the live output directories with the base's private
+copy (size and mtime first, bytes only when those differ). The tip owns:
+
+- every class file added, changed or deleted since the base; and
+- every base class whose constant pool or descriptors name an owned class, transitively.
+
+The second set is what makes the split correct. An unchanged class loaded by the base links against
+the base's copy of whatever it references, so a caller of an edited composable must be redefined in
+the tip to see the edit. Everything outside the closure (themes, unrelated screens, their static
+state) stays loaded in the base. Tips are taken against the base, never against the previous tip,
+so edits accumulate. A tip owns a deleted class too, so it is not served from the base.
+
+The base is replaced, as without tip reload, when a user-class jar or a non-class resource changed,
+or a class file cannot be parsed. An output identical to the base reuses the base loader. The
+reference index is built from the base on the first tip and cached for the base's lifetime.
+
+Limits: a reference made only by name at runtime (reflection, `ServiceLoader`, a class name in a
+string) is not followed, so such a caller keeps the base's version. Static state held by a base
+class that captured an instance of an owned class keeps that old instance. Interactive sessions are
+still closed on swap, as before.
 
 ## Implementation seams
 
@@ -58,7 +99,7 @@ paid **once at daemon spawn**.
   `RenderEngine.render` is updated to `Class.forName(spec.className,
   true, currentChildLoader)`.
 - The fileChanged → recycle path replaces `currentChildLoader` with a
-  new `URLClassLoader` whose URLs are the same user-class directories.
+  new `URLClassLoader` over a fresh copy of the user-class directories.
   The render thread's pending queue is drained before the swap (no
   mid-render cancellation — DESIGN § 9 invariant).
 

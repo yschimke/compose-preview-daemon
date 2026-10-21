@@ -221,6 +221,7 @@ public object DaemonProperties {
 
     public const val USER_CLASS_DIRS: String = "composeai.daemon.userClassDirs"
     public const val USER_CLASS_PACKAGES: String = "composeai.daemon.userClassPackages"
+    public const val TIP_RELOAD: String = "composeai.daemon.tipReload"
     public const val APP_COMPOSE: String = "composeai.daemon.appCompose"
     public const val CHEAP_SIGNAL_FILES: String = "composeai.daemon.cheapSignalFiles"
     public const val PREVIEWS_JSON_PATH: String = "composeai.daemon.previewsJsonPath"
@@ -387,6 +388,15 @@ public object DaemonProperties {
     PathListProperty(
       Names.USER_CLASS_PACKAGES,
       "Packages excluded from Robolectric instrumentation and served from the user classloader.",
+      G_CLASSPATH,
+    )
+
+  public val tipReload: BooleanProperty =
+    BooleanProperty(
+      Names.TIP_RELOAD,
+      false,
+      "Whether a user-class swap keeps the first loader warm and reloads only the changed " +
+        "classes and the classes that reference them (docs/daemon/CLASSLOADER.md).",
       G_CLASSPATH,
     )
 
@@ -802,6 +812,7 @@ public object DaemonProperties {
       sandboxBootTimeoutMs,
       userClassDirs,
       userClassPackages,
+      tipReload,
       appCompose,
       cheapSignalFiles,
       previewsJsonPath,

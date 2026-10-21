@@ -1916,6 +1916,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public final fun getSandboxWorkerSpares ()Lee/schimke/composeai/daemon/config/CsvListProperty;
 	public final fun getSocketPath ()Lee/schimke/composeai/daemon/config/PathProperty;
 	public final fun getStartupQuiet ()Lee/schimke/composeai/daemon/config/BooleanProperty;
+	public final fun getTipReload ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getUseConsumerApplication ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getUserClassDirs ()Lee/schimke/composeai/daemon/config/PathListProperty;
 	public final fun getUserClassPackages ()Lee/schimke/composeai/daemon/config/PathListProperty;
@@ -1981,6 +1982,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
 	public static final field SANDBOX_WORKER_SPARES Ljava/lang/String;
 	public static final field SOCKET_PATH Ljava/lang/String;
 	public static final field STARTUP_QUIET Ljava/lang/String;
+	public static final field TIP_RELOAD Ljava/lang/String;
 	public static final field USER_CLASS_DIRS Ljava/lang/String;
 	public static final field USER_CLASS_PACKAGES Ljava/lang/String;
 	public static final field USE_CONSUMER_APPLICATION Ljava/lang/String;
