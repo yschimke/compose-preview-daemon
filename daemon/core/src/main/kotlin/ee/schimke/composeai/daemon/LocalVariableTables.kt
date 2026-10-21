@@ -18,11 +18,17 @@ import java.nio.ByteBuffer
  * A duplicate is what HotSpot calls one: the same start, length, name and slot (the descriptor is
  * not part of its key). The first row is kept. A class with no duplicate is returned as the very
  * same array, so the common case costs one read-only walk of the class file.
+ *
+ * Duplicates do not only arrive prebuilt. Robolectric's `ClassInstrumentor` moves the code before a
+ * constructor's `this(...)` / `super(...)` call into the new `<init>` and leaves the original
+ * body's local-variable rows pointing at labels that no longer exist; ASM writes each of them as
+ * start 0, length 0, so two inlined `.dp` getters in one Kotlin default-arguments constructor
+ * become two identical rows. That is why `:daemon:android` also runs this on Robolectric's output.
  */
-internal object LocalVariableTables {
+public object LocalVariableTables {
 
   /** [bytes] without duplicate local-variable rows; [bytes] itself when there are none. */
-  fun dedupe(bytes: ByteArray): ByteArray =
+  public fun dedupe(bytes: ByteArray): ByteArray =
     try {
       if (!ClassWalk(bytes, null).walk()) bytes
       else {
