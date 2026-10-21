@@ -1,8 +1,19 @@
 # Opt-in sampling of post-GC render metrics
 
-`composeai.daemon.metrics.everyRenders` controls how often the daemon deliberately
-requests GC to collect the structured render metrics block. The default is **1**,
-which retains measurement on every render. An integer N greater than 1 measures
+> **Measuring no longer collects.** `heapAfterGcMb` is now read from the collectors'
+> last-GC records (the heap in use right after the most recent collection), so a
+> measured render requests no GC. The per-render `System.gc()` this page describes
+> sat between every frame and its `renderFinished` — about 150 ms of a ~190 ms
+> desktop render (`SaveToPixelsRealModeTest`) — and `tookMs`, taken before it, never
+> showed it. Its memory effect (the −59 MiB below) now comes from an explicit policy
+> instead: `composeai.daemon.idleGcMs` (default 2000) runs one collection once no
+> render has completed for that long, off the render path. The cadence knob below
+> still samples which renders carry the structured block. The measurements below
+> predate the change.
+
+`composeai.daemon.metrics.everyRenders` controls how often the daemon reports the
+structured render metrics block. The default is **1**, which retains measurement on
+every render. An integer N greater than 1 measures
 the first render in a sandbox and then every N renders thereafter. Counts include
 warm-up renders. Invalid input uses the default; values below 1 clamp to 1.
 

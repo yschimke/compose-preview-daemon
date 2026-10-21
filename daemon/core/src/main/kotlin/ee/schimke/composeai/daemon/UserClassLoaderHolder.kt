@@ -459,9 +459,10 @@ public class UserClassLoaderHolder(
       }
 
     /**
-     * A `path=… mtime=… size=… sha=…` fingerprint of [className]'s class file (or containing jar),
-     * for spotting a save that did not recompile; `null` when it is not on a local file. The SHA is
-     * truncated to 12 hex chars.
+     * A `path=… mtime=… size=…` fingerprint of [className]'s class file (or containing jar), for
+     * spotting a save that did not recompile; `null` when it is not on a local file. A recompile
+     * rewrites the file, so its mtime is the signal. It is logged on every render, so it reads no
+     * file contents: it used to SHA-256 the class file, or the whole jar holding it.
      */
     public fun classFileFingerprint(loader: ClassLoader, className: String): String? {
       val resourceName = className.replace('.', '/') + ".class"
@@ -480,7 +481,7 @@ public class UserClassLoaderHolder(
         }
       if (!file.exists()) return null
       val mtime = java.time.Instant.ofEpochMilli(file.lastModified()).toString()
-      return "path=${file.absolutePath} mtime=$mtime size=${file.length()} sha=${sha256Short(file)}"
+      return "path=${file.absolutePath} mtime=$mtime size=${file.length()}"
     }
 
     private fun fingerprintFromUrls(urls: Array<URL>, resourceName: String): String? {
@@ -496,7 +497,7 @@ public class UserClassLoaderHolder(
           val file = root.resolve(resourceName)
           if (file.exists()) {
             val mtime = java.time.Instant.ofEpochMilli(file.lastModified()).toString()
-            return "path=${file.absolutePath} mtime=$mtime size=${file.length()} sha=${sha256Short(file)}"
+            return "path=${file.absolutePath} mtime=$mtime size=${file.length()}"
           }
         } else if (root.isFile) {
           val hasEntry =
@@ -507,28 +508,11 @@ public class UserClassLoaderHolder(
             }
           if (hasEntry) {
             val mtime = java.time.Instant.ofEpochMilli(root.lastModified()).toString()
-            return "jar=${root.absolutePath}!/$resourceName mtime=$mtime size=${root.length()} sha=${sha256Short(root)}"
+            return "jar=${root.absolutePath}!/$resourceName mtime=$mtime size=${root.length()}"
           }
         }
       }
       return null
-    }
-
-    private fun sha256Short(file: java.io.File): String {
-      val md = java.security.MessageDigest.getInstance("SHA-256")
-      try {
-        file.inputStream().use { input ->
-          val buffer = ByteArray(8192)
-          while (true) {
-            val read = input.read(buffer)
-            if (read <= 0) break
-            md.update(buffer, 0, read)
-          }
-        }
-      } catch (_: Throwable) {
-        return "unreadable"
-      }
-      return md.digest().take(6).joinToString("") { "%02x".format(it) }
     }
   }
 }

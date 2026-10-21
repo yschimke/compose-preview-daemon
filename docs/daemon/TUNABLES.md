@@ -22,7 +22,8 @@ flips a knob.
 
 | Property | Type | Default | Effect |
 | --- | --- | --- | --- |
-| `composeai.daemon.metrics.everyRenders` | Int | `1` | Collect full post-GC metrics on the first render and every N renders thereafter. Unmeasured renders retain timing but omit the structured metrics block. Values below 1 use 1. Increasing this may raise resident memory. |
+| `composeai.daemon.metrics.everyRenders` | Int | `1` | Report the structured heap and sandbox-age metrics on the first render and every N renders thereafter. Unmeasured renders retain timing but omit the structured metrics block. Values below 1 use 1. Measuring requests no garbage collection. |
+| `composeai.daemon.idleGcMs` | Long | `2000` | Run one garbage collection once no render has completed for this many milliseconds, so an idle daemon gives memory back without a collection between a save and its pixels. 0 disables it. |
 | `composeai.daemon.idleTimeoutMs` | Long | `5000` | How long the daemon waits after its last client disconnects before exiting. |
 | `composeai.daemon.socketPath` | path | unset | Serve successive clients over a Unix domain socket at this path instead of one client over stdio, keeping the host and its warm sandboxes between them. Unset serves stdio. |
 | `composeai.daemon.keepAliveIdleMs` | Long | `300000` | With `composeai.daemon.socketPath` set, how long the daemon stays up with no client connected before it shuts down. |

@@ -54,13 +54,16 @@ public class SandboxLifecycleStats(
  * (per the B2.3 brief: "translate flat map → structured `RenderMetrics` in `JsonRpcServer`"). The
  * engine calls [collect] once per render-completion.
  *
- * Full measurement can dominate frame latency. [DaemonProperties.metricsEveryRenders] optionally
- * samples complete measurements; other renders return timing only, never stale or mislabeled heap
- * values. The default still measures every render. A full measurement consists of:
- * - One `System.gc()` hint (HotSpot mostly honours this for instrumentation; not load-bearing, we
- *   just want post-render heap to reflect short-lived allocation).
- * - Three `MemoryMXBean` / `Runtime` accessor calls (each O(1)).
- * - One [SandboxLifecycleStats] read + bump.
+ * **Measuring must not change what it measures.** `heapAfterGcMb` is the heap in use right after
+ * the JVM's most recent garbage collection, read from the collectors' last-GC records
+ * ([heapAfterLastGcMb]); nothing here requests a collection. It used to call `System.gc()` on every
+ * render to make that number fresh, which put a full stop-the-world collection — about 150 ms on a
+ * desktop daemon — between every frame and its `renderFinished`, while the reported `tookMs` (taken
+ * before it) never showed it (docs/daemon/SAMPLED-METRICS.md). The memory that collection used to
+ * reclaim is now [IdleCollector]'s job, off the render path.
+ *
+ * [DaemonProperties.metricsEveryRenders] still samples which renders carry the structured block;
+ * the others report timing only, never a stale or mislabeled heap value.
  *
  * **`nativeHeapMb` is an approximation** — we report the JVM's committed virtual memory size (via
  * [com.sun.management.OperatingSystemMXBean.getCommittedVirtualMemorySize]), divided by 1MB. That
@@ -83,14 +86,15 @@ public object SandboxMeasurement {
    * (`JsonRpcServer.renderFinishedFromResult`, the soak tests, etc.) agree on the spelling.
    */
   public fun collect(stats: SandboxLifecycleStats, tookMs: Long): Map<String, Long> {
-    return collect(stats, tookMs, DaemonProperties.metricsEveryRenders.read(), System::gc)
+    IdleCollector.renderCompleted()
+    return collect(stats, tookMs, DaemonProperties.metricsEveryRenders.read(), ::heapAfterLastGcMb)
   }
 
   internal fun collect(
     stats: SandboxLifecycleStats,
     tookMs: Long,
     everyRenders: Int,
-    requestGc: () -> Unit,
+    heapAfterGcMb: () -> Long,
   ): Map<String, Long> {
     val sandboxAgeRenders = stats.bumpRenderCount()
     if ((sandboxAgeRenders - 1) % everyRenders.coerceAtLeast(1) != 0L) {
@@ -98,13 +102,7 @@ public object SandboxMeasurement {
       // The wire adapter treats timing-only maps as an absent structured metrics block.
       return mapOf("tookMs" to tookMs)
     }
-    // Run a single GC hint after the render body so post-render heap reflects what survived this
-    // render's short-lived allocations. Yes, `System.gc()` is a hint; HotSpot mostly honours it
-    // for instrumentation. We don't over-engineer.
-    requestGc()
-
-    val r = Runtime.getRuntime()
-    val heapAfterGcMb = ((r.totalMemory() - r.freeMemory()) / (1024L * 1024L))
+    val heapMb = heapAfterGcMb()
 
     val nativeHeapMb: Long =
       try {
@@ -137,10 +135,53 @@ public object SandboxMeasurement {
 
     return mapOf(
       "tookMs" to tookMs,
-      RenderMetrics.KEY_HEAP_AFTER_GC_MB to heapAfterGcMb,
+      RenderMetrics.KEY_HEAP_AFTER_GC_MB to heapMb,
       RenderMetrics.KEY_NATIVE_HEAP_MB to nativeHeapMb,
       RenderMetrics.KEY_SANDBOX_AGE_RENDERS to sandboxAgeRenders,
       RenderMetrics.KEY_SANDBOX_AGE_MS to sandboxAgeMs,
     )
+  }
+}
+
+/**
+ * Heap in use right after the most recent garbage collection, in MB, from the HotSpot collectors'
+ * last-GC records: whichever collector ran last, summed over the heap pools. A young collection's
+ * record covers the old generation too, so this is the whole surviving heap. Before the first
+ * collection — or on a JVM without these records — it is the heap in use now.
+ */
+internal fun heapAfterLastGcMb(): Long {
+  val heapPools =
+    ManagementFactory.getMemoryPoolMXBeans()
+      .filter { it.type == java.lang.management.MemoryType.HEAP }
+      .map { it.name }
+      .toSet()
+  val lastGc =
+    ManagementFactory.getGarbageCollectorMXBeans()
+      .mapNotNull { (it as? com.sun.management.GarbageCollectorMXBean)?.lastGcInfo }
+      .maxByOrNull { it.endTime }
+  val usedBytes =
+    lastGc?.memoryUsageAfterGc?.filterKeys { it in heapPools }?.values?.sumOf { it.used }
+      ?: ManagementFactory.getMemoryMXBean().heapMemoryUsage.used
+  return usedBytes / (1024L * 1024L)
+}
+
+/**
+ * The memory policy the per-render `System.gc()` used to provide as a side effect of measuring:
+ * once no render has completed for [DaemonProperties.idleGcMs], collect, so a quiet daemon gives
+ * back what the last renders left behind. Every completed render pushes the collection back, so it
+ * never lands between a save and its pixels while renders keep coming.
+ */
+internal object IdleCollector {
+  private val executor =
+    java.util.concurrent.Executors.newSingleThreadScheduledExecutor { runnable ->
+      Thread(runnable, "compose-ai-idle-gc").apply { isDaemon = true }
+    }
+  @Volatile private var pending: java.util.concurrent.ScheduledFuture<*>? = null
+
+  fun renderCompleted(delayMs: Long = DaemonProperties.idleGcMs.read()) {
+    pending?.cancel(false)
+    if (delayMs <= 0) return
+    pending =
+      executor.schedule({ System.gc() }, delayMs, java.util.concurrent.TimeUnit.MILLISECONDS)
   }
 }

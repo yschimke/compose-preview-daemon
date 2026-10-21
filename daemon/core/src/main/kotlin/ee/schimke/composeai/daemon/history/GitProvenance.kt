@@ -2,6 +2,7 @@ package ee.schimke.composeai.daemon.history
 
 import java.io.File
 import java.nio.file.Path
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
@@ -153,14 +154,24 @@ private fun runGitProcess(workingDir: String, args: List<String>): String? {
       ProcessBuilder(listOf("git") + args)
         .directory(File(workingDir))
         .redirectErrorStream(false)
+        .apply {
+          // Provenance only reads. Without this `git status` refreshes `.git/index` stat data:
+          // recording a render would write into the user's repository and take its index lock.
+          environment()["GIT_OPTIONAL_LOCKS"] = "0"
+        }
         .start()
+    // Drain stdout before waiting: `status --porcelain` on a large dirty tree fills the pipe, and
+    // git blocks on it until the timeout below kills it.
+    val output = CompletableFuture.supplyAsync {
+      process.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText().trim() }
+    }
     val finished = process.waitFor(5, TimeUnit.SECONDS)
     if (!finished) {
       process.destroyForcibly()
       return null
     }
     if (process.exitValue() != 0) return null
-    process.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText().trim() }
+    output.get(5, TimeUnit.SECONDS)
   } catch (t: Throwable) {
     // Swallow — non-git workspace, missing git binary, exotic file-system permission errors.
     // History still works without git provenance; the daemon log captures the cause.

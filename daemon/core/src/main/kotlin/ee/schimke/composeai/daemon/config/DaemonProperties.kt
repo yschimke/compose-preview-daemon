@@ -211,6 +211,7 @@ public object DaemonProperties {
     public const val SOCKET_PATH: String = "composeai.daemon.socketPath"
     public const val KEEP_ALIVE_IDLE_MS: String = "composeai.daemon.keepAliveIdleMs"
     public const val METRICS_EVERY_RENDERS: String = "composeai.daemon.metrics.everyRenders"
+    public const val IDLE_GC_MS: String = "composeai.daemon.idleGcMs"
     public const val RENDER_TIMEOUT_MS: String = "composeai.daemon.renderTimeoutMs"
     public const val CLASSPATH_DIRTY_GRACE_MS: String = "composeai.daemon.classpathDirtyGraceMs"
     public const val DATA_FETCH_RERENDER_BUDGET_MS: String =
@@ -290,11 +291,22 @@ public object DaemonProperties {
     IntProperty(
       Names.METRICS_EVERY_RENDERS,
       1,
-      "Collect full post-GC metrics on the first render and every N renders thereafter. " +
-        "Unmeasured renders retain timing but omit the structured metrics block. " +
-        "Values below 1 use 1. Increasing this may raise resident memory.",
+      "Report the structured heap and sandbox-age metrics on the first render and every N " +
+        "renders thereafter. Unmeasured renders retain timing but omit the structured metrics " +
+        "block. Values below 1 use 1. Measuring requests no garbage collection.",
       G_LIFECYCLE,
       min = 1,
+    )
+
+  public val idleGcMs: LongProperty =
+    LongProperty(
+      Names.IDLE_GC_MS,
+      2_000L,
+      "Run one garbage collection once no render has completed for this many milliseconds, so " +
+        "an idle daemon gives memory back without a collection between a save and its pixels. " +
+        "0 disables it.",
+      G_LIFECYCLE,
+      min = 0L,
     )
 
   public val idleTimeoutMs: LongProperty =
@@ -801,6 +813,7 @@ public object DaemonProperties {
   public val ALL: List<DaemonProperty<*>> =
     listOf(
       metricsEveryRenders,
+      idleGcMs,
       idleTimeoutMs,
       socketPath,
       keepAliveIdleMs,

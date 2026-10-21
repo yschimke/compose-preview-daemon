@@ -1888,6 +1888,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public final fun getHistoryMaxAgeDays ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getHistoryMaxEntriesPerPreview ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getHistoryMaxTotalSizeBytes ()Lee/schimke/composeai/daemon/config/LongProperty;
+	public final fun getIdleGcMs ()Lee/schimke/composeai/daemon/config/LongProperty;
 	public final fun getIdleTimeoutMs ()Lee/schimke/composeai/daemon/config/LongProperty;
 	public final fun getInteractiveIdleLeaseMs ()Lee/schimke/composeai/daemon/config/LongProperty;
 	public final fun getIrDir ()Lee/schimke/composeai/daemon/config/PathProperty;
@@ -1953,6 +1954,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
 	public static final field HISTORY_MAX_AGE_DAYS Ljava/lang/String;
 	public static final field HISTORY_MAX_ENTRIES_PER_PREVIEW Ljava/lang/String;
 	public static final field HISTORY_MAX_TOTAL_SIZE_BYTES Ljava/lang/String;
+	public static final field IDLE_GC_MS Ljava/lang/String;
 	public static final field IDLE_TIMEOUT_MS Ljava/lang/String;
 	public static final field INSTANCE Lee/schimke/composeai/daemon/config/DaemonProperties$Names;
 	public static final field INTERACTIVE_IDLE_LEASE_MS Ljava/lang/String;
