@@ -26,7 +26,7 @@ class UserClassLoaderGenerationTest {
         classes.resolve("message.txt").writeText(value)
       }
       compile("before")
-      val holder = UserClassLoaderHolder(listOf(classes.toURI().toURL()))
+      val holder = UserClassLoaderHolder(listOf(classes.toURI().toURL())).apply { tipReload = true }
       val before = holder.currentChildLoader()
       before.use {
         // No user class has loaded yet. A failed incremental compiler removes the originals.

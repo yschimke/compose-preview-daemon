@@ -73,6 +73,10 @@ class UserClassLoaderTipTest {
     for (reloaded in listOf("Edited", "Caller", "Preview")) {
       assertSame(tip, tip.loadClass("sample.$reloaded").classLoader)
     }
+    // Copies are invisible: base and tip classes both report the live output as their code source.
+    val live = classes.toURI().toURL()
+    assertEquals(live, theme.protectionDomain.codeSource.location)
+    assertEquals(live, tip.loadClass("sample.Edited").protectionDomain.codeSource.location)
     // The base still renders what it loaded, for a render already in flight.
     assertEquals("before", call(base, "Preview"))
   }

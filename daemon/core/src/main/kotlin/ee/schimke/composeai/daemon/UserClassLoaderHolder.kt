@@ -110,7 +110,9 @@ public class UserClassLoaderHolder(
       return it
     }
     val resolvedParent = parentSupplier()
-    val directories = UserClassDirectories.capture(urls)
+    // Only a tip-mode base outlives a swap, so only it pays for a private copy of the output.
+    val directories =
+      if (tipReload) UserClassDirectories.capture(urls) else UserClassDirectories.live(urls)
     val fresh =
       try {
         ChildFirstURLClassLoader(directories, resolvedParent, transformer, owned = null)
@@ -208,6 +210,15 @@ public class UserClassLoaderHolder(
     // may still resolve classes or resources after swap(), even if compilation deleted them.
     private val directoryCleanup = directoryCleaner.register(this, directories)
 
+    /** A tip's classes, defined from memory; `null` for a loader over directories and jars. */
+    private val tipClasses: Map<String, UserClassDirectories.TipClass>? = directories.classes
+
+    /**
+     * A tip-mode base reads private copies, but its classes report the live output as their code
+     * source, as a loader over the live output does: copies are an implementation detail.
+     */
+    private val generation = directories
+
     /** The jars on this loader's own class path, by their file URL as `jar:` URLs spell it. */
     private val ownJars: Map<String, File> =
       directories.urls
@@ -225,7 +236,20 @@ public class UserClassLoaderHolder(
     private var jarsClosed = false
 
     override fun findClass(name: String): Class<*> {
-      if (transformer == null || !transformer.appliesTo(name)) {
+      tipClasses?.let { classes ->
+        val tipClass =
+          classes[name]?.takeIf { it.bytes.isNotEmpty() } ?: throw ClassNotFoundException(name)
+        val deduped = LocalVariableTables.dedupe(tipClass.bytes)
+        val bytes =
+          if (transformer != null && transformer.appliesTo(name))
+            transformer.transform(name, deduped)
+          else deduped
+        val codeSource =
+          java.security.CodeSource(tipClass.location, null as Array<java.security.CodeSigner>?)
+        return defineClass(name, bytes, 0, bytes.size, codeSource)
+      }
+      val transforms = transformer != null && transformer.appliesTo(name)
+      if (!transforms && !generation.copied) {
         return try {
           super.findClass(name)
         } catch (e: ClassFormatError) {
@@ -242,7 +266,8 @@ public class UserClassLoaderHolder(
         } catch (e: IOException) {
           throw ClassNotFoundException(name, e)
         } ?: throw ClassNotFoundException(name)
-      val bytes = transformer.transform(name, LocalVariableTables.dedupe(original))
+      val deduped = LocalVariableTables.dedupe(original)
+      val bytes = if (transforms) transformer!!.transform(name, deduped) else deduped
       val codeSource =
         java.security.CodeSource(codeSourceRoot(resource), null as Array<java.security.CodeSigner>?)
       return defineClass(name, bytes, 0, bytes.size, codeSource)
@@ -338,7 +363,9 @@ public class UserClassLoaderHolder(
       val spec = resource.toString()
       return when {
         spec.startsWith("jar:") -> URL(spec.removePrefix("jar:").substringBefore("!/"))
-        else -> urLs.firstOrNull { spec.startsWith(it.toString()) } ?: resource
+        else ->
+          urLs.firstOrNull { spec.startsWith(it.toString()) }?.let(generation::originalOf)
+            ?: resource
       }
     }
 

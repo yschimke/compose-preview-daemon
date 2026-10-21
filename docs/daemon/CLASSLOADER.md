@@ -25,32 +25,23 @@ child would never get a chance.
   desktop). The user's compiled-class directory is **not** on its URLs.
 - **First render:** `RenderEngine` lazily allocates a child
   `URLClassLoader` whose parent is the long-lived classloader and
-  whose directory URLs point to a private copy of the user's compiled output.
+  whose URLs are the user's `build/intermediates/...` directory.
   `Class.forName(spec.className, true, currentChildLoader)` resolves
   the preview class via the child. Parent classes (Compose runtime,
   AndroidX) flow up via parent-first delegation.
 - **`fileChanged({ kind: "source" })` arrives:** the daemon drops the
   strong reference to the current child loader, then allocates a new
   one. The next render goes through the new loader, which reads the
-  current bytecode from its own directory generation on demand. Old child loader becomes
+  current bytecode off disk on demand. Old child loader becomes
   GC-able once any retained Compose state is cleared.
 - **Daemon shutdown:** drop both loaders. Parent's
   `InstrumentingClassLoader` releases its sandbox; child is just a
   `URLClassLoader`, trivially closeable.
 
-Each allocation copies the user class directories, including resources. This adds IO proportional
-to those directories, while retaining the warm parent and its expensive Robolectric bootstrap.
-Dependency JAR URLs are unchanged; they retain the existing per-loader JAR handling.
-
-The directory copy protects an already allocated loader when a failed incremental compilation
-deletes or rewrites its original output, including classes not yet resolved by that loader.
-`swap()` remains lazy and callers must only notify it after a successful compile. This does not
-protect a session that has never allocated a loader, a later daemon restart, mutable JARs, or a
-compile racing the initial copy. It is not a durable last-good build store.
-
-Retired copies survive while their loader is reachable, so an in-flight render can finish. Copies
-are removed on explicit loader close, garbage collection, or normal JVM shutdown. Forced process
-termination can leave temporary directories behind.
+Cost per recompile cycle: tens of ms — `URLClassLoader` allocation is
+free; first lookup pays the `.class` file read; subsequent lookups in
+the same render are cached. The 4–5s Robolectric sandbox bootstrap is
+paid **once at daemon spawn**.
 
 ## Tip reload (`composeai.daemon.tipReload`)
 
@@ -63,8 +54,11 @@ framework parent (Robolectric / Compose, warm)
        └─ tip: changed classes + every class that references them (replaced per swap)
 ```
 
-On the next allocation the holder compares the live output directories with the base's private
-copy (size and mtime first, bytes only when those differ). The tip owns:
+The base reads from a private copy of the user-class directories, taken once when it is allocated,
+with each file's size and mtime. On the next allocation the holder walks the live directories once
+(one stat per file) and compares stamps, reading bytes only on a mismatch. A file modified within 2
+seconds of the copy is "racily clean", as git calls it: its stamp cannot vouch for its bytes, so it
+is compared by bytes until a comparison made after that window has verified it. The tip owns:
 
 - every class file added, changed or deleted since the base; and
 - every base class whose constant pool or descriptors name an owned class, transitively.
@@ -75,6 +69,8 @@ the tip to see the edit. Everything outside the closure (themes, unrelated scree
 state) stays loaded in the base. Tips are taken against the base, never against the previous tip,
 so edits accumulate. A tip owns a deleted class too, so it is not served from the base.
 
+The tip holds its classes' bytes in memory and defines them from there, so it writes nothing to disk.
+
 The base is replaced, as without tip reload, when a user-class jar or a non-class resource changed,
 or a class file cannot be parsed. An output identical to the base reuses the base loader. The
 reference index is built from the base on the first tip and cached for the base's lifetime.
@@ -83,6 +79,30 @@ Limits: a reference made only by name at runtime (reflection, `ServiceLoader`, a
 string) is not followed, so such a caller keeps the base's version. Static state held by a base
 class that captured an instance of an owned class keeps that old instance. Interactive sessions are
 still closed on swap, as before.
+
+Because the base reads from its copy, a failed or in-progress incremental compile cannot remove a
+class the base has not resolved yet. Callers must still only `swap()` after a successful compile;
+the next tip reads the live output. Retired copies survive while their loader is reachable, and are
+removed on close, garbage collection or normal JVM shutdown; a killed process can leave one behind.
+
+### Measured cost
+
+Compose Desktop, a generated module of 200 screens, 20 shared components and a theme (422 classes),
+JDK 21, the real `UserClassLoaderHolder`. Per edit: in-process incremental compile, `swap()`, render
+the edited preview, then render 10 other previews. Median of 30 measured edits per configuration
+(two fresh JVMs each, after 3 warm-up edits), in ms:
+
+| Edit | Classes reloaded | Reload, off | Reload, tip | Reload + renders, off | Reload + renders, tip |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| One screen's body | 2 | 0.5 | 4.1 | 213 | 177 |
+| A component 30 screens use | 63 | 0.5 | 3.5 | 203 | 181 |
+| The theme every screen uses | 403 | 0.6 | 11.2 | 216 | 223 |
+
+The compile, identical in both modes, took 500–780 ms of each edit. A local edit saves 5–17% of the
+reload-and-render time, mostly in the other previews, whose classes stay warm; an edit everything
+depends on costs a few percent more. With the mode off the timings match a build without this
+change. Android, where the child loader also rewrites each user class it defines, is not measured
+yet. The harness is not checked in.
 
 ## Implementation seams
 
