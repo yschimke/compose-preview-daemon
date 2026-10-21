@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.21.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.21.3...v3.21.4) (2026-10-21)
+
+
+### Bug Fixes
+
+* remove duplicate local-variable rows from Robolectric's instrumented classes ([#350](https://github.com/yschimke/compose-preview-daemon/issues/350)) ([169c7b5](https://github.com/yschimke/compose-preview-daemon/commit/169c7b55864ef94a421c57b0b06830ca18ab6afb))
+
 ## [3.21.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.21.2...v3.21.3) (2026-10-20)
 
 
