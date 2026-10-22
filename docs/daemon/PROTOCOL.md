@@ -605,8 +605,9 @@ directory and answers when done; other requests are served meanwhile.
 
 `ready: false` means nothing could be warmed — no warm compiler for this
 module, or in-process compile not configured — and `message` says why;
-`compileSources` then behaves as without the request. A client may keep
-compiling through Gradle until the answer and switch then. A daemon that
+`compileSources` then behaves as without the request. A `compileSources`
+sent before the answer waits for the warm-up; compiling through Gradle
+meanwhile is safe but measured slower (WARM-COMPILE.md). A daemon that
 predates the request answers `MethodNotFound` (-32601), which a client
 reads as "no warm-up here".
 
