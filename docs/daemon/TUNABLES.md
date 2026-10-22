@@ -124,4 +124,4 @@ flips a knob.
 | `composeai.daemon.bta.outputDir` | path | unset | Class output directory for stage-2 compiles. |
 | `composeai.daemon.bta.icWorkingDir` | path | unset | Incremental-compilation working directory for stage-2 compiles. |
 | `composeai.daemon.bta.ineligibilityReason` | String | unset | Why the Gradle plugin ruled this module out of in-process compile; surfaced in diagnostics. |
-| `composeai.daemon.warmCompile` | Boolean | `false` | Whether `compileSources` first tries the warm compiler, which keeps the class path's compiler state across edits and recompiles only the changed files; edits it cannot prove local fall back to the Build Tools API (docs/daemon/WARM-COMPILE.md). |
+| `composeai.daemon.warmCompile` | Boolean | `true` | Whether `compileSources` first tries the warm compiler, which keeps the class path's compiler state across edits and recompiles only the changed files; edits it cannot prove local, and Kotlin versions it is not built for, fall back to the Build Tools API. `false` always uses the Build Tools API (docs/daemon/WARM-COMPILE.md). |

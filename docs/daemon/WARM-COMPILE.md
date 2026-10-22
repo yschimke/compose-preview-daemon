@@ -1,7 +1,8 @@
 # Warm compile
 
-`-Dcomposeai.daemon.warmCompile=true` puts a warm, in-process Kotlin compiler in front of the
-Build Tools API (BTA) compile that `compileSources` already uses. Off by default.
+`composeai.daemon.warmCompile` puts a warm, in-process Kotlin compiler in front of the Build Tools
+API (BTA) compile that `compileSources` already uses. On by default;
+`-Dcomposeai.daemon.warmCompile=false` turns it off.
 
 ## Why
 

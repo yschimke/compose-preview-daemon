@@ -808,10 +808,11 @@ public object DaemonProperties {
   public val warmCompile: BooleanProperty =
     BooleanProperty(
       Names.WARM_COMPILE,
-      false,
+      true,
       "Whether `compileSources` first tries the warm compiler, which keeps the class path's " +
         "compiler state across edits and recompiles only the changed files; edits it cannot " +
-        "prove local fall back to the Build Tools API (docs/daemon/WARM-COMPILE.md).",
+        "prove local, and Kotlin versions it is not built for, fall back to the Build Tools " +
+        "API. `false` always uses the Build Tools API (docs/daemon/WARM-COMPILE.md).",
       G_BTA,
     )
 

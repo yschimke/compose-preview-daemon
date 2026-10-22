@@ -1,9 +1,12 @@
 package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.bta.BtaCompileService
+import ee.schimke.composeai.daemon.bta.DefaultBtaCompileService
+import ee.schimke.composeai.daemon.config.DaemonProperties.Names as DaemonPropertiesNames
 import ee.schimke.composeai.daemon.protocol.SourceChangeSet
 import java.nio.file.Path
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -42,6 +45,28 @@ class WarmCompileServiceTest {
 
   private fun service(fallback: FakeFallback, warm: () -> WarmCompileService.WarmCompiler) =
     WarmCompileService(fallback, warm, log = {})
+
+  @Test
+  fun `the warm compiler is on by default and the property turns it off`() {
+    val fallback = FakeFallback()
+    val configured =
+      mapOf(
+        DefaultBtaCompileService.SYSPROP_IMPL_CLASSPATH to "/bta/impl.jar",
+        DefaultBtaCompileService.SYSPROP_OUTPUT_DIR to "/m/classes",
+        DefaultBtaCompileService.SYSPROP_IC_WORKING_DIR to "/m/ic",
+        DefaultBtaCompileService.SYSPROP_MODULE_NAME to "m",
+      )
+    val name = DaemonPropertiesNames.WARM_COMPILE
+    val previous = System.getProperty(name)
+    try {
+      System.clearProperty(name)
+      assertTrue(WarmCompileService.wrapIfEnabled(fallback, configured::get) is WarmCompileService)
+      System.setProperty(name, "false")
+      assertSame(fallback, WarmCompileService.wrapIfEnabled(fallback, configured::get))
+    } finally {
+      if (previous == null) System.clearProperty(name) else System.setProperty(name, previous)
+    }
+  }
 
   @Test
   fun `a local edit compiles warm and never reaches the fallback`() {
