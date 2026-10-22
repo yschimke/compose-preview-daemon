@@ -31,6 +31,7 @@ runs:
       env:
         RW_TOKEN: ${{ inputs.rw-token }}
         RO_TOKEN: ${{ inputs.ro-token }}
+        EVENT_NAME: ${{ github.event_name }}
       run: | # zizmor: ignore[github-env]
         # ON_CI=true (remote writes + local-cache bypass in settings.gradle.kts) only when a
         # write token is actually present, so a read-only run never tries to push. GitHub masks
@@ -43,4 +44,12 @@ runs:
           echo "BuildFetch remote cache: read-only."
         else
           echo "BuildFetch remote cache: disabled (no token provided; using local cache)."
+          # A push to main is the run that fills the cache for every PR after it. Without a token
+          # there it fills nothing, and that is not visible in a green run: this repository went
+          # without its BUILDFETCH_* secrets, every job rebuilding from a stale local cache (93 of
+          # 428 tasks from cache on a version-only release commit), and nothing said so. Say so
+          # where the run summary shows it. Fork PRs never get secrets, so only pushes warn.
+          if [ "$EVENT_NAME" = push ]; then
+            echo "::warning title=BuildFetch remote cache disabled::No BUILDFETCH_* secret is set for this repository, so main is not populating the remote build cache and PRs rebuild from scratch. Add BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN and BUILDFETCH_COMPOSEAI_GRADLE_REMOTE_CACHE_TOKEN_RO as repository secrets."
+          fi
         fi
