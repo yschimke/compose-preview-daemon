@@ -67,6 +67,32 @@ Kotlin 2.5's Build Tools API caches compiler-plugin class loaders per `BuildSess
 compiler already loads the Compose plugin once; the Build Tools API fallback would need its
 `BuildSession` kept open across compiles to benefit (`daemon-bta`, compose-preview-contracts).
 
+## Warming up
+
+Left alone, the first `compileSources` of a daemon JVM pays for loading the warm compiler, building
+its class-path state and a cold JIT: 5.7 s on a one-preview desktop module, against about 0.3 s for
+the edits after it. A client that will send `compileSources` can have that paid before the first
+edit with `compileWarmUp` (PROTOCOL.md § 5): the daemon compiles a generated one-function Compose
+file of its own, twice, into the warm compiler's staging directory, installs nothing, and answers
+when done. The class directory is only read, so the client keeps compiling through Gradle until the
+answer arrives and switches then; a `compileSources` sent earlier waits for the warm-up instead of
+compiling cold.
+
+A Gradle build that writes classes before the first warm compile changes the class directory's
+fingerprint, so the warm compiler rebuilds its class-path state; the JIT stays warm.
+
+| first edit through the MCP server, one-preview desktop module | compile | edit → pixels |
+| --- | ---: | ---: |
+| no warm-up | 5.7 s | 6.2 s |
+| warmed up (4.8–5.2 s in the background) | 0.65 s | 0.81 s |
+| warmed up, then a Gradle build wrote the classes | 1.24 s | 1.47 s |
+
+Only the warm compiler is warmed. Where it cannot run — a Kotlin version with no bundled jar, or
+`composeai.daemon.warmCompile=false` — `compileWarmUp` answers `ready: false` at once, and the first
+`compileSources` loads the Build Tools API as it always did. The request is opt-in so that a client
+that never compiles in process (VS Code with `composePreview.daemon.compileInProcess` off) never
+pays for a warm compiler it will not use, nor keeps its class-path state in memory.
+
 ## Results
 
 `SaveToPixelsRealModeTest` (harness, desktop real mode) times an editor save end to end on a

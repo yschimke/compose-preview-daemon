@@ -72,6 +72,62 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
       )
   }
 
+  /**
+   * Builds the class-path state and JIT-warms the whole pipeline by compiling [sources] — files
+   * outside the module, such as a generated one-function file — into the staging directory, and
+   * installs nothing. The class directory is only read, so a Gradle build may run alongside; one
+   * that writes classes before the next [compile] drops the state again, keeping only the warm JIT.
+   *
+   * Returns `ok` or `failed` (with `reason`), and `timings`.
+   */
+  @Synchronized
+  public fun warmUp(sources: List<String>): Map<String, Any?> {
+    val start = System.nanoTime()
+    // Taken before compiling, so a build that writes classes meanwhile still invalidates.
+    fingerprint = classesFingerprint(classesDir)
+    moduleClasses = ModuleClasses.scan(classesDir)
+    stagingDir.deleteRecursively()
+    stagingDir.mkdirs()
+    val messages = Collector()
+    // The second pass runs on code the first one JIT-compiled: about 0.5 s more here, and 0.2 s
+    // off the first edit after it (0.86 s → 0.65 s, one-preview desktop module).
+    var exitCode = ExitCode.OK
+    repeat(WARM_UP_PASSES) {
+      if (exitCode == ExitCode.OK && messages.errors.isEmpty()) {
+        exitCode = runPipeline(sources, messages)
+      }
+    }
+    stagingDir.deleteRecursively()
+    val timings = mapOf("warmUp" to System.nanoTime() - start)
+    if (exitCode != ExitCode.OK || messages.errors.isNotEmpty()) {
+      dropState()
+      val errors = messages.errors.joinToString("; ") { "${it["message"]}" }
+      return result("failed", timings, "reason" to errors.ifEmpty { "compiler exited $exitCode" })
+    }
+    return result("ok", timings)
+  }
+
+  private fun runPipeline(sources: List<String>, messages: Collector): ExitCode {
+    val arguments =
+      parseCommandLineArguments<K2JVMCompilerArguments>(
+        listOf(
+          "-classpath",
+          (compileClasspath + classesDir.path).joinToString(File.pathSeparator),
+          "-d",
+          stagingDir.path,
+          "-jvm-target",
+          jvmTarget,
+          "-module-name",
+          moduleName,
+          "-no-stdlib",
+          "-no-reflect",
+        ) + sources
+      )
+    return WarmCliPipeline(K2JVMCompiler().defaultPerformanceManager, plugins, frontend)
+      .executeAndReturnPipeLineArtifact(arguments, Services.EMPTY, messages, keepAlive)
+      .exitCode
+  }
+
   @Synchronized
   public fun compile(sources: List<String>): Map<String, Any?> {
     val timings = LinkedHashMap<String, Long>()
@@ -94,27 +150,7 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
     stagingDir.deleteRecursively()
     stagingDir.mkdirs()
     val messages = Collector()
-    val exitCode =
-      timed("compile") {
-        val arguments =
-          parseCommandLineArguments<K2JVMCompilerArguments>(
-            listOf(
-              "-classpath",
-              (compileClasspath + classesDir.path).joinToString(File.pathSeparator),
-              "-d",
-              stagingDir.path,
-              "-jvm-target",
-              jvmTarget,
-              "-module-name",
-              moduleName,
-              "-no-stdlib",
-              "-no-reflect",
-            ) + sources
-          )
-        WarmCliPipeline(K2JVMCompiler().defaultPerformanceManager, plugins, frontend)
-          .executeAndReturnPipeLineArtifact(arguments, Services.EMPTY, messages, keepAlive)
-          .exitCode
-      }
+    val exitCode = timed("compile") { runPipeline(sources, messages) }
     if (messages.errors.isNotEmpty()) return result("errors", timings, "errors" to messages.errors)
     if (exitCode != ExitCode.OK) {
       // An internal error may have left the cached sessions half-updated; start over next time.
@@ -230,6 +266,8 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
   public companion object {
     /** Bumped whenever the facade's config or result shape changes. */
     public const val PROTOCOL: Int = 1
+
+    private const val WARM_UP_PASSES = 2
 
     /**
      * The compiler version this module was built against, written into a resource at build time.

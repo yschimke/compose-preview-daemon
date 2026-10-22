@@ -25,11 +25,16 @@ internal constructor(
   private val fallback: BtaCompileService,
   private val compilerFactory: () -> WarmCompiler,
   private val log: (String) -> Unit = { System.err.println(it) },
+  /** Writes the files [warmUp] compiles, none of them the module's; see [WARM_UP_SOURCE]. */
+  private val warmUpSources: () -> List<String> = { emptyList() },
 ) : BtaCompileService {
 
   /** The JDK-typed surface of the warm compiler entry, loaded in its own class loader. */
   internal interface WarmCompiler {
     fun compile(sources: List<String>): Map<String, Any?>
+
+    /** Builds the class-path state from files outside the module and installs nothing. */
+    fun warmUp(sources: List<String>): Map<String, Any?>
 
     fun invalidate()
   }
@@ -79,6 +84,49 @@ internal constructor(
         fallBack(sources, changes, null)
       }
     }
+  }
+
+  /**
+   * Loads the warm compiler and builds its class-path state ahead of the first edit, which
+   * otherwise pays for both (seconds, mostly a cold JIT). Writes nothing to the class directory, so
+   * a Gradle build of the module may run meanwhile. A [compile] that arrives first waits for it.
+   *
+   * @return [WarmUp.Ready], or [WarmUp.Unavailable] when no warm compiler can run here — the first
+   *   edit then goes to the Build Tools API cold, as without a warm-up — or the warm-up failed.
+   */
+  @Synchronized
+  public fun warmUp(): WarmUp {
+    val start = System.nanoTime()
+    fun elapsedMs() = (System.nanoTime() - start) / 1_000_000
+    disabledReason?.let {
+      return WarmUp.Unavailable(it, elapsedMs())
+    }
+    val warm =
+      compiler ?: loadCompiler() ?: return WarmUp.Unavailable(disabledReason!!, elapsedMs())
+    val result =
+      try {
+        warm.warmUp(warmUpSources())
+      } catch (t: Throwable) {
+        runCatching { warm.invalidate() }
+        mapOf("status" to "failed", "reason" to t.toString())
+      }
+    if (result["status"] != "ok") {
+      // Not fatal: the first edit builds the state as it always did.
+      val reason = "warm-up failed: ${result["reason"]}"
+      log("compose-ai-daemon: $reason")
+      return WarmUp.Unavailable(reason, elapsedMs())
+    }
+    log("compose-ai-daemon: warm compiler ready in ${elapsedMs()} ms")
+    return WarmUp.Ready(elapsedMs())
+  }
+
+  /** What [warmUp] achieved. */
+  public sealed interface WarmUp {
+    public val durationMs: Long
+
+    public data class Ready(override val durationMs: Long) : WarmUp
+
+    public data class Unavailable(val reason: String, override val durationMs: Long) : WarmUp
   }
 
   private fun loadCompiler(): WarmCompiler? =
@@ -138,6 +186,22 @@ internal constructor(
     /** The bundled impl jar for compiler [version], one per supported compiler line. */
     internal fun implJarResource(version: String): String = "warm/warm-compiler-impl-$version.jar"
 
+    /**
+     * What [warmUp] compiles: one composable, so the Compose plugin's lowerings JIT too. Private
+     * and in a package of its own, so nothing it declares can meet the module's classes.
+     */
+    internal const val WARM_UP_SOURCE: String =
+      """
+      package ee.schimke.composeai.daemon.warmup
+
+      @androidx.compose.runtime.Composable
+      private fun WarmUp(items: List<String>, onClick: () -> Unit) {
+        for ((index, item) in items.withIndex()) {
+          if (item.isNotEmpty()) WarmUp(listOf("${'$'}index: ${'$'}item"), onClick) else onClick()
+        }
+      }
+      """
+
     /** The Compose option the Build Tools API path passes too; see `composeCompilerPlugins`. */
     private const val COMPOSE_SOURCE_INFORMATION: String =
       "plugin:androidx.compose.compiler.plugins.kotlin:sourceInformation=true"
@@ -184,6 +248,12 @@ internal constructor(
       return WarmCompileService(
         fallback,
         { ReflectiveWarmCompiler.load(implClasspath, workDir, config) },
+        warmUpSources = {
+          val file = File(workDir, "warm-up/WarmUp.kt")
+          file.parentFile.mkdirs()
+          file.writeText(WARM_UP_SOURCE.trimIndent())
+          listOf(file.path)
+        },
       )
     }
   }
@@ -194,11 +264,16 @@ internal class ReflectiveWarmCompiler private constructor(private val entry: Any
   WarmCompileService.WarmCompiler {
 
   private val compileMethod = entry.javaClass.getMethod("compile", List::class.java)
+  private val warmUpMethod = entry.javaClass.getMethod("warmUp", List::class.java)
   private val invalidateMethod = entry.javaClass.getMethod("invalidate")
 
   @Suppress("UNCHECKED_CAST")
   override fun compile(sources: List<String>): Map<String, Any?> =
     unwrap { compileMethod.invoke(entry, sources) } as Map<String, Any?>
+
+  @Suppress("UNCHECKED_CAST")
+  override fun warmUp(sources: List<String>): Map<String, Any?> =
+    unwrap { warmUpMethod.invoke(entry, sources) } as Map<String, Any?>
 
   override fun invalidate() {
     unwrap { invalidateMethod.invoke(entry) }

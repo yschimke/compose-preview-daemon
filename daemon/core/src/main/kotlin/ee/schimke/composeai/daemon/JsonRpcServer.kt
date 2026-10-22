@@ -16,6 +16,7 @@ import ee.schimke.composeai.daemon.protocol.ClasspathDirtyReason
 import ee.schimke.composeai.daemon.protocol.CompileResultKind
 import ee.schimke.composeai.daemon.protocol.CompileSourcesParams
 import ee.schimke.composeai.daemon.protocol.CompileSourcesResult
+import ee.schimke.composeai.daemon.protocol.CompileWarmUpResult
 import ee.schimke.composeai.daemon.protocol.DataFetchParams
 import ee.schimke.composeai.daemon.protocol.DataFetchResult
 import ee.schimke.composeai.daemon.protocol.DataProductAttachment
@@ -872,6 +873,7 @@ public class JsonRpcServer(
     register("renderNow") { handleRenderNow(it) }
     register("preview/rows") { handlePreviewRows(it) }
     register("compileSources") { handleCompileSources(it) }
+    register(CompileWarmUpResult.METHOD) { handleCompileWarmUp(it) }
     register("shutdown") { handleShutdown(it) }
     historyRpcHandlers.registerInto(this)
     register("data/fetch") { handleDataFetch(it) }
@@ -3281,6 +3283,50 @@ public class JsonRpcServer(
         }
       }
     sendResponse(req.id, json.encodeToJsonElement(CompileSourcesResult.serializer(), result))
+  }
+
+  /**
+   * `compileWarmUp`: warms the in-process compiler for a client that will send `compileSources`,
+   * and answers when done. Off the read loop, since it takes seconds and renders keep being served
+   * meanwhile; a `compileSources` sent before the answer waits for the warm-up instead of compiling
+   * cold. Only the warm compiler is warmed: on a module it cannot serve, the answer is `ready =
+   * false` at once, and the first `compileSources` loads the Build Tools API as before.
+   */
+  private fun handleCompileWarmUp(req: JsonRpcRequest) {
+    val warm = btaCompileService as? WarmCompileService
+    if (warm == null) {
+      val reason =
+        if (btaCompileService == null) "in-process compile is not configured for this module"
+        else "no warm compiler in front of the Build Tools API (composeai.daemon.warmCompile)"
+      sendCompileWarmUpResult(
+        req,
+        CompileWarmUpResult.Builder(ready = false).also { it.message = reason },
+      )
+      return
+    }
+    Thread(
+        {
+          val outcome =
+            try {
+              warm.warmUp()
+            } catch (t: Throwable) {
+              WarmCompileService.WarmUp.Unavailable("warm-up threw: $t", durationMs = 0)
+            }
+          val result =
+            CompileWarmUpResult.Builder(ready = outcome is WarmCompileService.WarmUp.Ready).also {
+              it.durationMs = outcome.durationMs
+              it.message = (outcome as? WarmCompileService.WarmUp.Unavailable)?.reason
+            }
+          sendCompileWarmUpResult(req, result)
+        },
+        "compose-ai-daemon-compile-warm-up",
+      )
+      .apply { isDaemon = true }
+      .start()
+  }
+
+  private fun sendCompileWarmUpResult(req: JsonRpcRequest, result: CompileWarmUpResult.Builder) {
+    sendResponse(req.id, json.encodeToJsonElement(CompileWarmUpResult.serializer(), result.build()))
   }
 
   private fun handleShutdown(req: JsonRpcRequest) {

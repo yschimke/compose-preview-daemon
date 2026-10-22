@@ -591,6 +591,25 @@ behaviour: a daemon advertising no kinds (pre-D2) rejects every
 methods exist so clients can probe capability without a `protocolVersion`
 bump.
 
+### `compileWarmUp`
+
+No params. Sent by a client that will send `compileSources`, so the
+daemon warms its in-process compiler before the first edit instead of on
+it ([WARM-COMPILE.md § Warming up](WARM-COMPILE.md#warming-up)). The
+daemon warms in the background without writing the module's class
+directory and answers when done; other requests are served meanwhile.
+
+```ts
+{ ready: boolean; durationMs: number; message?: string }
+```
+
+`ready: false` means nothing could be warmed — no warm compiler for this
+module, or in-process compile not configured — and `message` says why;
+`compileSources` then behaves as without the request. A client may keep
+compiling through Gradle until the answer and switch then. A daemon that
+predates the request answers `MethodNotFound` (-32601), which a client
+reads as "no warm-up here".
+
 ### `history/prune` (phase H4)
 
 ```ts

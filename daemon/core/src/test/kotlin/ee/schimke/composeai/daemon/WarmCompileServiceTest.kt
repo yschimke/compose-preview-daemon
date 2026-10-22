@@ -29,11 +29,18 @@ class WarmCompileServiceTest {
   private class FakeWarm(var next: Map<String, Any?> = mapOf("status" to "ok")) :
     WarmCompileService.WarmCompiler {
     val compiled = mutableListOf<List<String>>()
+    val warmedUp = mutableListOf<List<String>>()
+    var warmUpResult: Map<String, Any?> = mapOf("status" to "ok")
     var invalidations = 0
 
     override fun compile(sources: List<String>): Map<String, Any?> {
       compiled += sources
       return next
+    }
+
+    override fun warmUp(sources: List<String>): Map<String, Any?> {
+      warmedUp += sources
+      return warmUpResult
     }
 
     override fun invalidate() {
@@ -148,6 +155,53 @@ class WarmCompileServiceTest {
   }
 
   @Test
+  fun `a warm-up loads the compiler once, from files of its own, for the edits after it`() {
+    val fallback = FakeFallback()
+    val warm = FakeWarm()
+    var loads = 0
+    val service =
+      WarmCompileService(
+        fallback,
+        {
+          loads++
+          warm
+        },
+        log = {},
+        warmUpSources = { listOf("/warm/WarmUp.kt") },
+      )
+    assertTrue(service.warmUp() is WarmCompileService.WarmUp.Ready)
+    assertEquals(listOf(listOf("/warm/WarmUp.kt")), warm.warmedUp)
+
+    service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt")))
+    assertEquals(1, loads)
+    assertEquals(listOf(listOf("/m/A.kt")), warm.compiled)
+    assertTrue(fallback.calls.isEmpty())
+  }
+
+  @Test
+  fun `a warm-up that fails is reported and the next edit still compiles warm`() {
+    val fallback = FakeFallback()
+    val warm = FakeWarm().apply { warmUpResult = mapOf("status" to "failed", "reason" to "boom") }
+    val service = service(fallback) { warm }
+    val outcome = service.warmUp()
+    outcome as WarmCompileService.WarmUp.Unavailable
+    assertTrue(outcome.reason, outcome.reason.contains("boom"))
+
+    service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt")))
+    assertEquals(listOf(listOf("/m/A.kt")), warm.compiled)
+  }
+
+  @Test
+  fun `a warm-up with no warm compiler for this Kotlin says why`() {
+    val service = service(FakeFallback()) { error("no warm compiler is bundled for Kotlin 2.4.20") }
+    val outcome = service.warmUp()
+    outcome as WarmCompileService.WarmUp.Unavailable
+    assertEquals("no warm compiler is bundled for Kotlin 2.4.20", outcome.reason)
+    // Cached: asking again does not try to load it again.
+    assertTrue(service.warmUp() is WarmCompileService.WarmUp.Unavailable)
+  }
+
+  @Test
   fun `a warm compiler that throws mid-compile falls back and is reset`() {
     val fallback = FakeFallback()
     val warm =
@@ -156,6 +210,8 @@ class WarmCompileServiceTest {
 
         override fun compile(sources: List<String>): Map<String, Any?> =
           throw IllegalStateException("boom")
+
+        override fun warmUp(sources: List<String>): Map<String, Any?> = mapOf("status" to "ok")
 
         override fun invalidate() {
           invalidated = true
