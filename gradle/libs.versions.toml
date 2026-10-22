@@ -318,7 +318,7 @@ coil3 = "3.5.0"
 # every layer above this one meets the daemon on one contracts BOM rather than lifting it as a floor.
 # 3.37.0 adds the early `initialize`: `ClientCapabilities.bootProgress`, `InitializeResult.booting`
 # and the `bootProgress` notification (compose-preview-contracts#195, compose-ai-tools#6114).
-composeai-contracts = "3.37.0"
+composeai-contracts = "3.38.0"
 
 # The Remote Compose players, published by yschimke/rc-players (the CMP player stack, the vendored
 # AndroidX embedded player, and the Wasm browser bundle). They were project deps here until the
