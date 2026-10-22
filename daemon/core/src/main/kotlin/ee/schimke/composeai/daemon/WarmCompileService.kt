@@ -59,6 +59,13 @@ internal constructor(
     val result =
       try {
         warm.compile(modified!!)
+      } catch (e: LinkageError) {
+        // A compiler of the bundled line whose internals moved since the jar was built: it would
+        // fail the same way on every edit.
+        disabledReason = e.toString()
+        compiler = null
+        log("compose-ai-daemon: warm compile disabled ($disabledReason); using the Build Tools API")
+        return fallBack(sources, changes, null)
       } catch (t: Throwable) {
         log("compose-ai-daemon: warm compile threw, using the Build Tools API: $t")
         runCatching { warm.invalidate() }
@@ -73,9 +80,18 @@ internal constructor(
       }
       "errors" -> BtaCompileService.Outcome.CompileError(errorsOf(result))
       else -> {
-        log(
-          "compose-ai-daemon: warm compile ${result["status"]} (${result["reason"]}), using the Build Tools API"
-        )
+        val reason = result["reason"].toString()
+        if (result["status"] == "failed" && LINKAGE_ERROR.containsMatchIn(reason)) {
+          // The compiler caught a link error and exited INTERNAL_ERROR: as permanent as a thrown
+          // one.
+          disabledReason = reason
+          compiler = null
+          log("compose-ai-daemon: warm compile disabled ($reason); using the Build Tools API")
+        } else {
+          log(
+            "compose-ai-daemon: warm compile ${result["status"]} ($reason), using the Build Tools API"
+          )
+        }
         fallBack(sources, changes, null)
       }
     }
@@ -135,8 +151,21 @@ internal constructor(
     internal const val ENTRY_CLASS: String =
       "ee.schimke.composeai.daemon.warm.impl.WarmCompilerEntry"
 
-    /** The bundled impl jar for compiler [version], one per supported compiler line. */
-    internal fun implJarResource(version: String): String = "warm/warm-compiler-impl-$version.jar"
+    /**
+     * The bundled impl jar for compiler [version]: one per Kotlin minor line, so `2.4.0` and
+     * `2.4.21` share `warm-compiler-impl-2.4.jar`.
+     */
+    internal fun implJarResource(version: String): String =
+      "warm/warm-compiler-impl-${minorOf(version)}.jar"
+
+    /** The Kotlin minor line of compiler [version]: `2.4` for `2.4.21`, `2.5` for `2.5.0-Beta2`. */
+    internal fun minorOf(version: String): String = version.split('.').take(2).joinToString(".")
+
+    /** A link error from the compiler's internals, as the compiler reports one it caught. */
+    private val LINKAGE_ERROR =
+      Regex(
+        """java\.lang\.(NoSuch(Method|Field)Error|NoClassDefFoundError|AbstractMethodError|IncompatibleClassChangeError|LinkageError)"""
+      )
 
     /** The Compose option the Build Tools API path passes too; see `composeCompilerPlugins`. */
     private const val COMPOSE_SOURCE_INFORMATION: String =
@@ -254,7 +283,9 @@ internal class ReflectiveWarmCompiler private constructor(private val entry: Any
       val resource = WarmCompileService.implJarResource(version)
       val bytes =
         WarmCompileService::class.java.getResourceAsStream(resource)?.use { it.readBytes() }
-          ?: error("no warm compiler is bundled for Kotlin $version")
+          ?: error(
+            "no warm compiler is bundled for Kotlin ${WarmCompileService.minorOf(version)} ($version)"
+          )
       workDir.mkdirs()
       val target = File(workDir, resource.substringAfterLast('/'))
       if (!target.isFile || !target.readBytes().contentEquals(bytes)) target.writeBytes(bytes)

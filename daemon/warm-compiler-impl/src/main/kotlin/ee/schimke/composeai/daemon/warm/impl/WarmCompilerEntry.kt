@@ -40,6 +40,15 @@ import org.jetbrains.kotlin.config.Services
  */
 public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
 
+  // First, before anything else here touches the compiler.
+  init {
+    val runtime = runtimeCompilerVersion()
+    check(minorOf(runtime) == minorOf(BUILT_AGAINST) && !isOlder(runtime, SUPPORTED_FROM)) {
+      "warm compiler supports Kotlin $SUPPORTED_FROM and later ${minorOf(BUILT_AGAINST)} " +
+        "compilers, but the compiler on the class path is $runtime"
+    }
+  }
+
   private val compileClasspath: List<String> = config.stringList("compileClasspath")
   private val classesDir = File(config["classesDir"] as String)
   private val moduleName = config["moduleName"] as String
@@ -55,10 +64,6 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
   private var fingerprint: String? = null
 
   init {
-    val runtime = runtimeCompilerVersion()
-    check(runtime == BUILT_AGAINST) {
-      "warm compiler was built against Kotlin $BUILT_AGAINST but the compiler on the class path is $runtime"
-    }
     pluginLoader =
       URLClassLoader(
         config.stringList("pluginClasspath").map { File(it).toURI().toURL() }.toTypedArray(),
@@ -237,6 +242,29 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
     @JvmField
     public val BUILT_AGAINST: String =
       WarmCompilerEntry::class.java.getResource("built-against.txt")!!.readText().trim()
+
+    /** The oldest compiler of its line this jar is tested against, written in at build time. */
+    @JvmField
+    public val SUPPORTED_FROM: String =
+      WarmCompilerEntry::class.java.getResource("supported-from.txt")!!.readText().trim()
+
+    /** The Kotlin minor line of compiler [version]: `2.4` for `2.4.21`, `2.5` for `2.5.0-Beta2`. */
+    @JvmStatic
+    public fun minorOf(version: String): String = version.split('.').take(2).joinToString(".")
+
+    /**
+     * Whether compiler [version] predates [other] of the same line: `2.4.10` predates `2.4.20`, and
+     * a pre-release such as `2.4.20-RC` predates the `2.4.20` release.
+     */
+    @JvmStatic
+    public fun isOlder(version: String, other: String): Boolean {
+      fun key(v: String): Pair<Int, Int> {
+        val patch = v.split('.').getOrNull(2).orEmpty()
+        val number = patch.takeWhile { it.isDigit() }.toIntOrNull() ?: 0
+        return number to if (patch.contains('-')) 0 else 1
+      }
+      return compareValuesBy(key(version), key(other), { it.first }, { it.second }) < 0
+    }
 
     /** The compiler on the class path at run time, read reflectively so it is not inlined. */
     @JvmStatic

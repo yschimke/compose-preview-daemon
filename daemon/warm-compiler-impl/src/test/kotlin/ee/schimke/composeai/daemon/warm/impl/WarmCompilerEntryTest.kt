@@ -10,6 +10,7 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Test
 
@@ -33,6 +34,10 @@ class WarmCompilerEntryTest {
 
   @Before
   fun setUp() {
+    assumeFalse(
+      "this compiler is one the jar refuses",
+      System.getProperty("warm.test.expectRefused").toBoolean(),
+    )
     root = Files.createTempDirectory("warm-entry").toFile()
     src = File(root, "src/demo").apply { mkdirs() }
     classes = File(root, "classes")
@@ -64,6 +69,7 @@ class WarmCompilerEntryTest {
 
   @After
   fun tearDown() {
+    if (!::entry.isInitialized) return
     entry.close()
     loader.close()
     root.deleteRecursively()
