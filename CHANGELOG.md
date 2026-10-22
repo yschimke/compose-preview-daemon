@@ -1,5 +1,33 @@
 # Changelog
 
+## [3.22.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.21.4...v3.22.0) (2026-10-22)
+
+
+### Features
+
+* opt-in warm in-process compiler for compileSources ([#357](https://github.com/yschimke/compose-preview-daemon/issues/357)) ([be34ffd](https://github.com/yschimke/compose-preview-daemon/commit/be34ffd64a3882186e65f6ea777a6b49d464a23c))
+* reload only the changed user classes over a warm base loader ([#352](https://github.com/yschimke/compose-preview-daemon/issues/352)) ([0297c8a](https://github.com/yschimke/compose-preview-daemon/commit/0297c8aa03cc6273e65e743f73f89f34d75d12dc))
+* turn the warm compiler on by default ([#362](https://github.com/yschimke/compose-preview-daemon/issues/362)) ([df68a56](https://github.com/yschimke/compose-preview-daemon/commit/df68a56204f45fa1ad7ea6af321f8f86aa4d164e))
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.17.1 ([#354](https://github.com/yschimke/compose-preview-daemon/issues/354)) ([92f3c60](https://github.com/yschimke/compose-preview-daemon/commit/92f3c60402ee17696502aec3f13c7217f3986eb2))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.17.2 ([#358](https://github.com/yschimke/compose-preview-daemon/issues/358)) ([1612521](https://github.com/yschimke/compose-preview-daemon/commit/1612521da033bd109084a9a4f9482a422c58763f))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.17.3 ([#361](https://github.com/yschimke/compose-preview-daemon/issues/361)) ([abb0ba1](https://github.com/yschimke/compose-preview-daemon/commit/abb0ba140463ebce2706fd52cc8cb7da5fe224ef))
+
+
+### Performance
+
+* run the desktop figma-svg export only when asked for ([#360](https://github.com/yschimke/compose-preview-daemon/issues/360)) ([2dac102](https://github.com/yschimke/compose-preview-daemon/commit/2dac102132a5af6fc019af77ad8131e126c63318))
+* stop render metrics from changing what they measure ([#356](https://github.com/yschimke/compose-preview-daemon/issues/356)) ([0ed3d5e](https://github.com/yschimke/compose-preview-daemon/commit/0ed3d5edddf4c17b59c5ce50e69e153b97995037))
+* stop rescanning dependency jars on every source save ([#359](https://github.com/yschimke/compose-preview-daemon/issues/359)) ([17d10d1](https://github.com/yschimke/compose-preview-daemon/commit/17d10d1528f47b974aa19fbb01f52653417c0464))
+
+
+### Chores
+
+* **deps:** update actions/setup-java action to v6.1.0 ([#355](https://github.com/yschimke/compose-preview-daemon/issues/355)) ([fc3b98b](https://github.com/yschimke/compose-preview-daemon/commit/fc3b98bbda816ad4316a20126b164599b8b3aa65))
+
 ## [3.21.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.21.3...v3.21.4) (2026-10-21)
 
 
