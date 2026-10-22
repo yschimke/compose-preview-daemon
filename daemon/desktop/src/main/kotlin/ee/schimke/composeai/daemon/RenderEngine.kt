@@ -915,8 +915,10 @@ class RenderEngine(
     val startNs = System.nanoTime() - elapsedBeforeNs
     // Per-render work trace — the post-capture processors that ran (and for how long) and the data
     // kinds the other producers computed. Folded into the result's metrics and projected onto
-    // `renderFinished.workTrace`; see [RenderWorkTraceMetrics]. A processor the
-    // `postCaptureKinds` allowlist gates out is recorded as skipped (see [PostCaptureGate]).
+    // `renderFinished.workTrace`; see [RenderWorkTraceMetrics]. A processor gated out (an
+    // on-demand kind nobody asked for, or one the `postCaptureKinds` allowlist omits) is recorded
+    // as
+    // skipped (see [PostCaptureGate]).
     val workTraceMetrics = LinkedHashMap<String, Long>()
     RenderWorkTraceMetrics.markRecorded(workTraceMetrics)
 
@@ -1089,10 +1091,9 @@ class RenderEngine(
               .toTypedArray()
           )
         val productStore = RecordingDataProductStore()
-        // Desktop has no on-demand kinds of its own: every processor runs unless the daemon was
-        // launched with a `postCaptureKinds` allowlist, in which case only the allowlisted kinds
-        // and the ones this render's subscriptions / attach set / fetch asked for run. See
-        // [PostCaptureGate].
+        // The on-demand kinds (the seconds-per-render `compose/figma-svg` export) run only when
+        // this render's subscriptions / attach set / fetch asked for them, as on Android; a
+        // `postCaptureKinds` allowlist makes every processor on demand. See [PostCaptureGate].
         val allowlist = PostCaptureGate.allowlistFromSystemProperties()
         for (ext in dataArtifactExtensions) {
           if (ext !is PostCaptureProcessor) continue
@@ -1100,7 +1101,7 @@ class RenderEngine(
             !PostCaptureGate.shouldRun(
               kind = ext.id.value,
               requested = state.spec.requestedDataKinds,
-              onDemandKinds = emptySet(),
+              onDemandKinds = PostCaptureGate.ON_DEMAND_KINDS,
               allowlist = allowlist,
             )
           ) {

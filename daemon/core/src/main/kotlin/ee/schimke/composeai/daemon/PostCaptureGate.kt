@@ -12,7 +12,7 @@ import ee.schimke.composeai.daemon.config.DaemonProperties
  * render runs one only when its kind is in [RenderSpec.requestedDataKinds], or when that set is
  * `null` (a caller that predates the gate).
  *
- * **The work trace.** The Android engine records each processor that ran in the render's metrics as
+ * **The work trace.** Each engine records each processor that ran in the render's metrics as
  * `postCapture.<kind>` = wall-clock ms, and each on-demand processor it skipped as
  * `postCaptureSkipped.<kind>` = 0. Metrics survive the sandbox classloader and worker-process hops
  * and surface in the `render/trace` data product's `metrics` object, so a client can assert which

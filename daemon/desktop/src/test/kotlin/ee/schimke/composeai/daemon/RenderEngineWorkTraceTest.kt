@@ -9,6 +9,7 @@ import ee.schimke.composeai.data.render.extensions.PlannedDataExtension
 import ee.schimke.composeai.data.render.extensions.PostCaptureProcessor
 import java.util.concurrent.CopyOnWriteArrayList
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -106,8 +107,8 @@ class RenderEngineWorkTraceTest {
 
   @Test
   fun `the default processor set is reported, figma-svg included`() {
-    // Without a `postCaptureKinds` allowlist this engine gates nothing: it pays for the figma-svg
-    // export on every render, and the trace has to say so — that visibility is the point of it.
+    // A caller that predates the gate sends no requested kinds (`null`) and still gets every
+    // processor, the figma-svg export included, and the trace has to say so.
     val engine = RenderEngine(outputDir = tempFolder.newFolder("renders"))
 
     val result = engine.render(redSquareSpec("work-trace-default"), requestId = 1L)
@@ -158,11 +159,11 @@ class RenderEngineWorkTraceTest {
   }
 
   @Test
-  fun `without an allowlist the requested kinds gate nothing on desktop`() {
+  fun `an unsubscribed render skips the on-demand figma-svg export and records it`() {
     val calls = CopyOnWriteArrayList<String>()
-    val engine =
+    fun engine() =
       RenderEngine(
-        outputDir = tempFolder.newFolder("renders"),
+        outputDir = tempFolder.newFolder(),
         dataArtifactExtensions =
           listOf(
             RecordingProcessor("compose/semantics", calls),
@@ -170,16 +171,31 @@ class RenderEngineWorkTraceTest {
           ),
       )
 
-    // An unsubscribed `renderNow` arrives with an empty (not null) requested set; existing clients
-    // that read sidecars straight off disk must still get every one of them.
-    withPostCaptureKinds(null) {
-      engine.render(
-        redSquareSpec("work-trace-no-allowlist").copy(requestedDataKinds = emptySet()),
-        requestId = 1L,
-      )
-    }
+    // An unsubscribed `renderNow` arrives with an empty (not null) requested set. The export costs
+    // seconds per render, so it waits until a subscription, attach or fetch asks for its kind.
+    val plain =
+      withPostCaptureKinds(null) {
+        engine()
+          .render(
+            redSquareSpec("work-trace-unsubscribed").copy(requestedDataKinds = emptySet()),
+            requestId = 1L,
+          )
+      }
+    assertEquals(listOf("compose/semantics"), calls.toList())
+    assertTrue(PostCaptureGate.wasSkipped(plain.metrics, "compose/figma-svg"))
 
+    calls.clear()
+    val requested =
+      withPostCaptureKinds(null) {
+        engine()
+          .render(
+            redSquareSpec("work-trace-requested")
+              .copy(requestedDataKinds = setOf("compose/figma-svg")),
+            requestId = 1L,
+          )
+      }
     assertEquals(listOf("compose/semantics", "compose/figma-svg"), calls.toList())
+    assertFalse(PostCaptureGate.wasSkipped(requested.metrics, "compose/figma-svg"))
   }
 
   private fun <T> withPostCaptureKinds(value: String?, block: () -> T): T {
