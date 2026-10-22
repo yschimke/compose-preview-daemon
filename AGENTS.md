@@ -126,6 +126,15 @@ merged, stop: branch fresh for the follow-up.
   reviews, and branch protections. Opening,
   tracking and fix-up commits remain automatic.
 
+## Review guidelines
+
+- **Do not report commit author, committer or `Co-authored-by:` findings.** Your review sandbox
+  applies the pull request as a new commit under your own identity (`Codex <codex@openai.com>`), so
+  any identity you read from a local `git log` is yours, not the author's. Every such finding on
+  these repositories has named a commit that exists only in the sandbox. Attribution is enforced by
+  the `No Agent Attribution` CI gate above; leave it out of reviews entirely. This overrides the
+  reviewer guidance on attribution earlier in this file.
+
 ## Robolectric integration findings
 
 Keep [`docs/daemon/ROBOLECTRIC-UPSTREAM-FEEDBACK.md`](docs/daemon/ROBOLECTRIC-UPSTREAM-FEEDBACK.md)
