@@ -5,6 +5,7 @@ import ee.schimke.composeai.daemon.protocol.ChangeType
 import ee.schimke.composeai.daemon.protocol.ClientCapabilities
 import ee.schimke.composeai.daemon.protocol.CompileSourcesParams
 import ee.schimke.composeai.daemon.protocol.CompileSourcesResult
+import ee.schimke.composeai.daemon.protocol.CompileWarmUpResult
 import ee.schimke.composeai.daemon.protocol.DataFetchResult
 import ee.schimke.composeai.daemon.protocol.DataSubscribeResult
 import ee.schimke.composeai.daemon.protocol.ExtensionsDisableResult
@@ -151,6 +152,15 @@ public interface DaemonSession : Closeable {
     params: CompileSourcesParams,
     timeout: Duration = 120.seconds,
   ): CompileSourcesResult
+
+  /**
+   * Asks the daemon to warm its in-process compiler before the first [compileSources], and returns
+   * once it is warm — seconds, so call it off the caller's critical path. The daemon only reads the
+   * module's classes meanwhile, so recompiling through Gradle until it returns is safe. `null` when
+   * the daemon predates the request; [CompileWarmUpResult.ready] `false` when it had nothing to
+   * warm. Either way [compileSources] behaves as without it.
+   */
+  public fun compileWarmUp(timeout: Duration = 120.seconds): CompileWarmUpResult? = null
 
   public fun dataFetch(
     previewId: String,

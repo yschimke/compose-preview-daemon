@@ -6,6 +6,7 @@ import ee.schimke.composeai.daemon.protocol.ChangeType
 import ee.schimke.composeai.daemon.protocol.ClientCapabilities
 import ee.schimke.composeai.daemon.protocol.CompileSourcesParams
 import ee.schimke.composeai.daemon.protocol.CompileSourcesResult
+import ee.schimke.composeai.daemon.protocol.CompileWarmUpResult
 import ee.schimke.composeai.daemon.protocol.DataFetchParams
 import ee.schimke.composeai.daemon.protocol.DataFetchResult
 import ee.schimke.composeai.daemon.protocol.DataSubscribeParams
@@ -65,6 +66,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
@@ -312,6 +314,21 @@ public class DaemonClient(
       response["result"]
         ?: error("compileSources: no result — error=${response["error"]}, full=$response")
     return json.decodeFromJsonElement(CompileSourcesResult.serializer(), resultElem)
+  }
+
+  /** Drives `compileWarmUp` — see [DaemonSession.compileWarmUp]. */
+  override fun compileWarmUp(timeout: Duration): CompileWarmUpResult? {
+    val id = nextId.getAndIncrement()
+    val request =
+      JsonRpcRequest(id = id, method = CompileWarmUpResult.METHOD, params = JsonObject(emptyMap()))
+    val response = sendAndAwait(id, request, timeout)
+    val error = response["error"]
+    if (error is JsonObject && error["code"]?.jsonPrimitive?.intOrNull == METHOD_NOT_FOUND) {
+      return null
+    }
+    val resultElem =
+      response["result"] ?: error("compileWarmUp: no result — error=$error, full=$response")
+    return json.decodeFromJsonElement(CompileWarmUpResult.serializer(), resultElem)
   }
 
   /** Drives `history/read`. With [inline] = true the daemon returns base64 PNG bytes inline. */
@@ -842,3 +859,6 @@ public class DaemonBootFailedException(message: String) : IllegalStateException(
 
 /** The `bootProgress` phases after which nothing more is coming for the boot that answered. */
 private val TERMINAL_BOOT_PHASES = setOf(BootPhase.READY, BootPhase.FAILED)
+
+/** JSON-RPC "method not found": what a daemon that predates a request answers it with. */
+private const val METHOD_NOT_FOUND: Int = -32601
