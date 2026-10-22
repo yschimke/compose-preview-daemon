@@ -1,5 +1,7 @@
 package ee.schimke.composeai.daemon
 
+import io.github.classgraph.AnnotationClassRef
+import io.github.classgraph.AnnotationEnumValue
 import io.github.classgraph.AnnotationInfo
 import io.github.classgraph.ClassGraph
 import io.github.classgraph.ClassInfo
@@ -8,6 +10,7 @@ import io.github.classgraph.ScanResult
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * B2.2 phase 2 — daemon-side incremental rescan.
@@ -103,9 +106,13 @@ public class IncrementalDiscovery(
   }
 
   /**
-   * Scoped ClassGraph scan: returns the previews [file] currently contributes. Filters the scan to
-   * the smallest classpath element containing the file's compiled `.class` output (see
-   * [classpathElementForFile]); falls back to the full classpath when the heuristic misses.
+   * Scoped ClassGraph scan: returns the previews [file] currently contributes. Scans only the
+   * smallest classpath element containing the file's compiled `.class` output (see
+   * [classpathElementForFile]) and falls back to the full classpath when the heuristic misses.
+   *
+   * A preview may use a dependency-provided multi-preview annotation, or one carrying
+   * `@CaptureGutter`, so annotation classes the scoped scan cannot see are resolved from the
+   * dependency JARs ([annotationsFromJars]) rather than rescanning every JAR on every save.
    *
    * The returned set's id field uses the same `<className>.<methodName>` form the gradle plugin
    * emits when no variant suffix is present, plus any `_<name>` / `_<group>` suffix needed to
@@ -118,7 +125,8 @@ public class IncrementalDiscovery(
    */
   public fun scanForFile(file: Path): Set<PreviewInfoDto> {
     val target = classpathElementForFile(file)
-    val scanRoots = scanRootsForTarget(target)
+    val scanRoots = if (target != null) listOf(target) else classpath
+    val jars = if (target != null) dependencyJars(target) else emptyList()
     return try {
       ClassGraph()
         .enableMethodInfo()
@@ -127,7 +135,7 @@ public class IncrementalDiscovery(
         .overrideClasspath(scanRoots.map { it.toAbsolutePath().toString() })
         .ignoreParentClassLoaders()
         .scan()
-        .use { scanResult -> collectPreviews(scanResult, file, target) }
+        .use { scanResult -> collectPreviews(scanResult, file, target, jars) }
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: IncrementalDiscovery.scanForFile($file) failed " +
@@ -137,41 +145,84 @@ public class IncrementalDiscovery(
     }
   }
 
-  internal fun scanRootsForFile(file: Path): List<Path> =
-    scanRootsForTarget(classpathElementForFile(file))
+  /**
+   * Where [scanForFile] looks for [file]'s previews and their annotation classes: the changed
+   * module's class output, then the dependency JARs. Other module output directories stay excluded,
+   * preserving the cheap one-file scan this path exists for.
+   */
+  internal fun scanRootsForFile(file: Path): List<Path> {
+    val target = classpathElementForFile(file) ?: return classpath
+    return listOf(target) + dependencyJars(target)
+  }
 
-  private fun scanRootsForTarget(target: Path?): List<Path> {
-    // Keep the changed module's class output scoped, but retain dependency JARs: a method can use a
-    // dependency-provided multi-preview annotation whose meta-annotation carries @CaptureGutter.
-    // Scanning only `target` makes that annotation class unresolvable and re-adds a combination the
-    // authoritative pass rejected. Other module output directories stay excluded, preserving the
-    // cheap one-file scan this path exists for.
-    return if (target != null)
-      buildList {
-        add(target)
-        classpath.filterTo(this) { root ->
-          root != target && root.fileName?.toString()?.endsWith(".jar", ignoreCase = true) == true
-        }
-      }
-    else classpath
+  private fun dependencyJars(target: Path): List<Path> = classpath.filter { root ->
+    root != target && root.fileName?.toString()?.endsWith(".jar", ignoreCase = true) == true
+  }
+
+  /**
+   * Annotation classes resolved from the dependency JARs, by FQN; an empty list for a class the
+   * JARs don't hold. A daemon's classpath JARs don't change while it runs, so this outlives each
+   * scan: after the first saves, an edit resolves its annotations without opening a JAR.
+   */
+  private val jarAnnotations = ConcurrentHashMap<String, List<Ann>>()
+
+  /**
+   * Fills [jarAnnotations] for [names] and their meta-annotation closure, skipping what [local]
+   * resolves. Each round scans the JARs for just the classes still unknown.
+   */
+  private fun annotationsFromJars(
+    names: Collection<String>,
+    jars: List<Path>,
+    local: (String) -> List<Ann>?,
+  ) {
+    var pending = names.filterTo(HashSet()) { local(it) == null && !jarAnnotations.containsKey(it) }
+    while (pending.isNotEmpty()) {
+      val found =
+        ClassGraph()
+          .enableAnnotationInfo()
+          .overrideClasspath(jars.map { it.toAbsolutePath().toString() })
+          .ignoreParentClassLoaders()
+          .acceptClasses(*pending.toTypedArray())
+          .scan()
+          .use { result ->
+            pending.associateWith { name ->
+              result.getClassInfo(name)?.annotationInfo?.map { it.detach() }.orEmpty()
+            }
+          }
+      pending.forEach { jarAnnotations[it] = found[it].orEmpty() }
+      pending =
+        found.values
+          .flatten()
+          .map { it.name }
+          .filterTo(HashSet()) { local(it) == null && !jarAnnotations.containsKey(it) }
+    }
   }
 
   private fun collectPreviews(
     scanResult: ScanResult,
     file: Path,
     target: Path?,
+    jars: List<Path>,
   ): Set<PreviewInfoDto> {
     val sourceKey = file.toString()
     val basename = file.fileName?.toString().orEmpty()
     val targetRoot = target?.let { runCatching { it.toAbsolutePath().normalize() }.getOrNull() }
-    val results = LinkedHashSet<PreviewInfoDto>()
+    // An annotation class this scan only saw referenced is an external placeholder with no
+    // annotations of its own; leave it unresolved so the dependency JARs are asked.
+    val local = { name: String ->
+      scanResult
+        .getClassInfo(name)
+        ?.takeUnless { it.isExternalClass }
+        ?.annotationInfo
+        ?.map { it.detach() }
+    }
+    val methods = mutableListOf<Pair<ClassInfo, MethodInfo>>()
     for (classInfo in scanResult.allClasses) {
-      // The dependency JARs in the scan roots are there to resolve annotation metadata only (see
-      // [scanRootsForFile]). A JAR class compiled from the same source basename as the edited file
-      // (both modules having a `Previews.kt` is entirely normal) would otherwise satisfy the
-      // basename match below and be emitted under this file's `sourceKey`, polluting the
-      // incremental index with foreign previews. Preview candidates therefore have to originate
-      // from the edited module's own class output.
+      // A dependency class compiled from the same source basename as the edited file (both modules
+      // having a `Previews.kt` is entirely normal) would otherwise satisfy the basename match below
+      // and be emitted under this file's `sourceKey`, polluting the incremental index with foreign
+      // previews. Preview candidates therefore have to originate from the edited module's own class
+      // output.
       if (!originatesFrom(classInfo, targetRoot)) continue
       // The bytecode SourceFile attribute is just the basename; we accept either the absolute
       // path stored on the index (when sourceFile happens to be absolute) or the bytecode
@@ -180,36 +231,48 @@ public class IncrementalDiscovery(
       val matchesFile =
         classSource != null && (classSource == basename || sourceKey.endsWith("/$classSource"))
       if (!matchesFile) continue
-      for (method in classInfo.methodInfo) {
-        val annotations = method.annotationInfo?.toList().orEmpty()
-        val direct = collectDirectPreviews(annotations)
-        val expansions =
-          if (direct.isNotEmpty()) direct
-          else annotations.flatMap { resolveMultiPreview(it, scanResult, mutableSetOf()) }
-        if (expansions.isEmpty()) continue
+      classInfo.methodInfo.forEach { methods += classInfo to it }
+    }
+    // A full-classpath scan (no target) already holds every annotation class.
+    if (jars.isNotEmpty()) {
+      annotationsFromJars(
+        methods.flatMap { (_, method) -> method.annotationInfo.map { it.name } },
+        jars,
+        local,
+      )
+    }
+    val annotationsOf: (String) -> List<Ann>? = { name -> local(name) ?: jarAnnotations[name] }
 
-        // Mirror the authoritative pass's rejection of `@CaptureGutter` + `@ScrollingPreview`
-        // (PreviewDiscovery). Without it, a full pass correctly drops the combination from
-        // `previews.json`, but the first source edit re-adds the function here — the diff sees a
-        // previously-absent id and treats it as an addition — so the daemon would expose an
-        // unguttered, unscrolled preview until the next full discovery. `@CaptureGutter` may be
-        // hoisted onto a multi-preview annotation, so the check walks the meta-annotation closure.
-        //
-        // Best-effort, like the rest of this path: once a rejected function is out of the index, a
-        // fix that removes one annotation may not re-trip `cheapPrefilter` (its regex carries only
-        // the known preview FQNs), so recovery can wait for a full pass. That matches the
-        // incremental path's standing v1 contract (see [scanForFile] / the class kdoc), where
-        // identity is authoritative and details settle on the next full discovery.
-        if (declaresGutterAndScrolling(annotations, scanResult)) {
-          System.err.println(
-            "compose-ai-daemon: IncrementalDiscovery skipping '${classInfo.name}.${method.name}'" +
-              " — @CaptureGutter cannot be combined with @ScrollingPreview; remove one annotation."
-          )
-          continue
-        }
-        for (ann in expansions) {
-          results.add(toDto(classInfo, method, ann, sourceKey))
-        }
+    val results = LinkedHashSet<PreviewInfoDto>()
+    for ((classInfo, method) in methods) {
+      val annotations = method.annotationInfo?.map { it.detach() }.orEmpty()
+      val direct = collectDirectPreviews(annotations)
+      val expansions =
+        if (direct.isNotEmpty()) direct
+        else annotations.flatMap { resolveMultiPreview(it, annotationsOf, mutableSetOf()) }
+      if (expansions.isEmpty()) continue
+
+      // Mirror the authoritative pass's rejection of `@CaptureGutter` + `@ScrollingPreview`
+      // (PreviewDiscovery). Without it, a full pass correctly drops the combination from
+      // `previews.json`, but the first source edit re-adds the function here — the diff sees a
+      // previously-absent id and treats it as an addition — so the daemon would expose an
+      // unguttered, unscrolled preview until the next full discovery. `@CaptureGutter` may be
+      // hoisted onto a multi-preview annotation, so the check walks the meta-annotation closure.
+      //
+      // Best-effort, like the rest of this path: once a rejected function is out of the index, a
+      // fix that removes one annotation may not re-trip `cheapPrefilter` (its regex carries only
+      // the known preview FQNs), so recovery can wait for a full pass. That matches the
+      // incremental path's standing v1 contract (see [scanForFile] / the class kdoc), where
+      // identity is authoritative and details settle on the next full discovery.
+      if (declaresGutterAndScrolling(annotations, annotationsOf)) {
+        System.err.println(
+          "compose-ai-daemon: IncrementalDiscovery skipping '${classInfo.name}.${method.name}'" +
+            " — @CaptureGutter cannot be combined with @ScrollingPreview; remove one annotation."
+        )
+        continue
+      }
+      for (ann in expansions) {
+        results.add(toDto(classInfo, method, ann, sourceKey))
       }
     }
     return results
@@ -218,11 +281,10 @@ public class IncrementalDiscovery(
   /**
    * Whether [classInfo] was loaded from [targetRoot] — the changed module's own class output.
    *
-   * Fail-open: with no resolved target the scan is already the full classpath (no dependency-only
-   * roots were added), and a classpath element ClassGraph can't expose as a file (a `jrt:` module,
-   * say) can't be compared, so both cases keep the class as a candidate. Dropping a real preview is
-   * worse than the pollution this guard exists to prevent, and neither case is the JAR-vs-module
-   * ambiguity it targets.
+   * Fail-open: with no resolved target the scan is already the full classpath, and a classpath
+   * element ClassGraph can't expose as a file (a `jrt:` module, say) can't be compared, so both
+   * cases keep the class as a candidate. Dropping a real preview is worse than the pollution this
+   * guard exists to prevent, and neither case is the JAR-vs-module ambiguity it targets.
    */
   private fun originatesFrom(classInfo: ClassInfo, targetRoot: Path?): Boolean {
     if (targetRoot == null) return true
@@ -247,19 +309,18 @@ public class IncrementalDiscovery(
    * annotation and is found by walking the meta-annotation closure.
    */
   private fun declaresGutterAndScrolling(
-    annotations: List<AnnotationInfo>,
-    scanResult: ScanResult,
+    annotations: List<Ann>,
+    annotationsOf: (String) -> List<Ann>?,
   ): Boolean {
     var hasScrolling = false
-    var gutter: AnnotationInfo? = null
+    var gutter: Ann? = null
     val visited = mutableSetOf<String>()
-    fun walk(anns: List<AnnotationInfo>) {
+    fun walk(anns: List<Ann>) {
       for (ann in anns) {
         if (ann.name == SCROLLING_PREVIEW_FQN) hasScrolling = true
         if (ann.name == CAPTURE_GUTTER_FQN && gutter == null) gutter = ann
         if (!visited.add(ann.name)) continue
-        val annClass = scanResult.getClassInfo(ann.name) ?: continue
-        walk(annClass.annotationInfo.toList())
+        walk(annotationsOf(ann.name) ?: continue)
       }
     }
     walk(annotations)
@@ -271,34 +332,25 @@ public class IncrementalDiscovery(
    * `extractCaptureGutter` / `CaptureGutterDp.isEmpty()`: a per-edge `INHERIT_GUTTER` (`-1`) takes
    * `all`, negatives clamp to `0`, and an all-zero result is "no gutter".
    */
-  private fun hasEffectiveGutter(ann: AnnotationInfo): Boolean {
-    val pv = ann.parameterValues
-    val all = (pv.getValue("all") as? Int) ?: 0
+  private fun hasEffectiveGutter(ann: Ann): Boolean {
+    val all = (ann.params["all"] as? Int) ?: 0
     fun edge(name: String): Int {
-      val raw = (pv.getValue(name) as? Int) ?: INHERIT_GUTTER
+      val raw = (ann.params[name] as? Int) ?: INHERIT_GUTTER
       val resolved = if (raw == INHERIT_GUTTER) all else raw
       return resolved.coerceIn(0, MAX_CAPTURE_GUTTER_DP)
     }
     return edge("start") > 0 || edge("top") > 0 || edge("end") > 0 || edge("bottom") > 0
   }
 
-  private fun collectDirectPreviews(annotations: List<AnnotationInfo>): List<AnnotationInfo> {
-    val result = mutableListOf<AnnotationInfo>()
+  private fun collectDirectPreviews(annotations: List<Ann>): List<Ann> {
+    val result = mutableListOf<Ann>()
     for (ann in annotations) {
       if (ann.name in knownPreviewAnnotationFqns) {
         result.add(ann)
       } else if (ann.name in CONTAINER_FQNS) {
-        val value = ann.parameterValues.getValue("value")
-        when (value) {
-          is Array<*> -> value.filterIsInstance<AnnotationInfo>().forEach { result.add(it) }
-          is AnnotationInfo -> result.add(value)
-          else -> {
-            val len = runCatching { java.lang.reflect.Array.getLength(value) }.getOrNull() ?: 0
-            for (i in 0 until len) {
-              val elem = java.lang.reflect.Array.get(value, i)
-              if (elem is AnnotationInfo) result.add(elem)
-            }
-          }
+        when (val value = ann.params["value"]) {
+          is List<*> -> value.filterIsInstance<Ann>().forEach { result.add(it) }
+          is Ann -> result.add(value)
         }
       }
     }
@@ -306,20 +358,20 @@ public class IncrementalDiscovery(
   }
 
   private fun resolveMultiPreview(
-    ann: AnnotationInfo,
-    scanResult: ScanResult,
+    ann: Ann,
+    annotationsOf: (String) -> List<Ann>?,
     visited: MutableSet<String>,
-  ): List<AnnotationInfo> {
+  ): List<Ann> {
     if (ann.name in visited) return emptyList()
     if (ann.name in knownPreviewAnnotationFqns) return emptyList()
     if (ann.name in CONTAINER_FQNS) return emptyList()
     visited.add(ann.name)
-    val annClassInfo = scanResult.getClassInfo(ann.name) ?: return emptyList()
-    val direct = collectDirectPreviews(annClassInfo.annotationInfo.toList())
+    val metaAnnotations = annotationsOf(ann.name) ?: return emptyList()
+    val direct = collectDirectPreviews(metaAnnotations)
     if (direct.isNotEmpty()) return direct
-    val result = mutableListOf<AnnotationInfo>()
-    for (metaAnn in annClassInfo.annotationInfo) {
-      result.addAll(resolveMultiPreview(metaAnn, scanResult, visited))
+    val result = mutableListOf<Ann>()
+    for (metaAnn in metaAnnotations) {
+      result.addAll(resolveMultiPreview(metaAnn, annotationsOf, visited))
     }
     return result
   }
@@ -327,11 +379,11 @@ public class IncrementalDiscovery(
   private fun toDto(
     classInfo: ClassInfo,
     method: MethodInfo,
-    ann: AnnotationInfo,
+    ann: Ann,
     sourceKey: String,
   ): PreviewInfoDto {
-    val name = (ann.parameterValues.getValue("name") as? String)?.takeIf { it.isNotBlank() }
-    val group = (ann.parameterValues.getValue("group") as? String)?.takeIf { it.isNotBlank() }
+    val name = (ann.params["name"] as? String)?.takeIf { it.isNotBlank() }
+    val group = (ann.params["group"] as? String)?.takeIf { it.isNotBlank() }
     val suffix =
       when {
         name != null -> "_$name"
@@ -348,6 +400,28 @@ public class IncrementalDiscovery(
       group = group,
     )
   }
+
+  /**
+   * An annotation's FQN and arguments, detached from the [ScanResult] it was read from so it can be
+   * cached past that scan. Nested annotations stay [Ann], arrays become lists, and enum constants
+   * and class literals become their names.
+   */
+  internal data class Ann(val name: String, val params: Map<String, Any?>)
+
+  private fun AnnotationInfo.detach(): Ann =
+    Ann(name, parameterValues.associate { it.name to detachValue(it.value) })
+
+  private fun detachValue(value: Any?): Any? =
+    when {
+      value is AnnotationInfo -> value.detach()
+      value is AnnotationEnumValue -> value.valueName
+      value is AnnotationClassRef -> value.name
+      value != null && value.javaClass.isArray ->
+        (0 until java.lang.reflect.Array.getLength(value)).map {
+          detachValue(java.lang.reflect.Array.get(value, it))
+        }
+      else -> value
+    }
 
   /**
    * Resolves the saved source `.kt` file to the smallest classpath element that holds its compiled

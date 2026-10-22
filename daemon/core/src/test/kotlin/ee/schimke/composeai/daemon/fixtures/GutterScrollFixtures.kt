@@ -8,8 +8,8 @@ import ee.schimke.composeai.preview.ScrollingPreview
  * incremental scan must drop that combination the same way the authoritative `PreviewDiscovery`
  * pass does, or a source edit would re-add a rejected preview to the daemon's index.
  *
- * Four methods: the two contradictory combinations (one direct, one with the gutter hoisted onto a
- * multi-preview annotation) must be skipped; the two single-annotation controls must survive.
+ * The two contradictory combinations (one direct, one with the gutter hoisted onto a multi-preview
+ * annotation) must be skipped; the single-annotation controls must survive.
  */
 class GutterScrollFixtures {
   @TestPreview(name = "guttered-scroll")
@@ -22,6 +22,8 @@ class GutterScrollFixtures {
   @TestPreview(name = "gutter-only") @CaptureGutter(all = 4) fun gutterOnlyPreview() {}
 
   @TestPreview(name = "scroll-only") @ScrollingPreview fun scrollOnlyPreview() {}
+
+  @HoistedGutterTestPreview fun hoistedGutterOnlyPreview() {}
 
   // An all-zero gutter is equivalent to no annotation (PreviewDiscovery drops it), so this is NOT
   // the forbidden combination — it must survive, exactly as the full pass keeps it.

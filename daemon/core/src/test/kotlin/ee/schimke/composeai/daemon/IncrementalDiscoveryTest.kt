@@ -313,16 +313,56 @@ class IncrementalDiscoveryTest {
     }
   }
 
+  @Test
+  fun `scoped scan resolves dependency jar annotations once and reuses them`() {
+    // A preview may use a multi-preview annotation that lives in a dependency JAR, here one that
+    // also hoists a `@CaptureGutter`. The scoped scan reads only the module's own classes, so the
+    // JAR annotations must still resolve, and later saves must not reopen the JARs to do it.
+    val root = Files.createTempDirectory("incremental-jar-annotations")
+    try {
+      val packagePath = "ee/schimke/composeai/daemon/fixtures"
+      val targetRoot = root.resolve("target")
+      copyFixtureClasses(targetRoot.resolve(packagePath), packagePath, "GutterScrollFixtures.class")
+      val dependencyJar =
+        jarOfFixtureClasses(
+          root.resolve("annotations.jar"),
+          packagePath,
+          "HoistedGutterTestPreview",
+          "TestPreview.class",
+        )
+      val source = root.resolve("project/src/main/kotlin/$packagePath/GutterScrollFixtures.kt")
+      Files.createDirectories(source.parent)
+      val scoped =
+        IncrementalDiscovery(
+          classpath = listOf(targetRoot, dependencyJar),
+          knownPreviewAnnotationFqns = setOf(testPreviewFqn),
+        )
+
+      val first = scoped.scanForFile(source).map { it.id }.toSet()
+      val fixture = "ee.schimke.composeai.daemon.fixtures.GutterScrollFixtures"
+      assertTrue(
+        "the JAR's multi-preview must expand; got $first",
+        "$fixture.hoistedGutterOnlyPreview_hoisted" in first,
+      )
+      assertFalse(
+        "the JAR-hoisted gutter + scroll combination must be skipped; got $first",
+        first.any { it.startsWith("$fixture.hoistedGutterScrollingPreview") },
+      )
+
+      Files.delete(dependencyJar)
+      assertEquals(first, scoped.scanForFile(source).map { it.id }.toSet())
+    } finally {
+      root.toFile().deleteRecursively()
+    }
+  }
+
   /** Packages the compiled `TestPreviewFixtures` classes off the test classpath into [jar]. */
-  private fun jarOfFixtureClasses(jar: Path, packagePath: String): Path {
-    val classesDir =
-      testClasspath.firstOrNull { Files.isDirectory(it.resolve(packagePath)) }
-        ?: error("fixture classes not found on the test classpath")
-    val entries =
-      Files.list(classesDir.resolve(packagePath)).use { stream ->
-        stream.filter { it.fileName.toString().startsWith("TestPreviewFixtures") }.toList()
-      }
-    assertTrue("expected compiled fixture classes in $classesDir", entries.isNotEmpty())
+  private fun jarOfFixtureClasses(jar: Path, packagePath: String): Path =
+    jarOfFixtureClasses(jar, packagePath, "TestPreviewFixtures")
+
+  /** Packages the compiled fixture classes named with any of [prefixes] into [jar]. */
+  private fun jarOfFixtureClasses(jar: Path, packagePath: String, vararg prefixes: String): Path {
+    val entries = fixtureClasses(packagePath, *prefixes)
     JarOutputStream(Files.newOutputStream(jar)).use { out ->
       for (entry in entries) {
         out.putNextEntry(JarEntry("$packagePath/${entry.fileName}"))
@@ -331,5 +371,24 @@ class IncrementalDiscoveryTest {
       }
     }
     return jar
+  }
+
+  private fun copyFixtureClasses(dir: Path, packagePath: String, vararg prefixes: String) {
+    Files.createDirectories(dir)
+    for (entry in fixtureClasses(packagePath, *prefixes)) {
+      Files.copy(entry, dir.resolve(entry.fileName.toString()))
+    }
+  }
+
+  private fun fixtureClasses(packagePath: String, vararg prefixes: String): List<Path> {
+    val classesDir =
+      testClasspath.firstOrNull { Files.isDirectory(it.resolve(packagePath)) }
+        ?: error("fixture classes not found on the test classpath")
+    val entries =
+      Files.list(classesDir.resolve(packagePath)).use { stream ->
+        stream.filter { file -> prefixes.any { file.fileName.toString().startsWith(it) } }.toList()
+      }
+    assertTrue("expected compiled fixture classes in $classesDir", entries.isNotEmpty())
+    return entries
   }
 }
