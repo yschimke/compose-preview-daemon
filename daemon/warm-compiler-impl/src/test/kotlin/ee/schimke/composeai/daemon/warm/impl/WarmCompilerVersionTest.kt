@@ -39,7 +39,7 @@ class WarmCompilerVersionTest {
   }
 
   @Test
-  fun `patch releases order by number, a pre-release before its release`() {
+  fun `patch releases order by number, pre-releases by kind and number before the release`() {
     loader().use { loader ->
       val isOlder = entryClass(loader).getMethod("isOlder", String::class.java, String::class.java)
       fun older(a: String, b: String) = isOlder.invoke(null, a, b) as Boolean
@@ -49,6 +49,13 @@ class WarmCompilerVersionTest {
       assertEquals(false, older("2.4.20", "2.4.20"))
       assertEquals(false, older("2.4.21", "2.4.20"))
       assertEquals(false, older("2.4.30", "2.4.20"))
+      assertEquals(true, older("2.5.0-Beta1", "2.5.0-Beta2"))
+      assertEquals(true, older("2.5.0-Alpha3", "2.5.0-Beta2"))
+      assertEquals(true, older("2.5.0-dev-1234", "2.5.0-Beta2"))
+      assertEquals(false, older("2.5.0-Beta2", "2.5.0-Beta2"))
+      assertEquals(false, older("2.5.0-RC", "2.5.0-Beta2"))
+      assertEquals(false, older("2.5.0", "2.5.0-Beta2"))
+      assertEquals(true, older("2.5.0-RC", "2.5.0-RC2"))
     }
   }
 

@@ -164,7 +164,11 @@ internal constructor(
     /** A link error from the compiler's internals, as the compiler reports one it caught. */
     private val LINKAGE_ERROR =
       Regex(
-        """java\.lang\.(NoSuch(Method|Field)Error|NoClassDefFoundError|AbstractMethodError|IncompatibleClassChangeError|LinkageError)"""
+        "java\\.lang\\." +
+          "(LinkageError|NoClassDefFoundError|IncompatibleClassChangeError|NoSuchMethodError|" +
+          "NoSuchFieldError|AbstractMethodError|IllegalAccessError|InstantiationError|" +
+          "VerifyError|ClassFormatError|UnsupportedClassVersionError|ClassCircularityError|" +
+          "BootstrapMethodError|ExceptionInInitializerError|UnsatisfiedLinkError)\\b"
       )
 
     /** The Compose option the Build Tools API path passes too; see `composeCompilerPlugins`. */

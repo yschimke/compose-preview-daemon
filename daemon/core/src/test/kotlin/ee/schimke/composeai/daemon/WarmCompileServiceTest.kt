@@ -205,18 +205,39 @@ class WarmCompileServiceTest {
 
   @Test
   fun `a link error the compiler reports as an internal error is never tried again`() {
+    for (error in
+      listOf(
+        "NoSuchMethodError: 'void Foo.bar()'",
+        "VerifyError: Bad type",
+        "IllegalAccessError: x",
+      )) {
+      val fallback = FakeFallback()
+      val warm =
+        FakeWarm(
+          mapOf(
+            "status" to "failed",
+            "reason" to "compiler exited INTERNAL_ERROR: java.lang.$error",
+          )
+        )
+      val service = service(fallback) { warm }
+      repeat(3) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }
+      assertEquals(error, 1, warm.compiled.size)
+      assertEquals(error, 3, fallback.calls.size)
+    }
+  }
+
+  @Test
+  fun `any other internal error is retried on the next edit`() {
     val fallback = FakeFallback()
     val warm =
       FakeWarm(
         mapOf(
           "status" to "failed",
-          "reason" to
-            "compiler exited INTERNAL_ERROR: java.lang.NoSuchMethodError: 'void Foo.bar()'",
+          "reason" to "compiler exited INTERNAL_ERROR: java.lang.IllegalStateException: boom",
         )
       )
     val service = service(fallback) { warm }
-    repeat(3) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }
-    assertEquals(1, warm.compiled.size)
-    assertEquals(3, fallback.calls.size)
+    repeat(2) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }
+    assertEquals(2, warm.compiled.size)
   }
 }

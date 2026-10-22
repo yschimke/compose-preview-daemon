@@ -254,16 +254,30 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
 
     /**
      * Whether compiler [version] predates [other] of the same line: `2.4.10` predates `2.4.20`, and
-     * a pre-release such as `2.4.20-RC` predates the `2.4.20` release.
+     * pre-releases order dev < Alpha < Beta < RC < release, by number within a kind (`2.5.0-Beta1`
+     * predates `2.5.0-Beta2`; a bare `RC` is `RC1`).
      */
     @JvmStatic
     public fun isOlder(version: String, other: String): Boolean {
-      fun key(v: String): Pair<Int, Int> {
+      fun key(v: String): List<Int> {
         val patch = v.split('.').getOrNull(2).orEmpty()
         val number = patch.takeWhile { it.isDigit() }.toIntOrNull() ?: 0
-        return number to if (patch.contains('-')) 0 else 1
+        val suffix = patch.substringAfter('-', "")
+        val kind = suffix.takeWhile { it.isLetter() }.lowercase()
+        val rank =
+          when (kind) {
+            "" -> 4
+            "rc" -> 3
+            "beta" -> 2
+            "alpha" -> 1
+            else -> 0
+          }
+        val sequence = suffix.drop(kind.length).filter { it.isDigit() }.toIntOrNull() ?: 1
+        return listOf(number, rank, if (rank == 4) 0 else sequence)
       }
-      return compareValuesBy(key(version), key(other), { it.first }, { it.second }) < 0
+      val a = key(version)
+      val b = key(other)
+      return a.indices.firstOrNull { a[it] != b[it] }?.let { a[it] < b[it] } ?: false
     }
 
     /** The compiler on the class path at run time, read reflectively so it is not inlined. */
