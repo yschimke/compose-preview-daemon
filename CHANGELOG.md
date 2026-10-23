@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.24.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.24.0...v3.24.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* don't report previews loaded from previews.json as changed on rescan ([#377](https://github.com/yschimke/compose-preview-daemon/issues/377)) ([dd0d259](https://github.com/yschimke/compose-preview-daemon/commit/dd0d25948e4d562280235b2267a0918ce767db7d))
+
+
+### Performance
+
+* start the warm-up budget after the class-path state is built ([#375](https://github.com/yschimke/compose-preview-daemon/issues/375)) ([60b25ee](https://github.com/yschimke/compose-preview-daemon/commit/60b25eecd179a78a34b470c4d6b863914c9d7b59))
+* swap a busy sandbox worker's classloader before its next render ([#376](https://github.com/yschimke/compose-preview-daemon/issues/376)) ([c147caf](https://github.com/yschimke/compose-preview-daemon/commit/c147caf809975719a54d7733a1db548cd9a96899))
+
+
+### Documentation
+
+* record the unresolvable system intent an app tour passes over ([#372](https://github.com/yschimke/compose-preview-daemon/issues/372)) ([cca6c39](https://github.com/yschimke/compose-preview-daemon/commit/cca6c39d1ef59e850cf7a77215bdced42c23fcf4))
+
+
+### Build
+
+* stop publishing SHA-256 and SHA-512 checksum files ([#374](https://github.com/yschimke/compose-preview-daemon/issues/374)) ([a2c73c9](https://github.com/yschimke/compose-preview-daemon/commit/a2c73c911bb698d151bd62616fd386149ac3ed04))
+
 ## [3.24.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.23.0...v3.24.0) (2026-10-23)
 
 
