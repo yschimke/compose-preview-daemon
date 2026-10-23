@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.24.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.23.0...v3.24.0) (2026-10-23)
+
+
+### Features
+
+* warm the in-process compiler when a client asks ([#367](https://github.com/yschimke/compose-preview-daemon/issues/367)) ([5dd5c14](https://github.com/yschimke/compose-preview-daemon/commit/5dd5c14c795e3e093ff6b04eeb69beac903d529d))
+
+
+### Bug Fixes
+
+* **renderer-android:** let an app tour pass over a system screen the app opens ([#370](https://github.com/yschimke/compose-preview-daemon/issues/370)) ([0a24fb4](https://github.com/yschimke/compose-preview-daemon/commit/0a24fb479183d898e1d399f3e55f3cd58d3a300e))
+
 ## [3.23.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.22.0...v3.23.0) (2026-10-23)
 
 
