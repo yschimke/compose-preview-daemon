@@ -150,6 +150,7 @@ internal constructor(
   public fun warmUp(moduleSources: List<String> = emptyList()): WarmUp {
     val start = System.nanoTime()
     fun elapsedMs() = (System.nanoTime() - start) / 1_000_000
+    val budgetNs = warmUpBudgetMs * 1_000_000
     val warm =
       synchronized(this) {
         disabledReason?.let {
@@ -165,7 +166,13 @@ internal constructor(
     var next = 0
     var failure: String? = null
     var interrupted = false
-    while (passes < warmUpMaxPasses && (passes == 0 || elapsedMs() < warmUpBudgetMs)) {
+    // The budget runs from the end of the first pass. That pass builds the class-path state,
+    // which costs whatever the module's class path costs (12-22 s on a 750-entry Android one);
+    // counting it would leave a large module a single pass and a cold JIT.
+    var jitPassesFrom = 0L
+    while (
+      passes < warmUpMaxPasses && (passes == 0 || System.nanoTime() - jitPassesFrom < budgetNs)
+    ) {
       if (waitingCompiles.get() > 0) {
         interrupted = true
         break
@@ -183,7 +190,7 @@ internal constructor(
             mapOf("status" to "failed", "reason" to t.toString())
           }
         } ?: break
-      passes++
+      if (passes++ == 0) jitPassesFrom = System.nanoTime()
       when (result["status"]) {
         "ok" -> warmedWith += files
         "errors" ->
@@ -331,7 +338,10 @@ internal constructor(
      */
     internal const val WARM_UP_MAX_PASSES: Int = 60
 
-    /** No new warm-up pass once it has run this long, so a slow machine is not busy for long. */
+    /**
+     * No new warm-up pass once the passes after the first have run this long, so a slow machine is
+     * not busy for long. The first pass, which builds the class-path state, is not counted.
+     */
     internal const val WARM_UP_BUDGET_MS: Long = 6_000
 
     /** The Compose option the Build Tools API path passes too; see `composeCompilerPlugins`. */

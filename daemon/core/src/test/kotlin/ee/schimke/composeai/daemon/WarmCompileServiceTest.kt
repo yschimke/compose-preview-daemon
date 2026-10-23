@@ -213,6 +213,35 @@ class WarmCompileServiceTest {
   }
 
   @Test
+  fun `a first pass slower than the budget still leaves the JIT its passes`() {
+    var passes = 0
+    val warm =
+      object : WarmCompileService.WarmCompiler {
+        override fun compile(sources: List<String>): Map<String, Any?> = mapOf("status" to "ok")
+
+        override fun warmUp(sources: List<String>): Map<String, Any?> {
+          // The first pass builds the class-path state: on a large module, longer than the budget.
+          if (passes++ == 0) Thread.sleep(200)
+          return mapOf("status" to "ok")
+        }
+
+        override fun invalidate() {}
+      }
+    val outcome =
+      WarmCompileService(
+          FakeFallback(),
+          { warm },
+          log = {},
+          warmUpSources = { listOf("/warm/WarmUp.kt") },
+          warmUpMaxPasses = 4,
+          warmUpBudgetMs = 100,
+        )
+        .warmUp()
+    outcome as WarmCompileService.WarmUp.Ready
+    assertEquals(4, outcome.passes)
+  }
+
+  @Test
   fun `a module file that does not compile is dropped, and the generated one used when none is left`() {
     val (good, broken) = moduleFiles("Good.kt", "Broken.kt")
     val warm =
