@@ -592,7 +592,9 @@ internal constructor(
             .let { if (it.captures.isEmpty()) it.copy(captures = prior.captures) else it }
             .let { if (it.knobs.isEmpty()) it.copy(knobs = prior.knobs) else it }
             .let { if (prior.displayName == null) it.copy(displayName = null) else it }
-            .let { if (prior.group == null) it.copy(group = null) else it }
+            .let {
+              if (prior.group == null && groupUnknown(prior, fresh)) it.copy(group = null) else it
+            }
             .let {
               if (it.sourceFile == sourceKey && sameSource(prior.sourceFile, sourceKey)) {
                 it.copy(sourceFile = prior.sourceFile)
@@ -734,3 +736,13 @@ internal fun sameSource(sourceFile: String?, sourceKey: String): Boolean {
   val relative = sourceFile.replace('\\', '/')
   return sourceKey.replace('\\', '/').endsWith("/$relative")
 }
+
+/**
+ * Whether [prior]'s null `group` says nothing about [fresh]'s, so it must not read as a change.
+ * Unnamed, a preview's group is its id suffix and cannot change at the same id. Named, the name is
+ * the suffix and a group can be added at the same id, which is a real change, unless [prior] came
+ * from `previews.json`: that never carries `displayName`, which a rescan of a named preview always
+ * has.
+ */
+private fun groupUnknown(prior: PreviewInfoDto, fresh: PreviewInfoDto): Boolean =
+  fresh.displayName == null || prior.displayName == null

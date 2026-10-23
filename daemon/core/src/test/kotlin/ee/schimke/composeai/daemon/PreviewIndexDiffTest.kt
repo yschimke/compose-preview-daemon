@@ -319,4 +319,28 @@ class PreviewIndexDiffTest {
     assertFalse(sameSource("/other/src/Foo.kt", "/m/src/Foo.kt"))
     assertFalse(sameSource(null, "/m/src/Foo.kt"))
   }
+
+  @Test
+  fun `a group added to a named preview a rescan stored is a change`() {
+    // The name is the id suffix, so adding a group keeps the id; the prior came from a rescan
+    // (it has the name), so its null group is a real "no group".
+    val before = preview("Card_Dark", sourceFile = "/m/src/Card.kt", displayName = "Dark")
+    val after = before.copy(group = "themes")
+    val index = PreviewIndex.fromMap(path = null, byId = mapOf("Card_Dark" to before))
+
+    val diff = index.diff(setOf(after), Path.of("/m/src/Card.kt"))
+
+    assertEquals(listOf(after), diff.changed)
+  }
+
+  @Test
+  fun `an unnamed grouped preview loaded from previews json is not a change`() {
+    val fromManifest = preview("Card_themes", sourceFile = "src/Card.kt")
+    val rescanned = preview("Card_themes", sourceFile = "/m/src/Card.kt", group = "themes")
+    val index = PreviewIndex.fromMap(path = null, byId = mapOf("Card_themes" to fromManifest))
+
+    val diff = index.diff(setOf(rescanned), Path.of("/m/src/Card.kt"))
+
+    assertTrue(diff.changed.isEmpty())
+  }
 }
