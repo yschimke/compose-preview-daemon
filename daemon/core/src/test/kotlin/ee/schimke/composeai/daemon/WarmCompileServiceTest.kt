@@ -168,12 +168,114 @@ class WarmCompileServiceTest {
         },
         log = {},
         warmUpSources = { listOf("/warm/WarmUp.kt") },
+        warmUpMaxPasses = 1,
       )
     assertTrue(service.warmUp() is WarmCompileService.WarmUp.Ready)
     assertEquals(listOf(listOf("/warm/WarmUp.kt")), warm.warmedUp)
 
     service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt")))
     assertEquals(1, loads)
+    assertEquals(listOf(listOf("/m/A.kt")), warm.compiled)
+    assertTrue(fallback.calls.isEmpty())
+  }
+
+  private fun warmUpService(
+    fallback: FakeFallback,
+    warm: WarmCompileService.WarmCompiler,
+    maxPasses: Int,
+  ) =
+    WarmCompileService(
+      fallback,
+      { warm },
+      log = {},
+      warmUpSources = { listOf("/warm/WarmUp.kt") },
+      warmUpMaxPasses = maxPasses,
+      warmUpBudgetMs = 60_000,
+    )
+
+  private fun moduleFiles(vararg names: String): List<String> {
+    val dir = java.nio.file.Files.createTempDirectory("warm-up-sources").toFile()
+    return names.map { java.io.File(dir, it).apply { writeText("package m\n") }.path }
+  }
+
+  @Test
+  fun `a warm-up cycles through the module's own files for its passes`() {
+    val warm = FakeWarm()
+    val (a, b) = moduleFiles("A.kt", "B.kt")
+    val missing = java.io.File(a).resolveSibling("Gone.kt").path
+    val notKotlin = moduleFiles("J.java").single()
+    val outcome =
+      warmUpService(FakeFallback(), warm, maxPasses = 5).warmUp(listOf(a, b, missing, notKotlin, a))
+    outcome as WarmCompileService.WarmUp.Ready
+    assertEquals(listOf(a, b, a, b, a), warm.warmedUp.map { it.single() })
+    assertEquals(5, outcome.passes)
+    assertEquals(2, outcome.files)
+  }
+
+  @Test
+  fun `a module file that does not compile is dropped, and the generated one used when none is left`() {
+    val (good, broken) = moduleFiles("Good.kt", "Broken.kt")
+    val warm =
+      object : WarmCompileService.WarmCompiler {
+        val warmedUp = mutableListOf<String>()
+
+        override fun compile(sources: List<String>): Map<String, Any?> = mapOf("status" to "ok")
+
+        override fun warmUp(sources: List<String>): Map<String, Any?> {
+          warmedUp += sources.single()
+          return if (sources.single() == broken) mapOf("status" to "errors", "reason" to "x")
+          else mapOf("status" to "ok")
+        }
+
+        override fun invalidate() {}
+      }
+    warmUpService(FakeFallback(), warm, maxPasses = 4).warmUp(listOf(broken, good))
+    assertEquals(listOf(broken, good, good, good), warm.warmedUp)
+
+    warm.warmedUp.clear()
+    val outcome = warmUpService(FakeFallback(), warm, maxPasses = 3).warmUp(listOf(broken))
+    assertTrue(outcome is WarmCompileService.WarmUp.Ready)
+    assertEquals(listOf(broken, "/warm/WarmUp.kt", "/warm/WarmUp.kt"), warm.warmedUp)
+  }
+
+  @Test
+  fun `an edit that arrives during a warm-up waits for one pass, not the whole warm-up`() {
+    val fallback = FakeFallback()
+    lateinit var service: WarmCompileService
+    var edit: Thread? = null
+    val warm =
+      object : WarmCompileService.WarmCompiler {
+        var passes = 0
+        val compiled = mutableListOf<List<String>>()
+
+        override fun compile(sources: List<String>): Map<String, Any?> {
+          compiled += sources
+          return mapOf("status" to "ok")
+        }
+
+        override fun warmUp(sources: List<String>): Map<String, Any?> {
+          if (passes++ == 0) {
+            // An edit arrives mid-pass and blocks on the lock this pass holds.
+            edit =
+              Thread {
+                service.compile(
+                  this@WarmCompileServiceTest.sources,
+                  SourceChangeSet(modified = listOf("/m/A.kt")),
+                )
+              }
+                .apply { start() }
+            while (edit!!.state != Thread.State.BLOCKED) Thread.sleep(1)
+          }
+          return mapOf("status" to "ok")
+        }
+
+        override fun invalidate() {}
+      }
+    service = warmUpService(fallback, warm, maxPasses = 50)
+    val outcome = service.warmUp()
+    edit!!.join(5_000)
+    outcome as WarmCompileService.WarmUp.Ready
+    assertEquals(1, outcome.passes)
     assertEquals(listOf(listOf("/m/A.kt")), warm.compiled)
     assertTrue(fallback.calls.isEmpty())
   }
@@ -234,6 +336,8 @@ class WarmCompileServiceTest {
           compiles++
           throw NoSuchMethodError("FirJvmSessionFactory.createSourceSession")
         }
+
+        override fun warmUp(sources: List<String>): Map<String, Any?> = mapOf("status" to "ok")
 
         override fun invalidate() {}
       }

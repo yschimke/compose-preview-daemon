@@ -78,36 +78,39 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
   }
 
   /**
-   * Builds the class-path state and JIT-warms the whole pipeline by compiling [sources] — files
-   * outside the module, such as a generated one-function file — into the staging directory, and
-   * installs nothing. The class directory is only read, so a Gradle build may run alongside; one
-   * that writes classes before the next [compile] drops the state again, keeping only the warm JIT.
+   * One warm-up pass: compiles [sources] — the module's own files, or a generated one outside it —
+   * into the staging directory and installs nothing, building the class-path state, loading the
+   * library symbols they use and JIT-warming the pipeline. The class directory is only read, so a
+   * Gradle build may run alongside; one that writes classes drops the state again at the next pass
+   * or [compile], keeping only the warm JIT.
    *
-   * Returns `ok` or `failed` (with `reason`), and `timings`.
+   * Returns `ok`; `errors` (with `reason`) when [sources] do not compile, which keeps the state, as
+   * the library session is the same whatever the sources say; or `failed` (with `reason`) when the
+   * compiler itself did, which drops it. Always with `timings`.
    */
   @Synchronized
   public fun warmUp(sources: List<String>): Map<String, Any?> {
     val start = System.nanoTime()
     // Taken before compiling, so a build that writes classes meanwhile still invalidates.
-    fingerprint = classesFingerprint(classesDir)
-    moduleClasses = ModuleClasses.scan(classesDir)
+    val current = classesFingerprint(classesDir)
+    if (current != fingerprint) {
+      dropState()
+      fingerprint = current
+    }
+    if (moduleClasses == null) moduleClasses = ModuleClasses.scan(classesDir)
     stagingDir.deleteRecursively()
     stagingDir.mkdirs()
     val messages = Collector()
-    // The second pass runs on code the first one JIT-compiled: about 0.5 s more here, and 0.2 s
-    // off the first edit after it (0.86 s → 0.65 s, one-preview desktop module).
-    var exitCode = ExitCode.OK
-    repeat(WARM_UP_PASSES) {
-      if (exitCode == ExitCode.OK && messages.errors.isEmpty()) {
-        exitCode = runPipeline(sources, messages)
-      }
-    }
+    val exitCode = runPipeline(sources, messages)
     stagingDir.deleteRecursively()
     val timings = mapOf("warmUp" to System.nanoTime() - start)
-    if (exitCode != ExitCode.OK || messages.errors.isNotEmpty()) {
-      dropState()
+    if (messages.errors.isNotEmpty()) {
       val errors = messages.errors.joinToString("; ") { "${it["message"]}" }
-      return result("failed", timings, "reason" to errors.ifEmpty { "compiler exited $exitCode" })
+      return result("errors", timings, "reason" to errors)
+    }
+    if (exitCode != ExitCode.OK) {
+      dropState()
+      return result("failed", timings, "reason" to "compiler exited $exitCode: ${messages.other}")
     }
     return result("ok", timings)
   }
@@ -271,8 +274,6 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
   public companion object {
     /** Bumped whenever the facade's config or result shape changes. */
     public const val PROTOCOL: Int = 1
-
-    private const val WARM_UP_PASSES = 2
 
     /**
      * The compiler version this module was built against, written into a resource at build time.

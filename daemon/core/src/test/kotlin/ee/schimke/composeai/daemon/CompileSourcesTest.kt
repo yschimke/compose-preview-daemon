@@ -186,7 +186,11 @@ class CompileSourcesTest {
   }
 
   @Test(timeout = 10_000)
-  fun `compileWarmUp warms off the read loop and answers ready once warm`() {
+  fun `compileWarmUp warms off the read loop, with the sources it names, and answers once warm`() {
+    val home =
+      java.io.File(java.nio.file.Files.createTempDirectory("warm-up").toFile(), "Home.kt").apply {
+        writeText("package m\n")
+      }
     val release = java.util.concurrent.CountDownLatch(1)
     val warmedWith = LinkedBlockingQueue<List<String>>()
     val warm =
@@ -207,12 +211,13 @@ class CompileSourcesTest {
         { warm },
         log = {},
         warmUpSources = { listOf("/warm-up/WarmUp.kt") },
+        warmUpMaxPasses = 2,
       )
     val rig = startServer(service = service)
     try {
       rig.handshake()
-      val id = rig.sendRequest("compileWarmUp")
-      assertEquals(listOf("/warm-up/WarmUp.kt"), warmedWith.poll(5, TimeUnit.SECONDS))
+      val id = rig.sendRequest("compileWarmUp", """{"sources":["${home.path}"]}""")
+      assertEquals(listOf(home.path), warmedWith.poll(5, TimeUnit.SECONDS))
       // The read loop still answers while the warm-up runs.
       val other = rig.sendRequest("noSuchMethod")
       val error = rig.pollUntil { it["id"]?.jsonPrimitive?.longOrNull == other }
@@ -223,7 +228,7 @@ class CompileSourcesTest {
       val resp = rig.pollUntil { it["id"]?.jsonPrimitive?.longOrNull == id }
       val result = resp!!["result"]!!.jsonObject
       assertEquals("true", result["ready"]?.jsonPrimitive?.content)
-      assertNull(result["message"])
+      assertEquals("2 passes over 1 files", result["message"]?.jsonPrimitive?.content)
     } finally {
       release.countDown()
       rig.shutdown()
@@ -352,9 +357,9 @@ class CompileSourcesTest {
       return CompileSourcesResponseDto(kind, errors, durationMs)
     }
 
-    fun sendRequest(method: String): Long {
+    fun sendRequest(method: String, params: String = "{}"): Long {
       val id = nextId++
-      writeFrame("""{"jsonrpc":"2.0","id":$id,"method":"$method","params":{}}""")
+      writeFrame("""{"jsonrpc":"2.0","id":$id,"method":"$method","params":$params}""")
       return id
     }
 

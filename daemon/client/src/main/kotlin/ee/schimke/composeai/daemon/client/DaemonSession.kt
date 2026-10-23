@@ -159,8 +159,15 @@ public interface DaemonSession : Closeable {
    * module's classes meanwhile, so recompiling through Gradle until it returns is safe. `null` when
    * the daemon predates the request; [CompileWarmUpResult.ready] `false` when it had nothing to
    * warm. Either way [compileSources] behaves as without it.
+   *
+   * [sources] are module files the caller expects to send to [compileSources] (the files with its
+   * previews in them, say): the daemon warms with those, so the first edit of one finds its library
+   * symbols loaded. Empty, the daemon warms with code of its own.
    */
-  public fun compileWarmUp(timeout: Duration = 120.seconds): CompileWarmUpResult? = null
+  public fun compileWarmUp(
+    sources: List<String> = emptyList(),
+    timeout: Duration = 120.seconds,
+  ): CompileWarmUpResult? = null
 
   public fun dataFetch(
     previewId: String,

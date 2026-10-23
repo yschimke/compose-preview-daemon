@@ -186,23 +186,40 @@ class WarmCompilerEntryTest {
   }
 
   @Test
-  fun `a warm-up that does not compile reports why and leaves no state`() {
+  fun `a warm-up file that does not compile reports why and keeps the state`() {
     val broken =
       File(root, "warm-up/Broken.kt").apply {
         parentFile.mkdirs()
         writeText("package warmup\nfun broken(): Int = missing()\n")
       }
-    @Suppress("UNCHECKED_CAST")
-    val result =
-      entry.javaClass.getMethod("warmUp", List::class.java).invoke(entry, listOf(broken.path))
-        as Map<String, Any?>
-    assertEquals("failed", result["status"])
+    val result = warmUp(broken)
+    assertEquals("errors", result["status"])
     assertTrue(result["reason"].toString(), result["reason"].toString().contains("missing"))
     val screen = write("Screen.kt", screen("red"))
     val edit = compile(screen)
     assertEquals("ok", edit["status"])
-    assertTrue("a failed warm-up keeps no index", timings(edit).containsKey("index"))
+    assertFalse("index rebuilt after a warm-up", timings(edit).containsKey("index"))
   }
+
+  @Test
+  fun `a warm-up with the module's own file installs nothing`() {
+    val before = classes.walkTopDown().filter { it.isFile }.associate { it.path to it.readBytes() }
+    // The file as it stands on disk, edited since the classes were built.
+    val screen = write("Screen.kt", screen("green"))
+    repeat(3) { assertEquals("ok", warmUp(screen)["status"]) }
+    val after = classes.walkTopDown().filter { it.isFile }.associate { it.path to it.readBytes() }
+    assertEquals(before.keys, after.keys)
+    for ((path, bytes) in before) assertArrayEquals(path, bytes, after.getValue(path))
+
+    val edit = compile(write("Screen.kt", screen("red")))
+    assertEquals("ok", edit["status"])
+    assertFalse("index rebuilt after a warm-up", timings(edit).containsKey("index"))
+  }
+
+  @Suppress("UNCHECKED_CAST")
+  private fun warmUp(vararg files: File): Map<String, Any?> =
+    entry.javaClass.getMethod("warmUp", List::class.java).invoke(entry, files.map { it.path })
+      as Map<String, Any?>
 
   private fun compile(vararg files: File): Map<String, Any?> {
     @Suppress("UNCHECKED_CAST")

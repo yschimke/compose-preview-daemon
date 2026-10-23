@@ -593,23 +593,30 @@ bump.
 
 ### `compileWarmUp`
 
-No params. Sent by a client that will send `compileSources`, so the
-daemon warms its in-process compiler before the first edit instead of on
-it ([WARM-COMPILE.md § Warming up](WARM-COMPILE.md#warming-up)). The
-daemon warms in the background without writing the module's class
-directory and answers when done; other requests are served meanwhile.
+Sent by a client that will send `compileSources`, so the daemon warms its
+in-process compiler before the first edit instead of on it
+([WARM-COMPILE.md § Warming up](WARM-COMPILE.md#warming-up)). The daemon
+warms in the background without writing the module's class directory and
+answers when done; other requests are served meanwhile.
 
 ```ts
-{ ready: boolean; durationMs: number; message?: string }
+params?: { sources?: string[] }   // module files the client expects to edit
+result:  { ready: boolean; durationMs: number; message?: string }
 ```
+
+`sources` are absolute paths of the module's own files, the ones with
+previews in them, say: the daemon warms by compiling them, so the first
+edit of one finds its library symbols loaded. A file that is missing or
+does not compile is skipped. Without them the daemon warms with a
+generated file of its own.
 
 `ready: false` means nothing could be warmed — no warm compiler for this
 module, or in-process compile not configured — and `message` says why;
 `compileSources` then behaves as without the request. A `compileSources`
-sent before the answer waits for the warm-up; compiling through Gradle
-meanwhile is safe but measured slower (WARM-COMPILE.md). A daemon that
-predates the request answers `MethodNotFound` (-32601), which a client
-reads as "no warm-up here".
+sent before the answer waits for the warm-up's current pass, which then
+stops; compiling through Gradle meanwhile is safe but measured slower
+(WARM-COMPILE.md). A daemon that predates the request answers
+`MethodNotFound` (-32601), which a client reads as "no warm-up here".
 
 ### `history/prune` (phase H4)
 

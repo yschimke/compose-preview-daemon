@@ -7,6 +7,8 @@ import java.io.PipedInputStream
 import java.io.PipedOutputStream
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
@@ -24,7 +26,18 @@ class DaemonClientCompileWarmUpTest {
       ) { client ->
         assertThat(client.compileWarmUp(timeout = 5.seconds)).isNull()
       }
-    assertThat(requests.single()).isEqualTo("compileWarmUp")
+    assertThat(requests.single()["method"]!!.jsonPrimitive.content).isEqualTo("compileWarmUp")
+  }
+
+  @Test
+  fun `the warm-up sends the sources it is given`() {
+    val requests =
+      withPeer(answer = { id -> """{"jsonrpc":"2.0","id":$id,"result":{"ready":true}}""" }) { client
+        ->
+        client.compileWarmUp(listOf("/m/src/Home.kt"), timeout = 5.seconds)
+      }
+    val sources = requests.single()["params"]!!.jsonObject["sources"]!!.jsonArray
+    assertThat(sources.map { it.jsonPrimitive.content }).containsExactly("/m/src/Home.kt")
   }
 
   @Test
@@ -42,17 +55,17 @@ class DaemonClientCompileWarmUpTest {
   }
 
   /** Runs [block] against a client whose daemon answers every request with [answer]. */
-  private fun withPeer(answer: (Long) -> String, block: (DaemonClient) -> Unit): List<String> {
+  private fun withPeer(answer: (Long) -> String, block: (DaemonClient) -> Unit): List<JsonObject> {
     val toClient = PipedInputStream()
     val daemonOut = PipedOutputStream(toClient)
     val fromClient = PipedInputStream()
     val clientOut = PipedOutputStream(fromClient)
-    val methods = mutableListOf<String>()
+    val requests = mutableListOf<JsonObject>()
     val peer = Thread {
       runCatching {
         while (true) {
           val request = Json.parseToJsonElement(readFrame(fromClient) ?: break).jsonObject
-          methods += request["method"]!!.jsonPrimitive.content
+          requests += request
           writeFrame(daemonOut, answer(request["id"]!!.jsonPrimitive.long))
         }
       }
@@ -67,7 +80,7 @@ class DaemonClientCompileWarmUpTest {
       daemonOut.close()
       peer.join(2_000)
     }
-    return methods
+    return requests
   }
 
   private fun readFrame(input: InputStream): String? {

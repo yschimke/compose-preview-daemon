@@ -8,6 +8,7 @@ import ee.schimke.composeai.daemon.protocol.SourceChangeSet
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * `compileSources` through the warm compiler first (docs/daemon/WARM-COMPILE.md), with [fallback] —
@@ -25,15 +26,22 @@ internal constructor(
   private val fallback: BtaCompileService,
   private val compilerFactory: () -> WarmCompiler,
   private val log: (String) -> Unit = { System.err.println(it) },
-  /** Writes the files [warmUp] compiles, none of them the module's; see [WARM_UP_SOURCE]. */
+  /**
+   * Writes the files [warmUp] compiles when the client names none of the module's; see
+   * [WARM_UP_SOURCE].
+   */
   private val warmUpSources: () -> List<String> = { emptyList() },
+  /** At most this many warm-up passes, one file each... */
+  private val warmUpMaxPasses: Int = WARM_UP_MAX_PASSES,
+  /** ...and no new pass once the warm-up has run this long. */
+  private val warmUpBudgetMs: Long = WARM_UP_BUDGET_MS,
 ) : BtaCompileService {
 
   /** The JDK-typed surface of the warm compiler entry, loaded in its own class loader. */
   internal interface WarmCompiler {
     fun compile(sources: List<String>): Map<String, Any?>
 
-    /** Builds the class-path state from files outside the module and installs nothing. */
+    /** One warm-up pass: compiles [sources] into a scratch directory and installs nothing. */
     fun warmUp(sources: List<String>): Map<String, Any?>
 
     fun invalidate()
@@ -43,8 +51,22 @@ internal constructor(
   private var disabledReason: String? = null
   private val compiledSinceFallback = LinkedHashSet<String>()
 
-  @Synchronized
+  /** Edits waiting for the lock: a warm-up stops after its current pass when there are any. */
+  private val waitingCompiles = AtomicInteger()
+
   override fun compile(sources: List<Path>, changes: SourceChangeSet?): BtaCompileService.Outcome {
+    waitingCompiles.incrementAndGet()
+    try {
+      return synchronized(this) { compileLocked(sources, changes) }
+    } finally {
+      waitingCompiles.decrementAndGet()
+    }
+  }
+
+  private fun compileLocked(
+    sources: List<Path>,
+    changes: SourceChangeSet?,
+  ): BtaCompileService.Outcome {
     val modified = changes?.modified
     val reason =
       when {
@@ -86,13 +108,7 @@ internal constructor(
       "errors" -> BtaCompileService.Outcome.CompileError(errorsOf(result))
       else -> {
         val reason = result["reason"].toString()
-        if (result["status"] == "failed" && LINKAGE_ERROR.containsMatchIn(reason)) {
-          // The compiler caught a link error and exited INTERNAL_ERROR: as permanent as a thrown
-          // one.
-          disabledReason = reason
-          compiler = null
-          log("compose-ai-daemon: warm compile disabled ($reason); using the Build Tools API")
-        } else {
+        if (!disableOnLinkageError(result)) {
           log(
             "compose-ai-daemon: warm compile ${result["status"]} ($reason), using the Build Tools API"
           )
@@ -103,44 +119,115 @@ internal constructor(
   }
 
   /**
-   * Loads the warm compiler and builds its class-path state ahead of the first edit, which
-   * otherwise pays for both (seconds, mostly a cold JIT). Writes nothing to the class directory, so
-   * a Gradle build of the module may run meanwhile. A [compile] that arrives first waits for it.
+   * Turns the warm compiler off for good when [result] is a link error the compiler caught and
+   * reported as an internal error: as permanent as a thrown one. Whether it did.
+   */
+  private fun disableOnLinkageError(result: Map<String, Any?>): Boolean {
+    val reason = result["reason"].toString()
+    if (result["status"] != "failed" || !LINKAGE_ERROR.containsMatchIn(reason)) return false
+    disabledReason = reason
+    compiler = null
+    log("compose-ai-daemon: warm compile disabled ($reason); using the Build Tools API")
+    return true
+  }
+
+  /**
+   * Loads the warm compiler and warms it ahead of the first edit, which otherwise pays for loading
+   * it, building its class-path state, loading the library symbols the edited file uses and a cold
+   * JIT: seconds, against a warm compile's 100-200 ms.
+   *
+   * Runs passes of one file each, cycling through [moduleSources] (the files the client expects to
+   * edit; any that is missing, not Kotlin or does not compile is dropped) or, when there are none,
+   * the generated [warmUpSources]. Most of a cold edit's cost is the JIT, which keeps improving for
+   * dozens of compiles, so it runs up to [warmUpMaxPasses] passes within [warmUpBudgetMs]. Each
+   * pass compiles into a scratch directory and installs nothing, so a Gradle build of the module
+   * may run meanwhile. The lock is taken per pass, and an edit arriving stops the warm-up after the
+   * current pass: the edit waits for one pass, never for the whole warm-up.
    *
    * @return [WarmUp.Ready], or [WarmUp.Unavailable] when no warm compiler can run here — the first
-   *   edit then goes to the Build Tools API cold, as without a warm-up — or the warm-up failed.
+   *   edit then goes to the Build Tools API cold, as without a warm-up — or no pass compiled.
    */
-  @Synchronized
-  public fun warmUp(): WarmUp {
+  public fun warmUp(moduleSources: List<String> = emptyList()): WarmUp {
     val start = System.nanoTime()
     fun elapsedMs() = (System.nanoTime() - start) / 1_000_000
-    disabledReason?.let {
-      return WarmUp.Unavailable(it, elapsedMs())
-    }
     val warm =
-      compiler ?: loadCompiler() ?: return WarmUp.Unavailable(disabledReason!!, elapsedMs())
-    val result =
-      try {
-        warm.warmUp(warmUpSources())
-      } catch (t: Throwable) {
-        runCatching { warm.invalidate() }
-        mapOf("status" to "failed", "reason" to t.toString())
+      synchronized(this) {
+        disabledReason?.let {
+          return WarmUp.Unavailable(it, elapsedMs())
+        }
+        compiler ?: loadCompiler() ?: return WarmUp.Unavailable(disabledReason!!, elapsedMs())
       }
-    if (result["status"] != "ok") {
+    val candidates =
+      moduleSources.distinct().filterTo(ArrayList()) { it.endsWith(".kt") && File(it).isFile }
+    val generated by lazy { warmUpSources() }
+    val warmedWith = LinkedHashSet<String>()
+    var passes = 0
+    var next = 0
+    var failure: String? = null
+    var interrupted = false
+    while (passes < warmUpMaxPasses && (passes == 0 || elapsedMs() < warmUpBudgetMs)) {
+      if (waitingCompiles.get() > 0) {
+        interrupted = true
+        break
+      }
+      val files =
+        if (candidates.isEmpty()) generated else listOf(candidates[next++ % candidates.size])
+      val result =
+        synchronized(this) {
+          // Disabled, or reloaded after a failure, since the last pass.
+          if (compiler !== warm) return@synchronized null
+          try {
+            warm.warmUp(files)
+          } catch (t: Throwable) {
+            runCatching { warm.invalidate() }
+            mapOf("status" to "failed", "reason" to t.toString())
+          }
+        } ?: break
+      passes++
+      when (result["status"]) {
+        "ok" -> warmedWith += files
+        "errors" ->
+          if (candidates.isNotEmpty()) {
+            // A module file mid-edit: warm with the others, or the generated file.
+            candidates -= files.toSet()
+          } else {
+            failure = "${result["reason"]}"
+            break
+          }
+        else -> {
+          failure = "${result["reason"]}"
+          synchronized(this) { disableOnLinkageError(result) }
+          break
+        }
+      }
+    }
+    if (warmedWith.isEmpty()) {
       // Not fatal: the first edit builds the state as it always did.
-      val reason = "warm-up failed: ${result["reason"]}"
+      val reason =
+        if (interrupted) "an edit arrived before the first warm-up pass"
+        else "warm-up failed: $failure"
       log("compose-ai-daemon: $reason")
       return WarmUp.Unavailable(reason, elapsedMs())
     }
-    log("compose-ai-daemon: warm compiler ready in ${elapsedMs()} ms")
-    return WarmUp.Ready(elapsedMs())
+    val ready = WarmUp.Ready(elapsedMs(), passes = passes, files = warmedWith.size)
+    log(
+      "compose-ai-daemon: warm compiler ready in ${ready.durationMs} ms " +
+        "(${ready.passes} passes over ${ready.files} files" +
+        (if (interrupted) ", stopped for an edit)" else ")")
+    )
+    return ready
   }
 
   /** What [warmUp] achieved. */
   public sealed interface WarmUp {
     public val durationMs: Long
 
-    public data class Ready(override val durationMs: Long) : WarmUp
+    /** Warm, after [passes] passes over [files] distinct files. */
+    public data class Ready(
+      override val durationMs: Long,
+      val passes: Int = 1,
+      val files: Int = 1,
+    ) : WarmUp
 
     public data class Unavailable(val reason: String, override val durationMs: Long) : WarmUp
   }
@@ -234,6 +321,18 @@ internal constructor(
         }
       }
       """
+
+    /**
+     * Warm-up passes at most. The JIT keeps improving for dozens of compiles. On a Material 3
+     * screen (4-core sandbox), the first edits after warming with that screen's own file took
+     * 235-280 ms after 2 passes and 103-120 ms after 60 (8 s), steady at 86-103 ms; warming with
+     * other files of the module instead left the first edit at 177-196 ms, loading the symbols only
+     * it uses.
+     */
+    internal const val WARM_UP_MAX_PASSES: Int = 60
+
+    /** No new warm-up pass once it has run this long, so a slow machine is not busy for long. */
+    internal const val WARM_UP_BUDGET_MS: Long = 6_000
 
     /** The Compose option the Build Tools API path passes too; see `composeCompilerPlugins`. */
     private const val COMPOSE_SOURCE_INFORMATION: String =

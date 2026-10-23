@@ -16,6 +16,7 @@ import ee.schimke.composeai.daemon.protocol.ClasspathDirtyReason
 import ee.schimke.composeai.daemon.protocol.CompileResultKind
 import ee.schimke.composeai.daemon.protocol.CompileSourcesParams
 import ee.schimke.composeai.daemon.protocol.CompileSourcesResult
+import ee.schimke.composeai.daemon.protocol.CompileWarmUpParams
 import ee.schimke.composeai.daemon.protocol.CompileWarmUpResult
 import ee.schimke.composeai.daemon.protocol.DataFetchParams
 import ee.schimke.composeai.daemon.protocol.DataFetchResult
@@ -3293,6 +3294,18 @@ public class JsonRpcServer(
    * false` at once, and the first `compileSources` loads the Build Tools API as before.
    */
   private fun handleCompileWarmUp(req: JsonRpcRequest) {
+    // Optional: a client that names no sources (or sends no params) gets the generated warm-up.
+    val sources =
+      try {
+        decodeParams(req.params, CompileWarmUpParams.serializer()).sources
+      } catch (e: Throwable) {
+        sendErrorResponse(
+          id = req.id,
+          code = ERR_INVALID_PARAMS,
+          message = "invalid compileWarmUp params: ${e.message}",
+        )
+        return
+      }
     val warm = btaCompileService as? WarmCompileService
     if (warm == null) {
       val reason =
@@ -3308,14 +3321,19 @@ public class JsonRpcServer(
         {
           val outcome =
             try {
-              warm.warmUp()
+              warm.warmUp(sources)
             } catch (t: Throwable) {
               WarmCompileService.WarmUp.Unavailable("warm-up threw: $t", durationMs = 0)
             }
           val result =
             CompileWarmUpResult.Builder(ready = outcome is WarmCompileService.WarmUp.Ready).also {
               it.durationMs = outcome.durationMs
-              it.message = (outcome as? WarmCompileService.WarmUp.Unavailable)?.reason
+              it.message =
+                when (outcome) {
+                  is WarmCompileService.WarmUp.Unavailable -> outcome.reason
+                  is WarmCompileService.WarmUp.Ready ->
+                    "${outcome.passes} passes over ${outcome.files} files"
+                }
             }
           sendCompileWarmUpResult(req, result)
         },

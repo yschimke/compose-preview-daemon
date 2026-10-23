@@ -6,6 +6,7 @@ import ee.schimke.composeai.daemon.protocol.ChangeType
 import ee.schimke.composeai.daemon.protocol.ClientCapabilities
 import ee.schimke.composeai.daemon.protocol.CompileSourcesParams
 import ee.schimke.composeai.daemon.protocol.CompileSourcesResult
+import ee.schimke.composeai.daemon.protocol.CompileWarmUpParams
 import ee.schimke.composeai.daemon.protocol.CompileWarmUpResult
 import ee.schimke.composeai.daemon.protocol.DataFetchParams
 import ee.schimke.composeai.daemon.protocol.DataFetchResult
@@ -317,10 +318,14 @@ public class DaemonClient(
   }
 
   /** Drives `compileWarmUp` — see [DaemonSession.compileWarmUp]. */
-  override fun compileWarmUp(timeout: Duration): CompileWarmUpResult? {
+  override fun compileWarmUp(sources: List<String>, timeout: Duration): CompileWarmUpResult? {
     val id = nextId.getAndIncrement()
-    val request =
-      JsonRpcRequest(id = id, method = CompileWarmUpResult.METHOD, params = JsonObject(emptyMap()))
+    val params =
+      json.encodeToJsonElement(
+        CompileWarmUpParams.serializer(),
+        CompileWarmUpParams.Builder().also { it.sources = sources }.build(),
+      )
+    val request = JsonRpcRequest(id = id, method = CompileWarmUpResult.METHOD, params = params)
     val response = sendAndAwait(id, request, timeout)
     val error = response["error"]
     if (error is JsonObject && error["code"]?.jsonPrimitive?.intOrNull == METHOD_NOT_FOUND) {

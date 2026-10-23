@@ -93,10 +93,25 @@ compiler already loads the Compose plugin once; the Build Tools API fallback wou
 Left alone, the first `compileSources` of a daemon JVM pays for loading the warm compiler, building
 its class-path state and a cold JIT: 5.7 s on a one-preview desktop module, against about 0.3 s for
 the edits after it. A client that will send `compileSources` can have that paid before the first
-edit with `compileWarmUp` (PROTOCOL.md § 5): the daemon compiles a generated one-function Compose
-file of its own, twice, into the warm compiler's staging directory, installs nothing, and answers
-when done. A `compileSources` sent before the answer waits for the warm-up instead of compiling
-cold.
+edit with `compileWarmUp` (PROTOCOL.md § 5): the daemon compiles the module files the request
+names — or, when it names none, a generated one-function Compose file of its own — into the warm
+compiler's staging directory, installs nothing, and answers when done.
+
+It runs passes of one file each, cycling through the named files, up to 60 passes or 6 s. Most of
+a cold edit is the JIT, which keeps improving for dozens of compiles, and compiling the files that
+will be edited also loads the library symbols they use, which a generated file never touches. On a
+Material 3 screen with 20 helper files (warm compiler alone, 4-core sandbox):
+
+| warm-up | took | edit 1 | edits 2–10 |
+| --- | ---: | ---: | ---: |
+| 2 passes, other files | 0.7–0.8 s | 252–280 ms | 145–225 ms |
+| 60 passes, other files of the module | 5.5–5.7 s | 177–196 ms | 106–148 ms |
+| 60 passes, the edited file | 8.1 s | 103–120 ms | 86–113 ms |
+
+A file that does not compile (mid-edit, say) is dropped from the cycle without losing the warm
+state; when none is left the generated file is used. The compiler's lock is taken per pass, and a
+`compileSources` that arrives stops the warm-up after the current pass, so an edit waits for one
+pass (about 0.1–0.3 s), never for the whole warm-up.
 
 The class directory is only read, so a client could compile through Gradle until the answer and
 switch then. The MCP server does not: an edit made during the warm-up goes to `compileSources` and
