@@ -82,7 +82,7 @@ process boundary are a payload in and a `RenderResult` out
 |---|---|---|
 | `ready` / `bootFailed` | worker → pool | sent once, after the worker's sandbox boots |
 | `render` → `result` / `failed` | pool ↔ worker | one render, one reply |
-| `swap` → `ok` | pool → worker | `fileChanged{kind:"source"}` — drop the child classloader |
+| `swap` → `ok` | pool → worker | `fileChanged{kind:"source"}` / `compileSources` — drop the child classloader. Sent at once to an idle worker and, to a busy one, ahead of its next render, so the swap never waits for renders queued on a worker |
 | `shutdown` → `ok` | pool → worker | drain and exit |
 
 **The result survives the trip intact.** `RobolectricHost` already reduced a

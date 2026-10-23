@@ -71,6 +71,9 @@ class SandboxProcessPool(
     val lock = ReentrantLock()
     @Volatile var dead: Boolean = false
 
+    /** The pool's [swapGeneration] this worker's user class loader reflects. Guarded by [lock]. */
+    var swappedGeneration: Long = 0
+
     /**
      * Either way there is a process to wait on or kill; a spare is reached through its pid. By pid
      * for both — this module compiles against the Android stubs, which know `ProcessHandle` but not
@@ -126,6 +129,13 @@ class SandboxProcessPool(
   private val serverLock = ReentrantLock()
 
   @Volatile private var closed = false
+
+  /**
+   * Bumped by [swapUserClassLoaders]. A worker whose [Worker.swappedGeneration] is behind swaps
+   * before its next render, so a render dispatched after a swap always sees the new classes,
+   * without the swap waiting for renders already queued on the worker.
+   */
+  private val swapGeneration = java.util.concurrent.atomic.AtomicLong()
 
   private fun ensureServerSocket(): ServerSocket = serverLock.withLock {
     serverSocket
@@ -214,7 +224,9 @@ class SandboxProcessPool(
         (reply as? WorkerResponse.Configured)?.pid
           ?: error("spare worker on port $port answered configure with $reply")
       socket.soTimeout = 0
-      return Worker(index, process = null, socket, reader, writer, pid, adopted = true)
+      return Worker(index, process = null, socket, reader, writer, pid, adopted = true).also {
+        it.swappedGeneration = swapGeneration.get()
+      }
     } catch (t: Throwable) {
       runCatching { socket.close() }
       throw t
@@ -253,7 +265,10 @@ class SandboxProcessPool(
     when (hello) {
       is WorkerResponse.Ready -> {
         socket.soTimeout = 0
-        workers[index] = Worker(index, process, socket, reader, writer, hello.pid, adopted = false)
+        workers[index] =
+          Worker(index, process, socket, reader, writer, hello.pid, adopted = false).also {
+            it.swappedGeneration = swapGeneration.get()
+          }
         System.err.println(
           "compose-ai-daemon: sandbox worker $index ready (pid=${hello.pid}, port=${server.localPort})"
         )
@@ -286,6 +301,7 @@ class SandboxProcessPool(
       workers.getOrNull(index)?.takeIf { !it.dead }
         ?: error("sandbox worker $index is not ready (pool of $workerCount)")
     return worker.lock.withLock {
+      swapIfBehind(worker)
       val response =
         exchange(
           worker,
@@ -303,20 +319,39 @@ class SandboxProcessPool(
   }
 
   /**
-   * Broadcasts `swapUserClassLoaders` to every live worker. Best-effort per worker: a worker that
-   * fails to answer is marked dead and logged rather than failing the whole hot-reload — the host
-   * keeps serving on its remaining slots.
+   * Marks every worker's user class loader stale. An idle worker swaps now; a busy one swaps before
+   * its next render ([swapIfBehind]), so this never waits for renders queued on a worker. Waiting
+   * would hold `compileSources`' answer for every render already queued, and the worker lock is not
+   * fair, so a busy render queue could hold it for the whole queue (8.5 s behind 7 stale renders on
+   * Confetti). A render already running finishes on the classes it started with, as before.
+   * Best-effort per worker: one that fails to swap is marked dead and logged rather than failing
+   * the hot-reload; the host keeps serving on its remaining slots.
    */
   fun swapUserClassLoaders() {
+    swapGeneration.incrementAndGet()
     for (worker in workers) {
       if (worker == null || worker.dead) continue
+      if (!worker.lock.tryLock()) continue
       try {
-        worker.lock.withLock {
-          exchange(worker, WorkerRequest.Swap, readTimeoutMs = SWAP_TIMEOUT_MS)
-        }
-      } catch (t: Throwable) {
-        markDead(worker, "classloader swap failed", t)
+        swapIfBehind(worker)
+      } catch (_: Throwable) {
+        // Marked dead by swapIfBehind; the other workers still swap.
+      } finally {
+        worker.lock.unlock()
       }
+    }
+  }
+
+  /** Swaps [worker]'s user class loader if a swap was requested since its last. Holds its lock. */
+  private fun swapIfBehind(worker: Worker) {
+    val generation = swapGeneration.get()
+    if (worker.swappedGeneration >= generation) return
+    try {
+      exchange(worker, WorkerRequest.Swap, readTimeoutMs = SWAP_TIMEOUT_MS)
+      worker.swappedGeneration = generation
+    } catch (t: Throwable) {
+      markDead(worker, "classloader swap failed", t)
+      throw t
     }
   }
 
