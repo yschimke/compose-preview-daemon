@@ -49,6 +49,7 @@ unmeasured. Evidence confidence is separate from priority.
 | 14 | **P3 · R14 — caller-scoped wall clock for instrumented code** | Fixed locally with a shadow of `ShadowSystem` plus a stack-walk caller check; upstream value is a supported way to give instrumented app code a fixed wall clock. | Any Robolectric screenshot test of a component that formats `System.currentTimeMillis()`; ordinary app code is uninstrumented, so it reads the host clock today. | High confidence in mechanism (source + end-to-end tests); no upstream discussion yet. | Ask whether a configurable wall-clock offset, or a caller-aware `Interceptor` hook, would be accepted. |
 | 15 | **P3 · R15 — no hook to choose the sandbox classpath** | Medium: the Bazel/bundle lanes rendered on the daemon's Compose instead of the app's; worked around via the context loader. | Narrow: embedders whose sandbox classpath differs from the JVM's. | High confidence in source observation; workaround tested in-process. | Propose an extra-classpath option on `InstrumentationConfiguration`. |
 | 16 | **P3 · R17 — shadowing a composable function** | Fixed locally: a custom `@PreviewWrapper` that ends in `RemoteContentPreview` now captures through the connector. Upstream value is documentation, not a speedup. | Any Robolectric user shadowing a `@Composable` top-level function in a non-default package. | High confidence (end-to-end test with a negative control); no upstream discussion. | None until a second case needs it; then ask whether shadows of composable functions are a supported pattern. |
+| 17 | **P3 · R19 — a started system intent resolves to nothing** | Fixed locally: an app tour passes over a system screen it can't open instead of failing the launcher activity's hero. Upstream value is documentation. | Any Robolectric user that follows `getNextStartedActivity()` from an app which asks for a runtime permission (or opens another system screen) on first composition. | High confidence in mechanism (unit test with a real `requestPermissions` call); expected simulator behaviour, no upstream bug established. | None; revisit only if Robolectric ships a resolvable permission-controller activity. |
 
 ## Applicability beyond the daemon
 
@@ -612,6 +613,30 @@ this investigation; their full application export still needs validation with th
 - **Validation status:** `LocalVariableDedupingInstrumentorTest` instruments a `Shapes`-shaped ASM
   fixture: valid as written, rejected by `defineClass` after the stock instrumentor, defined after
   ours. No upstream issue filed yet.
+
+## R19 — A started system intent resolves to nothing in the sandbox
+
+- **Category/owner:** expected simulator behaviour, not a confirmed Robolectric bug. Our renderer
+  owns the workaround.
+- **Evidence/version:** Robolectric 4.17, SDK 35, 2026-10-23 (homeassistant-remotecompose#635,
+  compose-preview-daemon#370). `Activity.requestPermissions` records a started
+  `android.content.pm.action.REQUEST_PERMISSIONS` intent aimed at
+  `org.robolectric.permissioncontroller`, which `ShadowInstrumentation.getNextStartedActivity()`
+  returns. No activity in the sandbox's package manager resolves it, so `resolveActivity` returns
+  null.
+- **Impact:** `AppTourRenderer.followStartedActivities` followed every started intent and threw
+  `No activity resolves Intent { act=android.content.pm.action.REQUEST_PERMISSIONS … }`, so a
+  launcher activity that asks for a permission on first composition never rendered its hero.
+- **Current workaround:** `isUnresolvableSystemIntent` passes over an intent that resolves to
+  nothing and is not the app's own (neither an explicit component in the app's package nor one
+  scoped to it with `setPackage`). The tour stays on the app's screen, as it would for a user who
+  dismisses the dialog; an unresolvable intent of the app's own still fails the tour.
+- **Upgrade risk:** a Robolectric release that registers a permission-controller activity would
+  make the intent resolve; the tour would then try to follow it, and the regression test below
+  shows whether that still renders.
+- **Validation status:** `AppTourSystemIntentTest` (SDK 35) records a real `requestPermissions`
+  intent and checks that it is passed over, while an explicit component of the app's own and a
+  package-scoped intent are still followed. No upstream issue filed; none planned.
 
 ## How to turn an item into upstream feedback
 
