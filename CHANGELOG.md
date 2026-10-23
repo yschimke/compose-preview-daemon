@@ -1,5 +1,29 @@
 # Changelog
 
+## [3.23.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.22.0...v3.23.0) (2026-10-23)
+
+
+### Features
+
+* bundle the warm compiler by Kotlin minor version ([#368](https://github.com/yschimke/compose-preview-daemon/issues/368)) ([4747bfc](https://github.com/yschimke/compose-preview-daemon/commit/4747bfcd27624a3e42c45f85717fe4d8bb400981))
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.38.0 ([#363](https://github.com/yschimke/compose-preview-daemon/issues/363)) ([c61ccaa](https://github.com/yschimke/compose-preview-daemon/commit/c61ccaa715840917dae53146a2f0fff49dcc06fd))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.17.4 ([#369](https://github.com/yschimke/compose-preview-daemon/issues/369)) ([2e9b614](https://github.com/yschimke/compose-preview-daemon/commit/2e9b61461d325ce31e2fab51e4a229723a704ef3))
+* **deps:** update tapmoc to v0.5.0 ([#346](https://github.com/yschimke/compose-preview-daemon/issues/346)) ([e1eec94](https://github.com/yschimke/compose-preview-daemon/commit/e1eec9479939bd03dfa22e66b069438736f59d99))
+
+
+### Documentation
+
+* tell automated reviewers not to report commit attribution ([#366](https://github.com/yschimke/compose-preview-daemon/issues/366)) ([69a6ac2](https://github.com/yschimke/compose-preview-daemon/commit/69a6ac2ffe5343c435a1b15f18dfdf9a90890195))
+
+
+### CI
+
+* warn when main runs without the BuildFetch cache token ([#365](https://github.com/yschimke/compose-preview-daemon/issues/365)) ([14622b7](https://github.com/yschimke/compose-preview-daemon/commit/14622b7a0073c5a6e6701ba0e66c60699f89f7ea))
+
 ## [3.22.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.21.4...v3.22.0) (2026-10-22)
 
 
