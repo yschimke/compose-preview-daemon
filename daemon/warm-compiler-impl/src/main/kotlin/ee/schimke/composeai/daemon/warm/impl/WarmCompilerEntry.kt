@@ -40,6 +40,15 @@ import org.jetbrains.kotlin.config.Services
  */
 public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
 
+  // First, before anything else here touches the compiler.
+  init {
+    val runtime = runtimeCompilerVersion()
+    check(minorOf(runtime) == minorOf(BUILT_AGAINST) && !isOlder(runtime, SUPPORTED_FROM)) {
+      "warm compiler supports Kotlin $SUPPORTED_FROM and later ${minorOf(BUILT_AGAINST)} " +
+        "compilers, but the compiler on the class path is $runtime"
+    }
+  }
+
   private val compileClasspath: List<String> = config.stringList("compileClasspath")
   private val classesDir = File(config["classesDir"] as String)
   private val moduleName = config["moduleName"] as String
@@ -55,10 +64,6 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
   private var fingerprint: String? = null
 
   init {
-    val runtime = runtimeCompilerVersion()
-    check(runtime == BUILT_AGAINST) {
-      "warm compiler was built against Kotlin $BUILT_AGAINST but the compiler on the class path is $runtime"
-    }
     pluginLoader =
       URLClassLoader(
         config.stringList("pluginClasspath").map { File(it).toURI().toURL() }.toTypedArray(),
@@ -275,6 +280,43 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
     @JvmField
     public val BUILT_AGAINST: String =
       WarmCompilerEntry::class.java.getResource("built-against.txt")!!.readText().trim()
+
+    /** The oldest compiler of its line this jar is tested against, written in at build time. */
+    @JvmField
+    public val SUPPORTED_FROM: String =
+      WarmCompilerEntry::class.java.getResource("supported-from.txt")!!.readText().trim()
+
+    /** The Kotlin minor line of compiler [version]: `2.4` for `2.4.21`, `2.5` for `2.5.0-Beta2`. */
+    @JvmStatic
+    public fun minorOf(version: String): String = version.split('.').take(2).joinToString(".")
+
+    /**
+     * Whether compiler [version] predates [other] of the same line: `2.4.10` predates `2.4.20`, and
+     * pre-releases order dev < Alpha < Beta < RC < release, by number within a kind (`2.5.0-Beta1`
+     * predates `2.5.0-Beta2`; a bare `RC` is `RC1`).
+     */
+    @JvmStatic
+    public fun isOlder(version: String, other: String): Boolean {
+      fun key(v: String): List<Int> {
+        val patch = v.split('.').getOrNull(2).orEmpty()
+        val number = patch.takeWhile { it.isDigit() }.toIntOrNull() ?: 0
+        val suffix = patch.substringAfter('-', "")
+        val kind = suffix.takeWhile { it.isLetter() }.lowercase()
+        val rank =
+          when (kind) {
+            "" -> 4
+            "rc" -> 3
+            "beta" -> 2
+            "alpha" -> 1
+            else -> 0
+          }
+        val sequence = suffix.drop(kind.length).filter { it.isDigit() }.toIntOrNull() ?: 1
+        return listOf(number, rank, if (rank == 4) 0 else sequence)
+      }
+      val a = key(version)
+      val b = key(other)
+      return a.indices.firstOrNull { a[it] != b[it] }?.let { a[it] < b[it] } ?: false
+    }
 
     /** The compiler on the class path at run time, read reflectively so it is not inlined. */
     @JvmStatic

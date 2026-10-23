@@ -2,12 +2,12 @@
 // docs/daemon/WARM-COMPILE.md.
 //
 // Compiled against kotlin-compiler-embeddable's *internal* pipeline (the frontend phase, FIR
-// session factories, the plugin registrar seam), so each jar only links against the exact compiler
-// version it was built with. This module builds one jar per supported compiler line from shared
-// sources (`src/main`) plus a version-specific pipeline (`src/k24`, `src/k25`). `:daemon:core`
-// embeds them as resources and loads the one matching the compiler the launch descriptor supplies,
-// next to those Build Tools API impl jars, behind a facade that speaks only JDK types. Any other
-// version keeps the daemon on the Build Tools API.
+// session factories, the plugin registrar seam), which carry no compatibility promise. This module
+// builds one jar per Kotlin minor line (2.4, 2.5) from shared sources (`src/main`) plus a
+// line-specific pipeline (`src/k24`, `src/k25`), and tests each jar against every released compiler
+// of its line. `:daemon:core` embeds them as resources and loads the one for the line of the
+// compiler the launch descriptor supplies, next to those Build Tools API impl jars, behind a facade
+// that speaks only JDK types. A line with no jar keeps the daemon on the Build Tools API.
 //
 // NOT published to Maven: the jars ship inside `daemon-core`'s jar.
 
@@ -17,13 +17,29 @@ plugins {
   alias(libs.plugins.kotlin.jvm)
 }
 
-/** One compiler line this module builds a jar for. */
-class CompilerLine(val name: String, val version: String)
+/**
+ * One Kotlin minor line this module builds a jar for: compiled against [version], and its tests
+ * also run against each of [alsoTested], the line's other released compilers it supports, oldest
+ * first. The jar serves its line from the oldest of those up: an older compiler of the line is
+ * refused at load (2.4.0 and 2.4.10 lack the 2.4.20 frontend API `src/k24` calls), and a newer one,
+ * released after the jar, is used untested; the daemon falls back to the Build Tools API if the jar
+ * fails to link against it.
+ */
+class CompilerLine(
+  val name: String,
+  val version: String,
+  val alsoTested: List<String>,
+  /** Compilers of the line this jar must refuse at load, tested as such. */
+  val refused: List<String> = emptyList(),
+) {
+  val minor: String = version.split('.').take(2).joinToString(".")
+  val supportedFrom: String = alsoTested.firstOrNull() ?: version
+}
 
 val lines =
   listOf(
-    CompilerLine("k24", libs.versions.kotlin.get()),
-    CompilerLine("k25", libs.versions.warmCompilerKotlinNext.get()),
+    CompilerLine("k24", libs.versions.kotlin.get(), listOf("2.4.20"), refused = listOf("2.4.10")),
+    CompilerLine("k25", libs.versions.warmCompilerKotlinNext.get(), emptyList()),
   )
 
 sourceSets {
@@ -50,19 +66,23 @@ dependencies {
   testImplementation(libs.junit)
 }
 
-// The compiler version each jar links against, checked at load against the one on the class path.
+// The compiler version each jar links against and the oldest of its line it supports, checked at
+// load against the one on the class path.
 for (line in lines) {
   val sourceSet = if (line.name == "k24") "main" else line.name
   val out = layout.buildDirectory.dir("generated/built-against/${line.name}")
   val version = line.version
+  val supportedFrom = line.supportedFrom
   val task =
     tasks.register("writeBuiltAgainst${line.name.replaceFirstChar { it.uppercase() }}") {
       inputs.property("kotlin", version)
+      inputs.property("supportedFrom", supportedFrom)
       outputs.dir(out)
       doLast {
-        val file = out.get().file("ee/schimke/composeai/daemon/warm/impl/built-against.txt").asFile
-        file.parentFile.mkdirs()
-        file.writeText(version)
+        val dir = out.get().dir("ee/schimke/composeai/daemon/warm/impl").asFile
+        dir.mkdirs()
+        File(dir, "built-against.txt").writeText(version)
+        File(dir, "supported-from.txt").writeText(supportedFrom)
       }
     }
   sourceSets[sourceSet].resources.srcDir(task)
@@ -74,7 +94,7 @@ val k25Jar =
     from(sourceSets["k25"].output)
   }
 
-// What `:daemon:core` bundles: one jar per compiler line, named for its compiler version.
+// What `:daemon:core` bundles: one jar per compiler line, named for its Kotlin minor version.
 val warmCompilerJars =
   configurations.create("warmCompilerJars") {
     isCanBeConsumed = true
@@ -84,8 +104,8 @@ val warmCompilerJars =
 
 val bundleJars =
   tasks.register<Sync>("bundleJars") {
-    val k24Name = "warm-compiler-impl-${lines[0].version}.jar"
-    val k25Name = "warm-compiler-impl-${lines[1].version}.jar"
+    val k24Name = "warm-compiler-impl-${lines[0].minor}.jar"
+    val k25Name = "warm-compiler-impl-${lines[1].minor}.jar"
     from(tasks.named<Jar>("jar")) { rename { k24Name } }
     from(k25Jar) { rename { k25Name } }
     into(layout.buildDirectory.dir("warm-compiler-jars"))
@@ -113,53 +133,61 @@ val testComposeRuntime =
 dependencies { testComposeRuntime(libs.jetbrains.compose.runtime) }
 
 for (line in lines) {
-  val compiler =
-    configurations.create("${line.name}TestCompiler") {
-      isCanBeConsumed = false
-      isCanBeResolved = true
-    }
-  val plugin =
-    configurations.create("${line.name}TestComposePlugin") {
-      isCanBeConsumed = false
-      isCanBeResolved = true
-      isTransitive = false
-    }
-  dependencies {
-    compiler("org.jetbrains.kotlin:kotlin-compiler-embeddable:${line.version}")
-    plugin("org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:${line.version}")
-  }
   val jar = if (line.name == "k24") tasks.named<Jar>("jar") else k25Jar
-  val configure: Test.() -> Unit = {
-    val implJar = jar.flatMap { it.archiveFile }
-    val compilerFiles: FileCollection = files(compiler)
-    val pluginFiles: FileCollection = files(plugin)
-    val runtimeFiles: FileCollection = files(testComposeRuntime)
-    inputs.file(implJar)
-    inputs.files(compilerFiles, pluginFiles, runtimeFiles)
-    jvmArgumentProviders.add(
-      CommandLineArgumentProvider {
-        listOf(
-          "-Dwarm.test.implJar=${implJar.get().asFile.absolutePath}",
-          "-Dwarm.test.compiler=${compilerFiles.asPath}",
-          "-Dwarm.test.composePlugin=${pluginFiles.asPath}",
-          "-Dwarm.test.composeRuntime=${runtimeFiles.asPath}",
-        )
+  for (version in listOf(line.version) + line.alsoTested + line.refused) {
+    val refused = version in line.refused
+    val suffix =
+      if (version == line.version) line.name else "${line.name}OnKotlin${version.replace('.', '_')}"
+    val compiler =
+      configurations.create("${suffix}TestCompiler") {
+        isCanBeConsumed = false
+        isCanBeResolved = true
       }
-    )
-    maxHeapSize = "2g"
-  }
-  if (line.name == "k24") {
-    tasks.named<Test>("test") { configure() }
-  } else {
-    val test = tasks.named<Test>("test")
-    val testK25 =
-      tasks.register<Test>("test${line.name.replaceFirstChar { it.uppercase() }}") {
-        description = "Runs the warm compiler tests against Kotlin ${line.version}."
-        group = "verification"
-        testClassesDirs = test.get().testClassesDirs
-        classpath = test.get().classpath
-        configure()
+    val plugin =
+      configurations.create("${suffix}TestComposePlugin") {
+        isCanBeConsumed = false
+        isCanBeResolved = true
+        isTransitive = false
       }
-    tasks.named("check") { dependsOn(testK25) }
+    dependencies {
+      compiler("org.jetbrains.kotlin:kotlin-compiler-embeddable:$version")
+      plugin("org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:$version")
+    }
+    val configure: Test.() -> Unit = {
+      val implJar = jar.flatMap { it.archiveFile }
+      val compilerFiles: FileCollection = files(compiler)
+      val pluginFiles: FileCollection = files(plugin)
+      val runtimeFiles: FileCollection = files(testComposeRuntime)
+      inputs.file(implJar)
+      inputs.files(compilerFiles, pluginFiles, runtimeFiles)
+      jvmArgumentProviders.add(
+        CommandLineArgumentProvider {
+          listOf(
+            "-Dwarm.test.implJar=${implJar.get().asFile.absolutePath}",
+            "-Dwarm.test.compiler=${compilerFiles.asPath}",
+            "-Dwarm.test.composePlugin=${pluginFiles.asPath}",
+            "-Dwarm.test.composeRuntime=${runtimeFiles.asPath}",
+            "-Dwarm.test.expectRefused=$refused",
+          )
+        }
+      )
+      maxHeapSize = "2g"
+    }
+    if (suffix == "k24") {
+      tasks.named<Test>("test") { configure() }
+    } else {
+      val test = tasks.named<Test>("test")
+      val task =
+        tasks.register<Test>("test${suffix.replaceFirstChar { it.uppercase() }}") {
+          description =
+            if (refused) "Checks the ${line.minor} warm compiler refuses Kotlin $version."
+            else "Runs the ${line.minor} warm compiler tests against Kotlin $version."
+          group = "verification"
+          testClassesDirs = test.get().testClassesDirs
+          classpath = test.get().classpath
+          configure()
+        }
+      tasks.named("check") { dependsOn(task) }
+    }
   }
 }

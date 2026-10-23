@@ -49,19 +49,40 @@ compile rebuilds the cached state.
 
 ## Isolation and versions
 
-The internal API differs between compiler versions, and the Gradle plugin resolves the BTA impl at
-the **consumer's** Kotlin version. So `:daemon:warm-compiler-impl` builds one jar per supported
-compiler line from shared sources (`src/main`: the entry, the ABI gate) and a version-specific
-pipeline (`src/k24` against `libs.versions.kotlin`, `src/k25` against `warmCompilerKotlinNext`,
-currently 2.5.0-Beta2, whose frontend replaces search scopes with `JvmClasspath` and threads a
-`javaInterop` through the session context). Both run the same tests (`test`, `testK25`).
+The internal API differs between compiler lines, and the Gradle plugin resolves the BTA impl at the
+**consumer's** Kotlin version. So `:daemon:warm-compiler-impl` builds one jar per Kotlin minor line
+from shared sources (`src/main`: the entry, the ABI gate) and a line-specific pipeline (`src/k24`
+against `libs.versions.kotlin`, `src/k25` against `warmCompilerKotlinNext`, currently 2.5.0-Beta2,
+whose frontend replaces search scopes with `JvmClasspath` and threads a `javaInterop` through the
+session context).
 
-`daemon-core` ships the jars as resources (`warm/warm-compiler-impl-<version>.jar`). On the first
-`compileSources` the daemon reads `KotlinCompilerVersion` from the launch descriptor's BTA impl
-jars, extracts the matching jar and loads it next to them, in a class loader parented to the
-platform loader; it talks to it through JDK types only. Each jar also checks the compiler it was
-built against (`built-against.txt`) before doing anything. On a version with no jar the daemon logs
-it once and uses the Build Tools API as before.
+A jar serves the compilers of its line from the oldest one it is tested against, not only the one
+it was built against: the 2.4 jar serves a consumer on Kotlin 2.4.20 as well as one on 2.4.21. The
+build checks that rather than assuming it: each line's tests run against the compiler it was built
+against (`test`, `testK25`) and against the line's other supported releases (`testK24OnKotlin2_4_20`),
+and `check` runs them all.
+
+"Minor line" is the granularity of the jar, not a promise from Kotlin: the 2.4.20 tooling release
+changed the frontend API `src/k24` calls (`JvmFrontendPipelinePhase.createProjectEnvironment`,
+`createLibraryListForJvm`, `FirJvmSessionFactory.createSourceSession`), so 2.4.0 and 2.4.10 stay on
+the Build Tools API. Each jar records the oldest compiler it serves (`supported-from.txt`) and
+refuses an older one at load, and `testK24OnKotlin2_4_10` checks that it does. Serving 2.4.0–2.4.10
+would take a third pipeline source set built against 2.4.10.
+
+When Kotlin releases a new patch of a bundled line, add it to the line's `alsoTested` list in
+`daemon/warm-compiler-impl/build.gradle.kts`.
+
+`daemon-core` ships the jars as resources (`warm/warm-compiler-impl-<minor>.jar`, e.g.
+`warm-compiler-impl-2.4.jar`). On the first `compileSources` the daemon reads
+`KotlinCompilerVersion` from the launch descriptor's BTA impl jars, extracts the jar for that
+version's line and loads it next to them, in a class loader parented to the platform loader; it
+talks to it through JDK types only. Each jar also checks that the compiler on its class path is of
+the line it was built for, and no older than `supported-from.txt`, before doing anything. On a
+line with no jar, or a compiler the jar refuses, the daemon logs it once and uses the Build Tools
+API as before. A compiler of a bundled line released
+after the jar was built is used untested; if the jar fails to link against it (a `LinkageError`
+during a compile, thrown or reported by the compiler as an internal error), the daemon turns the
+warm compiler off for the rest of the session and uses the Build Tools API.
 
 Kotlin 2.5's Build Tools API caches compiler-plugin class loaders per `BuildSession`. The warm
 compiler already loads the Compose plugin once; the Build Tools API fallback would need its

@@ -147,7 +147,7 @@ class WarmCompileServiceTest {
     val service =
       service(fallback) {
         attempts++
-        error("built against Kotlin 2.4.21 but the compiler on the class path is 2.3.0")
+        error("built for Kotlin 2.4 but the compiler on the class path is 2.3.0")
       }
     repeat(3) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }
     assertEquals(1, attempts)
@@ -222,5 +222,78 @@ class WarmCompileServiceTest {
     assertEquals(BtaCompileService.Outcome.Ok, outcome)
     assertEquals(1, fallback.calls.size)
     assertTrue(warm.invalidated)
+  }
+
+  @Test
+  fun `a warm compiler that fails to link mid-compile is never tried again`() {
+    val fallback = FakeFallback()
+    var compiles = 0
+    val warm =
+      object : WarmCompileService.WarmCompiler {
+        override fun compile(sources: List<String>): Map<String, Any?> {
+          compiles++
+          throw NoSuchMethodError("FirJvmSessionFactory.createSourceSession")
+        }
+
+        override fun invalidate() {}
+      }
+    val service = service(fallback) { warm }
+    repeat(3) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }
+    assertEquals(1, compiles)
+    assertEquals(3, fallback.calls.size)
+  }
+
+  @Test
+  fun `every compiler of a Kotlin minor line shares one bundled jar`() {
+    assertEquals(
+      "warm/warm-compiler-impl-2.4.jar",
+      WarmCompileService.implJarResource("2.4.0"),
+    )
+    assertEquals(
+      "warm/warm-compiler-impl-2.4.jar",
+      WarmCompileService.implJarResource("2.4.21"),
+    )
+    assertEquals(
+      "warm/warm-compiler-impl-2.5.jar",
+      WarmCompileService.implJarResource("2.5.0-Beta2"),
+    )
+  }
+
+  @Test
+  fun `a link error the compiler reports as an internal error is never tried again`() {
+    for (error in
+      listOf(
+        "NoSuchMethodError: 'void Foo.bar()'",
+        "VerifyError: Bad type",
+        "IllegalAccessError: x",
+      )) {
+      val fallback = FakeFallback()
+      val warm =
+        FakeWarm(
+          mapOf(
+            "status" to "failed",
+            "reason" to "compiler exited INTERNAL_ERROR: java.lang.$error",
+          )
+        )
+      val service = service(fallback) { warm }
+      repeat(3) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }
+      assertEquals(error, 1, warm.compiled.size)
+      assertEquals(error, 3, fallback.calls.size)
+    }
+  }
+
+  @Test
+  fun `any other internal error is retried on the next edit`() {
+    val fallback = FakeFallback()
+    val warm =
+      FakeWarm(
+        mapOf(
+          "status" to "failed",
+          "reason" to "compiler exited INTERNAL_ERROR: java.lang.IllegalStateException: boom",
+        )
+      )
+    val service = service(fallback) { warm }
+    repeat(2) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }
+    assertEquals(2, warm.compiled.size)
   }
 }

@@ -1,6 +1,6 @@
 // Internal compiler APIs: this file links against kotlin-compiler-embeddable's CLI pipeline, which
-// carries no compatibility promise. WarmCompilerEntry refuses to run on any compiler version other
-// than the one this module was built with.
+// carries no compatibility promise. WarmCompilerEntry refuses to run on a compiler outside the 2.4
+// line, and the build tests this jar against every released 2.4 compiler.
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE", "DEPRECATION", "DEPRECATION_ERROR")
 
 package ee.schimke.composeai.daemon.warm.impl

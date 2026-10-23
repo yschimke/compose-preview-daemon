@@ -1,7 +1,7 @@
 // Internal compiler APIs, Kotlin 2.5 shape: the 2.4 pipeline (src/k24) with 2.5's renames —
 // `JvmClasspath` instead of search scopes, a `javaInterop` in the session context, a source
-// session without a Java-sources scope. WarmCompilerEntry refuses to run on any compiler version
-// other than the one this source set was built with.
+// session without a Java-sources scope. WarmCompilerEntry refuses to run on a compiler outside the
+// 2.5 line.
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE", "DEPRECATION", "DEPRECATION_ERROR")
 
 package ee.schimke.composeai.daemon.warm.impl
