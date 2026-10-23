@@ -246,6 +246,11 @@ internal object AppTourRenderer {
         check(++follows <= MAX_ACTIVITY_FOLLOWS_PER_STEP) {
           "Gave up following startActivity chains after $MAX_ACTIVITY_FOLLOWS_PER_STEP hops"
         }
+        // A system screen the app opens (the runtime-permission dialog, a settings page) has no
+        // activity in the sandbox. Leave the tour on the app's screen, as a user who dismisses the
+        // dialog would, rather than failing the capture (compose-ai-tools #635's MainActivity
+        // hero).
+        if (isUnresolvableSystemIntent(application, next)) continue
         launchIntent(next)
         // Give the new activity a settle window before checking whether it redirected again.
         rule.mainClock.advanceTimeBy(STEP_ADVANCE_MS)
@@ -366,4 +371,18 @@ internal object AppTourRenderer {
       registry.currentState = Lifecycle.State.RESUMED
     }
   }
+}
+
+/**
+ * Whether [intent], started by [application]'s own code, opens a screen outside the app that
+ * nothing in the sandbox resolves: the runtime-permission dialog, a settings page. An app's own
+ * intent (an explicit component or `setPackage` of its own) is never one, so one that doesn't
+ * resolve still fails the tour.
+ */
+internal fun isUnresolvableSystemIntent(application: Application, intent: Intent): Boolean {
+  val component = intent.component
+  if (component != null && component.packageName == application.packageName) return false
+  if (intent.`package` == application.packageName) return false
+  return application.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY) ==
+    null
 }
