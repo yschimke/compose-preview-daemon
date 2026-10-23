@@ -49,7 +49,7 @@ unmeasured. Evidence confidence is separate from priority.
 | 14 | **P3 · R14 — caller-scoped wall clock for instrumented code** | Fixed locally with a shadow of `ShadowSystem` plus a stack-walk caller check; upstream value is a supported way to give instrumented app code a fixed wall clock. | Any Robolectric screenshot test of a component that formats `System.currentTimeMillis()`; ordinary app code is uninstrumented, so it reads the host clock today. | High confidence in mechanism (source + end-to-end tests); no upstream discussion yet. | Ask whether a configurable wall-clock offset, or a caller-aware `Interceptor` hook, would be accepted. |
 | 15 | **P3 · R15 — no hook to choose the sandbox classpath** | Medium: the Bazel/bundle lanes rendered on the daemon's Compose instead of the app's; worked around via the context loader. | Narrow: embedders whose sandbox classpath differs from the JVM's. | High confidence in source observation; workaround tested in-process. | Propose an extra-classpath option on `InstrumentationConfiguration`. |
 | 16 | **P3 · R17 — shadowing a composable function** | Fixed locally: a custom `@PreviewWrapper` that ends in `RemoteContentPreview` now captures through the connector. Upstream value is documentation, not a speedup. | Any Robolectric user shadowing a `@Composable` top-level function in a non-default package. | High confidence (end-to-end test with a negative control); no upstream discussion. | None until a second case needs it; then ask whether shadows of composable functions are a supported pattern. |
-| 17 | **P3 · R19 — a started system intent resolves to nothing** | Fixed locally: an app tour passes over a system screen it can't open instead of failing the launcher activity's hero. Upstream value is documentation. | Any Robolectric user that follows `getNextStartedActivity()` from an app which asks for a runtime permission (or opens another system screen) on first composition. | High confidence in mechanism (unit test with a real `requestPermissions` call); expected simulator behaviour, no upstream bug established. | None; revisit only if Robolectric ships a resolvable permission-controller activity. |
+| 17 | **P3 · R19 — a started system intent resolves to nothing** | Fixed locally: an app tour passes over a system screen it can't open instead of failing the launcher activity's hero. Upstream value is documentation. | Any Robolectric user that follows `getNextStartedActivity()` from an app which asks for a runtime permission (or opens another system screen) on first composition. | High confidence in mechanism (a predicate unit test with a real `requestPermissions` call; the tour flow is not exercised); expected simulator behaviour, no upstream bug established. | None; revisit only if Robolectric ships a resolvable permission-controller activity. |
 
 ## Applicability beyond the daemon
 
@@ -632,11 +632,14 @@ this investigation; their full application export still needs validation with th
   scoped to it with `setPackage`). The tour stays on the app's screen, as it would for a user who
   dismisses the dialog; an unresolvable intent of the app's own still fails the tour.
 - **Upgrade risk:** a Robolectric release that registers a permission-controller activity would
-  make the intent resolve; the tour would then try to follow it, and the regression test below
-  shows whether that still renders.
-- **Validation status:** `AppTourSystemIntentTest` (SDK 35) records a real `requestPermissions`
-  intent and checks that it is passed over, while an explicit component of the app's own and a
-  package-scoped intent are still followed. No upstream issue filed; none planned.
+  make the intent resolve, so the predicate stops passing over it and the tour tries to follow it.
+  The test below would then fail its first assertion; it does not show whether the tour still
+  renders, since nothing exercises `followStartedActivities` end to end.
+- **Validation status:** `AppTourSystemIntentTest` (SDK 35) covers the predicate only: it records a
+  real `requestPermissions` intent and checks that `isUnresolvableSystemIntent` classifies it as a
+  system screen to pass over, and that it does not for an explicit component of the app's own or a
+  package-scoped intent. The tour flow itself is untested here. No upstream issue filed; none
+  planned.
 
 ## How to turn an item into upstream feedback
 
