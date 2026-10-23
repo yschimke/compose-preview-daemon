@@ -139,6 +139,9 @@ class PreviewIndexDiffTest {
         className = "com.example.ScrolledKt",
         methodName = "Scrolled",
         sourceFile = "Scrolled.kt",
+        // A rescan never turns a null displayName into one at the same id (the name is the id's
+        // suffix), so the genuine edit below changes an existing one.
+        displayName = "X",
         captures = listOf(PreviewCaptureDto(scroll = ScrollCaptureDto(mode = "END"))),
       )
     val fresh = prior.copy(captures = emptyList())
@@ -172,6 +175,9 @@ class PreviewIndexDiffTest {
         className = "com.example.KnobbedKt",
         methodName = "Knobbed",
         sourceFile = "Knobbed.kt",
+        // A rescan never turns a null displayName into one at the same id (the name is the id's
+        // suffix), so the genuine edit below changes an existing one.
+        displayName = "X",
         knobs = listOf(PreviewKnobDto("title", 0, "STRING")),
       )
     val fresh = prior.copy(knobs = emptyList())
@@ -251,5 +257,66 @@ class PreviewIndexDiffTest {
         totalPreviews = 7,
       )
     assertTrue(discoveryDiffEmpty(empty))
+  }
+
+  @Test
+  fun `a rescan of a preview loaded from previews json is not a change`() {
+    // previews.json keeps the name inside `params` and the source module-relative; the rescan has
+    // the name as `displayName` and the absolute path the file was saved at.
+    val fromManifest = preview("Card_Dark", sourceFile = "src/main/java/a/Card.kt")
+    val rescanned =
+      preview(
+        "Card_Dark",
+        sourceFile = "/work/app/src/main/java/a/Card.kt",
+        displayName = "Dark",
+        group = "themes",
+      )
+    val index = PreviewIndex.fromMap(path = null, byId = mapOf("Card_Dark" to fromManifest))
+
+    val diff = index.diff(setOf(rescanned), Path.of("/work/app/src/main/java/a/Card.kt"))
+
+    assertTrue("a manifest-shaped entry must not read as changed", diff.changed.isEmpty())
+    assertTrue(discoveryDiffEmpty(diff))
+  }
+
+  @Test
+  fun `a preview deleted from a file loaded from previews json is removed`() {
+    val kept = preview("Card_Light", sourceFile = "src/main/java/a/Card.kt")
+    val deleted = preview("Card_Dark", sourceFile = "src/main/java/a/Card.kt")
+    val elsewhere = preview("Other", sourceFile = "src/main/java/a/Other.kt")
+    val index =
+      PreviewIndex.fromMap(
+        path = null,
+        byId = mapOf("Card_Light" to kept, "Card_Dark" to deleted, "Other" to elsewhere),
+      )
+
+    val diff =
+      index.diff(
+        setOf(kept.copy(sourceFile = "/work/app/src/main/java/a/Card.kt")),
+        Path.of("/work/app/src/main/java/a/Card.kt"),
+      )
+
+    assertEquals(listOf("Card_Dark"), diff.removed)
+    assertTrue(diff.changed.isEmpty())
+  }
+
+  @Test
+  fun `a displayName the index already had still reports a real change`() {
+    val before = preview("Foo_bar", sourceFile = "src/Foo.kt", displayName = "X")
+    val after = preview("Foo_bar", sourceFile = "/m/src/Foo.kt", displayName = "Y")
+    val index = PreviewIndex.fromMap(path = null, byId = mapOf("Foo_bar" to before))
+
+    val diff = index.diff(setOf(after), Path.of("/m/src/Foo.kt"))
+
+    assertEquals(listOf(after), diff.changed)
+  }
+
+  @Test
+  fun `sameSource matches the exact path or a relative suffix, never a partial name`() {
+    assertTrue(sameSource("/m/src/Foo.kt", "/m/src/Foo.kt"))
+    assertTrue(sameSource("src/Foo.kt", "/m/src/Foo.kt"))
+    assertFalse(sameSource("rc/Foo.kt", "/m/src/Foo.kt"))
+    assertFalse(sameSource("/other/src/Foo.kt", "/m/src/Foo.kt"))
+    assertFalse(sameSource(null, "/m/src/Foo.kt"))
   }
 }

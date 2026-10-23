@@ -580,11 +580,24 @@ internal constructor(
         // would re-report as `changed` on every save.
         // `knobs` is read off the *signature*, which the annotation-only rescan never looks at,
         // so it too always comes back empty and gets the same treatment.
+        // The other way round for what `previews.json` does not carry: it records a preview's
+        // name only inside `params` (which this DTO drops) and its source file relative to the
+        // module, so an index loaded from it has no `displayName` / `group` and a relative
+        // `sourceFile`, while the rescan has the name and the absolute path. Neither is a change:
+        // without this every preview of a named-preview file was `changed` on the first save
+        // after each daemon start, and the client re-reconciled through Gradle.
         val normalized =
           fresh
             .let { if (it.params == null) it.copy(params = prior.params) else it }
             .let { if (it.captures.isEmpty()) it.copy(captures = prior.captures) else it }
             .let { if (it.knobs.isEmpty()) it.copy(knobs = prior.knobs) else it }
+            .let { if (prior.displayName == null) it.copy(displayName = null) else it }
+            .let { if (prior.group == null) it.copy(group = null) else it }
+            .let {
+              if (it.sourceFile == sourceKey && sameSource(prior.sourceFile, sourceKey)) {
+                it.copy(sourceFile = prior.sourceFile)
+              } else it
+            }
         normalized != prior
       }
       // Removed scopes to ids whose previous DTO claimed `sourceFile` matches the saved path.
@@ -592,7 +605,7 @@ internal constructor(
       // preview in the index (including those owned by sibling files).
       val removed =
         byId.entries
-          .filter { (_, dto) -> dto.sourceFile == sourceKey && dto.id !in newById }
+          .filter { (_, dto) -> sameSource(dto.sourceFile, sourceKey) && dto.id !in newById }
           .map { it.key }
       // Compute the post-update size: start with current, drop removed, add additions.
       // Changed entries don't move the count.
@@ -707,4 +720,17 @@ internal constructor(
       isLenient = false
     }
   }
+}
+
+/**
+ * Whether an indexed [sourceFile] names [sourceKey], the absolute path a rescan was keyed by. The
+ * index holds either that path (once a rescan has stored it) or the module-relative one
+ * `previews.json` records, which [sourceKey] then ends with.
+ */
+internal fun sameSource(sourceFile: String?, sourceKey: String): Boolean {
+  if (sourceFile == null) return false
+  if (sourceFile == sourceKey) return true
+  if (Path.of(sourceFile).isAbsolute) return false
+  val relative = sourceFile.replace('\\', '/')
+  return sourceKey.replace('\\', '/').endsWith("/$relative")
 }
