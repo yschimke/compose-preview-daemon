@@ -1230,9 +1230,14 @@ public class JsonRpcServer(
           else -> 2
         }
       while (plainRendersInFlight.size < maxPlainRenders && plainRendersQueued.isNotEmpty()) {
-        val next = plainRendersQueued.keys.minBy(::rank)
+        // By acceptance time within a rank, not queue order: a preview asked for again while it
+        // ran is queued only when it finishes, but keeps the time of the request that asked.
+        val (next, acceptedAt) =
+          plainRendersQueued.entries
+            .minWith(compareBy<Map.Entry<String, Long>>({ rank(it.key) }, { it.value }))
+            .toPair()
         if (rank(next) > 0 && plainRendersInFlight.keys.any { rank(it) == 0 }) break
-        val acceptedAt = plainRendersQueued.remove(next)!!
+        plainRendersQueued.remove(next)
         plainRendersInFlight[next] = submitRender(next, null, acceptedAt)
       }
     }

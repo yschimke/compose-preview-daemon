@@ -55,6 +55,24 @@ class PlainRenderPriorityTest {
     }
 
   @Test(timeout = 30_000)
+  fun `a preview asked for again while running keeps its place by request time`() =
+    withServer(maxConcurrent = 1) { host, received, send ->
+      send.renderNow(2, "A")
+      assertTrue(host.awaitStarted(1))
+      send.renderNow(3, "A")
+      assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 3 })
+      Thread.sleep(20)
+      send.renderNow(4, "B")
+      assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 4 })
+
+      repeat(3) {
+        host.releaseOne()
+        assertNotNull(pollUntil(received, matcher = ::isRenderFinished))
+      }
+      assertEquals(listOf("A", "A", "B"), host.started.toList())
+    }
+
+  @Test(timeout = 30_000)
   fun `nothing less urgent starts while a focused render runs`() =
     withServer(maxConcurrent = 3) { host, received, send ->
       send.notify("""{"jsonrpc":"2.0","method":"setFocus","params":{"ids":["F"]}}""")

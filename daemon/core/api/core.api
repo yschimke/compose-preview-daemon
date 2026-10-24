@@ -1939,6 +1939,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public final fun getIrDir ()Lee/schimke/composeai/daemon/config/PathProperty;
 	public final fun getKeepAliveIdleMs ()Lee/schimke/composeai/daemon/config/LongProperty;
 	public final fun getLazyInProcessSandbox ()Lee/schimke/composeai/daemon/config/BooleanProperty;
+	public final fun getMaxConcurrentRenders ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getMaxHeapMb ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getMaxRendersPerSandbox ()Lee/schimke/composeai/daemon/config/IntProperty;
 	public final fun getMetricsEveryRenders ()Lee/schimke/composeai/daemon/config/IntProperty;
@@ -2007,6 +2008,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
 	public static final field IR_DIR Ljava/lang/String;
 	public static final field KEEP_ALIVE_IDLE_MS Ljava/lang/String;
 	public static final field LAZY_IN_PROCESS_SANDBOX Ljava/lang/String;
+	public static final field MAX_CONCURRENT_RENDERS Ljava/lang/String;
 	public static final field MAX_HEAP_MB Ljava/lang/String;
 	public static final field MAX_RENDERS_PER_SANDBOX Ljava/lang/String;
 	public static final field METRICS_EVERY_RENDERS Ljava/lang/String;
