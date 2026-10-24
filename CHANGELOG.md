@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.24.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.24.1...v3.24.2) (2026-10-24)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.17.5 ([#378](https://github.com/yschimke/compose-preview-daemon/issues/378)) ([02fe930](https://github.com/yschimke/compose-preview-daemon/commit/02fe930aedb182408b3f9689e110782886a1e7bd))
+
+
+### Performance
+
+* collapse plain renderNows for a preview already rendering ([#380](https://github.com/yschimke/compose-preview-daemon/issues/380)) ([c1e7c66](https://github.com/yschimke/compose-preview-daemon/commit/c1e7c667824b1aad475b240d4e917b49e2777fc1))
+
 ## [3.24.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.24.0...v3.24.1) (2026-10-23)
 
 
