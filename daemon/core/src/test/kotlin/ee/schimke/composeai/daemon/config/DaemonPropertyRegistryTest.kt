@@ -68,7 +68,13 @@ class DaemonPropertyRegistryTest {
     val offenders =
       kotlinSources(File(repoRoot(), "daemon"))
         .filterNot { it.path.endsWith(REGISTRY_FILE) }
-        .flatMap { file -> literalsIn(file).map { "  $it  (${file.relativeTo(repoRoot())})" } }
+        .flatMap { file ->
+          literalsIn(file)
+            .filterNot { name ->
+              OWNED_SPELLINGS.any { file.path.endsWith(it.key) && name.startsWith(it.value) }
+            }
+            .map { "  $it  (${file.relativeTo(repoRoot())})" }
+        }
         .sorted()
     if (offenders.isNotEmpty()) {
       fail(
@@ -82,6 +88,13 @@ class DaemonPropertyRegistryTest {
   private companion object {
     const val PREFIX = "composeai.daemon."
     const val REGISTRY_FILE = "config/DaemonProperties.kt"
+
+    /**
+     * The one file, per prefix, allowed to spell names the registry cannot: a module below
+     * `:daemon:core` reads them and cannot depend on the registry, so it owns the spelling and
+     * [DaemonProperties.Names] refers to its constants instead of repeating the strings.
+     */
+    val OWNED_SPELLINGS = mapOf("compile/DefaultBtaCompileService.kt" to PREFIX + "bta.")
 
     /** Matches a *string literal* only, so KDoc prose like `-Dcomposeai.daemon.foo=1` is fine. */
     val LITERAL = Regex("\"(composeai\\.daemon\\.[A-Za-z.]+)\"")

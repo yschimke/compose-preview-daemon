@@ -27,7 +27,6 @@ internal object Contracts {
     setOf(
       "$GROUP:agent-grant-protocol",
       "$GROUP:common-io",
-      "$GROUP:daemon-bta",
       "$GROUP:daemon-devices",
       "$GROUP:daemon-protocol",
       "$GROUP:data-layoutinspector-core",

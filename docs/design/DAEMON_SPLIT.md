@@ -69,6 +69,24 @@ their committed renders, and the consumer-facing runtimes that nothing here depe
 `data-shared-element-core`, `screen-model`). `daemon/bta-host` stayed too: it is a parity soak for the
 in-process compile, which is a tools concern.
 
+### Since the split: the in-process compile came home
+
+`daemon-compile` (`daemon/compile`, package `ee.schimke.composeai.daemon.compile`) was not in the
+70. It had already left `:daemon:core` for compose-preview-contracts as `daemon-bta`, during #3824,
+because the preview server's playground compiles snippets and that was the last of its imports from
+`daemon-core`. But it is behaviour — it hashes class-path entries, walks directories and drives the
+Kotlin Build Tools API — and contracts holds "shape, never behaviour"; the dependency it was meant
+to spare the server is one the server already has, since it consumes `daemon-core`. So it moved
+here, below `:daemon:core`, which exposes it as `api`.
+
+It took a new coordinate and package rather than its old ones. `daemon-bta` reached 3.39.0 on the
+contracts version line; republished from this repository at 3.2x it would have lost every
+resolution against a contracts BOM, silently, to the stale jar. A new coordinate cannot, and the new
+package ends the split package with compose-ai-tools' `daemon/bta-host`. The
+`composeai.daemon.bta.*` system properties kept their names: the Gradle plugin writes them, so they
+are wire. They are spelled once, in `DefaultBtaCompileService`, and `DaemonProperties` refers to
+them, since `:daemon-compile` sits below the registry and cannot read it.
+
 ## The reverse edges, and what each consumer does now
 
 Every edge from a remaining module into the closure becomes a published-coordinate dependency,

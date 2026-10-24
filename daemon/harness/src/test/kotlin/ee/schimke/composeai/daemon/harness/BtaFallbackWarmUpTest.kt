@@ -1,8 +1,8 @@
 package ee.schimke.composeai.daemon.harness
 
 import ee.schimke.composeai.daemon.WarmCompileService
-import ee.schimke.composeai.daemon.bta.BtaCompileService
-import ee.schimke.composeai.daemon.bta.DefaultBtaCompileService
+import ee.schimke.composeai.daemon.compile.BtaCompileService
+import ee.schimke.composeai.daemon.compile.DefaultBtaCompileService
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.protocol.SourceChangeSet
 import java.io.File

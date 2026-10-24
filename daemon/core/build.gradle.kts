@@ -34,10 +34,12 @@ dependencies {
   // `ee.schimke.composeai.daemon.devices.*` reaches it through here. The package did not move.
   api(libs.composeai.daemon.devices)
 
-  // In-process Kotlin compile, split out for #3824. `api` because `JsonRpcServer`'s constructor
-  // takes a `BtaCompileService`, so the type is on this module's compile ABI, and because every
-  // existing consumer of `ee.schimke.composeai.daemon.bta.*` reaches it through here.
-  api(libs.composeai.daemon.bta)
+  // In-process Kotlin compile. `api` because `JsonRpcServer`'s constructor takes a
+  // `BtaCompileService`, so the type is on this module's compile ABI, and because the preview
+  // server's playground reaches `BtaCompileSession` through here. Lived in
+  // compose-preview-contracts
+  // as `daemon-bta` until it moved back to the layer that runs it.
+  api(project(":daemon-compile"))
 
   api(libs.composeai.data.render.core)
 

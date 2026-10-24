@@ -358,7 +358,6 @@ rcplayers = "2.17.5"
 composeai-contracts-bom = { module = "ee.schimke.composeai:compose-preview-contracts-bom", version.ref = "composeai-contracts" }
 composeai-daemon-protocol = { module = "ee.schimke.composeai:daemon-protocol" }
 composeai-daemon-devices = { module = "ee.schimke.composeai:daemon-devices" }
-composeai-daemon-bta = { module = "ee.schimke.composeai:daemon-bta" }
 composeai-data-render-core = { module = "ee.schimke.composeai:data-render-core" }
 composeai-data-layoutinspector-core = { module = "ee.schimke.composeai:data-layoutinspector-core" }
 composeai-data-theme-core = { module = "ee.schimke.composeai:data-theme-core" }

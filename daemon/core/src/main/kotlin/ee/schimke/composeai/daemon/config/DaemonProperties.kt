@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon.config
 
+import ee.schimke.composeai.daemon.compile.DefaultBtaCompileService
 import java.io.File
 
 /**
@@ -280,13 +281,18 @@ public object DaemonProperties {
     public const val MODULE_PATH: String = "composeai.daemon.modulePath"
     public const val MODULE_PROJECT_DIR: String = "composeai.daemon.moduleProjectDir"
 
-    public const val BTA_IMPL_CLASSPATH: String = "composeai.daemon.bta.implClasspath"
-    public const val BTA_COMPILE_CLASSPATH: String = "composeai.daemon.bta.compileClasspath"
-    public const val BTA_COMPILER_PLUGINS: String = "composeai.daemon.bta.compilerPlugins"
-    public const val BTA_MODULE_NAME: String = "composeai.daemon.bta.moduleName"
-    public const val BTA_OUTPUT_DIR: String = "composeai.daemon.bta.outputDir"
-    public const val BTA_IC_WORKING_DIR: String = "composeai.daemon.bta.icWorkingDir"
-    public const val BTA_INELIGIBILITY_REASON: String = "composeai.daemon.bta.ineligibilityReason"
+    // Spelled once, in `:daemon-compile`, which reads them and cannot see this registry (it is
+    // below `:daemon:core`). Registered here by reference so the table and the lookups agree.
+    public const val BTA_IMPL_CLASSPATH: String = DefaultBtaCompileService.SYSPROP_IMPL_CLASSPATH
+    public const val BTA_COMPILE_CLASSPATH: String =
+      DefaultBtaCompileService.SYSPROP_COMPILE_CLASSPATH
+    public const val BTA_COMPILER_PLUGINS: String =
+      DefaultBtaCompileService.SYSPROP_COMPILER_PLUGINS
+    public const val BTA_MODULE_NAME: String = DefaultBtaCompileService.SYSPROP_MODULE_NAME
+    public const val BTA_OUTPUT_DIR: String = DefaultBtaCompileService.SYSPROP_OUTPUT_DIR
+    public const val BTA_IC_WORKING_DIR: String = DefaultBtaCompileService.SYSPROP_IC_WORKING_DIR
+    public const val BTA_INELIGIBILITY_REASON: String =
+      DefaultBtaCompileService.SYSPROP_INELIGIBILITY_REASON
     public const val WARM_COMPILE: String = "composeai.daemon.warmCompile"
   }
 

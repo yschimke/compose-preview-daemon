@@ -114,7 +114,10 @@ warm compiler off for the rest of the session and uses the Build Tools API.
 
 Kotlin 2.5's Build Tools API caches compiler-plugin class loaders per `BuildSession`. The warm
 compiler already loads the Compose plugin once; the Build Tools API fallback would need its
-`BuildSession` kept open across compiles to benefit (`daemon-bta`, compose-preview-contracts).
+`BuildSession` kept open across compiles to benefit (`BtaCompileSession` in `:daemon-compile`).
+It is not today: in kotlin-build-tools-impl 2.4.x `BuildSession.close()` is what clears the
+compiler's JAR caches, so a session held across saves could read a JAR rebuilt in place through a
+stale handle — the very case the content-hashed class-path snapshots exist for.
 
 ## Warming up
 

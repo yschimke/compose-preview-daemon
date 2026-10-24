@@ -174,7 +174,7 @@ public class JsonRpcServer(
    * In-process compiler for `compileSources`; success swaps the user classloader. Null answers
    * `result=fallback` so the editor uses its slower path.
    */
-  private val btaCompileService: ee.schimke.composeai.daemon.bta.BtaCompileService? = null,
+  private val btaCompileService: ee.schimke.composeai.daemon.compile.BtaCompileService? = null,
   private val fileSystem: FileSystem = SystemFileSystem,
   /**
    * Called on `exit`, idle timeout or `classpathDirty` expiry. No default on purpose: a defaulted
@@ -3357,7 +3357,7 @@ public class JsonRpcServer(
     val startNs = System.nanoTime()
     val outcome =
       if (service == null) {
-        ee.schimke.composeai.daemon.bta.BtaCompileService.Outcome.Fallback(
+        ee.schimke.composeai.daemon.compile.BtaCompileService.Outcome.Fallback(
           "btaCompileService not configured — launch descriptor missing btaCompilerClasspath"
         )
       } else {
@@ -3371,7 +3371,7 @@ public class JsonRpcServer(
           }
         } catch (t: Throwable) {
           System.err.println("compose-ai-daemon: compileSources threw — falling back: $t")
-          ee.schimke.composeai.daemon.bta.BtaCompileService.Outcome.Fallback(
+          ee.schimke.composeai.daemon.compile.BtaCompileService.Outcome.Fallback(
             t.message ?: t.javaClass.simpleName
           )
         }
@@ -3380,7 +3380,7 @@ public class JsonRpcServer(
 
     val result =
       when (outcome) {
-        is ee.schimke.composeai.daemon.bta.BtaCompileService.Outcome.Ok -> {
+        is ee.schimke.composeai.daemon.compile.BtaCompileService.Outcome.Ok -> {
           // Same swap path as `fileChanged({kind:source})`. The next render reads the
           // freshly-compiled bytecode off disk via the new child classloader.
           host.swapUserClassLoaders()
@@ -3390,13 +3390,13 @@ public class JsonRpcServer(
           queueDiscoveryAfterRender(params.sources.first())
           CompileSourcesResult(result = CompileResultKind.OK, durationMs = durationMs)
         }
-        is ee.schimke.composeai.daemon.bta.BtaCompileService.Outcome.CompileError ->
+        is ee.schimke.composeai.daemon.compile.BtaCompileService.Outcome.CompileError ->
           CompileSourcesResult(
             result = CompileResultKind.COMPILE_ERROR,
             errors = outcome.errors,
             durationMs = durationMs,
           )
-        is ee.schimke.composeai.daemon.bta.BtaCompileService.Outcome.Fallback -> {
+        is ee.schimke.composeai.daemon.compile.BtaCompileService.Outcome.Fallback -> {
           // The wire result carries no reason, so say it here: a silent fallback is how a
           // missing classpath directory kept every Android compile on Gradle unnoticed.
           System.err.println("compose-ai-daemon: compileSources fell back: ${outcome.reason}")

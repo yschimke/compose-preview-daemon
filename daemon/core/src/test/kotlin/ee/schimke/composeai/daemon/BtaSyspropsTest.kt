@@ -1,6 +1,6 @@
 package ee.schimke.composeai.daemon
 
-import ee.schimke.composeai.daemon.bta.DefaultBtaCompileService
+import ee.schimke.composeai.daemon.compile.DefaultBtaCompileService
 import java.io.File
 import java.nio.file.Files
 import org.junit.Assert.assertEquals

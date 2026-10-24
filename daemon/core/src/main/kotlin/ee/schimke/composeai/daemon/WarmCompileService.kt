@@ -1,8 +1,8 @@
 package ee.schimke.composeai.daemon
 
-import ee.schimke.composeai.daemon.bta.BtaCompileService
-import ee.schimke.composeai.daemon.bta.BtaCompileSession
-import ee.schimke.composeai.daemon.bta.DefaultBtaCompileService
+import ee.schimke.composeai.daemon.compile.BtaCompileService
+import ee.schimke.composeai.daemon.compile.BtaCompileSession
+import ee.schimke.composeai.daemon.compile.DefaultBtaCompileService
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.protocol.CompileErrorDetail
 import ee.schimke.composeai.daemon.protocol.SourceChangeSet

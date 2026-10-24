@@ -1,6 +1,6 @@
 package ee.schimke.composeai.daemon
 
-import ee.schimke.composeai.daemon.bta.BtaCompileService
+import ee.schimke.composeai.daemon.compile.BtaCompileService
 import ee.schimke.composeai.daemon.protocol.CompileErrorDetail
 import ee.schimke.composeai.daemon.protocol.SourceChangeSet
 import java.io.PipedInputStream

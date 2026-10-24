@@ -152,6 +152,8 @@ buildCache {
 
 include(":daemon-client")
 project(":daemon-client").projectDir = file("daemon/client")
+include(":daemon-compile")
+project(":daemon-compile").projectDir = file("daemon/compile")
 include(":daemon-connector-api")
 project(":daemon-connector-api").projectDir = file("daemon/connector-api")
 include(":daemon:android")

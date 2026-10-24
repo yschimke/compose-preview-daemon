@@ -2,7 +2,7 @@
 
 package ee.schimke.composeai.daemon
 
-import ee.schimke.composeai.daemon.bta.BtaCompileSession
+import ee.schimke.composeai.daemon.compile.BtaCompileSession
 import java.io.IOException
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
