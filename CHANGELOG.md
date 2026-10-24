@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.24.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.24.2...v3.24.3) (2026-10-24)
+
+
+### Performance
+
+* **daemon:** bundle a Kotlin 2.3 warm compiler ([#382](https://github.com/yschimke/compose-preview-daemon/issues/382)) ([f1310b3](https://github.com/yschimke/compose-preview-daemon/commit/f1310b32e9a3e7a77a4d544a07aab8c9055f71b7))
+* **daemon:** warm the Build Tools API fallback on compileWarmUp when no warm compiler can run ([#383](https://github.com/yschimke/compose-preview-daemon/issues/383)) ([456336a](https://github.com/yschimke/compose-preview-daemon/commit/456336acef6a0f14b3eb18f5f9cf56b895caac89))
+* render the focused preview first, then visible ones, at a capped concurrency ([#384](https://github.com/yschimke/compose-preview-daemon/issues/384)) ([10d0b00](https://github.com/yschimke/compose-preview-daemon/commit/10d0b00f982c598e21b717f8f88219217834b8bb))
+
 ## [3.24.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.24.1...v3.24.2) (2026-10-24)
 
 
