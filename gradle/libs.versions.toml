@@ -479,7 +479,7 @@ truth = { module = "com.google.truth:truth", version.ref = "truth" }
 # actually re-reads bytecode after a `fileChanged` notification; without two distinct `.class`
 # files the test can't differentiate "stale" from "fresh".
 asm = { module = "org.ow2.asm:asm", version = "9.11" }
-asm-commons = { module = "org.ow2.asm:asm-commons", version = "9.11" }
+asm-commons = { module = "org.ow2.asm:asm-commons", version = "9.11.1" }
 material-kolor = { module = "com.materialkolor:material-kolor", version.ref = "material-kolor" }
 
 [plugins]
