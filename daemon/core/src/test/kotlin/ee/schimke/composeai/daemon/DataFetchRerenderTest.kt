@@ -169,6 +169,85 @@ class DataFetchRerenderTest {
   }
 
   /**
+   * `renderNow(overrides)` then `data/fetch` of an on-demand kind that render skipped: the
+   * same-mode re-render the fetch drives must run at that render's overrides, not the preview's
+   * defaults. Without them the UI builder's revision-pinned SVG export came back as the export of
+   * the packaged preview's empty default document (compose-preview-server#1795).
+   */
+  @Test(timeout = 30_000)
+  fun rerender_for_a_skipped_on_demand_kind_reuses_the_latest_render_overrides() {
+    val producer =
+      FakeProducer(modeForKind = mapOf("compose/figma-svg" to ""), producedOnlyWhenRequested = true)
+    runWithServer(producer = producer) { rpc ->
+      rpc.initialize()
+      rpc.send(
+        """{"jsonrpc":"2.0","id":2,"method":"renderNow","params":{
+            "previews":["preview-D"],"tier":"fast","overrides":{"widthPx":321,"heightPx":123}}}"""
+      )
+      assertNotNull(
+        rpc.pollUntil { it["method"]?.jsonPrimitive?.contentOrNull == "renderFinished" }
+      )
+      assertFalse("the plain render skipped the on-demand kind", producer.renderObserved)
+
+      rpc.send(
+        """
+        {"jsonrpc":"2.0","id":61,"method":"data/fetch","params":{
+          "previewId":"preview-D","kind":"compose/figma-svg"
+        }}
+        """
+          .trimIndent()
+      )
+      val response = rpc.pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 61 }
+      assertNotNull("data/fetch should resolve once the re-render produces the payload", response)
+      assertNotNull(
+        "payload must be present on Ok",
+        response!!["result"]?.jsonObject?.get("payload"),
+      )
+
+      val target = producer.lastRenderTarget as? RenderTarget.Preview
+      assertNotNull(target)
+      assertEquals(setOf("compose/figma-svg"), target!!.dataKinds)
+      assertEquals(
+        "the re-render must run at the latest render's overrides",
+        321 to 123,
+        target.overrides?.widthPx to target.overrides?.heightPx,
+      )
+      assertEquals(2, producer.renderSubmits.get())
+    }
+  }
+
+  /**
+   * A fetch-driven re-render in another mode is a different artefact the caller describes itself,
+   * so the latest render's overrides are not borrowed there.
+   */
+  @Test(timeout = 30_000)
+  fun rerender_in_another_mode_does_not_borrow_the_latest_render_overrides() {
+    val producer =
+      FakeProducer(
+        modeForKind = mapOf("a11y/hierarchy" to "a11y"),
+        producedOnlyWhenRequested = true,
+      )
+    runWithServer(producer = producer) { rpc ->
+      rpc.initialize()
+      rpc.send(
+        """{"jsonrpc":"2.0","id":2,"method":"renderNow","params":{
+            "previews":["preview-E"],"tier":"fast","overrides":{"widthPx":321}}}"""
+      )
+      assertNotNull(
+        rpc.pollUntil { it["method"]?.jsonPrimitive?.contentOrNull == "renderFinished" }
+      )
+      rpc.send(
+        """{"jsonrpc":"2.0","id":62,"method":"data/fetch","params":{
+            "previewId":"preview-E","kind":"a11y/hierarchy"}}"""
+      )
+      assertNotNull(rpc.pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 62 })
+      val target = producer.lastRenderTarget as? RenderTarget.Preview
+      assertEquals("a11y", target!!.renderMode)
+      assertNull(target.overrides)
+    }
+  }
+
+  /**
    * Budget exceeded. The producer never resolves its render (host blocks indefinitely), so the
    * fetch worker hits its budget timer. Per spec: budget tripped -> `DataProductBudgetExceeded`
    * (-32023); the render is not cancelled, the fetch just stops waiting.
@@ -339,6 +418,11 @@ class DataFetchRerenderTest {
     private val modeForKind: Map<String, String>,
     private val postRerenderOutcome: DataProductRegistry.Outcome? = null,
     private val immediateOk: DataFetchResult? = null,
+    /**
+     * Only a render that asked for one of [modeForKind]'s kinds produces it — the shape of an
+     * on-demand kind (`compose/figma-svg`, [PostCaptureGate]) that an unsubscribed render skips.
+     */
+    private val producedOnlyWhenRequested: Boolean = false,
   ) : DataProductRegistry {
 
     val renderSubmits = AtomicInteger(0)
@@ -421,7 +505,12 @@ class DataFetchRerenderTest {
     fun observeRenderSubmit(target: RenderTarget) {
       renderSubmits.incrementAndGet()
       lastRenderTarget = target
-      renderObserved = true
+      if (
+        !producedOnlyWhenRequested ||
+          (target as? RenderTarget.Preview)?.dataKinds.orEmpty().any { it in modeForKind }
+      ) {
+        renderObserved = true
+      }
     }
   }
 

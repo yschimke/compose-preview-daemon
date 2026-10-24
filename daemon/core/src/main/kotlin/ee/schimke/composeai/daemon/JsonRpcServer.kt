@@ -287,6 +287,15 @@ public class JsonRpcServer(
   private val hostIdToOverrides = ConcurrentHashMap<Long, PreviewOverrides>()
 
   /**
+   * The overrides of each preview's latest finished render, absent when it rendered at its
+   * defaults. A same-mode `data/fetch` re-render that carries no overrides of its own renders at
+   * these, so it produces the artefact for the render the client last asked for: an on-demand kind
+   * (`compose/figma-svg`, see [PostCaptureGate]) skipped by an override-bearing `renderNow` must
+   * not come back as the export of the preview's defaults.
+   */
+  private val latestRenderOverrides = ConcurrentHashMap<String, PreviewOverrides>()
+
+  /**
    * D1 — kinds the client wants attached to *every* render of *every* preview, supplied via
    * `initialize.options.attachDataProducts`. Pre-filtered against [DataProductRegistry.isKnown] +
    * each kind's `attachable` flag at handshake time so the per-render path doesn't re-check.
@@ -1418,6 +1427,8 @@ public class JsonRpcServer(
     // and we emit `tookMs = 0`. Other RenderMetrics fields (heap / native / sandbox-age) stay
     // null until B2.3 wires the cost-model collection path.
     val renderOverrides = hostIdToOverrides.remove(result.id)
+    if (renderOverrides != null) latestRenderOverrides[previewId] = renderOverrides
+    else latestRenderOverrides.remove(previewId)
     try {
       extensions
         .activeDataProducts()
@@ -1800,7 +1811,15 @@ public class JsonRpcServer(
     // in
     // the fetch's `params` bag) into the re-render, so a `?scroll=long` fetch at non-default
     // overrides produces the matching artefact rather than the preview's defaults.
-    val overrides = decodeFetchOverrides(params.params)
+    //
+    // A fetch with none of its own, re-rendering in the preview's normal mode (an on-demand kind
+    // the latest render skipped), re-renders at that render's overrides: the client asked for the
+    // artefact of what it rendered, and a fetch for an always-on kind would have read exactly that
+    // off disk. Without this, `renderNow(overrides)` then `data/fetch(compose/figma-svg)` returns
+    // the export of the preview's defaults (compose-preview-server#1795).
+    val overrides =
+      decodeFetchOverrides(params.params)
+        ?: latestRenderOverrides[previewId]?.takeIf { mode.isEmpty() }
     // Register the overrides against this hostId (as `renderNow` does) so `emitRenderFinished`
     // hands
     // them to `onRender` — registries that stamp per-render metadata (e.g. locale / font-scale in
