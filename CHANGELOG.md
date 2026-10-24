@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.25.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.25.1...v3.25.2) (2026-10-24)
+
+
+### Bug Fixes
+
+* **deps:** update dependency org.ow2.asm:asm to v9.11.1 ([#392](https://github.com/yschimke/compose-preview-daemon/issues/392)) ([2b8ab08](https://github.com/yschimke/compose-preview-daemon/commit/2b8ab085a65c2671144c37d0b0ddc5529cee91d2))
+
 ## [3.25.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.25.0...v3.25.1) (2026-10-24)
 
 
