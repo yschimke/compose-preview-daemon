@@ -332,6 +332,183 @@ class WarmCompileServiceTest {
     assertTrue(service.warmUp() is WarmCompileService.WarmUp.Unavailable)
   }
 
+  private fun fallbackWarmUpService(
+    fallback: FakeFallback,
+    warm: () -> WarmCompileService.WarmCompiler,
+    fallbackWarmUp: () -> String?,
+  ) = WarmCompileService(fallback, warm, log = {}, fallbackWarmUp = fallbackWarmUp)
+
+  @Test
+  fun `with no warm compiler, a warm-up warms the Build Tools API fallback instead, once`() {
+    var warmUps = 0
+    val service =
+      fallbackWarmUpService(
+        FakeFallback(),
+        { error("no warm compiler is bundled for Kotlin 2.3 (2.3.20)") },
+      ) {
+        warmUps++
+        null
+      }
+    val outcome = service.warmUp()
+    outcome as WarmCompileService.WarmUp.FallbackReady
+    assertEquals("no warm compiler is bundled for Kotlin 2.3 (2.3.20)", outcome.reason)
+    assertEquals(1, warmUps)
+    // Already warm: a second request answers at once.
+    assertTrue(service.warmUp() is WarmCompileService.WarmUp.FallbackReady)
+    assertEquals(1, warmUps)
+  }
+
+  @Test
+  fun `a fallback warm-up that fails says why, and the next request tries again`() {
+    var warmUps = 0
+    val service =
+      fallbackWarmUpService(FakeFallback(), { error("warm compiler is off") }) {
+        if (warmUps++ == 0) "toolchain did not load" else null
+      }
+    val outcome = service.warmUp()
+    outcome as WarmCompileService.WarmUp.Unavailable
+    assertTrue(outcome.reason, outcome.reason.contains("warm compiler is off"))
+    assertTrue(outcome.reason, outcome.reason.contains("toolchain did not load"))
+    assertTrue(service.warmUp() is WarmCompileService.WarmUp.FallbackReady)
+    assertEquals(2, warmUps)
+  }
+
+  @Test
+  fun `a fallback warm-up that throws is reported, not thrown`() {
+    val service =
+      fallbackWarmUpService(FakeFallback(), { error("warm compiler is off") }) {
+        throw IllegalStateException("boom")
+      }
+    val outcome = service.warmUp()
+    outcome as WarmCompileService.WarmUp.Unavailable
+    assertTrue(outcome.reason, outcome.reason.contains("boom"))
+  }
+
+  @Test
+  fun `the fallback is not warmed when the warm compiler is`() {
+    var warmUps = 0
+    val warm = FakeWarm()
+    val service =
+      WarmCompileService(
+        FakeFallback(),
+        { warm },
+        log = {},
+        warmUpSources = { listOf("/warm/WarmUp.kt") },
+        warmUpMaxPasses = 1,
+        fallbackWarmUp = {
+          warmUps++
+          null
+        },
+      )
+    assertTrue(service.warmUp() is WarmCompileService.WarmUp.Ready)
+    assertEquals(0, warmUps)
+  }
+
+  @Test
+  fun `a fallback that has already compiled is not warmed again`() {
+    var warmUps = 0
+    val fallback = FakeFallback()
+    val service =
+      fallbackWarmUpService(fallback, { error("warm compiler is off") }) {
+        warmUps++
+        null
+      }
+    service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt")))
+    assertTrue(service.warmUp() is WarmCompileService.WarmUp.FallbackReady)
+    assertEquals(0, warmUps)
+    assertEquals(1, fallback.calls.size)
+  }
+
+  @Test
+  fun `a client that never asks for a warm-up never warms the fallback`() {
+    var warmUps = 0
+    val fallback = FakeFallback()
+    val service =
+      fallbackWarmUpService(fallback, { error("warm compiler is off") }) {
+        warmUps++
+        null
+      }
+    repeat(3) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }
+    assertEquals(0, warmUps)
+    assertEquals(3, fallback.calls.size)
+  }
+
+  @Test
+  fun `a warm compiler a link error turns off during its warm-up hands over to the fallback`() {
+    var warmUps = 0
+    val warm =
+      FakeWarm().apply {
+        warmUpResult =
+          mapOf("status" to "failed", "reason" to "java.lang.NoSuchMethodError: 'void Foo.bar()'")
+      }
+    val service =
+      WarmCompileService(
+        FakeFallback(),
+        { warm },
+        log = {},
+        warmUpSources = { listOf("/warm/WarmUp.kt") },
+        fallbackWarmUp = {
+          warmUps++
+          null
+        },
+      )
+    assertTrue(service.warmUp() is WarmCompileService.WarmUp.FallbackReady)
+    assertEquals(1, warmUps)
+  }
+
+  @Test
+  fun `the service from system properties warms its own fallback, with the warm compiler on or off`() {
+    val dir = java.nio.file.Files.createTempDirectory("warm-sysprops")
+    val configured =
+      mapOf(
+        DefaultBtaCompileService.SYSPROP_IMPL_CLASSPATH to "/bta/impl.jar",
+        DefaultBtaCompileService.SYSPROP_OUTPUT_DIR to dir.resolve("classes").toString(),
+        DefaultBtaCompileService.SYSPROP_IC_WORKING_DIR to dir.resolve("ic").toString(),
+        DefaultBtaCompileService.SYSPROP_MODULE_NAME to "m",
+      )
+    val name = DaemonPropertiesNames.WARM_COMPILE
+    val previous = System.getProperty(name)
+    try {
+      for (value in listOf(null, "false")) {
+        if (value == null) System.clearProperty(name) else System.setProperty(name, value)
+        assertTrue(WarmCompileService.fromSysprops(configured::get) is WarmCompileService)
+      }
+      assertEquals(null, WarmCompileService.fromSysprops(emptyMap<String, String>()::get))
+      val ineligible =
+        configured + (DefaultBtaCompileService.SYSPROP_INELIGIBILITY_REASON to "KSP detected")
+      assertTrue(WarmCompileService.fromSysprops(ineligible::get) is DefaultBtaCompileService)
+    } finally {
+      if (previous == null) System.clearProperty(name) else System.setProperty(name, previous)
+      dir.toFile().deleteRecursively()
+    }
+  }
+
+  @Test
+  fun `the fallback warm-up seeds the scratch snapshots and moves only new ones back`() {
+    val root = java.nio.file.Files.createTempDirectory("warm-snapshots")
+    try {
+      val shared = java.nio.file.Files.createDirectories(root.resolve("shared"))
+      val scratch = java.nio.file.Files.createDirectories(root.resolve("scratch"))
+      java.nio.file.Files.writeString(shared.resolve("aaa.bin"), "old")
+      BtaFallbackWarmUp.seedSnapshots(from = shared, into = scratch)
+      assertEquals("old", java.nio.file.Files.readString(scratch.resolve("aaa.bin")))
+
+      java.nio.file.Files.writeString(scratch.resolve("bbb.bin"), "new")
+      // Same content address, different bytes: must never replace the module's own.
+      java.nio.file.Files.delete(scratch.resolve("aaa.bin"))
+      java.nio.file.Files.writeString(scratch.resolve("aaa.bin"), "other")
+      BtaFallbackWarmUp.publishSnapshots(from = scratch, into = shared)
+      assertEquals("old", java.nio.file.Files.readString(shared.resolve("aaa.bin")))
+      assertEquals("new", java.nio.file.Files.readString(shared.resolve("bbb.bin")))
+      assertEquals(
+        listOf("aaa.bin", "bbb.bin"),
+        shared.toFile().list()!!.sorted(),
+      )
+    } finally {
+      root.toFile().deleteRecursively()
+    }
+  }
+
   @Test
   fun `a warm compiler that throws mid-compile falls back and is reset`() {
     val fallback = FakeFallback()

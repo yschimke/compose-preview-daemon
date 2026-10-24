@@ -1,6 +1,7 @@
 package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.bta.BtaCompileService
+import ee.schimke.composeai.daemon.bta.BtaCompileSession
 import ee.schimke.composeai.daemon.bta.DefaultBtaCompileService
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.protocol.CompileErrorDetail
@@ -9,6 +10,8 @@ import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
 
 /**
  * `compileSources` through the warm compiler first (docs/daemon/WARM-COMPILE.md), with [fallback] —
@@ -20,6 +23,8 @@ import java.util.concurrent.atomic.AtomicInteger
  * function, a missing change set, or any failure of the warm compiler itself goes to [fallback],
  * which recompiles dependents. Files the warm compiler compiled since the last fallback are added
  * to that fallback's change set, so the Build Tools API's incremental caches catch up with them.
+ *
+ * Where no warm compiler can run, [warmUp] warms [fallback] instead, through [fallbackWarmUp].
  */
 public class WarmCompileService
 internal constructor(
@@ -35,6 +40,12 @@ internal constructor(
   private val warmUpMaxPasses: Int = WARM_UP_MAX_PASSES,
   /** ...and no new pass once the warm-up has run this long. */
   private val warmUpBudgetMs: Long = WARM_UP_BUDGET_MS,
+  /**
+   * Warms [fallback] — loads the Build Tools API toolchain, snapshots the class path — for a
+   * [warmUp] no warm compiler can serve. Returns null when warmed, otherwise why not. Null when
+   * nothing can warm the fallback (it was built elsewhere).
+   */
+  private val fallbackWarmUp: (() -> String?)? = null,
 ) : BtaCompileService {
 
   /** The JDK-typed surface of the warm compiler entry, loaded in its own class loader. */
@@ -50,6 +61,9 @@ internal constructor(
   private var compiler: WarmCompiler? = null
   private var disabledReason: String? = null
   private val compiledSinceFallback = LinkedHashSet<String>()
+
+  /** Whether [fallback] has been warmed, or has compiled, so a warm-up has nothing left to do. */
+  private var fallbackWarm = false
 
   /** Edits waiting for the lock: a warm-up stops after its current pass when there are any. */
   private val waitingCompiles = AtomicInteger()
@@ -144,8 +158,13 @@ internal constructor(
    * may run meanwhile. The lock is taken per pass, and an edit arriving stops the warm-up after the
    * current pass: the edit waits for one pass, never for the whole warm-up.
    *
-   * @return [WarmUp.Ready], or [WarmUp.Unavailable] when no warm compiler can run here — the first
-   *   edit then goes to the Build Tools API cold, as without a warm-up — or no pass compiled.
+   * Where no warm compiler can run — none bundled for this Kotlin, one this compiler refuses, or
+   * `composeai.daemon.warmCompile=false` — every edit goes to [fallback], so it warms that instead
+   * ([warmFallback]).
+   *
+   * @return [WarmUp.Ready]; [WarmUp.FallbackReady] when it warmed the Build Tools API instead; or
+   *   [WarmUp.Unavailable] when neither could be warmed — the first edit then goes to the Build
+   *   Tools API cold, as without a warm-up — or no pass compiled.
    */
   public fun warmUp(moduleSources: List<String> = emptyList()): WarmUp {
     val start = System.nanoTime()
@@ -154,9 +173,9 @@ internal constructor(
     val warm =
       synchronized(this) {
         disabledReason?.let {
-          return WarmUp.Unavailable(it, elapsedMs())
+          return warmFallback(it, start)
         }
-        compiler ?: loadCompiler() ?: return WarmUp.Unavailable(disabledReason!!, elapsedMs())
+        compiler ?: loadCompiler() ?: return warmFallback(disabledReason!!, start)
       }
     val candidates =
       moduleSources.distinct().filterTo(ArrayList()) { it.endsWith(".kt") && File(it).isFile }
@@ -209,6 +228,9 @@ internal constructor(
       }
     }
     if (warmedWith.isEmpty()) {
+      // A link error turned the warm compiler off for good: the edits go to the fallback now.
+      synchronized(this) { disabledReason }
+        ?.let { if (!interrupted) return warmFallback(it, start) }
       // Not fatal: the first edit builds the state as it always did.
       val reason =
         if (interrupted) "an edit arrived before the first warm-up pass"
@@ -225,6 +247,41 @@ internal constructor(
     return ready
   }
 
+  /**
+   * Warms [fallback] for a module no warm compiler serves ([reason] says why): loads the Build
+   * Tools API toolchain, snapshots every class-path entry and JIT-warms its compile, all of which
+   * the first edit pays for otherwise — 20 s on a 377-entry Android class path. One compile of a
+   * generated file, into a scratch directory, installing nothing ([BtaFallbackWarmUp]).
+   *
+   * It is a single pass, under the lock: an edit that arrives meanwhile waits for it, and then
+   * finds the fallback warm, which is no later than the edit would have finished compiling cold.
+   * Done once; a warm-up after it, or after any fallback compile, answers at once.
+   */
+  private fun warmFallback(reason: String, start: Long): WarmUp {
+    fun elapsedMs() = (System.nanoTime() - start) / 1_000_000
+    val warmUp = fallbackWarmUp ?: return WarmUp.Unavailable(reason, elapsedMs())
+    synchronized(this) {
+      if (!fallbackWarm) {
+        val failure =
+          try {
+            warmUp()
+          } catch (t: Throwable) {
+            t.toString()
+          }
+        if (failure != null) {
+          log("compose-ai-daemon: Build Tools API warm-up failed: $failure")
+          return WarmUp.Unavailable(
+            "$reason; warming the Build Tools API failed: $failure",
+            elapsedMs(),
+          )
+        }
+        fallbackWarm = true
+        log("compose-ai-daemon: Build Tools API warmed in ${elapsedMs()} ms ($reason)")
+      }
+    }
+    return WarmUp.FallbackReady(elapsedMs(), reason)
+  }
+
   /** What [warmUp] achieved. */
   public sealed interface WarmUp {
     public val durationMs: Long
@@ -235,6 +292,12 @@ internal constructor(
       val passes: Int = 1,
       val files: Int = 1,
     ) : WarmUp
+
+    /**
+     * No warm compiler can run here, for [reason], so the Build Tools API fallback every edit goes
+     * to was warmed instead.
+     */
+    public data class FallbackReady(override val durationMs: Long, val reason: String) : WarmUp
 
     public data class Unavailable(val reason: String, override val durationMs: Long) : WarmUp
   }
@@ -263,6 +326,8 @@ internal constructor(
       if (changes == null || compiledSinceFallback.isEmpty()) changes
       else changes.copy(modified = (compiledSinceFallback + changes.modified).toList())
     val outcome = fallback.compile(sources, widened)
+    // Whatever the outcome, the compile loaded the toolchain and snapshotted the class path.
+    fallbackWarm = true
     if (outcome is BtaCompileService.Outcome.Ok) compiledSinceFallback.clear()
     // The Build Tools API rewrote classes the warm compiler's library session may have read.
     compiler?.let { runCatching { it.invalidate() } }
@@ -349,17 +414,87 @@ internal constructor(
       "plugin:androidx.compose.compiler.plugins.kotlin:sourceInformation=true"
 
     /**
+     * The in-process compile service for the module the `composeai.daemon.bta.*` system properties
+     * describe, or null when they configure none: the Build Tools API compile
+     * ([DefaultBtaCompileService]), with the warm compiler in front when
+     * [DaemonProperties.warmCompile] is on. What `DaemonMain` uses.
+     *
+     * Unlike [wrapIfEnabled], it builds the fallback's [BtaCompileSession] itself, so a
+     * `compileWarmUp` on a module no warm compiler serves can warm that very session
+     * ([BtaFallbackWarmUp]). That holds with the warm compiler turned off too: the service is then
+     * the fallback behind a warm-up, and compiles exactly as the fallback alone. Nothing is loaded
+     * until the first `compileSources` or `compileWarmUp`.
+     */
+    public fun fromSysprops(
+      sysprops: (String) -> String? = BtaSysprops::lookup
+    ): BtaCompileService? {
+      fun paths(key: String) =
+        sysprops(key).orEmpty().split(File.pathSeparator).filter { it.isNotEmpty() }
+      val implClasspath = paths(DefaultBtaCompileService.SYSPROP_IMPL_CLASSPATH)
+      val outputDir = sysprops(DefaultBtaCompileService.SYSPROP_OUTPUT_DIR)
+      val icWorkingDir = sysprops(DefaultBtaCompileService.SYSPROP_IC_WORKING_DIR)
+      val moduleName = sysprops(DefaultBtaCompileService.SYSPROP_MODULE_NAME)
+      if (
+        implClasspath.isEmpty() ||
+          outputDir.isNullOrEmpty() ||
+          icWorkingDir.isNullOrEmpty() ||
+          moduleName.isNullOrEmpty()
+      ) {
+        return null
+      }
+      val compileClasspath =
+        paths(DefaultBtaCompileService.SYSPROP_COMPILE_CLASSPATH).map { Path.of(it) }
+      val plugins = composeCompilerPlugins(paths(DefaultBtaCompileService.SYSPROP_COMPILER_PLUGINS))
+      val ineligibility =
+        sysprops(DefaultBtaCompileService.SYSPROP_INELIGIBILITY_REASON)?.takeIf { it.isNotEmpty() }
+      val session =
+        BtaCompileSession(
+          implClasspath = implClasspath.map { Path.of(it) },
+          icWorkingDir = Path.of(icWorkingDir),
+          moduleName = moduleName,
+        )
+      val fallback =
+        DefaultBtaCompileService.forSession(
+          session = session,
+          compileClasspath = compileClasspath,
+          outputDir = Path.of(outputDir),
+          compilerPlugins = plugins,
+          ineligibilityReason = ineligibility,
+        )
+      // An ineligible module never compiles in process: nothing to warm.
+      if (ineligibility != null) return fallback
+      val warmUp =
+        BtaFallbackWarmUp(session, compileClasspath, plugins, Path.of(icWorkingDir))::warmUp
+      return wrap(fallback, sysprops, warmUp)
+        ?: WarmCompileService(
+          fallback,
+          { error("the warm compiler is off (${DaemonProperties.Names.WARM_COMPILE}=false)") },
+          fallbackWarmUp = warmUp,
+        )
+    }
+
+    /**
      * [fallback] wrapped in a warm compiler when [DaemonProperties.warmCompile] is on and the
      * launch descriptor configured in-process compile for an eligible module; [fallback] itself
      * otherwise. Nothing is loaded until the first `compileSources`.
+     *
+     * A `compileWarmUp` on a module no warm compiler serves cannot warm a [fallback] built
+     * elsewhere; [fromSysprops] builds one it can.
      */
     public fun wrapIfEnabled(
       fallback: BtaCompileService,
       sysprops: (String) -> String? = BtaSysprops::lookup,
-    ): BtaCompileService {
-      if (!DaemonProperties.warmCompile.read()) return fallback
+    ): BtaCompileService = wrap(fallback, sysprops, fallbackWarmUp = null) ?: fallback
+
+    /** The warm compiler in front of [fallback], or null when it is off or cannot be configured. */
+    private fun wrap(
+      fallback: BtaCompileService,
+      sysprops: (String) -> String?,
+      fallbackWarmUp: (() -> String?)?,
+    ): WarmCompileService? {
+      if (!DaemonProperties.warmCompile.read()) return null
       if (!sysprops(DefaultBtaCompileService.SYSPROP_INELIGIBILITY_REASON).isNullOrEmpty()) {
-        return fallback
+        return null
       }
       fun paths(key: String) =
         sysprops(key).orEmpty().split(File.pathSeparator).filter { it.isNotEmpty() }
@@ -373,7 +508,7 @@ internal constructor(
           icWorkingDir.isNullOrEmpty() ||
           moduleName.isNullOrEmpty()
       ) {
-        return fallback
+        return null
       }
       val pluginJars = paths(DefaultBtaCompileService.SYSPROP_COMPILER_PLUGINS)
       val workDir = File(icWorkingDir, "warm")
@@ -396,8 +531,26 @@ internal constructor(
           file.writeText(WARM_UP_SOURCE.trimIndent())
           listOf(file.path)
         },
+        fallbackWarmUp = fallbackWarmUp,
       )
     }
+
+    /**
+     * The Compose compiler plugin as the Build Tools API compile takes it, with the
+     * `sourceInformation=true` option KGP passes (`DefaultBtaCompileService.fromSysprops` builds
+     * the same); none for a module without the plugin's jars.
+     */
+    internal fun composeCompilerPlugins(pluginJars: List<String>): List<CompilerPlugin> =
+      if (pluginJars.isEmpty()) emptyList()
+      else
+        listOf(
+          CompilerPlugin(
+            "androidx.compose.compiler.plugins.kotlin",
+            pluginJars.map { Path.of(it) },
+            listOf(CompilerPluginOption("sourceInformation", "true")),
+            emptySet(),
+          )
+        )
   }
 }
 

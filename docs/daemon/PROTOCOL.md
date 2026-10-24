@@ -610,8 +610,12 @@ edit of one finds its library symbols loaded. A file that is missing or
 does not compile is skipped. Without them the daemon warms with a
 generated file of its own.
 
-`ready: false` means nothing could be warmed — no warm compiler for this
-module, or in-process compile not configured — and `message` says why;
+On a module no warm compiler serves (no jar for its Kotlin line, or
+`composeai.daemon.warmCompile=false`), the daemon warms the Build Tools API
+compile those edits go to instead — its toolchain and class-path snapshots
+— and answers `ready: true` with a `message` that says so. `ready: false`
+means nothing could be warmed — in-process compile not configured, the
+module ineligible, or that warm-up failed — and `message` says why;
 `compileSources` then behaves as without the request. A `compileSources`
 sent before the answer waits for the warm-up's current pass, which then
 stops; compiling through Gradle meanwhile is safe but measured slower

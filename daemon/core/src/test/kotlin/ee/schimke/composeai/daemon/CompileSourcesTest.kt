@@ -186,6 +186,35 @@ class CompileSourcesTest {
   }
 
   @Test(timeout = 10_000)
+  fun `compileWarmUp on a module no warm compiler serves warms the Build Tools API and says so`() {
+    var warmUps = 0
+    val service =
+      WarmCompileService(
+        StubService(outcome = { BtaCompileService.Outcome.Ok }),
+        { error("no warm compiler is bundled for Kotlin 2.3 (2.3.20)") },
+        log = {},
+        fallbackWarmUp = {
+          warmUps++
+          null
+        },
+      )
+    val rig = startServer(service = service)
+    try {
+      rig.handshake()
+      val result = rig.compileWarmUp()
+      assertEquals("true", result["ready"]?.jsonPrimitive?.content)
+      assertEquals(
+        "Build Tools API warmed; no warm compiler: no warm compiler is bundled for Kotlin 2.3 " +
+          "(2.3.20)",
+        result["message"]?.jsonPrimitive?.content,
+      )
+      assertEquals(1, warmUps)
+    } finally {
+      rig.shutdown()
+    }
+  }
+
+  @Test(timeout = 10_000)
   fun `compileWarmUp warms off the read loop, with the sources it names, and answers once warm`() {
     val home =
       java.io.File(java.nio.file.Files.createTempDirectory("warm-up").toFile(), "Home.kt").apply {

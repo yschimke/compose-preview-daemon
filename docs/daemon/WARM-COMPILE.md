@@ -132,11 +132,29 @@ Six edits sent back to back from the first render, on a 4-core machine:
 | waits for it (what the MCP server does) | 5.8 s | 0.72 s | 13.1 s | 5.2 s |
 | compiles through Gradle until it answers | 5.7 s | 4.6 s | 16.0 s | 9.0 s |
 
-Only the warm compiler is warmed. Where it cannot run — a Kotlin version with no bundled jar, or
-`composeai.daemon.warmCompile=false` — `compileWarmUp` answers `ready: false` at once, and the first
-`compileSources` loads the Build Tools API as it always did. The request is opt-in so that a client
-that never compiles in process (VS Code with `composePreview.daemon.compileInProcess` off) never
-pays for a warm compiler it will not use, nor keeps its class-path state in memory.
+Where the warm compiler cannot run — a Kotlin version with no bundled jar, a compiler its jar
+refuses, one that failed to link, or `composeai.daemon.warmCompile=false` — every edit goes to the
+Build Tools API, so `compileWarmUp` warms that instead (`BtaFallbackWarmUp`): one compile of a
+generated file through the fallback's own `BtaCompileSession`, which loads the `KotlinToolchains`
+impl and snapshots every class-path entry. Cold, the first edit pays both: 20.7 s on a Kotlin 2.3
+Wear module with a 377-entry class path, against 2.0–4.2 s for the edits after it.
+
+The warm-up compiles into a scratch directory beside the fallback's `ic/` (`warm-up-bta/`), with its
+own incremental-compilation state, so it installs nothing and the module's IC caches only ever see
+the module's own compiles. Only the class-path snapshots are shared: they are content-addressed
+(`cp-snapshots/<sha-256>.bin`), so the scratch directory is seeded with links to the existing ones
+and the new ones are moved back atomically, never over an existing file. It is one pass, under the
+compile lock: an edit sent meanwhile waits for it and then finds the fallback warm, no later than it
+would have finished cold. It runs once per daemon, and not at all once the fallback has compiled.
+
+The answer is `ready: true` with a message that says the Build Tools API was warmed and why no warm
+compiler could run. `ready: false` now means nothing could be warmed: in-process compile is not
+configured, the module is ineligible, or the fallback's warm-up failed. The request is opt-in so
+that a client that never compiles in process (VS Code with `composePreview.daemon.compileInProcess`
+off) never pays for a compiler it will not use, nor keeps its class-path state in memory.
+
+On a one-file plain-Kotlin module (`BtaFallbackWarmUpTest`, harness), the fallback warm-up took
+6.4 s and the first edit after it 0.6 s.
 
 ## Results
 

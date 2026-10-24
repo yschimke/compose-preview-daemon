@@ -1813,12 +1813,27 @@ public final class ee/schimke/composeai/daemon/WarmCompileService : ee/schimke/c
 }
 
 public final class ee/schimke/composeai/daemon/WarmCompileService$Companion {
+	public final fun fromSysprops (Lkotlin/jvm/functions/Function1;)Lee/schimke/composeai/daemon/bta/BtaCompileService;
+	public static synthetic fun fromSysprops$default (Lee/schimke/composeai/daemon/WarmCompileService$Companion;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lee/schimke/composeai/daemon/bta/BtaCompileService;
 	public final fun wrapIfEnabled (Lee/schimke/composeai/daemon/bta/BtaCompileService;Lkotlin/jvm/functions/Function1;)Lee/schimke/composeai/daemon/bta/BtaCompileService;
 	public static synthetic fun wrapIfEnabled$default (Lee/schimke/composeai/daemon/WarmCompileService$Companion;Lee/schimke/composeai/daemon/bta/BtaCompileService;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lee/schimke/composeai/daemon/bta/BtaCompileService;
 }
 
 public abstract interface class ee/schimke/composeai/daemon/WarmCompileService$WarmUp {
 	public abstract fun getDurationMs ()J
+}
+
+public final class ee/schimke/composeai/daemon/WarmCompileService$WarmUp$FallbackReady : ee/schimke/composeai/daemon/WarmCompileService$WarmUp {
+	public fun <init> (JLjava/lang/String;)V
+	public final fun component1 ()J
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (JLjava/lang/String;)Lee/schimke/composeai/daemon/WarmCompileService$WarmUp$FallbackReady;
+	public static synthetic fun copy$default (Lee/schimke/composeai/daemon/WarmCompileService$WarmUp$FallbackReady;JLjava/lang/String;ILjava/lang/Object;)Lee/schimke/composeai/daemon/WarmCompileService$WarmUp$FallbackReady;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getDurationMs ()J
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class ee/schimke/composeai/daemon/WarmCompileService$WarmUp$Ready : ee/schimke/composeai/daemon/WarmCompileService$WarmUp {

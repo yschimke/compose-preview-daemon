@@ -3357,8 +3357,9 @@ public class JsonRpcServer(
    * `compileWarmUp`: warms the in-process compiler for a client that will send `compileSources`,
    * and answers when done. Off the read loop, since it takes seconds and renders keep being served
    * meanwhile; a `compileSources` sent before the answer waits for the warm-up instead of compiling
-   * cold. Only the warm compiler is warmed: on a module it cannot serve, the answer is `ready =
-   * false` at once, and the first `compileSources` loads the Build Tools API as before.
+   * cold. On a module no warm compiler serves, the Build Tools API fallback every edit goes to is
+   * warmed instead, and the answer is `ready` with a message saying so; `ready = false` means
+   * nothing could be warmed, and the first `compileSources` loads the Build Tools API as before.
    */
   private fun handleCompileWarmUp(req: JsonRpcRequest) {
     // Optional: a client that names no sources (or sends no params) gets the generated warm-up.
@@ -3393,15 +3394,18 @@ public class JsonRpcServer(
               WarmCompileService.WarmUp.Unavailable("warm-up threw: $t", durationMs = 0)
             }
           val result =
-            CompileWarmUpResult.Builder(ready = outcome is WarmCompileService.WarmUp.Ready).also {
-              it.durationMs = outcome.durationMs
-              it.message =
-                when (outcome) {
-                  is WarmCompileService.WarmUp.Unavailable -> outcome.reason
-                  is WarmCompileService.WarmUp.Ready ->
-                    "${outcome.passes} passes over ${outcome.files} files"
-                }
-            }
+            CompileWarmUpResult.Builder(ready = outcome !is WarmCompileService.WarmUp.Unavailable)
+              .also {
+                it.durationMs = outcome.durationMs
+                it.message =
+                  when (outcome) {
+                    is WarmCompileService.WarmUp.Unavailable -> outcome.reason
+                    is WarmCompileService.WarmUp.Ready ->
+                      "${outcome.passes} passes over ${outcome.files} files"
+                    is WarmCompileService.WarmUp.FallbackReady ->
+                      "Build Tools API warmed; no warm compiler: ${outcome.reason}"
+                  }
+              }
           sendCompileWarmUpResult(req, result)
         },
         "compose-ai-daemon-compile-warm-up",
