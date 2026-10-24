@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.25.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.24.4...v3.25.0) (2026-10-24)
+
+
+### Features
+
+* **compile:** take in the in-process compile as daemon-compile ([#388](https://github.com/yschimke/compose-preview-daemon/issues/388)) ([44e018f](https://github.com/yschimke/compose-preview-daemon/commit/44e018f2b3482d380124787978ec6b4e9b25f0d7))
+
 ## [3.24.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.24.3...v3.24.4) (2026-10-24)
 
 
