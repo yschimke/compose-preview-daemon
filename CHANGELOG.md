@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.24.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.24.3...v3.24.4) (2026-10-24)
+
+
+### Performance
+
+* **daemon:** hold background sandbox boots while an in-process compile runs ([#386](https://github.com/yschimke/compose-preview-daemon/issues/386)) ([9810b19](https://github.com/yschimke/compose-preview-daemon/commit/9810b19d0cc0603d98d4d1a510e72f45d1ab5d78))
+
 ## [3.24.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.24.2...v3.24.3) (2026-10-24)
 
 
