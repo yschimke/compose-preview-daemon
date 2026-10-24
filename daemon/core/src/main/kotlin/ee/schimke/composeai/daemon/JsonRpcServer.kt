@@ -521,6 +521,21 @@ public class JsonRpcServer(
    */
   private val overridesFinishLock = Any()
 
+  /**
+   * The host id of the plain (no-overrides) `renderNow` render in flight per preview id. A plain
+   * `renderNow` for a preview already in here is not submitted again: it marks the preview in
+   * [plainRendersAgain], and the in-flight render submits one more when it finishes. A burst of
+   * saves then costs one render in flight and one after it per preview, not one per save, all
+   * contending for the same sandbox. The one after it renders the latest classes, since a sandbox
+   * swaps its user classloader before the render that follows a swap. Guarded by [plainRenderLock].
+   */
+  private val plainRendersInFlight = HashMap<String, Long>()
+
+  /** Preview ids a plain `renderNow` asked for while [plainRendersInFlight] held one. */
+  private val plainRendersAgain = HashSet<String>()
+
+  private val plainRenderLock = Any()
+
   private val writerThread =
     Thread({ writerLoop() }, "compose-ai-daemon-writer").apply { isDaemon = false }
 
@@ -1138,7 +1153,14 @@ public class JsonRpcServer(
           }
         }
       }
-      submitRender(previewId, overrides, acceptedAt = now)
+      if (overrides == null) {
+        synchronized(plainRenderLock) {
+          if (previewId in plainRendersInFlight) plainRendersAgain.add(previewId)
+          else plainRendersInFlight[previewId] = submitRender(previewId, null, acceptedAt = now)
+        }
+      } else {
+        submitRender(previewId, overrides, acceptedAt = now)
+      }
       queued.add(previewId)
     }
     val result = RenderNowResult(queued = queued, rejected = rejected)
@@ -1151,7 +1173,12 @@ public class JsonRpcServer(
     COALESCED,
   }
 
-  private fun submitRender(previewId: String, overrides: PreviewOverrides?, acceptedAt: Long) {
+  /** Submits a render of [previewId] and returns its host request id. */
+  private fun submitRender(
+    previewId: String,
+    overrides: PreviewOverrides?,
+    acceptedAt: Long,
+  ): Long {
     val hostId = RenderHost.nextRequestId()
     hostIdToPreviewId[hostId] = previewId
     overrides?.let { hostIdToOverrides[hostId] = it }
@@ -1161,6 +1188,24 @@ public class JsonRpcServer(
     // submit() returns when the host returns a result; the watcher thread
     // demuxes the result back into renderFinished.
     submitRenderAsync(hostId, overrides)
+    return hostId
+  }
+
+  /**
+   * The render with host id [hostId] finished or failed. When it was a plain render
+   * [plainRendersInFlight] tracks, hands its preview's slot to the render a `renderNow` asked for
+   * meanwhile, or frees it.
+   */
+  private fun plainRenderDone(hostId: Long) {
+    synchronized(plainRenderLock) {
+      val previewId = plainRendersInFlight.entries.firstOrNull { it.value == hostId }?.key ?: return
+      if (plainRendersAgain.remove(previewId) && !shutdownRequested.get()) {
+        plainRendersInFlight[previewId] =
+          submitRender(previewId, null, acceptedAt = System.currentTimeMillis())
+      } else {
+        plainRendersInFlight.remove(previewId)
+      }
+    }
   }
 
   private fun submitRenderAsync(hostId: Long, overrides: PreviewOverrides? = null) {
@@ -1276,8 +1321,20 @@ public class JsonRpcServer(
         continue
       }
       when (item) {
-        is RenderResult -> emitRenderFinished(item)
-        is RenderResultOrFailure.Failure -> emitRenderFailed(item)
+        // In a finally: a render whose notification failed must still hand its slot on, or the
+        // preview would never render again.
+        is RenderResult ->
+          try {
+            emitRenderFinished(item)
+          } finally {
+            plainRenderDone(item.id)
+          }
+        is RenderResultOrFailure.Failure ->
+          try {
+            emitRenderFailed(item)
+          } finally {
+            plainRenderDone(item.hostId)
+          }
         else -> System.err.println("compose-ai-daemon: unexpected render result type: $item")
       }
     }
