@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.25.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.25.0...v3.25.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* **daemon:** re-render a skipped on-demand fetch at the latest render's overrides ([#391](https://github.com/yschimke/compose-preview-daemon/issues/391)) ([72226f4](https://github.com/yschimke/compose-preview-daemon/commit/72226f4fb4a737165b1f96de5ccdd96527afc728))
+* **deps:** update dependency org.ow2.asm:asm-commons to v9.11.1 ([#393](https://github.com/yschimke/compose-preview-daemon/issues/393)) ([026de46](https://github.com/yschimke/compose-preview-daemon/commit/026de462d16510701761df78e4fa4061914c7668))
+* **remotecompose:** resolve google: families on the cmp-android lane ([#389](https://github.com/yschimke/compose-preview-daemon/issues/389)) ([85b93c1](https://github.com/yschimke/compose-preview-daemon/commit/85b93c109c9d88e6ee40b9758dde46e2aa563a0d))
+
 ## [3.25.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.24.4...v3.25.0) (2026-10-24)
 
 
