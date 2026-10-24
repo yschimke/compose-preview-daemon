@@ -11,13 +11,11 @@ import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
-import org.jetbrains.kotlin.config.Services
 
 /**
  * The warm compiler's only entry point. `:daemon:core`'s `WarmCompileService` loads this class
@@ -59,7 +57,7 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
   private val plugins: LoadedPlugins
 
   private var keepAlive: Disposable = Disposer.newDisposable("warm-compiler")
-  private val frontend = WarmFrontendPhase { keepAlive }
+  private val frontend: WarmFrontendPhase
   private var moduleClasses: ModuleClasses? = null
   private var fingerprint: String? = null
 
@@ -75,6 +73,7 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
         processors = loadOwn(CommandLineProcessor::class.java),
         options = config.stringList("pluginOptions"),
       )
+    frontend = warmFrontendPhase({ keepAlive }, plugins)
   }
 
   /**
@@ -131,9 +130,7 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
           "-no-reflect",
         ) + sources
       )
-    return WarmCliPipeline(K2JVMCompiler().defaultPerformanceManager, plugins, frontend)
-      .executeAndReturnPipeLineArtifact(arguments, Services.EMPTY, messages, keepAlive)
-      .exitCode
+    return runWarmPipeline(arguments, plugins, frontend, messages, keepAlive)
   }
 
   @Synchronized

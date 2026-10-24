@@ -51,29 +51,57 @@ compile rebuilds the cached state.
 
 The internal API differs between compiler lines, and the Gradle plugin resolves the BTA impl at the
 **consumer's** Kotlin version. So `:daemon:warm-compiler-impl` builds one jar per Kotlin minor line
-from shared sources (`src/main`: the entry, the ABI gate) and a line-specific pipeline (`src/k24`
-against `libs.versions.kotlin`, `src/k25` against `warmCompilerKotlinNext`, currently 2.5.0-Beta2,
-whose frontend replaces search scopes with `JvmClasspath` and threads a `javaInterop` through the
-session context).
+from shared sources (`src/main`: the entry, the ABI gate) and a line-specific pipeline:
+
+| line | source set | built against | differs from `src/k24` in |
+| --- | --- | --- | --- |
+| 2.3 | `src/k23` | `warmCompilerKotlinPrevious`, currently 2.3.21 | see below |
+| 2.4 | `src/k24` | `libs.versions.kotlin` | — |
+| 2.5 | `src/k25` | `warmCompilerKotlinNext`, currently 2.5.0-Beta2 | search scopes become `JvmClasspath`; the session context takes a `javaInterop` |
+
+Kotlin 2.3's frontend is the same shape as 2.4's, reached through older seams:
+
+- `createProjectEnvironment` and `createLibraryListForJvm` are top-level functions
+  (`cli.jvm.compiler.legacy.pipeline`, `cli.jvm.compiler`), not members of
+  `JvmFrontendPipelinePhase`; the diagnostics collector comes from the configuration artifact, and
+  `JvmFrontendPipelineArtifact` takes it too;
+- a source session is told whether it is a leaf HMPP module rather than its `KmpModuleKind`, and
+  FIR extension registrars come from the project, not the configuration;
+- the pipeline has no `JvmSerializeCommonMetadataPipelinePhase`, and `AbstractCliPipeline` only
+  offers `execute`, which gives each compile a root disposable of its own and disposes it at the end
+  (harmless: the cached project hangs off the warm compiler's own disposable);
+- compiler-plugin extensions live in the **project**, registered once when it is created, where
+  2.4 keeps them in a per-configuration storage. A cached project would carry the first compile's
+  configuration into every later one (the Compose IR extension captures its message collector), so
+  the 2.3 pipeline keeps the registrars out of the configuration and registers their extensions in
+  the project per compile, from that compile's configuration, under a disposable it drops before
+  the next one. `an edit on cached class-path state installs the same bytecode a stock compile
+  produces` is the test that would catch the Compose plugin running twice.
+
+The shared entry reaches each line through two functions every `WarmPipeline.kt` defines:
+`warmFrontendPhase` and `runWarmPipeline`.
 
 A jar serves the compilers of its line from the oldest one it is tested against, not only the one
 it was built against: the 2.4 jar serves a consumer on Kotlin 2.4.20 as well as one on 2.4.21. The
 build checks that rather than assuming it: each line's tests run against the compiler it was built
 against (`test`, `testK25`) and against the line's other supported releases (`testK24OnKotlin2_4_20`),
-and `check` runs them all.
+and `check` runs them all (`testK23`, `testK23OnKotlin2_3_20` for the 2.3 jar).
 
 "Minor line" is the granularity of the jar, not a promise from Kotlin: the 2.4.20 tooling release
 changed the frontend API `src/k24` calls (`JvmFrontendPipelinePhase.createProjectEnvironment`,
 `createLibraryListForJvm`, `FirJvmSessionFactory.createSourceSession`), so 2.4.0 and 2.4.10 stay on
 the Build Tools API. Each jar records the oldest compiler it serves (`supported-from.txt`) and
 refuses an older one at load, and `testK24OnKotlin2_4_10` checks that it does. Serving 2.4.0–2.4.10
-would take a third pipeline source set built against 2.4.10.
+would take another pipeline source set built against 2.4.10. Likewise the 2.3 jar serves 2.3.20 and
+later: 2.3.0 and 2.3.10 predate `FirJvmSessionFactory.Context` (their session factories take the
+project environment, a package-part provider and shared Java components one by one), and
+`testK23OnKotlin2_3_10` checks the jar refuses them.
 
 When Kotlin releases a new patch of a bundled line, add it to the line's `alsoTested` list in
 `daemon/warm-compiler-impl/build.gradle.kts`.
 
 `daemon-core` ships the jars as resources (`warm/warm-compiler-impl-<minor>.jar`, e.g.
-`warm-compiler-impl-2.4.jar`). On the first `compileSources` the daemon reads
+`warm-compiler-impl-2.3.jar`, `-2.4.jar`, `-2.5.jar`). On the first `compileSources` the daemon reads
 `KotlinCompilerVersion` from the launch descriptor's BTA impl jars, extracts the jar for that
 version's line and loads it next to them, in a class loader parented to the platform loader; it
 talks to it through JDK types only. Each jar also checks that the compiler on its class path is of

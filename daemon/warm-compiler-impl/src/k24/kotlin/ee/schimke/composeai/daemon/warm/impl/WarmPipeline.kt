@@ -6,6 +6,7 @@
 package ee.schimke.composeai.daemon.warm.impl
 
 import org.jetbrains.kotlin.backend.common.phaser.then
+import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.SessionConstructionUtils
 import org.jetbrains.kotlin.cli.common.allFiles
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
@@ -13,7 +14,9 @@ import org.jetbrains.kotlin.cli.common.collectSources
 import org.jetbrains.kotlin.cli.common.diagnosticsCollector
 import org.jetbrains.kotlin.cli.common.fileBelongsToModuleForLt
 import org.jetbrains.kotlin.cli.common.isCommonSourceForLt
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.extensionsStorage
+import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.VfsBasedProjectEnvironment
 import org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline
@@ -36,6 +39,7 @@ import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.getCompilerExtensions
+import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.config.moduleName
 import org.jetbrains.kotlin.config.perfManager
@@ -279,3 +283,24 @@ internal class WarmCliPipeline(
       JvmBackendPipelinePhase then
       JvmWriteOutputsPhase
 }
+
+/**
+ * The frontend phase, for [WarmCompilerEntry]; this line's takes its plugins from the
+ * configuration.
+ */
+internal fun warmFrontendPhase(
+  keepAlive: () -> Disposable,
+  @Suppress("UNUSED_PARAMETER") plugins: LoadedPlugins,
+) = WarmFrontendPhase(keepAlive)
+
+/** Runs one compile, its configuration and extensions disposed with [keepAlive]. */
+internal fun runWarmPipeline(
+  arguments: K2JVMCompilerArguments,
+  plugins: LoadedPlugins,
+  frontend: WarmFrontendPhase,
+  messages: MessageCollector,
+  keepAlive: Disposable,
+): ExitCode =
+  WarmCliPipeline(K2JVMCompiler().defaultPerformanceManager, plugins, frontend)
+    .executeAndReturnPipeLineArtifact(arguments, Services.EMPTY, messages, keepAlive)
+    .exitCode

@@ -88,6 +88,22 @@ class WarmCompilerEntryTest {
   }
 
   @Test
+  fun `an edit on cached class-path state installs the same bytecode a stock compile produces`() {
+    // The second compile reuses the project, so a plugin registered once per compile (2.3 keeps
+    // extensions in the project) must neither run twice nor carry the first compile's settings.
+    val screen = write("Screen.kt", screen("red"))
+    assertEquals("ok", compile(screen)["status"])
+    write("Screen.kt", screen("green"))
+    assertEquals("ok", compile(screen)["status"])
+
+    val reference = File(root, "reference")
+    stockCompile(src.listFiles()!!.toList(), reference)
+    for (name in listOf("demo/ScreenKt.class", "demo/LabelKt.class")) {
+      assertArrayEquals(name, File(reference, name).readBytes(), File(classes, name).readBytes())
+    }
+  }
+
+  @Test
   fun `repeated edits reuse the class-path state and the module index`() {
     val screen = write("Screen.kt", screen("red"))
     assertEquals("ok", compile(screen)["status"])
@@ -135,6 +151,17 @@ class WarmCompilerEntryTest {
     assertTrue(errors.isNotEmpty())
     assertEquals(screen.path, errors.first()["file"])
     assertTrue((errors.first()["line"] as Int) > 0)
+  }
+
+  @Test
+  fun `compile errors on cached class-path state reach this compile's result`() {
+    val screen = write("Screen.kt", screen("red"))
+    assertEquals("ok", compile(screen)["status"])
+    write("Screen.kt", screen("green").replace("Label(", "Missing("))
+    val result = compile(screen)
+    assertEquals(result.toString(), "errors", result["status"])
+    write("Screen.kt", screen("blue"))
+    assertEquals("ok", compile(screen)["status"])
   }
 
   @Test

@@ -6,6 +6,7 @@ import ee.schimke.composeai.daemon.config.DaemonProperties.Names as DaemonProper
 import ee.schimke.composeai.daemon.protocol.SourceChangeSet
 import java.nio.file.Path
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -390,6 +391,14 @@ class WarmCompileServiceTest {
       "warm/warm-compiler-impl-2.5.jar",
       WarmCompileService.implJarResource("2.5.0-Beta2"),
     )
+  }
+
+  @Test
+  fun `a warm compiler is bundled for the 2_3, 2_4 and 2_5 lines`() {
+    for (version in listOf("2.3.20", "2.4.21", "2.5.0-Beta2")) {
+      val resource = WarmCompileService.implJarResource(version)
+      assertNotNull(resource, WarmCompileService::class.java.getResource(resource))
+    }
   }
 
   @Test

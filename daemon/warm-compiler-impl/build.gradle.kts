@@ -3,11 +3,12 @@
 //
 // Compiled against kotlin-compiler-embeddable's *internal* pipeline (the frontend phase, FIR
 // session factories, the plugin registrar seam), which carry no compatibility promise. This module
-// builds one jar per Kotlin minor line (2.4, 2.5) from shared sources (`src/main`) plus a
-// line-specific pipeline (`src/k24`, `src/k25`), and tests each jar against every released compiler
-// of its line. `:daemon:core` embeds them as resources and loads the one for the line of the
-// compiler the launch descriptor supplies, next to those Build Tools API impl jars, behind a facade
-// that speaks only JDK types. A line with no jar keeps the daemon on the Build Tools API.
+// builds one jar per Kotlin minor line (2.3, 2.4, 2.5) from shared sources (`src/main`) plus a
+// line-specific pipeline (`src/k23`, `src/k24`, `src/k25`), and tests each jar against every
+// released compiler of its line. `:daemon:core` embeds them as resources and loads the one for the
+// line of the compiler the launch descriptor supplies, next to those Build Tools API impl jars,
+// behind a facade that speaks only JDK types. A line with no jar keeps the daemon on the Build
+// Tools API.
 //
 // NOT published to Maven: the jars ship inside `daemon-core`'s jar.
 
@@ -38,13 +39,27 @@ class CompilerLine(
 
 val lines =
   listOf(
+    // 2.3.0 and 2.3.10 predate the session-factory `Context` 2.3.20 introduced.
+    CompilerLine(
+      "k23",
+      libs.versions.warmCompilerKotlinPrevious.get(),
+      listOf("2.3.20"),
+      refused = listOf("2.3.10"),
+    ),
     CompilerLine("k24", libs.versions.kotlin.get(), listOf("2.4.20"), refused = listOf("2.4.10")),
     CompilerLine("k25", libs.versions.warmCompilerKotlinNext.get(), emptyList()),
   )
 
+/** The line built by the `main` source set; every other line has a source set of its own name. */
+val mainLine = "k24"
+
+fun sourceSetOf(line: CompilerLine) = if (line.name == mainLine) "main" else line.name
+
 sourceSets {
-  main { kotlin.srcDir("src/k24/kotlin") }
-  create("k25") { kotlin.srcDir("src/main/kotlin") }
+  main { kotlin.srcDir("src/$mainLine/kotlin") }
+  for (line in lines.filter { it.name != mainLine }) {
+    create(line.name) { kotlin.srcDir("src/main/kotlin") }
+  }
 }
 
 kotlin {
@@ -61,15 +76,17 @@ tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileK25Kotlin")
 }
 
 dependencies {
-  compileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:${lines[0].version}")
-  "k25CompileOnly"("org.jetbrains.kotlin:kotlin-compiler-embeddable:${lines[1].version}")
+  for (line in lines) {
+    val configuration = if (line.name == mainLine) "compileOnly" else "${line.name}CompileOnly"
+    configuration("org.jetbrains.kotlin:kotlin-compiler-embeddable:${line.version}")
+  }
   testImplementation(libs.junit)
 }
 
 // The compiler version each jar links against and the oldest of its line it supports, checked at
 // load against the one on the class path.
 for (line in lines) {
-  val sourceSet = if (line.name == "k24") "main" else line.name
+  val sourceSet = sourceSetOf(line)
   val out = layout.buildDirectory.dir("generated/built-against/${line.name}")
   val version = line.version
   val supportedFrom = line.supportedFrom
@@ -88,11 +105,15 @@ for (line in lines) {
   sourceSets[sourceSet].resources.srcDir(task)
 }
 
-val k25Jar =
-  tasks.register<Jar>("k25Jar") {
-    archiveClassifier.set("k25")
-    from(sourceSets["k25"].output)
-  }
+val lineJars: Map<String, TaskProvider<Jar>> = lines.associate { line ->
+  line.name to
+    if (line.name == mainLine) tasks.named<Jar>("jar")
+    else
+      tasks.register<Jar>("${line.name}Jar") {
+        archiveClassifier.set(line.name)
+        from(sourceSets[line.name].output)
+      }
+}
 
 // What `:daemon:core` bundles: one jar per compiler line, named for its Kotlin minor version.
 val warmCompilerJars =
@@ -104,10 +125,10 @@ val warmCompilerJars =
 
 val bundleJars =
   tasks.register<Sync>("bundleJars") {
-    val k24Name = "warm-compiler-impl-${lines[0].minor}.jar"
-    val k25Name = "warm-compiler-impl-${lines[1].minor}.jar"
-    from(tasks.named<Jar>("jar")) { rename { k24Name } }
-    from(k25Jar) { rename { k25Name } }
+    for (line in lines) {
+      val name = "warm-compiler-impl-${line.minor}.jar"
+      from(lineJars.getValue(line.name)) { rename { name } }
+    }
     into(layout.buildDirectory.dir("warm-compiler-jars"))
   }
 
@@ -133,7 +154,7 @@ val testComposeRuntime =
 dependencies { testComposeRuntime(libs.jetbrains.compose.runtime) }
 
 for (line in lines) {
-  val jar = if (line.name == "k24") tasks.named<Jar>("jar") else k25Jar
+  val jar = lineJars.getValue(line.name)
   for (version in listOf(line.version) + line.alsoTested + line.refused) {
     val refused = version in line.refused
     val suffix =
@@ -173,7 +194,7 @@ for (line in lines) {
       )
       maxHeapSize = "2g"
     }
-    if (suffix == "k24") {
+    if (suffix == mainLine) {
       tasks.named<Test>("test") { configure() }
     } else {
       val test = tasks.named<Test>("test")
