@@ -14,6 +14,7 @@ import ee.schimke.composeai.data.remotecompose.NamedValueSeedTarget
 import ee.schimke.composeai.data.remotecompose.reseed
 import ee.schimke.composeai.rcplayer.compose.LocalRcTimeSource
 import ee.schimke.composeai.rcplayer.compose.RcComposePlayer
+import ee.schimke.composeai.rcplayer.compose.rcGoogleFontsTypefaceLoader
 import ee.schimke.composeai.rcplayer.runtime.RcNamedValue
 import ee.schimke.composeai.rcplayer.runtime.RcTimeSnapshot
 import ee.schimke.composeai.rcplayer.runtime.RcTimeSource
@@ -51,8 +52,27 @@ internal class CmpAndroidPlayerBackend : RemoteComposePlayerBackend {
         addAll(applied)
       }
     }
+    // A `google:` family needs a loader that can resolve it; `RcTypefaceLoader.Default` is empty,
+    // so without one every such family fell through to `FontFamily.Default` and the document drew
+    // in the platform face — the wrong typeface outright, not merely the wrong instance of the
+    // right one. Both AndroidX lanes already carry a resolver for exactly this (the embedded
+    // player's `GoogleFontFamilies`, this module's `RcGoogleFontTypefaceResolver`); this lane
+    // carried neither, which is why only it drew remote-m3's branded specimens in Roboto.
+    //
+    // `rcGoogleFontsTypefaceLoader` is rc-players' own loader for the case, reading the same
+    // shared cache (`composeai.fonts.cacheDir`) through the same `(family, weight, italic)` and
+    // `<slug>-variable` names the other two lanes resolve through, so all three agree on the file.
+    // It prefers the family's variable file, which is what carries the `fvar` table a document's
+    // `wght` / `wdth` axes are interpolated from, and falls back to the static face at the
+    // requested weight — the family kept, the axes lost — when the cache holds no variable file.
+    val typefaces = remember(document) { rcGoogleFontsTypefaceLoader(document.bytes) }
     val player: @Composable () -> Unit = {
-      RcComposePlayer(bytes = document.bytes, modifier = modifier, namedValues = values)
+      RcComposePlayer(
+        bytes = document.bytes,
+        modifier = modifier,
+        namedValues = values,
+        typefaces = typefaces,
+      )
     }
     when (document.clock) {
       RemoteComposeClock.SYSTEM -> player()
