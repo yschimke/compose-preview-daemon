@@ -212,6 +212,7 @@ public object DaemonProperties {
     public const val KEEP_ALIVE_IDLE_MS: String = "composeai.daemon.keepAliveIdleMs"
     public const val METRICS_EVERY_RENDERS: String = "composeai.daemon.metrics.everyRenders"
     public const val IDLE_GC_MS: String = "composeai.daemon.idleGcMs"
+    public const val MAX_CONCURRENT_RENDERS: String = "composeai.daemon.maxConcurrentRenders"
     public const val RENDER_TIMEOUT_MS: String = "composeai.daemon.renderTimeoutMs"
     public const val CLASSPATH_DIRTY_GRACE_MS: String = "composeai.daemon.classpathDirtyGraceMs"
     public const val DATA_FETCH_RERENDER_BUDGET_MS: String =
@@ -297,6 +298,17 @@ public object DaemonProperties {
         "block. Values below 1 use 1. Measuring requests no garbage collection.",
       G_LIFECYCLE,
       min = 1,
+    )
+
+  public val maxConcurrentRenders: IntProperty =
+    IntProperty(
+      Names.MAX_CONCURRENT_RENDERS,
+      0,
+      "How many plain `renderNow` renders run at once; the rest wait in priority order (focused, " +
+        "then visible, then the others). 0 means one fewer than the available processors, so a " +
+        "compile is never starved by renders.",
+      G_LIFECYCLE,
+      min = 0,
     )
 
   public val idleGcMs: LongProperty =
@@ -825,6 +837,7 @@ public object DaemonProperties {
   public val ALL: List<DaemonProperty<*>> =
     listOf(
       metricsEveryRenders,
+      maxConcurrentRenders,
       idleGcMs,
       idleTimeoutMs,
       socketPath,

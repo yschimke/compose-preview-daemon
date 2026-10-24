@@ -300,7 +300,7 @@ Result:
 { ids: string[] }
 ```
 
-Currently visible preview cards in the panel. Replaces the prior visible set (not a delta). Daemon uses this to filter Tier-3 stale sets.
+Currently visible preview cards in the panel. Replaces the prior visible set (not a delta). Daemon uses this to filter Tier-3 stale sets, and to order queued renders (see `setFocus`).
 
 ### `setFocus`
 
@@ -308,7 +308,9 @@ Currently visible preview cards in the panel. Replaces the prior visible set (no
 { ids: string[] }
 ```
 
-Active selection (click, hover, file scope change). Subset of the most recent `setVisible`. Daemon renders these first when the queue drains.
+Active selection (click, hover, the preview being edited). Subset of the most recent `setVisible`. Replaces the prior focus set.
+
+Plain (no-overrides) `renderNow` renders run at most `composeai.daemon.maxConcurrentRenders` at a time (default: one fewer than the processors). Queued ones start focused first, then visible, then the rest, oldest first within each, and none but focused ones start while a focused render runs. A client that sends neither notification gets the request order. Overrides-bearing renders are not queued this way.
 
 ### `fileChanged`
 

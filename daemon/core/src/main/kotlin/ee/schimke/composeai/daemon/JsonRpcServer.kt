@@ -522,19 +522,38 @@ public class JsonRpcServer(
   private val overridesFinishLock = Any()
 
   /**
-   * The host id of the plain (no-overrides) `renderNow` render in flight per preview id. A plain
-   * `renderNow` for a preview already in here is not submitted again: it marks the preview in
-   * [plainRendersAgain], and the in-flight render submits one more when it finishes. A burst of
-   * saves then costs one render in flight and one after it per preview, not one per save, all
-   * contending for the same sandbox. The one after it renders the latest classes, since a sandbox
-   * swaps its user classloader before the render that follows a swap. Guarded by [plainRenderLock].
+   * The host id of the plain (no-overrides) `renderNow` render running per preview id.
+   *
+   * A plain `renderNow` queues its previews in [plainRendersQueued]; at most [maxPlainRenders] run
+   * at once, and the next to start is the most urgent: one the client focused (`setFocus`), then
+   * one on screen (`setVisible`), then any other, oldest first within each. Nothing less urgent
+   * starts while a focused render runs, so the preview being edited does not share the CPU with
+   * renders nobody is looking at: on a 4-core machine, seven previews rendered at once each took
+   * 3-4 times as long as one alone.
+   *
+   * A `renderNow` for a preview already running marks it in [plainRendersAgain] and it is queued
+   * again when the running render finishes. A burst of saves then costs one render running and one
+   * after it per preview, not one per save. The one after renders the latest classes, since a
+   * sandbox swaps its user classloader before the render that follows a swap. Guarded by
+   * [plainRenderLock].
    */
   private val plainRendersInFlight = HashMap<String, Long>()
 
-  /** Preview ids a plain `renderNow` asked for while [plainRendersInFlight] held one. */
-  private val plainRendersAgain = HashSet<String>()
+  /** Plain renders accepted but not started, with the time each was accepted, oldest first. */
+  private val plainRendersQueued = LinkedHashMap<String, Long>()
+
+  /** Previews asked for again while running, with the time of the first such `renderNow`. */
+  private val plainRendersAgain = HashMap<String, Long>()
 
   private val plainRenderLock = Any()
+
+  /** The latest `setFocus` and `setVisible` ids, which order [plainRendersQueued]. */
+  @Volatile private var focusedIds: Set<String> = emptySet()
+  @Volatile private var visibleIds: Set<String> = emptySet()
+
+  private val maxPlainRenders: Int =
+    DaemonProperties.maxConcurrentRenders.read().takeIf { it > 0 }
+      ?: (Runtime.getRuntime().availableProcessors() - 1).coerceAtLeast(1)
 
   private val writerThread =
     Thread({ writerLoop() }, "compose-ai-daemon-writer").apply { isDaemon = false }
@@ -1155,14 +1174,18 @@ public class JsonRpcServer(
       }
       if (overrides == null) {
         synchronized(plainRenderLock) {
-          if (previewId in plainRendersInFlight) plainRendersAgain.add(previewId)
-          else plainRendersInFlight[previewId] = submitRender(previewId, null, acceptedAt = now)
+          when (previewId) {
+            in plainRendersInFlight -> plainRendersAgain.putIfAbsent(previewId, now)
+            in plainRendersQueued -> Unit
+            else -> plainRendersQueued[previewId] = now
+          }
         }
       } else {
         submitRender(previewId, overrides, acceptedAt = now)
       }
       queued.add(previewId)
     }
+    startPlainRenders()
     val result = RenderNowResult(queued = queued, rejected = rejected)
     sendResponse(req.id, encode(RenderNowResult.serializer(), result))
   }
@@ -1192,31 +1215,53 @@ public class JsonRpcServer(
   }
 
   /**
-   * The render with host id [hostId] finished or failed. When it was a plain render
-   * [plainRendersInFlight] tracks, hands its preview's slot to the render a `renderNow` asked for
-   * meanwhile, or frees it.
+   * Starts queued plain renders, most urgent first, while fewer than [maxPlainRenders] run (see
+   * [plainRendersInFlight]). Runs on shutdown too: queued renders are `renderNow`s already
+   * accepted, and shutdown drains accepted work (PROTOCOL.md § 3).
    */
-  private fun plainRenderDone(hostId: Long) {
+  private fun startPlainRenders() {
     synchronized(plainRenderLock) {
-      val previewId = plainRendersInFlight.entries.firstOrNull { it.value == hostId }?.key ?: return
-      // Not dropped on shutdown: the follow-up is a `renderNow` already accepted, and shutdown
-      // drains accepted work (PROTOCOL.md § 3). [rendersOutstanding] counts it until it is here.
-      if (plainRendersAgain.remove(previewId)) {
-        plainRendersInFlight[previewId] =
-          submitRender(previewId, null, acceptedAt = System.currentTimeMillis())
-      } else {
-        plainRendersInFlight.remove(previewId)
+      val focus = focusedIds
+      val visible = visibleIds
+      fun rank(previewId: String) =
+        when (previewId) {
+          in focus -> 0
+          in visible -> 1
+          else -> 2
+        }
+      while (plainRendersInFlight.size < maxPlainRenders && plainRendersQueued.isNotEmpty()) {
+        val next = plainRendersQueued.keys.minBy(::rank)
+        if (rank(next) > 0 && plainRendersInFlight.keys.any { rank(it) == 0 }) break
+        val acceptedAt = plainRendersQueued.remove(next)!!
+        plainRendersInFlight[next] = submitRender(next, null, acceptedAt)
       }
     }
   }
 
   /**
-   * Whether an accepted render has not finished: one in flight, or a plain `renderNow` waiting in
-   * [plainRendersAgain] for the render ahead of it. The latter matters between that render leaving
-   * [inFlightRenders] and [plainRenderDone] submitting its follow-up, when the first is empty.
+   * The render with host id [hostId] finished or failed. When it was a plain render
+   * [plainRendersInFlight] tracks, frees its slot, queues the render a `renderNow` asked for
+   * meanwhile, and starts the next.
+   */
+  private fun plainRenderDone(hostId: Long) {
+    synchronized(plainRenderLock) {
+      val previewId = plainRendersInFlight.entries.firstOrNull { it.value == hostId }?.key ?: return
+      plainRendersInFlight.remove(previewId)
+      plainRendersAgain.remove(previewId)?.let { plainRendersQueued.putIfAbsent(previewId, it) }
+    }
+    startPlainRenders()
+  }
+
+  /**
+   * Whether an accepted render has not finished: one in flight, or a plain `renderNow` still
+   * queued. The latter matters between a render leaving [inFlightRenders] and [plainRenderDone]
+   * starting the next, when the first is empty.
    */
   private fun rendersOutstanding(): Boolean =
-    inFlightRenders.isNotEmpty() || synchronized(plainRenderLock) { plainRendersAgain.isNotEmpty() }
+    inFlightRenders.isNotEmpty() ||
+      synchronized(plainRenderLock) {
+        plainRendersAgain.isNotEmpty() || plainRendersQueued.isNotEmpty()
+      }
 
   private fun submitRenderAsync(hostId: Long, overrides: PreviewOverrides? = null) {
     // Fire-and-forget on a fresh thread (only O(visible) renders are queued at once); the watcher
@@ -3435,8 +3480,16 @@ public class JsonRpcServer(
       "initialized" -> initialized.set(true)
       "exit" -> handleExit()
       "setVisible" ->
-        tryDecode(SetVisibleParams.serializer(), n) { pruneSubscriptionsToVisible(it.ids.toSet()) }
-      "setFocus" -> tryDecode(SetFocusParams.serializer(), n) { /* accepted, not acted on */ }
+        tryDecode(SetVisibleParams.serializer(), n) {
+          visibleIds = it.ids.toSet()
+          pruneSubscriptionsToVisible(visibleIds)
+          startPlainRenders()
+        }
+      "setFocus" ->
+        tryDecode(SetFocusParams.serializer(), n) {
+          focusedIds = it.ids.toSet()
+          startPlainRenders()
+        }
       "fileChanged" -> tryDecode(FileChangedParams.serializer(), n) { handleFileChanged(it) }
       "interactive/stop" ->
         tryDecode(ee.schimke.composeai.daemon.protocol.InteractiveStopParams.serializer(), n) {
