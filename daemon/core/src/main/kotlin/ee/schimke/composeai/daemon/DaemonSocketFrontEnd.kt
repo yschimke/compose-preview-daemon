@@ -336,16 +336,17 @@ public class DaemonSocketFrontEnd(
         if (obj["method"] == null && serverId != null) {
           val target = pending.remove(serverId) ?: continue
           target.onResponse?.invoke()
-          if (target.renderNow) trackQueued(obj["result"])
+          // Relayed before it is tracked, here and for renderFinished below: tracking can release
+          // a `shutdown` waiting in [awaitRenders], whose reply must not overtake this one.
           target.connection?.send(frame(JsonObject(obj + ("id" to target.clientId))))
+          if (target.renderNow) trackQueued(obj["result"])
           if (target.initialize) obj["result"]?.let(::publishInitializeResult)
         } else {
-          trackFinished(obj)
           trackBoot(obj)
           val to = current
           // `bootProgress` is for a client that asked for it; any other never sees one.
-          if (isBootProgress(obj) && to?.bootProgress != true) continue
-          to?.send(bytes.withHeader())
+          if (!isBootProgress(obj) || to?.bootProgress == true) to?.send(bytes.withHeader())
+          trackFinished(obj)
         }
       }
     } catch (_: IOException) {

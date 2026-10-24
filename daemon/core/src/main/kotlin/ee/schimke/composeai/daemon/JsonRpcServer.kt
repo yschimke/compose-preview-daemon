@@ -1199,7 +1199,9 @@ public class JsonRpcServer(
   private fun plainRenderDone(hostId: Long) {
     synchronized(plainRenderLock) {
       val previewId = plainRendersInFlight.entries.firstOrNull { it.value == hostId }?.key ?: return
-      if (plainRendersAgain.remove(previewId) && !shutdownRequested.get()) {
+      // Not dropped on shutdown: the follow-up is a `renderNow` already accepted, and shutdown
+      // drains accepted work (PROTOCOL.md § 3). [rendersOutstanding] counts it until it is here.
+      if (plainRendersAgain.remove(previewId)) {
         plainRendersInFlight[previewId] =
           submitRender(previewId, null, acceptedAt = System.currentTimeMillis())
       } else {
@@ -1207,6 +1209,14 @@ public class JsonRpcServer(
       }
     }
   }
+
+  /**
+   * Whether an accepted render has not finished: one in flight, or a plain `renderNow` waiting in
+   * [plainRendersAgain] for the render ahead of it. The latter matters between that render leaving
+   * [inFlightRenders] and [plainRenderDone] submitting its follow-up, when the first is empty.
+   */
+  private fun rendersOutstanding(): Boolean =
+    inFlightRenders.isNotEmpty() || synchronized(plainRenderLock) { plainRendersAgain.isNotEmpty() }
 
   private fun submitRenderAsync(hostId: Long, overrides: PreviewOverrides? = null) {
     // Fire-and-forget on a fresh thread (only O(visible) renders are queued at once); the watcher
@@ -1317,7 +1327,7 @@ public class JsonRpcServer(
           return
         }
       if (item == null) {
-        if (!running.get() && inFlightRenders.isEmpty()) return
+        if (!running.get() && !rendersOutstanding()) return
         continue
       }
       when (item) {
@@ -3410,7 +3420,7 @@ public class JsonRpcServer(
     // DESIGN.md § 9 ("No mid-render cancellation"). We poll rather than
     // wait/notify because renders complete on submit threads we don't own.
     val drainDeadlineMs = System.currentTimeMillis() + DRAIN_TIMEOUT_MS
-    while (inFlightRenders.isNotEmpty() && System.currentTimeMillis() < drainDeadlineMs) {
+    while (rendersOutstanding() && System.currentTimeMillis() < drainDeadlineMs) {
       Thread.sleep(50)
     }
     sendResponse(req.id, JsonNull)
@@ -3639,7 +3649,7 @@ public class JsonRpcServer(
           // no-mid-render-cancellation invariant from DESIGN § 9 still applies.
           val deadline = System.currentTimeMillis() + classpathDirtyGraceMs
           while (System.currentTimeMillis() < deadline) {
-            if (outbound.isEmpty() && inFlightRenders.isEmpty()) break
+            if (outbound.isEmpty() && !rendersOutstanding()) break
             try {
               Thread.sleep(20)
             } catch (_: InterruptedException) {
@@ -3869,7 +3879,7 @@ public class JsonRpcServer(
     // no-mid-render-cancellation invariant even on EOF / unexpected exit
     // paths. Bounded by DRAIN_TIMEOUT_MS to avoid hanging the process.
     val deadline = System.currentTimeMillis() + DRAIN_TIMEOUT_MS
-    while (inFlightRenders.isNotEmpty() && System.currentTimeMillis() < deadline) {
+    while (rendersOutstanding() && System.currentTimeMillis() < deadline) {
       try {
         Thread.sleep(50)
       } catch (_: InterruptedException) {

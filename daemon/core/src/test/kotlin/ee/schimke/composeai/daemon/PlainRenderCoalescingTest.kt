@@ -32,7 +32,88 @@ class PlainRenderCoalescingTest {
   private val json = Json { ignoreUnknownKeys = true }
 
   @Test(timeout = 30_000)
-  fun `plain renderNows for a preview in flight collapse into one render after it`() {
+  fun `plain renderNows for a preview in flight collapse into one render after it`() =
+    withServer { host, received, send ->
+      send.renderNow(2)
+      assertTrue("first render started", host.firstStarted.await(5, TimeUnit.SECONDS))
+      // Three more saves while the first render runs: each is accepted as queued.
+      for (id in 3..5) {
+        send.renderNow(id)
+        val result =
+          pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == id }!!["result"]!!.jsonObject
+        assertEquals(
+          listOf("preview-A"),
+          result["queued"]!!.jsonArray.map { it.jsonPrimitive.content },
+        )
+      }
+      assertEquals("nothing else starts while the first runs", 1, host.renders.get())
+
+      host.release()
+      assertNotNull("the first render finishes", pollUntil(received, matcher = ::isRenderFinished))
+      assertNotNull("one render follows it", pollUntil(received, matcher = ::isRenderFinished))
+      assertNull(
+        "and only one",
+        pollUntil(received, timeoutMs = 1_000, matcher = ::isRenderFinished),
+      )
+      assertEquals(2, host.renders.get())
+
+      // Once idle, a renderNow renders again straight away.
+      send.renderNow(6)
+      assertNotNull(pollUntil(received, matcher = ::isRenderFinished))
+      assertEquals(3, host.renders.get())
+    }
+
+  @Test(timeout = 30_000)
+  fun `shutdown drains a collapsed renderNow accepted before it`() =
+    withServer { host, received, send ->
+      send.renderNow(2)
+      assertTrue("first render started", host.firstStarted.await(5, TimeUnit.SECONDS))
+      send.renderNow(3)
+      assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 3 })
+
+      send.frame("""{"jsonrpc":"2.0","id":98,"method":"shutdown"}""")
+      assertNull(
+        "shutdown waits for the render in flight",
+        pollUntil(received, timeoutMs = 300) { it["id"]?.jsonPrimitive?.intOrNull == 98 },
+      )
+      host.release()
+
+      val beforeResponse = mutableListOf<JsonObject>()
+      assertNotNull(
+        "shutdown answers",
+        pollUntil(received) {
+          beforeResponse += it
+          it["id"]?.jsonPrimitive?.intOrNull == 98
+        },
+      )
+      assertEquals(
+        "both accepted renders finish before the shutdown response",
+        2,
+        beforeResponse.count(::isRenderFinished),
+      )
+      assertEquals(2, host.renders.get())
+    }
+
+  private class Sender(private val out: PipedOutputStream) {
+    fun frame(body: String) {
+      val payload = body.toByteArray(Charsets.UTF_8)
+      out.write("Content-Length: ${payload.size}\r\n\r\n".toByteArray(Charsets.US_ASCII))
+      out.write(payload)
+      out.flush()
+    }
+
+    fun renderNow(id: Int) =
+      frame(
+        """{"jsonrpc":"2.0","id":$id,"method":"renderNow","params":{
+              "previews":["preview-A"],"tier":"fast"}}"""
+      )
+  }
+
+  private fun isRenderFinished(msg: JsonObject): Boolean =
+    msg["method"]?.jsonPrimitive?.contentOrNull == "renderFinished"
+
+  /** Runs [body] against an initialized server over [GatedHost], then shuts it down. */
+  private fun withServer(body: (GatedHost, LinkedBlockingQueue<JsonObject>, Sender) -> Unit) {
     val tmp = Files.createTempDirectory("plain-coalesce").toFile()
     val png = File(tmp, "preview-A.png").apply { writeBytes(byteArrayOf(-119, 80, 78, 71, 1, 2)) }
     val host = GatedHost(png)
@@ -67,66 +148,23 @@ class PlainRenderCoalescingTest {
       )
       .apply { isDaemon = true }
       .start()
+    val send = Sender(clientToServerOut)
 
     try {
-      writeFrame(
-        clientToServerOut,
+      send.frame(
         """{"jsonrpc":"2.0","id":1,"method":"initialize","params":{
               "protocolVersion":2,"clientVersion":"test","workspaceRoot":"/tmp",
               "moduleId":":t","moduleProjectDir":"/tmp",
-              "capabilities":{"visibility":true,"metrics":false}}}""",
+              "capabilities":{"visibility":true,"metrics":false}}}"""
       )
       assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 1 })
-      writeFrame(clientToServerOut, """{"jsonrpc":"2.0","method":"initialized","params":{}}""")
+      send.frame("""{"jsonrpc":"2.0","method":"initialized","params":{}}""")
 
-      fun renderNow(id: Int) =
-        writeFrame(
-          clientToServerOut,
-          """{"jsonrpc":"2.0","id":$id,"method":"renderNow","params":{
-                "previews":["preview-A"],"tier":"fast"}}""",
-        )
+      body(host, received, send)
 
-      renderNow(2)
-      assertTrue("first render started", host.firstStarted.await(5, TimeUnit.SECONDS))
-      // Three more saves while the first render runs: each is accepted as queued.
-      for (id in 3..5) {
-        renderNow(id)
-        val result =
-          pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == id }!!["result"]!!.jsonObject
-        assertEquals(
-          listOf("preview-A"),
-          result["queued"]!!.jsonArray.map { it.jsonPrimitive.content },
-        )
-      }
-      assertEquals("nothing else starts while the first runs", 1, host.renders.get())
-
-      host.release()
-      assertNotNull(
-        "the first render finishes",
-        pollUntil(received) { it["method"]?.jsonPrimitive?.contentOrNull == "renderFinished" },
-      )
-      assertNotNull(
-        "one render follows it",
-        pollUntil(received) { it["method"]?.jsonPrimitive?.contentOrNull == "renderFinished" },
-      )
-      assertNull(
-        "and only one",
-        pollUntil(received, timeoutMs = 1_000) {
-          it["method"]?.jsonPrimitive?.contentOrNull == "renderFinished"
-        },
-      )
-      assertEquals(2, host.renders.get())
-
-      // Once idle, a renderNow renders again straight away.
-      renderNow(6)
-      assertNotNull(
-        pollUntil(received) { it["method"]?.jsonPrimitive?.contentOrNull == "renderFinished" }
-      )
-      assertEquals(3, host.renders.get())
-
-      writeFrame(clientToServerOut, """{"jsonrpc":"2.0","id":99,"method":"shutdown"}""")
+      send.frame("""{"jsonrpc":"2.0","id":99,"method":"shutdown"}""")
       assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 99 })
-      writeFrame(clientToServerOut, """{"jsonrpc":"2.0","method":"exit"}""")
+      send.frame("""{"jsonrpc":"2.0","method":"exit"}""")
       assertTrue(exitLatch.await(5, TimeUnit.SECONDS))
     } finally {
       host.release()
@@ -134,13 +172,6 @@ class PlainRenderCoalescingTest {
       runCatching { serverToClientIn.close() }
       serverThread.join(5_000)
     }
-  }
-
-  private fun writeFrame(out: PipedOutputStream, body: String) {
-    val payload = body.toByteArray(Charsets.UTF_8)
-    out.write("Content-Length: ${payload.size}\r\n\r\n".toByteArray(Charsets.US_ASCII))
-    out.write(payload)
-    out.flush()
   }
 
   private fun pollUntil(
