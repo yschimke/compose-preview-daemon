@@ -239,6 +239,49 @@ class RobolectricHostPoolTest {
   }
 
   @Test
+  fun backgroundBootWaitsForAnInProcessCompileBeforeBootingAWorker() {
+    // The edit loop gets the CPU first: while a `compileSources` / `compileWarmUp` runs, the
+    // background boot starts no worker (CompileActivity), and it completes the pool once the
+    // compile is over.
+    val outputDir = Files.createTempDirectory("pool-compile-yield").toFile()
+    System.setProperty(RenderEngine.OUTPUT_DIR_PROP, outputDir.absolutePath)
+    System.setProperty("roborazzi.test.record", "true")
+    System.setProperty(RobolectricHost.BACKGROUND_BOOT_PROP, "true")
+    System.setProperty(DaemonProperties.Names.POOL_BOOT_COMPILE_QUIET_MS, "0")
+    val inCompile = CountDownLatch(1)
+    val endCompile = CountDownLatch(1)
+    val compile = thread {
+      CompileActivity.during {
+        inCompile.countDown()
+        endCompile.await()
+      }
+    }
+    val host = RobolectricHost(sandboxCount = 2)
+    try {
+      inCompile.await()
+      host.start()
+      assertNotNull(host.submit(RenderRequest.Render(target = RenderTarget.Stub("during"))))
+      Thread.sleep(2_000)
+      assertTrue("no worker JVM during a compile", host.workerPidsForTest().none { it != null })
+      assertEquals(1, host.readySlotCountForTest())
+
+      endCompile.countDown()
+      val poolDeadline = System.currentTimeMillis() + 300_000
+      while (host.readySlotCountForTest() < 2 && System.currentTimeMillis() < poolDeadline) {
+        Thread.sleep(200)
+      }
+      assertEquals("the boot should complete after the compile", 2, host.readySlotCountForTest())
+    } finally {
+      endCompile.countDown()
+      compile.join()
+      System.clearProperty(DaemonProperties.Names.POOL_BOOT_COMPILE_QUIET_MS)
+      System.clearProperty(RobolectricHost.BACKGROUND_BOOT_PROP)
+      host.shutdown()
+      outputDir.deleteRecursively()
+    }
+  }
+
+  @Test
   fun rejectsLegacyHolderPlusFactory() {
     // The two constructor paths are mutually exclusive: use either the legacy holder or the
     // per-slot factory, not both.

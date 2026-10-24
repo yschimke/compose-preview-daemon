@@ -794,6 +794,11 @@ open class RobolectricHost(
    * A slot is published into [readySlotCount] only after its own warm render, exactly as before, so
    * the overlap never lets a live render land on a cold slot.
    *
+   * **Under background boot, each boot and warm render waits for in-process compiles**
+   * ([yieldToCompiles]): sandbox 1 boots at once, a `compileWarmUp` the client sends meanwhile runs
+   * with the CPU to itself, and the remaining workers boot after it — and between edits, never
+   * during one's compile.
+   *
    * The helper thread that boots the next worker is a daemon thread and is never joined on an early
    * return (shutdown mid-pool-boot): joining could block for the whole boot budget on a worker that
    * has connected but is still bootstrapping. A worker that finishes booting after the pool was
@@ -816,6 +821,7 @@ open class RobolectricHost(
             start()
           }
         }
+    if (background) yieldToCompiles("sandbox ${pending.first()} boot")
     if (DaemonHostBridge.shutdown.get()) return
     var booting: FutureTask<Boolean>? = bootAsync(pending.first())
     for ((k, i) in pending.withIndex()) {
@@ -834,6 +840,13 @@ open class RobolectricHost(
         return
       }
       if (DaemonHostBridge.shutdown.get()) return
+      // Both steps below are CPU-heavy: let a running compile (or warm-up) finish first.
+      if (background && (!adopted || k + 1 < pending.size)) {
+        yieldToCompiles(
+          if (k + 1 < pending.size) "sandbox ${pending[k + 1]} boot" else "sandbox $i warm render"
+        )
+        if (DaemonHostBridge.shutdown.get()) return
+      }
       // Launch the next worker now, so its JVM start + Robolectric bootstrap runs underneath this
       // slot's warm render instead of after it.
       booting = if (k + 1 < pending.size) bootAsync(pending[k + 1]) else null
@@ -848,6 +861,24 @@ open class RobolectricHost(
         }
       )
     }
+  }
+
+  /**
+   * Under background boot, waits for an in-process compile — a `compileSources` or a
+   * `compileWarmUp` — to finish before the pool starts [step], a worker's boot or its boot-time
+   * warm render ([CompileActivity]). Each costs seconds of CPU, and on a 4-core machine a warm-up
+   * that shared it with the pool's boot of sandboxes 2..5 took 16-18 s for 4-5 passes and edits
+   * compiled 3-4x slower until the pool settled. A boot already running is not paused: a worker JVM
+   * mid-bootstrap has no safe point to stop at. Bounded by
+   * `composeai.daemon.poolBootCompileYieldMaxMs`, so the pool always completes; a daemon nobody
+   * compiles in never waits.
+   */
+  private fun yieldToCompiles(step: String) {
+    val maxWaitMs = DaemonProperties.poolBootCompileYieldMaxMs.read()
+    if (maxWaitMs <= 0) return
+    val waitedMs =
+      CompileActivity.awaitQuiet(DaemonProperties.poolBootCompileQuietMs.read(), maxWaitMs)
+    if (waitedMs > 0) StartupTimings.mark("$step held ${waitedMs}ms for in-process compile")
   }
 
   /**

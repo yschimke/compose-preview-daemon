@@ -17,6 +17,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -71,6 +72,27 @@ class CompileSourcesTest {
       assertTrue("durationMs should be non-negative; got ${resp.durationMs}", resp.durationMs >= 0)
       // Service saw both sources.
       assertEquals(listOf("/tmp/Hi.kt", "/tmp/There.kt"), service.lastSources.map { it.toString() })
+    } finally {
+      rig.shutdown()
+    }
+  }
+
+  @Test(timeout = 10_000)
+  fun `compileSources counts as compile activity while it compiles`() {
+    val activeDuringCompile = LinkedBlockingQueue<Boolean>()
+    val service =
+      StubService(
+        outcome = {
+          activeDuringCompile.put(CompileActivity.isActive)
+          BtaCompileService.Outcome.Ok
+        }
+      )
+    val rig = startServer(service = service)
+    try {
+      rig.handshake()
+      assertEquals("ok", rig.compileSources(sources = listOf("/tmp/Hi.kt")).resultKind)
+      assertEquals(true, activeDuringCompile.poll(5, TimeUnit.SECONDS))
+      assertFalse(CompileActivity.isActive)
     } finally {
       rig.shutdown()
     }
@@ -247,6 +269,7 @@ class CompileSourcesTest {
       rig.handshake()
       val id = rig.sendRequest("compileWarmUp", """{"sources":["${home.path}"]}""")
       assertEquals(listOf(home.path), warmedWith.poll(5, TimeUnit.SECONDS))
+      assertTrue("the pool's boot waits for a running warm-up", CompileActivity.isActive)
       // The read loop still answers while the warm-up runs.
       val other = rig.sendRequest("noSuchMethod")
       val error = rig.pollUntil { it["id"]?.jsonPrimitive?.longOrNull == other }
@@ -258,6 +281,7 @@ class CompileSourcesTest {
       val result = resp!!["result"]!!.jsonObject
       assertEquals("true", result["ready"]?.jsonPrimitive?.content)
       assertEquals("2 passes over 1 files", result["message"]?.jsonPrimitive?.content)
+      assertFalse("the warm-up is over", CompileActivity.isActive)
     } finally {
       release.countDown()
       rig.shutdown()

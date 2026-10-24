@@ -175,6 +175,13 @@ public final class ee/schimke/composeai/daemon/CompatibleOverrideVariantSpecSeri
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
+public final class ee/schimke/composeai/daemon/CompileActivity {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/CompileActivity;
+	public final fun awaitQuiet (JJ)J
+	public final fun during (Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public final fun isActive ()Z
+}
+
 public final class ee/schimke/composeai/daemon/CompositeDataProductRegistry : ee/schimke/composeai/daemon/DataProductRegistry {
 	public fun <init> (Ljava/util/List;)V
 	public fun attachmentsFor (Ljava/lang/String;Ljava/util/Set;)Ljava/util/List;
@@ -1963,6 +1970,8 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public final fun getModuleProjectDir ()Lee/schimke/composeai/daemon/config/PathProperty;
 	public final fun getOnDemandWorkerBoot ()Lee/schimke/composeai/daemon/config/BooleanProperty;
 	public final fun getPerfettoTrace ()Lee/schimke/composeai/daemon/config/BooleanProperty;
+	public final fun getPoolBootCompileQuietMs ()Lee/schimke/composeai/daemon/config/LongProperty;
+	public final fun getPoolBootCompileYieldMaxMs ()Lee/schimke/composeai/daemon/config/LongProperty;
 	public final fun getPostCaptureKinds ()Lee/schimke/composeai/daemon/config/CsvListProperty;
 	public final fun getPreviewsJsonPath ()Lee/schimke/composeai/daemon/config/PathProperty;
 	public final fun getProtocolVersion ()Lee/schimke/composeai/daemon/config/StringProperty;
@@ -2032,6 +2041,8 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
 	public static final field MODULE_PROJECT_DIR Ljava/lang/String;
 	public static final field ON_DEMAND_WORKER_BOOT Ljava/lang/String;
 	public static final field PERFETTO_TRACE Ljava/lang/String;
+	public static final field POOL_BOOT_COMPILE_QUIET_MS Ljava/lang/String;
+	public static final field POOL_BOOT_COMPILE_YIELD_MAX_MS Ljava/lang/String;
 	public static final field POST_CAPTURE_KINDS Ljava/lang/String;
 	public static final field PREVIEWS_JSON_PATH Ljava/lang/String;
 	public static final field PROTOCOL_VERSION Ljava/lang/String;

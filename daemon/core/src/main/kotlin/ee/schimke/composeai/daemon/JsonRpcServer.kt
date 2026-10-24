@@ -3362,10 +3362,13 @@ public class JsonRpcServer(
         )
       } else {
         try {
-          service.compile(
-            sources = params.sources.map { java.nio.file.Path.of(it) },
-            changes = params.changes,
-          )
+          // The sandbox pool's background boot waits for this (CompileActivity).
+          CompileActivity.during {
+            service.compile(
+              sources = params.sources.map { java.nio.file.Path.of(it) },
+              changes = params.changes,
+            )
+          }
         } catch (t: Throwable) {
           System.err.println("compose-ai-daemon: compileSources threw — falling back: $t")
           ee.schimke.composeai.daemon.bta.BtaCompileService.Outcome.Fallback(
@@ -3439,7 +3442,8 @@ public class JsonRpcServer(
         {
           val outcome =
             try {
-              warm.warmUp(sources)
+              // The whole warm-up, not each pass: the pool boots no worker until it is done.
+              CompileActivity.during { warm.warmUp(sources) }
             } catch (t: Throwable) {
               WarmCompileService.WarmUp.Unavailable("warm-up threw: $t", durationMs = 0)
             }

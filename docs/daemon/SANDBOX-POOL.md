@@ -145,6 +145,19 @@ never queues on a still-booting worker.
   the moment worker `i` has booted and boots underneath `i`'s warm render. The
   pool still boots one worker at a time; only the warm render is overlapped,
   and a slot is still published only after its own warm render.
+- **The boot yields to in-process compiles.** Before it starts a worker's boot
+  or its warm render, the background boot waits while a `compileSources` or a
+  `compileWarmUp` runs, and for `composeai.daemon.poolBootCompileQuietMs`
+  (3 s) after one ends, so the render that follows and the next edit of a burst
+  get the CPU too
+  (`CompileActivity`). Sandbox 1 boots at once; a warm-up the client sends after
+  `initialize` then runs alone, and the remaining workers boot after it and
+  between edits. A boot already running is not paused. Each wait is capped by
+  `composeai.daemon.poolBootCompileYieldMaxMs` (60 s; 0 turns this off), so the
+  pool always completes, and a daemon nobody compiles in never waits. On a
+  4-core box a warm-up that shared the CPU with four background boots took
+  16-18 s for 4-5 passes, and edits compiled 3-4x slower until the pool
+  settled.
 - **A worker that dies mid-request is dropped from the pool**, logged with its
   pid; the remaining slots keep serving.
 - **The workers can wait for demand.** `composeai.daemon.onDemandWorkerBoot=true`

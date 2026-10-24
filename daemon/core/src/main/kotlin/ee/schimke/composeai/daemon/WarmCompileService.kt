@@ -189,6 +189,7 @@ internal constructor(
     // which costs whatever the module's class path costs (12-22 s on a 750-entry Android one);
     // counting it would leave a large module a single pass and a cold JIT.
     var jitPassesFrom = 0L
+    val passMs = ArrayList<Long>()
     while (
       passes < warmUpMaxPasses && (passes == 0 || System.nanoTime() - jitPassesFrom < budgetNs)
     ) {
@@ -198,6 +199,7 @@ internal constructor(
       }
       val files =
         if (candidates.isEmpty()) generated else listOf(candidates[next++ % candidates.size])
+      val passStart = System.nanoTime()
       val result =
         synchronized(this) {
           // Disabled, or reloaded after a failure, since the last pass.
@@ -209,6 +211,7 @@ internal constructor(
             mapOf("status" to "failed", "reason" to t.toString())
           }
         } ?: break
+      passMs += (System.nanoTime() - passStart) / 1_000_000
       if (passes++ == 0) jitPassesFrom = System.nanoTime()
       when (result["status"]) {
         "ok" -> warmedWith += files
@@ -241,8 +244,8 @@ internal constructor(
     val ready = WarmUp.Ready(elapsedMs(), passes = passes, files = warmedWith.size)
     log(
       "compose-ai-daemon: warm compiler ready in ${ready.durationMs} ms " +
-        "(${ready.passes} passes over ${ready.files} files" +
-        (if (interrupted) ", stopped for an edit)" else ")")
+        "(${ready.passes} passes over ${ready.files} files; ${describePasses(passMs)}" +
+        (if (interrupted) "; stopped for an edit)" else ")")
     )
     return ready
   }
@@ -332,6 +335,18 @@ internal constructor(
     // The Build Tools API rewrote classes the warm compiler's library session may have read.
     compiler?.let { runCatching { it.invalidate() } }
     return outcome
+  }
+
+  /**
+   * The first pass, which builds the class-path state, apart from the rest, which cost what an edit
+   * costs: a warm-up's [WarmUp.durationMs] over its pass count reads several times an edit's cost
+   * on a large class path otherwise. Times include waiting for the lock.
+   */
+  private fun describePasses(passMs: List<Long>): String {
+    val first = "first pass ${passMs.firstOrNull() ?: 0} ms"
+    val rest = passMs.drop(1).sorted()
+    if (rest.isEmpty()) return first
+    return "$first, then median ${rest[rest.size / 2]} ms, last ${passMs.last()} ms"
   }
 
   private fun describeTimings(result: Map<String, Any?>): String {

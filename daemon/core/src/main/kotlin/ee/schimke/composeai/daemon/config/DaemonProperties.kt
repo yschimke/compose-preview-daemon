@@ -259,6 +259,9 @@ public object DaemonProperties {
     public const val SANDBOX_WORKER_SPARES: String = "composeai.daemon.sandboxWorker.spares"
     public const val LAZY_IN_PROCESS_SANDBOX: String = "composeai.daemon.lazyInProcessSandbox"
     public const val ON_DEMAND_WORKER_BOOT: String = "composeai.daemon.onDemandWorkerBoot"
+    public const val POOL_BOOT_COMPILE_YIELD_MAX_MS: String =
+      "composeai.daemon.poolBootCompileYieldMaxMs"
+    public const val POOL_BOOT_COMPILE_QUIET_MS: String = "composeai.daemon.poolBootCompileQuietMs"
 
     public const val STARTUP_QUIET: String = "composeai.daemon.startupQuiet"
     public const val ATRACE: String = "composeai.daemon.atrace"
@@ -658,6 +661,29 @@ public object DaemonProperties {
       G_SANDBOX,
     )
 
+  public val poolBootCompileYieldMaxMs: LongProperty =
+    LongProperty(
+      Names.POOL_BOOT_COMPILE_YIELD_MAX_MS,
+      60_000L,
+      "With background boot, how long the pool waits, before it starts each worker sandbox's boot " +
+        "or boot-time warm render, for an in-process `compileSources` or `compileWarmUp` to " +
+        "finish, so the edit loop gets the CPU first. A boot already running is not paused. " +
+        "0 disables the wait.",
+      G_SANDBOX,
+      min = 0L,
+    )
+
+  public val poolBootCompileQuietMs: LongProperty =
+    LongProperty(
+      Names.POOL_BOOT_COMPILE_QUIET_MS,
+      3_000L,
+      "How long after an in-process compile ends the pool keeps waiting before the next worker " +
+        "boot step (see `poolBootCompileYieldMaxMs`), so the render that follows the compile, and " +
+        "the next edit of a burst, get the CPU too.",
+      G_SANDBOX,
+      min = 0L,
+    )
+
   public val lazyInProcessSandbox: BooleanProperty =
     BooleanProperty(
       Names.LAZY_IN_PROCESS_SANDBOX,
@@ -879,6 +905,8 @@ public object DaemonProperties {
       sandboxWorkerSpares,
       lazyInProcessSandbox,
       onDemandWorkerBoot,
+      poolBootCompileYieldMaxMs,
+      poolBootCompileQuietMs,
       startupQuiet,
       atrace,
       perfettoTrace,
