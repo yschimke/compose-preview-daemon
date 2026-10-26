@@ -20,6 +20,7 @@ import ee.schimke.composeai.daemon.protocol.HistoryReadResultDto
 import ee.schimke.composeai.daemon.protocol.InitializeResult
 import ee.schimke.composeai.daemon.protocol.InteractiveInputKind
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
+import ee.schimke.composeai.daemon.protocol.PreviewRowsResult
 import ee.schimke.composeai.daemon.protocol.RecordingEncodeResult
 import ee.schimke.composeai.daemon.protocol.RecordingFormat
 import ee.schimke.composeai.daemon.protocol.RecordingScriptEvent
@@ -123,6 +124,16 @@ public interface DaemonSession : Closeable {
     overrides: PreviewOverrides? = null,
     timeout: Duration = 30.seconds,
   ): RenderNowResult
+
+  /**
+   * Drives `preview/rows`: the rows of a `@PreviewParameter` preview, each with the addressable id
+   * to hand back to [renderNow]. [PreviewRowsResult.rows] is empty for an ordinary preview (render
+   * the bare id). `null` when the daemon answers method-not-found — it predates the request, or its
+   * host cannot enumerate providers — so the caller falls back to rendering the base id (or probing
+   * `<baseId>_<row>`). An unknown [previewId] and any other daemon error throw.
+   */
+  public fun previewRows(previewId: String, timeout: Duration = 30.seconds): PreviewRowsResult? =
+    null
 
   public fun historyList(
     params: HistoryListParams = HistoryListParams(),

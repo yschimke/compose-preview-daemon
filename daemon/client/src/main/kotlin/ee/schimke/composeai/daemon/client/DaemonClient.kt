@@ -34,6 +34,8 @@ import ee.schimke.composeai.daemon.protocol.JsonRpcNotification
 import ee.schimke.composeai.daemon.protocol.JsonRpcRequest
 import ee.schimke.composeai.daemon.protocol.Options
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
+import ee.schimke.composeai.daemon.protocol.PreviewRowsParams
+import ee.schimke.composeai.daemon.protocol.PreviewRowsResult
 import ee.schimke.composeai.daemon.protocol.RecordingEncodeParams
 import ee.schimke.composeai.daemon.protocol.RecordingEncodeResult
 import ee.schimke.composeai.daemon.protocol.RecordingFormat
@@ -272,6 +274,26 @@ public class DaemonClient(
       response["result"]
         ?: error("renderNow: no result — error=${response["error"]}, full=$response")
     return json.decodeFromJsonElement(RenderNowResult.serializer(), resultElem)
+  }
+
+  /** Drives `preview/rows` — see [DaemonSession.previewRows]. */
+  override fun previewRows(previewId: String, timeout: Duration): PreviewRowsResult? {
+    val id = nextId.getAndIncrement()
+    val request =
+      JsonRpcRequest(
+        id = id,
+        method = "preview/rows",
+        params =
+          json.encodeToJsonElement(PreviewRowsParams.serializer(), PreviewRowsParams(previewId)),
+      )
+    val response = sendAndAwait(id, request, timeout)
+    val error = response["error"]
+    if (error is JsonObject && error["code"]?.jsonPrimitive?.intOrNull == METHOD_NOT_FOUND) {
+      return null
+    }
+    val resultElem =
+      response["result"] ?: error("preview/rows: no result — error=$error, full=$response")
+    return json.decodeFromJsonElement(PreviewRowsResult.serializer(), resultElem)
   }
 
   // ---------------------------------------------------------------------------
