@@ -141,7 +141,8 @@ class ShadowPausedClockHardwareRenderer : org.robolectric.shadows.ShadowNativeHa
   /** `FrameInfo.frameInfo`, the hidden type's public `long[]`, or `null` if it was re-homed. */
   private fun frameInfoTimes(frameInfo: Any): LongArray? = runCatching {
     frameInfo.javaClass.getField("frameInfo").get(frameInfo) as? LongArray
-  }.getOrNull()
+  }
+    .getOrNull()
 
   /** Direct (un-shadowed) access to the real `HardwareRenderer.syncAndDrawFrame`. */
   @ForType(className = "android.graphics.HardwareRenderer")
