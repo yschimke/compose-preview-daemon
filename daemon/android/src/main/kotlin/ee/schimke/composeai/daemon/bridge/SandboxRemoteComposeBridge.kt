@@ -94,6 +94,7 @@ object SandboxRemoteComposeBridge {
   fun reset(previewId: String) {
     byPreview.remove(previewId)
     namedValuesConsumed.remove(previewId)
+    consumedNames.remove(previewId)
   }
 
   /**
@@ -110,6 +111,24 @@ object SandboxRemoteComposeBridge {
     namedValuesConsumed.add(previewId)
   }
 
+  /**
+   * previewId -> the individual named values its render read through `LocalRemoteComposeHost`.
+   * Unlike [namedValuesConsumed] (a player handed the whole map), a read consumes only its own
+   * name, so an unread override still warns.
+   */
+  private val consumedNames: ConcurrentHashMap<String, MutableSet<String>> = ConcurrentHashMap()
+
+  /** Sandbox-side: [previewId]'s render read the named value [name]. Idempotent. */
+  @JvmStatic
+  fun markNamedValueConsumed(previewId: String, name: String) {
+    consumedNames.computeIfAbsent(previewId) { ConcurrentHashMap.newKeySet() }.add(name)
+  }
+
+  /** Host-side: the named values [previewId]'s latest render read individually. */
+  @JvmStatic
+  fun consumedNamedValues(previewId: String): Array<String> =
+    consumedNames[previewId]?.toTypedArray() ?: emptyArray()
+
   /** Host-side: whether [previewId]'s latest render consumed its seeded named values. */
   @JvmStatic fun namedValuesConsumed(previewId: String): Boolean = previewId in namedValuesConsumed
 
@@ -121,5 +140,6 @@ object SandboxRemoteComposeBridge {
   fun resetAll() {
     byPreview.clear()
     namedValuesConsumed.clear()
+    consumedNames.clear()
   }
 }

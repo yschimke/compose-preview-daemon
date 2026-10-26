@@ -137,9 +137,10 @@ object RemoteComposeController {
   @Volatile private var capturePlayerWires: Set<String> = emptySet()
 
   /**
-   * Whether anything this render handed the seeded named values to a consumer that applies them: a
-   * connector-driven player ([RemoteOverridablePreview], [RemoteComposeIrReplay]) or a
-   * `LocalRemoteComposeHost` `named*` read. Previews that build their own player — upstream
+   * Whether anything this render handed the whole seeded named-value map to a player that applies
+   * it ([RemoteOverridablePreview], [RemoteComposeIrReplay], [ShadowRemoteDocumentPreview]). A
+   * `LocalRemoteComposeHost` `named*` read consumes only its own name — see
+   * [consumedNamedValueNames]. Previews that build their own player — upstream
    * `RemoteDocumentPreview`, `WearWidgetPreview` — never reach either, so a seed sent to them is
    * silently dropped; [RemoteComposeDataProductRegistry.onRender] reads this to say so instead
    * (#401).
@@ -150,17 +151,33 @@ object RemoteComposeController {
    */
   @Volatile private var namedValuesConsumed: Boolean = false
 
+  /** Names this render read individually through `LocalRemoteComposeHost`; reset like the flag. */
+  @Volatile private var consumedNamedValueNames: Set<String> = emptySet()
+
   /**
-   * Record that this render applied (or read) the seeded named values. Call from a `SideEffect` so
-   * it lands after [clearDeclarations]'s render-start reset, like [recordDeclaration]. Idempotent.
+   * Record that this render handed the whole seeded map to a player. Call from a `SideEffect` so it
+   * lands after [clearDeclarations]'s render-start reset, like [recordDeclaration]. Idempotent.
    */
   fun markNamedValuesConsumed() {
     namedValuesConsumed = true
     bridgeForwarder?.markNamedValuesConsumed(bridgeScope())
   }
 
+  /**
+   * Record that this render read the single named value [name] (a `LocalRemoteComposeHost` `named*`
+   * read). Consumes only [name]: other seeded names still count as unapplied. Same `SideEffect`
+   * timing as [markNamedValuesConsumed]. Idempotent.
+   */
+  fun markNamedValueConsumed(name: String) {
+    if (name !in consumedNamedValueNames) consumedNamedValueNames = consumedNamedValueNames + name
+    bridgeForwarder?.markNamedValueConsumed(bridgeScope(), name)
+  }
+
   /** Whether [markNamedValuesConsumed] ran since the last render-start reset. */
   fun namedValuesWereConsumed(): Boolean = namedValuesConsumed
+
+  /** The names [markNamedValueConsumed] recorded since the last render-start reset. */
+  fun consumedNamedValues(): Set<String> = consumedNamedValueNames
 
   /**
    * Record which player `RemoteOverridablePreview` actually composed the document with.
@@ -293,6 +310,7 @@ object RemoteComposeController {
     capturePlayerWires = emptySet()
     // Consumption is per-render too; the bridge reset below drops the sandbox-side copy.
     namedValuesConsumed = false
+    consumedNamedValueNames = emptySet()
     // Always reset the bridge scope (even when the in-classloader set is already empty) so a
     // shrinking list's stale knobs drop from a reused sandbox's bridge entries — mirrors
     // `PreviewOverrideController.clearDeclarations`.
@@ -468,6 +486,7 @@ object RemoteComposeController {
     // let a fresh session's sidecar claim a player the new session never composed through.
     capturePlayerWires = emptySet()
     namedValuesConsumed = false
+    consumedNamedValueNames = emptySet()
     bridgeForwarder?.reset(scope)
   }
 
@@ -490,7 +509,16 @@ object RemoteComposeController {
     private val recordMethod: java.lang.reflect.Method,
     private val resetMethod: java.lang.reflect.Method,
     private val markConsumedMethod: java.lang.reflect.Method?,
+    private val markNameConsumedMethod: java.lang.reflect.Method?,
   ) {
+    fun markNamedValueConsumed(previewId: String, name: String) {
+      try {
+        markNameConsumedMethod?.invoke(null, previewId, name)
+      } catch (_: ReflectiveOperationException) {
+        // Same defensive drop as [record].
+      }
+    }
+
     fun markNamedValuesConsumed(previewId: String) {
       try {
         markConsumedMethod?.invoke(null, previewId)
@@ -529,6 +557,10 @@ object RemoteComposeController {
             // Optional: a bridge without it only loses the unconsumed-named-values warning.
             markConsumedMethod =
               runCatching { cls.getMethod("markNamedValuesConsumed", String::class.java) }
+                .getOrNull(),
+            markNameConsumedMethod = runCatching {
+                cls.getMethod("markNamedValueConsumed", String::class.java, String::class.java)
+              }
                 .getOrNull(),
           )
         } catch (_: ClassNotFoundException) {

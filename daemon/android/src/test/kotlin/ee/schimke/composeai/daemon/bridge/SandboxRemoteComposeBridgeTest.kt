@@ -126,4 +126,22 @@ class SandboxRemoteComposeBridgeTest {
       SandboxRemoteComposeBridge.namedValuesConsumed("preview-a"),
     )
   }
+
+  @Test
+  fun `individually consumed names are scoped per preview and cleared by reset`() {
+    SandboxRemoteComposeBridge.markNamedValueConsumed("preview-a", "progress")
+
+    assertEquals(
+      listOf("progress"),
+      SandboxRemoteComposeBridge.consumedNamedValues("preview-a").toList(),
+    )
+    assertEquals(0, SandboxRemoteComposeBridge.consumedNamedValues("preview-b").size)
+    assertFalse(
+      "a single read does not mark the whole map consumed",
+      SandboxRemoteComposeBridge.namedValuesConsumed("preview-a"),
+    )
+
+    SandboxRemoteComposeBridge.reset("preview-a")
+    assertEquals(0, SandboxRemoteComposeBridge.consumedNamedValues("preview-a").size)
+  }
 }

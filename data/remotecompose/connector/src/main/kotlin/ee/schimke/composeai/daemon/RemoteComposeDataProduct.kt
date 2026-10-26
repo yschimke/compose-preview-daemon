@@ -179,8 +179,8 @@ private object ControllerRemoteComposeHost : RemoteComposeHost {
   private fun declareInComposition(name: String, default: RemoteNamedValue) {
     SideEffect {
       RemoteComposeController.recordDeclaration(RemoteComposeKnobDeclaration(name, default))
-      // User code read the seed itself, so it is applied as far as the connector can tell.
-      RemoteComposeController.markNamedValuesConsumed()
+      // User code read this one name itself; other seeded names are still unapplied.
+      RemoteComposeController.markNamedValueConsumed(name)
     }
   }
 
@@ -548,13 +548,20 @@ class RemoteComposeDataProductRegistry : DataProductRegistry {
   ): List<String> {
     val requested = overrides?.remoteCompose?.namedValues.orEmpty()
     if (requested.isEmpty()) return emptyList()
-    val consumed =
+    val bridge = SandboxRemoteComposeBridgeReader.tryLoad()
+    val wholeMapConsumed =
       RemoteComposeController.namedValuesWereConsumed() ||
-        SandboxRemoteComposeBridgeReader.tryLoad()?.namedValuesConsumed(previewId) == true
-    if (consumed) return emptyList()
+        bridge?.namedValuesConsumed(previewId) == true
+    if (wholeMapConsumed) return emptyList()
+    // A `LocalRemoteComposeHost` read consumes only the name it read.
+    val readNames =
+      RemoteComposeController.consumedNamedValues() +
+        bridge?.consumedNamedValues(previewId).orEmpty()
+    val unapplied = requested.keys - readNames
+    if (unapplied.isEmpty()) return emptyList()
     return listOf(
       "overrides.remoteCompose.namedValues not applied to '$previewId' " +
-        "(${requested.keys.sorted().joinToString(", ")}): the preview's Remote Compose player " +
+        "(${unapplied.sorted().joinToString(", ")}): the preview's Remote Compose player " +
         "does not support them. Only previews played through the connector " +
         "(@PreviewWrapper(RemotePreviewWrapper::class), RemoteContentPreview, " +
         "RemoteOverridablePreview) or reading LocalRemoteComposeHost receive named values."
@@ -590,7 +597,19 @@ class RemoteComposeDataProductRegistry : DataProductRegistry {
   private class SandboxRemoteComposeBridgeReader(
     private val snapshotMethod: java.lang.reflect.Method,
     private val consumedMethod: java.lang.reflect.Method?,
+    private val consumedNamesMethod: java.lang.reflect.Method?,
   ) {
+    /** Empty when the bridge predates per-name tracking or the call fails. */
+    fun consumedNamedValues(scope: String): Set<String> =
+      consumedNamesMethod
+        ?.let { method ->
+          runCatching {
+            @Suppress("UNCHECKED_CAST") (method.invoke(null, scope) as Array<String>).toSet()
+          }
+            .getOrNull()
+        }
+        .orEmpty()
+
     fun snapshot(scope: String): List<String> = runCatching {
       @Suppress("UNCHECKED_CAST") (snapshotMethod.invoke(null, scope) as Array<String>).toList()
     }
@@ -622,6 +641,9 @@ class RemoteComposeDataProductRegistry : DataProductRegistry {
               snapshotMethod = cls.getMethod("snapshot", String::class.java),
               consumedMethod =
                 runCatching { cls.getMethod("namedValuesConsumed", String::class.java) }
+                  .getOrNull(),
+              consumedNamesMethod =
+                runCatching { cls.getMethod("consumedNamedValues", String::class.java) }
                   .getOrNull(),
             )
           } catch (_: ClassNotFoundException) {
