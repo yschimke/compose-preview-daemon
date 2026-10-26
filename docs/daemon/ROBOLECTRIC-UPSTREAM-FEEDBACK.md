@@ -50,6 +50,7 @@ unmeasured. Evidence confidence is separate from priority.
 | 15 | **P3 · R15 — no hook to choose the sandbox classpath** | Medium: the Bazel/bundle lanes rendered on the daemon's Compose instead of the app's; worked around via the context loader. | Narrow: embedders whose sandbox classpath differs from the JVM's. | High confidence in source observation; workaround tested in-process. | Propose an extra-classpath option on `InstrumentationConfiguration`. |
 | 16 | **P3 · R17 — shadowing a composable function** | Fixed locally: a custom `@PreviewWrapper` that ends in `RemoteContentPreview` now captures through the connector. Upstream value is documentation, not a speedup. | Any Robolectric user shadowing a `@Composable` top-level function in a non-default package. | High confidence (end-to-end test with a negative control); no upstream discussion. | None until a second case needs it; then ask whether shadows of composable functions are a supported pattern. |
 | 17 | **P3 · R19 — a started system intent resolves to nothing** | Fixed locally: an app tour passes over a system screen it can't open instead of failing the launcher activity's hero. Upstream value is documentation. | Any Robolectric user that follows `getNextStartedActivity()` from an app which asks for a runtime permission (or opens another system screen) on first composition. | High confidence in mechanism (a predicate unit test with a real `requestPermissions` call; the tour flow is not exercised); expected simulator behaviour, no upstream bug established. | None; revisit only if Robolectric ships a resolvable permission-controller activity. |
+| 18 | **P3 · R20 — the paused clock restarts under a live hwui** | Blocking at SDK 37 for every batch render after its first preview (silent `#FAFAFA` frames); fixed locally by keeping the shadow's `VSYNC` monotonic. | Any Robolectric 4.17 suite that draws native frames in several `@Test`s of one sandbox at SDK 37 while bypassing `ShadowNativeHardwareRenderer`'s host-clock offset. Stock 4.17 users are covered by that offset. | High confidence: three-test SDK 37 reproducer fails without the fix and passes with it. | Mention alongside the #4549 paused-clock request: an opt-out of the host offset needs a monotonic guarantee too. |
 
 ## Applicability beyond the daemon
 
@@ -648,6 +649,30 @@ this investigation; their full application export still needs validation with th
   system screen to pass over, and that it does not for an explicit component of the app's own or a
   package-scoped intent. The tour flow itself is untested here. No upstream issue filed; none
   planned.
+
+## R20 — The paused clock restarts under a live hwui
+
+- **Category/owner:** interaction between our `ShadowPausedClockHardwareRenderer` (which drops
+  Robolectric 4.17's host-clock `FrameInfo` offset, see #4549) and native hwui state; our bug,
+  with an upstream angle.
+- **Evidence/version:** Robolectric 4.17, SDK 37, JDK 21, 2026-10-26 (compose-ai-tools#6229,
+  compose-preview-daemon#410). Robolectric resets `ShadowPausedSystemClock` to 100 ms before every
+  `@Test`, but native hwui keeps the last `VSYNC` it drew for the process. At SDK 37 it drops an
+  ordinary frame whose `VSYNC` is not later than that, so in the second and later tests of a sandbox
+  only the window's launch frame (`FLAG_WINDOW_VISIBILITY_CHANGED`) is drawn. SDK 35 and 36 do not
+  drop it. Stock Robolectric never hits it, because its offset is `System.nanoTime()`-based.
+- **Impact:** a batch render (one `@Test` per preview) wrote the first preview correctly and every
+  later one as the empty `#FAFAFA` window, exit 0, no sidecar.
+- **Current workaround:** `MonotonicFrameVsync` shifts the frame times by a base offset that stays
+  `0` until the raw `VSYNC` goes backwards, then grows to put the frame one frame interval after the
+  last one drawn. Frames keep their simulated spacing within a test; the daemon's held sandbox,
+  whose clock only advances, never leaves offset `0`.
+- **Upgrade risk:** if Robolectric resets hwui frame state between tests, or restores an opt-out of
+  the host offset with its own monotonic guarantee, the offset becomes dead code.
+- **Validation status:** `SuccessiveTestFramesSdk37Test` (SDK 37; ignored on a JDK below 21, so
+  not run by this repository's JDK 17 CI) fails its second and third tests with `#FAFAFA` without
+  the offset and passes with it; `MonotonicFrameVsyncTest` covers the arithmetic on any JVM.
+  `AndroidRippleFrameTest` and `LivePressRippleTest` still pass. No upstream issue filed.
 
 ## How to turn an item into upstream feedback
 

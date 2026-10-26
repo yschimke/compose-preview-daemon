@@ -2507,7 +2507,7 @@ abstract class RobolectricRenderTestBase(
                 }
               }
               // A flat frame over a composition with content: the batch symptom of
-              // compose-ai-tools#6229, whose cause is still open. Warn, naming the preview.
+              // compose-ai-tools#6229 (fixed by [MonotonicFrameVsync]). Warn, naming the preview.
               UniformStillCheck.warnIfUniform(
                 preview.id,
                 outputFile,

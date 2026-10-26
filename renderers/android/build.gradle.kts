@@ -177,6 +177,10 @@ dependencies {
   // its own fallback path directly.
   testImplementation(libs.coil2.compose)
   testImplementation(libs.coil3.compose)
+  // ui-test-junit4 brings espresso-core 3.5.x, which fails every API 37 render (R13);
+  // `SuccessiveTestFramesSdk37Test` renders on 37. Same floor `:daemon:android` and the Gradle
+  // plugin apply.
+  testImplementation(libs.espresso.core)
   // Soft-keyboard (IME) connector. Owns `KeyboardController` (state) and
   // `KeyboardOverrideExtension`
   // (the `AroundComposable` that installs the shadow `LocalSoftwareKeyboardController` and overlays

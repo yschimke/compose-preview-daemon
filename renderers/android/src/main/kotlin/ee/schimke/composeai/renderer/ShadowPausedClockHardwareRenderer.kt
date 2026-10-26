@@ -84,6 +84,22 @@ import org.robolectric.util.reflector.WithType
  * costs those renders nothing. Leaving the consumer's own `robolectric.properties` alone keeps a
  * consumer's ordinary Robolectric tests on stock upstream behaviour.
  *
+ * ## Vsync must never go backwards (compose-ai-tools#6229, #410)
+ *
+ * Leaving the timestamps raw has one hazard the host-domain translation happened to hide.
+ * Robolectric resets the paused clock to 100 ms between `@Test` methods, but native hwui is process
+ * state that is never reset, and on SDK 37 it **drops** an ordinary frame (no
+ * `FLAG_WINDOW_VISIBILITY_CHANGED`) whose `VSYNC` is not later than the last one it drew. A batch
+ * render runs one `@Test` per preview in one sandbox, so the first preview drew at 100–130 ms and
+ * every later one replayed 100–116 ms: only each window's launch frame (the visibility change) got
+ * through, and the capture read back the empty `#FAFAFA` window, with no error.
+ *
+ * So frames are shifted by a base offset that is `0` until the raw `VSYNC` goes backwards — a clock
+ * reset — and then grows just enough to put the frame one frame interval after the last one drawn
+ * ([MonotonicFrameVsync]). Within a test every frame keeps its spacing on the simulated clock, so
+ * animation timing stays deterministic; and the daemon's held sandbox, whose clock only ever
+ * advances, never moves off offset `0`.
+ *
  * If a later Robolectric restores an opt-out or fixes the paused-clock case, this class and its
  * registration are what to delete — the daemon's two ripple pixel oracles
  * (`AndroidRippleFrameTest`, `LivePressRippleTest`) and a repeated `SwitchButtonOn` render are the
@@ -100,15 +116,32 @@ class ShadowPausedClockHardwareRenderer : org.robolectric.shadows.ShadowNativeHa
   @RealObject private var realRenderer: Any? = null
 
   /**
-   * Draws the frame with the framework's own timestamps — no host-clock translation either way.
+   * Draws the frame with the framework's own timestamps — no host-clock translation either way —
+   * shifted only by [MonotonicFrameVsync]'s cross-test offset, which is `0` until the paused clock
+   * is reset under a live hwui.
    *
    * The parent's version brackets this same reflector call with `adjustFrameInfoTimes(+offset)` /
-   * `adjustFrameInfoTimes(-offset)`; dropping both leaves `frameInfo` untouched, which is what
-   * 4.17-beta-2 handed to hwui.
+   * `adjustFrameInfoTimes(-offset)` for a wall-clock offset; this one brackets it the same way for
+   * the monotonic offset, and restores the array afterwards so the framework's `FrameInfo` is left
+   * as it populated it.
    */
   @Implementation
-  protected fun syncAndDrawFrame(@ClassName("android.graphics.FrameInfo") frameInfo: Any?): Int =
-    reflector(HardwareRendererReflector::class.java, realRenderer).syncAndDrawFrame(frameInfo)
+  protected fun syncAndDrawFrame(@ClassName("android.graphics.FrameInfo") frameInfo: Any?): Int {
+    val times = frameInfo?.let(::frameInfoTimes)
+    val offset = times?.let(MonotonicFrameVsync::offsetFor) ?: 0L
+    if (offset != 0L) MonotonicFrameVsync.adjust(times!!, offset)
+    try {
+      return reflector(HardwareRendererReflector::class.java, realRenderer)
+        .syncAndDrawFrame(frameInfo)
+    } finally {
+      if (offset != 0L) MonotonicFrameVsync.adjust(times!!, -offset)
+    }
+  }
+
+  /** `FrameInfo.frameInfo`, the hidden type's public `long[]`, or `null` if it was re-homed. */
+  private fun frameInfoTimes(frameInfo: Any): LongArray? = runCatching {
+    frameInfo.javaClass.getField("frameInfo").get(frameInfo) as? LongArray
+  }.getOrNull()
 
   /** Direct (un-shadowed) access to the real `HardwareRenderer.syncAndDrawFrame`. */
   @ForType(className = "android.graphics.HardwareRenderer")

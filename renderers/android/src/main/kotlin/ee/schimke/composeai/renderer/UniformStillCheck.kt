@@ -10,9 +10,11 @@ import javax.imageio.ImageIO
  * (compose-ai-tools#6229).
  *
  * A batch render was seen writing the first preview correctly and every later one as an identical
- * uniform `#FAFAFA` frame, exiting 0 with no sidecar. The cause is not known yet; this does not fix
- * it, it only makes it visible: a preview whose semantics tree has nodes but whose pixels are all
- * the same almost certainly drew nothing, and saying so names the preview to chase.
+ * uniform `#FAFAFA` frame, exiting 0 with no sidecar. That cause — SDK 37 hwui dropping frames
+ * whose `VSYNC` went backwards across Robolectric's between-test clock reset — is fixed in
+ * [MonotonicFrameVsync]; this stays as the tripwire for the next way a capture can draw nothing: a
+ * preview whose semantics tree has nodes but whose pixels are all the same almost certainly drew
+ * nothing, and saying so names the preview to chase.
  *
  * A warning on stderr, never a failure — a deliberately blank preview (an empty state on a plain
  * background with a semantics-only child) is legal.
