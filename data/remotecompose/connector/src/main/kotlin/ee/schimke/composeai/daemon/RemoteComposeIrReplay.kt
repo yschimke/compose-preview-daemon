@@ -1,6 +1,7 @@
 package ee.schimke.composeai.daemon
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import ee.schimke.composeai.daemon.remotecompose.RemoteComposeDocumentSource
@@ -32,6 +33,9 @@ class RemoteComposeIrReplay {
     // Same clock as the live path: under Robolectric the document follows the held session's shadow
     // clock, not System.nanoTime(), so what a replayed frame shows does not depend on host speed.
     val document = remember(bytes) { RemoteComposeDocumentSource(bytes, hostRemoteComposeClock()) }
+    // The seeded named values reach the player below; see RemoteComposeController
+    // .markNamedValuesConsumed (#401).
+    SideEffect { RemoteComposeController.markNamedValuesConsumed() }
     // Which player draws is read from the controller rather than passed in: the daemon resolves
     // this composable reflectively against a fixed `(ByteArray)` signature (see the class doc), so
     // there is no parameter to thread a choice through. A per-render request is what the caller is

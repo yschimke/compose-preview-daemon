@@ -137,7 +137,9 @@ public final class ee/schimke/composeai/data/remotecompose/RemoteComposePayload 
 	public final fun getHostActions ()Ljava/util/List;
 	public final fun getNamedValues ()Ljava/util/Map;
 	public final fun getProfile ()Lee/schimke/composeai/daemon/protocol/RemoteComposeProfile;
+	public final fun getWarnings ()Ljava/util/List;
 	public fun hashCode ()I
+	public final fun setWarnings (Ljava/util/List;)V
 	public fun toString ()Ljava/lang/String;
 }
 

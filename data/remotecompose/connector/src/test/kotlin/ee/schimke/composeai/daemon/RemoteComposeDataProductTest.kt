@@ -627,6 +627,74 @@ class RemoteComposeDataProductTest {
     assertEquals(IrSidecarChannel.FORMAT_PROTOLAYOUT, left!!.format)
   }
 
+  private fun namedValueOverrides(): PreviewOverrides =
+    PreviewOverrides(
+      remoteCompose =
+        RemoteComposeOverride.Builder()
+          .also {
+            it.namedValues = mapOf("WearM3.primary" to RemoteNamedValue.ColorValue("#FF00D775"))
+          }
+          .build()
+    )
+
+  private fun fetchPayload(registry: RemoteComposeDataProductRegistry): RemoteComposePayload {
+    val outcome = registry.fetch("preview-1", "compose/remotecompose", params = null, inline = true)
+    assertTrue(outcome is DataProductRegistry.Outcome.Ok)
+    return Json.decodeFromJsonElement(
+      RemoteComposePayload.serializer(),
+      (outcome as DataProductRegistry.Outcome.Ok).result.payload!!,
+    )
+  }
+
+  /**
+   * #401: a seed nothing applied (e.g. a direct `RemoteDocumentPreview`) is reported, not silent.
+   */
+  @Test
+  fun on_render_warns_when_named_values_were_not_consumed() {
+    val registry = RemoteComposeDataProductRegistry()
+    RemoteComposeController.clearDeclarations()
+
+    registry.onRender("preview-1", stubRenderResult(), namedValueOverrides(), stubContext())
+
+    val warnings = fetchPayload(registry).warnings
+    assertEquals(1, warnings.size)
+    assertTrue(warnings.single(), warnings.single().contains("'preview-1'"))
+    assertTrue(warnings.single(), warnings.single().contains("WearM3.primary"))
+    assertTrue(warnings.single(), warnings.single().contains("does not support"))
+  }
+
+  @Test
+  fun on_render_does_not_warn_when_a_player_consumed_the_named_values() {
+    val registry = RemoteComposeDataProductRegistry()
+    RemoteComposeController.set(namedValueOverrides().remoteCompose)
+    RemoteComposeController.clearDeclarations()
+    RemoteComposeController.markNamedValuesConsumed()
+
+    registry.onRender("preview-1", stubRenderResult(), namedValueOverrides(), stubContext())
+
+    assertTrue(fetchPayload(registry).warnings.isEmpty())
+  }
+
+  @Test
+  fun named_value_consumption_resets_at_render_start() {
+    RemoteComposeController.markNamedValuesConsumed()
+    RemoteComposeController.clearDeclarations()
+    assertTrue(!RemoteComposeController.namedValuesWereConsumed())
+  }
+
+  @Test
+  fun on_render_without_named_values_never_warns() {
+    val registry = RemoteComposeDataProductRegistry()
+    RemoteComposeController.clearDeclarations()
+
+    registry.onRender("preview-1", stubRenderResult(), PreviewOverrides(), stubContext())
+
+    assertEquals(
+      DataProductRegistry.Outcome.NotAvailable,
+      registry.fetch("preview-1", "compose/remotecompose", params = null, inline = true),
+    )
+  }
+
   private fun stubRenderResult(): RenderResult =
     RenderResult(
       id = 1L,

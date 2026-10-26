@@ -257,6 +257,8 @@ fun RemoteOverridablePreview(
   // [RemoteComposeController.recordCapturePlayer].
   androidx.compose.runtime.SideEffect {
     RemoteComposeController.recordCapturePlayer(backend.capturePlayerName)
+    // The seed reaches a player, so the post-render registry has nothing to warn about (#401).
+    RemoteComposeController.markNamedValuesConsumed()
   }
 
   backend.Play(document = document, namedValues = seededOverrides, modifier = modifier)

@@ -2,6 +2,8 @@ package ee.schimke.composeai.daemon.bridge
 
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -104,5 +106,24 @@ class SandboxRemoteComposeBridgeTest {
     )
     // A real previewId must not pick up the sentinel scope's declarations.
     assertEquals(emptyList<String>(), SandboxRemoteComposeBridge.snapshot("preview-a").toList())
+  }
+
+  @Test
+  fun `named-value consumption is scoped per preview and cleared by reset`() {
+    assertFalse(SandboxRemoteComposeBridge.namedValuesConsumed("preview-a"))
+
+    SandboxRemoteComposeBridge.markNamedValuesConsumed("preview-a")
+
+    assertTrue(SandboxRemoteComposeBridge.namedValuesConsumed("preview-a"))
+    assertFalse(
+      "a concurrent preview must not inherit preview-a's consumption",
+      SandboxRemoteComposeBridge.namedValuesConsumed("preview-b"),
+    )
+
+    SandboxRemoteComposeBridge.reset("preview-a")
+    assertFalse(
+      "the next render's start resets consumption",
+      SandboxRemoteComposeBridge.namedValuesConsumed("preview-a"),
+    )
   }
 }

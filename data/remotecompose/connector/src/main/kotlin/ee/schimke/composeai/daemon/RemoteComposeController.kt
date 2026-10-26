@@ -137,6 +137,32 @@ object RemoteComposeController {
   @Volatile private var capturePlayerWires: Set<String> = emptySet()
 
   /**
+   * Whether anything this render handed the seeded named values to a consumer that applies them: a
+   * connector-driven player ([RemoteOverridablePreview], [RemoteComposeIrReplay]) or a
+   * `LocalRemoteComposeHost` `named*` read. Previews that build their own player — upstream
+   * `RemoteDocumentPreview`, `WearWidgetPreview` — never reach either, so a seed sent to them is
+   * silently dropped; [RemoteComposeDataProductRegistry.onRender] reads this to say so instead
+   * (#401).
+   *
+   * Plain `@Volatile`, not snapshot state, for the same reason as [capturePlayerWires]: it is
+   * written during composition and read once after the render. Reset with the declarations at
+   * render start ([clearDeclarations]).
+   */
+  @Volatile private var namedValuesConsumed: Boolean = false
+
+  /**
+   * Record that this render applied (or read) the seeded named values. Call from a `SideEffect` so
+   * it lands after [clearDeclarations]'s render-start reset, like [recordDeclaration]. Idempotent.
+   */
+  fun markNamedValuesConsumed() {
+    namedValuesConsumed = true
+    bridgeForwarder?.markNamedValuesConsumed(bridgeScope())
+  }
+
+  /** Whether [markNamedValuesConsumed] ran since the last render-start reset. */
+  fun namedValuesWereConsumed(): Boolean = namedValuesConsumed
+
+  /**
    * Record which player `RemoteOverridablePreview` actually composed the document with.
    *
    * The wrapper FQN does not answer this on its own: a render can ask for the view player per call
@@ -265,6 +291,8 @@ object RemoteComposeController {
     // The player is per-capture, so it drops with the declarations: a pooled sandbox re-rendering a
     // different preview must not inherit the previous one's answer.
     capturePlayerWires = emptySet()
+    // Consumption is per-render too; the bridge reset below drops the sandbox-side copy.
+    namedValuesConsumed = false
     // Always reset the bridge scope (even when the in-classloader set is already empty) so a
     // shrinking list's stale knobs drop from a reused sandbox's bridge entries — mirrors
     // `PreviewOverrideController.clearDeclarations`.
@@ -439,6 +467,7 @@ object RemoteComposeController {
     // The recorded capture player is per-session state like everything above it: leaving it would
     // let a fresh session's sidecar claim a player the new session never composed through.
     capturePlayerWires = emptySet()
+    namedValuesConsumed = false
     bridgeForwarder?.reset(scope)
   }
 
@@ -460,7 +489,16 @@ object RemoteComposeController {
   private class BridgeForwarder(
     private val recordMethod: java.lang.reflect.Method,
     private val resetMethod: java.lang.reflect.Method,
+    private val markConsumedMethod: java.lang.reflect.Method?,
   ) {
+    fun markNamedValuesConsumed(previewId: String) {
+      try {
+        markConsumedMethod?.invoke(null, previewId)
+      } catch (_: ReflectiveOperationException) {
+        // Same defensive drop as [record].
+      }
+    }
+
     fun record(previewId: String, name: String, json: String) {
       try {
         recordMethod.invoke(null, previewId, name, json)
@@ -488,6 +526,10 @@ object RemoteComposeController {
             recordMethod =
               cls.getMethod("record", String::class.java, String::class.java, String::class.java),
             resetMethod = cls.getMethod("reset", String::class.java),
+            // Optional: a bridge without it only loses the unconsumed-named-values warning.
+            markConsumedMethod =
+              runCatching { cls.getMethod("markNamedValuesConsumed", String::class.java) }
+                .getOrNull(),
           )
         } catch (_: ClassNotFoundException) {
           null

@@ -93,7 +93,25 @@ object SandboxRemoteComposeBridge {
   @JvmStatic
   fun reset(previewId: String) {
     byPreview.remove(previewId)
+    namedValuesConsumed.remove(previewId)
   }
+
+  /**
+   * previewIds whose render handed the seeded `overrides.remoteCompose.namedValues` to something
+   * that applies them (a connector-driven player, or a `LocalRemoteComposeHost` read). The host
+   * registry reads it through [namedValuesConsumed] to warn when a render was given named values
+   * nothing consumed (#401). A set of keys only — no state beyond the preview id crosses.
+   */
+  private val namedValuesConsumed: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+  /** Sandbox-side: [previewId]'s render consumed its seeded named values. Idempotent. */
+  @JvmStatic
+  fun markNamedValuesConsumed(previewId: String) {
+    namedValuesConsumed.add(previewId)
+  }
+
+  /** Host-side: whether [previewId]'s latest render consumed its seeded named values. */
+  @JvmStatic fun namedValuesConsumed(previewId: String): Boolean = previewId in namedValuesConsumed
 
   /**
    * Both sides: drop every recorded declaration across all previews. Used by host-restart paths and
@@ -102,5 +120,6 @@ object SandboxRemoteComposeBridge {
   @JvmStatic
   fun resetAll() {
     byPreview.clear()
+    namedValuesConsumed.clear()
   }
 }

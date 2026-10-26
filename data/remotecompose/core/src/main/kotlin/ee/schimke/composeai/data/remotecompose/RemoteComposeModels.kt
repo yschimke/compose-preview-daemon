@@ -70,6 +70,19 @@ public data class RemoteComposePayload(
   val profile: RemoteComposeProfile? = null,
   val declarations: List<RemoteComposeKnobDeclaration> = emptyList(),
 ) {
+  /**
+   * Human-readable diagnostics about overrides this render did not apply — today, seeded
+   * `overrides.remoteCompose.namedValues` that no connector-driven player or
+   * `LocalRemoteComposeHost` read consumed (a preview calling upstream `RemoteDocumentPreview` /
+   * `WearWidgetPreview` directly builds its own player). Empty when everything requested was
+   * applied.
+   *
+   * A body property, not a constructor parameter, so the published `<init>` and `copy` signatures
+   * survive for already-compiled consumers (see [RemoteComposeDeclarationsPayload.capturePlayer]).
+   * Additive on the wire, so [RemoteComposeProduct.SCHEMA_VERSION] is unchanged.
+   */
+  public var warnings: List<String> = emptyList()
+
   public companion object {
     /** Host-action ring-buffer size; subscribers wanting history accumulate it themselves. */
     public const val HOST_ACTION_BUFFER_SIZE: Int = 256

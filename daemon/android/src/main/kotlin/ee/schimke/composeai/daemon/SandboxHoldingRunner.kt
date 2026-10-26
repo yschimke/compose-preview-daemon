@@ -124,6 +124,11 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
     if (isRemoteContentPreviewAvailable(sandboxParentLoader())) {
       builder.addInstrumentedClass(ShadowRemoteContentPreview.TARGET_CLASS)
     }
+    // Same for upstream `RemoteDocumentPreview`, so [ShadowRemoteDocumentPreview] can seed a
+    // pre-built document's player with `overrides.remoteCompose.namedValues` (#401).
+    if (isRemoteDocumentPreviewAvailable(sandboxParentLoader())) {
+      builder.addInstrumentedClass(ShadowRemoteDocumentPreview.TARGET_CLASS)
+    }
     // Consumer clock pinning (compose-ai-tools#5945). `composeai.render.clockPackages` names the
     // consumer's own packages; instrumenting them makes Robolectric rewrite their
     // `System.currentTimeMillis()` call sites into `ShadowSystem.currentTimeMillis()`, and
@@ -263,6 +268,16 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
         // connector not on classpath — skip the RemoteContentPreview shadow
       }
     }
+    // Remote Compose `RemoteDocumentPreview` shadow (#401) — pairs with its `addInstrumentedClass`
+    // call in `createClassLoaderConfig`. Without it a seed sent to a preview that plays a built
+    // document is silently dropped (the registry still warns about it).
+    if (isRemoteDocumentPreviewAvailable(sandboxParentLoader())) {
+      try {
+        shadows += ShadowRemoteDocumentPreview::class.java
+      } catch (_: NoClassDefFoundError) {
+        // connector not on classpath — skip the RemoteDocumentPreview shadow
+      }
+    }
     // Consumer clock shadow — pairs with the `clockPackages` block in `createClassLoaderConfig`,
     // and registered under the same condition so an unconfigured sandbox is unchanged.
     if (ConsumerClock.packages().isNotEmpty()) {
@@ -357,6 +372,20 @@ internal fun isRemoteContentPreviewAvailable(loader: ClassLoader?): Boolean {
   if (!isRemoteComposeAvailable(loader)) return false
   return isClassVisible(ShadowRemoteContentPreview.TARGET_CLASS, loader)
 }
+
+/**
+ * Returns `true` when upstream `RemoteDocumentPreview` and the View-backed player its
+ * [ShadowRemoteDocumentPreview] replacement draws with (`remote-player-compose`) are on the
+ * supplied classloader, plus the rest of Remote Compose ([isRemoteComposeAvailable]).
+ */
+internal fun isRemoteDocumentPreviewAvailable(loader: ClassLoader?): Boolean {
+  if (!isRemoteComposeAvailable(loader)) return false
+  return isClassVisible(ShadowRemoteDocumentPreview.TARGET_CLASS, loader) &&
+    isClassVisible(REMOTE_DOCUMENT_PLAYER, loader)
+}
+
+private const val REMOTE_DOCUMENT_PLAYER: String =
+  "androidx.compose.remote.player.compose.RemoteDocumentPlayerKt"
 
 /**
  * Returns `true` when `androidx.compose.remote.creation.compose.action.HostAction` is on the
