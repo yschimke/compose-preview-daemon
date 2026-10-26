@@ -1,5 +1,29 @@
 # Changelog
 
+## [3.26.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.25.1...v3.26.0) (2026-10-26)
+
+
+### Features
+
+* expose preview/rows on DaemonSession and DaemonClient ([#404](https://github.com/yschimke/compose-preview-daemon/issues/404)) ([f470e41](https://github.com/yschimke/compose-preview-daemon/commit/f470e413188f5d09199e360cd7190021bc1631bf))
+* honour scripted rotary distance and swipe timing, generate gesture test steps ([#409](https://github.com/yschimke/compose-preview-daemon/issues/409)) ([7d08973](https://github.com/yschimke/compose-preview-daemon/commit/7d08973add0cafdb93d6f6d7622c40832f17fc2e))
+* render a Wear widget preview inside its carousel slot on a watch device ([#405](https://github.com/yschimke/compose-preview-daemon/issues/405)) ([9a07415](https://github.com/yschimke/compose-preview-daemon/commit/9a07415185cfeaa62a6ce7748ec773f57f19bf3c))
+
+
+### Bug Fixes
+
+* dedupe instrumented local-variable tables in the batch render runner ([#407](https://github.com/yschimke/compose-preview-daemon/issues/407)) ([98e8ebe](https://github.com/yschimke/compose-preview-daemon/commit/98e8ebe4ea9b5d04e73a3470bfb95603718b6174))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.18.0 ([#396](https://github.com/yschimke/compose-preview-daemon/issues/396)) ([e197f6a](https://github.com/yschimke/compose-preview-daemon/commit/e197f6a03b29e1f97313745ba02c1c11acbd62e9))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.19.0 ([#397](https://github.com/yschimke/compose-preview-daemon/issues/397)) ([8839290](https://github.com/yschimke/compose-preview-daemon/commit/8839290a025c24374368c323ff08d7117d28387c))
+* **deps:** update dependency org.ow2.asm:asm to v9.11.1 ([#392](https://github.com/yschimke/compose-preview-daemon/issues/392)) ([2b8ab08](https://github.com/yschimke/compose-preview-daemon/commit/2b8ab085a65c2671144c37d0b0ddc5529cee91d2))
+* **remotecompose:** apply or warn on unconsumed overrides.remoteCompose.namedValues ([#406](https://github.com/yschimke/compose-preview-daemon/issues/406)) ([1877fe9](https://github.com/yschimke/compose-preview-daemon/commit/1877fe98eab1bfea99c0ec4d4a6f2fb7a7619390))
+* **renderer-android:** keep FrameInfo vsync monotonic across tests on SDK 37 ([#411](https://github.com/yschimke/compose-preview-daemon/issues/411)) ([baa8e1f](https://github.com/yschimke/compose-preview-daemon/commit/baa8e1f0e4c8dd829a5cf75d22c0b7cda77f2c04))
+
+
+### Chores
+
+* **deps:** update gradle to v9.8.2 ([#408](https://github.com/yschimke/compose-preview-daemon/issues/408)) ([bf054ce](https://github.com/yschimke/compose-preview-daemon/commit/bf054ce6c4d84b76c9f13db7bf66a984bf9d3d72))
+
 ## [3.25.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.25.0...v3.25.1) (2026-10-24)
 
 
