@@ -213,12 +213,18 @@ dependencies {
 
   implementation(libs.robolectric)
   implementation(libs.junit)
+  // `LocalVariableTables`, which `LocalVariableDedupingInstrumentor` runs on Robolectric's output
+  // (compose-ai-tools#6230). Already on this classpath through the connectors' `api`; named here
+  // because the renderer now calls it itself.
+  implementation(project(":daemon-connector-api"))
   implementation(libs.kotlinx.serialization.json)
 
   // Classloader-forensics diagnostic library lives in `:daemon:core` (renderer-agnostic
   // surface — see docs/daemon/CLASSLOADER-FORENSICS.md). `testImplementation` because it's only
   // referenced by `ClassloaderForensicsTest` and shouldn't widen the renderer's main classpath.
   testImplementation(project(":daemon:core"))
+  // LocalVariableDedupingInstrumentorTest writes its Shapes-shaped fixture with ASM.
+  testImplementation(libs.asm)
   // ComposeSemanticsCoreFieldsTest exercises ComposeSemanticsDataProducer.writeArtifacts +
   // ComposeSemanticsDataProductRegistry against real Compose composables to assert each
   // preview surfaces the specific semantics field it isolates (testTag, contentDescription,

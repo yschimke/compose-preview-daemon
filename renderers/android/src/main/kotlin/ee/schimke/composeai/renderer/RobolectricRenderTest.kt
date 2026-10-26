@@ -2506,6 +2506,14 @@ abstract class RobolectricRenderTestBase(
                   )
                 }
               }
+              // A flat frame over a composition with content: the batch symptom of
+              // compose-ai-tools#6229, whose cause is still open. Warn, naming the preview.
+              UniformStillCheck.warnIfUniform(
+                preview.id,
+                outputFile,
+                decodedStillFrame,
+                resolveCaptureRoot().semanticsRoot,
+              )
             }
 
             // A `Dialog` / `ModalBottomSheet` preview composes into a window of its own, and the
@@ -4787,7 +4795,7 @@ internal fun resolveWrapper(wrapperFqn: String): Pair<ComposableMethod, Any> {
  * across all parameter values. Generated shard subclasses (see the plugin's `generateShardTests`
  * task) replace this class when `composeAiPreview.shards > 1`.
  */
-@RunWith(ParameterizedRobolectricTestRunner::class)
+@RunWith(DedupingParameterizedRobolectricTestRunner::class)
 class RobolectricRenderTest(
   preview: RenderPreviewEntry,
   @Suppress("UNCHECKED_CAST") previewArgs: List<Any?>,

@@ -601,10 +601,16 @@ this investigation; their full application export still needs validation with th
   bytes are valid (the rows start at 32 and 59), so no pre-instrumentation clean-up sees them.
 - **Impact:** the class cannot be defined while verification is on; `-Xverify:none` is the only
   stock escape and disables verification for everything.
-- **Current workaround:** `LocalVariableDedupingInstrumentor` in `:daemon:android`, bound in place
-  of `ClassInstrumentor` through one process-wide injector in `SandboxHoldingRunner`, runs
-  `LocalVariableTables.dedupe` on the instrumented bytes. One injector, because it owns the
-  `SandboxManager` whose cache lets every runner share a sandbox.
+- **Current workaround:** `LocalVariableDedupingInstrumentor` in `:renderer-android`, bound in
+  place of `ClassInstrumentor` through one process-wide injector (`LocalVariableDedupingInjector`),
+  runs `LocalVariableTables.dedupe` (`:daemon-connector-api`) on the instrumented bytes. One
+  injector, because it owns the `SandboxManager` whose cache lets every runner share a sandbox. The
+  daemon's `SandboxHoldingRunner` uses it, and since compose-ai-tools#6230 so does the Gradle batch
+  render: `RobolectricRenderTest` and `AppTourRobolectricRenderTest` run on
+  `ee.schimke.composeai.renderer.DedupingParameterizedRobolectricTestRunner`, a copy of the `final`
+  `ParameterizedRobolectricTestRunner`'s parameter handling whose per-parameter runners take that
+  injector. The stock parameterized runner offers no injector seam, which is why the batch path
+  kept failing after the daemon was fixed. Generated shard classes must name the new runner too.
 - **Proposed upstream change:** drop (or re-target to the new `<init>`) the local-variable rows
   whose labels `extractCallToSuperConstructor` removes from `__constructor__`, so instrumentation
   never writes rows for code the method no longer contains.
@@ -612,7 +618,9 @@ this investigation; their full application export still needs validation with th
   renames or stops injecting `ClassInstrumentor` unbinds it, and the regression test below fails.
 - **Validation status:** `LocalVariableDedupingInstrumentorTest` instruments a `Shapes`-shaped ASM
   fixture: valid as written, rejected by `defineClass` after the stock instrumentor, defined after
-  ours. No upstream issue filed yet.
+  ours. `DedupingParameterizedRobolectricTestRunnerTest` runs the #6230 reproducer (an
+  enum whose default-arguments constructor inlines `.dp` twice) instrumented under the batch
+  runner. No upstream issue filed yet.
 
 ## R19 — A started system intent resolves to nothing in the sandbox
 

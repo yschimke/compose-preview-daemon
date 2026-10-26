@@ -1,9 +1,12 @@
-package ee.schimke.composeai.daemon
+package ee.schimke.composeai.renderer
 
+import ee.schimke.composeai.daemon.LocalVariableTables
+import org.robolectric.RobolectricTestRunner
 import org.robolectric.internal.bytecode.ClassDetails
 import org.robolectric.internal.bytecode.ClassInstrumentor
 import org.robolectric.internal.bytecode.ClassNodeProvider
 import org.robolectric.internal.bytecode.InstrumentationConfiguration
+import org.robolectric.util.inject.Injector
 
 /**
  * Robolectric's [ClassInstrumentor], with duplicate local-variable rows removed from what it writes
@@ -18,13 +21,39 @@ import org.robolectric.internal.bytecode.InstrumentationConfiguration
  * offsets), which is why cleaning them before instrumentation is not enough: the sandbox defines
  * what this returns, so this is where [LocalVariableTables.dedupe] has to run.
  *
- * Bound in place of the stock instrumentor by [SandboxHoldingRunner]'s injector.
+ * Bound in place of the stock instrumentor by [LocalVariableDedupingInjector], which both the
+ * daemon's `SandboxHoldingRunner` and the batch renderer's
+ * [DedupingParameterizedRobolectricTestRunner] use (compose-ai-tools#6230).
  */
-class LocalVariableDedupingInstrumentor : ClassInstrumentor() {
+public class LocalVariableDedupingInstrumentor : ClassInstrumentor() {
   override fun instrument(
     classDetails: ClassDetails,
     config: InstrumentationConfiguration,
     classNodeProvider: ClassNodeProvider,
   ): ByteArray =
     LocalVariableTables.dedupe(super.instrument(classDetails, config, classNodeProvider))
+}
+
+/**
+ * Robolectric's default injector, with [LocalVariableDedupingInstrumentor] in place of the stock
+ * instrumentor. One for the process, as Robolectric's own is: the injector owns the
+ * `SandboxManager` whose cache lets every runner share one sandbox, and a second sandbox does not
+ * survive Robolectric's native runtime.
+ */
+public object LocalVariableDedupingInjector {
+  @JvmField public val INJECTOR: Injector = DefaultInjectorAccess.build()
+
+  /**
+   * Never instantiated: `RobolectricTestRunner.defaultInjector()` is `protected`, so it is
+   * reachable only from a subclass.
+   */
+  private abstract class DefaultInjectorAccess private constructor() :
+    RobolectricTestRunner(Any::class.java) {
+    companion object {
+      fun build(): Injector =
+        defaultInjector()
+          .bind(ClassInstrumentor::class.java, LocalVariableDedupingInstrumentor::class.java)
+          .build()
+    }
+  }
 }

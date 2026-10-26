@@ -115,6 +115,11 @@ public abstract class ee/schimke/composeai/daemon/FileBackedDataProductRegistry 
 public final class ee/schimke/composeai/daemon/FileBackedDataProductRegistry$Companion {
 }
 
+public final class ee/schimke/composeai/daemon/LocalVariableTables {
+	public static final field INSTANCE Lee/schimke/composeai/daemon/LocalVariableTables;
+	public final fun dedupe ([B)[B
+}
+
 public final class ee/schimke/composeai/daemon/PreviewOverrideExtensions {
 	public static final field Companion Lee/schimke/composeai/daemon/PreviewOverrideExtensions$Companion;
 	public fun <init> (Ljava/util/List;Lkotlin/jvm/functions/Function1;)V

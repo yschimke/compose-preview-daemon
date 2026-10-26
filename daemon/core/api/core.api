@@ -659,11 +659,6 @@ public final class ee/schimke/composeai/daemon/KeyboardBandLabels {
 	public final fun fromAndroidKeycode (Ljava/lang/String;)Ljava/lang/String;
 }
 
-public final class ee/schimke/composeai/daemon/LocalVariableTables {
-	public static final field INSTANCE Lee/schimke/composeai/daemon/LocalVariableTables;
-	public final fun dedupe ([B)[B
-}
-
 public final class ee/schimke/composeai/daemon/MergedPreviewOverrides {
 	public fun <init> (IIFLjava/lang/String;Ljava/lang/String;Ljava/lang/Float;Lee/schimke/composeai/daemon/protocol/UiMode;Lee/schimke/composeai/daemon/protocol/Orientation;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/Material3ThemeOverrides;Lee/schimke/composeai/daemon/protocol/WallpaperOverride;Lee/schimke/composeai/daemon/protocol/AmbientOverride;Lee/schimke/composeai/daemon/protocol/GestureOverride;Lee/schimke/composeai/daemon/protocol/FocusOverride;Ljava/lang/Boolean;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/KeyboardOverride;Lee/schimke/composeai/daemon/protocol/PermissionsOverride;Lee/schimke/composeai/daemon/protocol/RemoteComposeOverride;Lee/schimke/composeai/daemon/protocol/LauncherWidgetOverride;Lee/schimke/composeai/daemon/protocol/LottieOverride;Ljava/util/Map;Z)V
 	public synthetic fun <init> (IIFLjava/lang/String;Ljava/lang/String;Ljava/lang/Float;Lee/schimke/composeai/daemon/protocol/UiMode;Lee/schimke/composeai/daemon/protocol/Orientation;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/Material3ThemeOverrides;Lee/schimke/composeai/daemon/protocol/WallpaperOverride;Lee/schimke/composeai/daemon/protocol/AmbientOverride;Lee/schimke/composeai/daemon/protocol/GestureOverride;Lee/schimke/composeai/daemon/protocol/FocusOverride;Ljava/lang/Boolean;Ljava/lang/Boolean;Lee/schimke/composeai/daemon/protocol/KeyboardOverride;Lee/schimke/composeai/daemon/protocol/PermissionsOverride;Lee/schimke/composeai/daemon/protocol/RemoteComposeOverride;Lee/schimke/composeai/daemon/protocol/LauncherWidgetOverride;Lee/schimke/composeai/daemon/protocol/LottieOverride;Ljava/util/Map;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V

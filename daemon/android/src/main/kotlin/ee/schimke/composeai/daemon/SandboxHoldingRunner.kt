@@ -2,15 +2,14 @@ package ee.schimke.composeai.daemon
 
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.renderer.ConsumerClock
+import ee.schimke.composeai.renderer.LocalVariableDedupingInjector
 import ee.schimke.composeai.renderer.ShadowConsumerClock
 import ee.schimke.composeai.renderer.ShadowFontsContractCompat
 import ee.schimke.composeai.renderer.ShadowPausedClockHardwareRenderer
 import org.junit.runners.model.FrameworkMethod
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import org.robolectric.internal.bytecode.ClassInstrumentor
 import org.robolectric.internal.bytecode.InstrumentationConfiguration
-import org.robolectric.util.inject.Injector
 
 /**
  * Robolectric runner that excludes [ee.schimke.composeai.daemon.bridge] from instrumentation so its
@@ -40,7 +39,8 @@ import org.robolectric.util.inject.Injector
  * Robolectric's sandbox cache — which is what lets sequential hosts in a test suite reuse one
  * sandbox instead of building a second.
  */
-open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(testClass, INJECTOR) {
+open class SandboxHoldingRunner(testClass: Class<*>) :
+  RobolectricTestRunner(testClass, LocalVariableDedupingInjector.INJECTOR) {
 
   /**
    * Mirrors the `application=android.app.Application` line that
@@ -269,19 +269,6 @@ open class SandboxHoldingRunner(testClass: Class<*>) : RobolectricTestRunner(tes
       shadows += ShadowConsumerClock::class.java
     }
     return shadows.toTypedArray()
-  }
-
-  private companion object {
-    /**
-     * Robolectric's default injector, with [LocalVariableDedupingInstrumentor] in place of the
-     * stock instrumentor (compose-ai-tools#6161). One for the process, as Robolectric's own is: the
-     * injector owns the `SandboxManager` whose cache lets every runner share one sandbox, and a
-     * second sandbox does not survive Robolectric's native runtime.
-     */
-    val INJECTOR: Injector =
-      defaultInjector()
-        .bind(ClassInstrumentor::class.java, LocalVariableDedupingInstrumentor::class.java)
-        .build()
   }
 }
 

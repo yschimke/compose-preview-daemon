@@ -1,4 +1,4 @@
-package ee.schimke.composeai.daemon
+package ee.schimke.composeai.renderer
 
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail

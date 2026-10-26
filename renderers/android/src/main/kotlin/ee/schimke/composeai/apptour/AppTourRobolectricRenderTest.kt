@@ -1,5 +1,6 @@
 package ee.schimke.composeai.apptour
 
+import ee.schimke.composeai.renderer.DedupingParameterizedRobolectricTestRunner
 import ee.schimke.composeai.renderer.PreviewManifestLoader
 import ee.schimke.composeai.renderer.RenderPreviewEntry
 import ee.schimke.composeai.renderer.RobolectricRenderTestBase
@@ -46,7 +47,7 @@ import org.robolectric.ParameterizedRobolectricTestRunner
  * that matters here is the Application init this class pays once per sandbox — which sharding would
  * multiply, not divide.
  */
-@RunWith(ParameterizedRobolectricTestRunner::class)
+@RunWith(DedupingParameterizedRobolectricTestRunner::class)
 class AppTourRobolectricRenderTest(
   preview: RenderPreviewEntry,
   @Suppress("UNCHECKED_CAST") previewArgs: List<Any?>,
