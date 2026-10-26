@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import ee.schimke.composeai.daemon.protocol.WallpaperOverride
@@ -65,7 +66,7 @@ class WallpaperSystemColorsOverrideExtensionTest {
         val context = LocalContext.current
         light = dynamicLightColorScheme(context).primary.toArgb()
         dark = dynamicDarkColorScheme(context).primary.toArgb()
-        accent = context.getColor(android.R.color.system_accent1_500)
+        accent = colorResource(android.R.color.system_accent1_500).toArgb()
       }
       if (applied) hook.AroundComposable(read) else read()
     }
