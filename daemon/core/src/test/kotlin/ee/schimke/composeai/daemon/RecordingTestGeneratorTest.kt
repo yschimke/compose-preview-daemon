@@ -400,10 +400,9 @@ class RecordingTestGeneratorTest {
   }
 
   @Test
-  fun targetedDragRunsOnItsNodeAndAnUnfinishedGestureStaysOpen() {
-    // A drag recorded against a semantic target (no pixels) runs at the node's centre; a gesture
-    // whose pointerUp never came is emitted without `up()`, and a later stray up gets its own
-    // block.
+  fun targetedDragRunsOnItsNodeAndAProbeSplitKeepsTheHold() {
+    // A press recorded against a semantic target (no pixels) runs at the node's centre. A probe in
+    // the middle splits it into two blocks, but the 80 ms between the down and the up is kept.
     val source =
       RecordingTestGenerator.generate(
         spec(
@@ -432,11 +431,87 @@ class RecordingTestGeneratorTest {
           "    }\n" +
           "    // TODO assert state\n" +
           "    composeTestRule.onNodeWithTag(\"knob\").performTouchInput {\n" +
+          "      advanceEventTime(80)\n" +
           "      up()\n" +
           "    }\n"
       ),
     )
     assertFalse(source, source.contains("import androidx.compose.ui.geometry.Offset"))
+  }
+
+  @Test
+  fun aProbeInsideAPixelSwipeKeepsTheGapAndPosition() {
+    val source =
+      RecordingTestGenerator.generate(
+        spec(
+          RecordingTestGenerator.stepsOf(
+            listOf(
+              RecordingScriptEvent(tMs = 0L, kind = "input.pointerDown", pixelX = 10, pixelY = 90),
+              RecordingScriptEvent(tMs = 20L, kind = "input.pointerMove", pixelX = 10, pixelY = 40),
+              RecordingScriptEvent(tMs = 30L, kind = "recording.probe"),
+              RecordingScriptEvent(tMs = 50L, kind = "input.pointerUp", pixelX = 10, pixelY = 40),
+            )
+          )
+        )
+      )
+    assertTrue(
+      source,
+      source.contains(
+        "    // TODO assert state\n" +
+          "    composeTestRule.onRoot().performTouchInput {\n" +
+          "      advanceEventTime(30)\n" +
+          "      up()\n" +
+          "    }\n"
+      ),
+    )
+  }
+
+  @Test
+  fun gesturesThatChangeTargetAreLeftForManualReplay() {
+    // The daemon resolved each event against its own target, so a drag from one node to another is
+    // a path across the screen; replaying all of it at the first node's centre would be a different
+    // interaction. Mixing a target with pixels is the same problem.
+    val source =
+      RecordingTestGenerator.generate(
+        spec(
+          RecordingTestGenerator.stepsOf(
+            listOf(
+              RecordingScriptEvent(
+                tMs = 0L,
+                kind = "input.pointerDown",
+                target = SemanticsInputTarget(testTag = "from"),
+              ),
+              RecordingScriptEvent(
+                tMs = 40L,
+                kind = "input.pointerUp",
+                target = SemanticsInputTarget(testTag = "to"),
+              ),
+              RecordingScriptEvent(
+                tMs = 100L,
+                kind = "input.pointerDown",
+                target = SemanticsInputTarget(testTag = "from"),
+              ),
+              RecordingScriptEvent(tMs = 140L, kind = "input.pointerUp", pixelX = 3, pixelY = 4),
+            )
+          )
+        )
+      )
+    assertFalse(source, source.contains("performTouchInput"))
+    assertTrue(
+      source,
+      source.contains(
+        "// input.pointerDown testTag=from — gesture has no single node or full pixel path to " +
+          "replay; drive it by hand"
+      ),
+    )
+    assertTrue(
+      source,
+      source.contains("// input.pointerUp testTag=to — gesture has no single node"),
+    )
+    assertTrue(
+      source,
+      source.contains("// input.pointerUp (no target) — gesture has no single node"),
+    )
   }
 
   @Test

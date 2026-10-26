@@ -190,11 +190,9 @@ class AndroidRecordingSession(
     for (frameIndex in 0 until totalFrames) {
       val tMs: Long = frameIndex.toLong() * 1000L / fps.toLong()
 
-      // A bucket's virtual clock must reach `tMs` exactly once, whether the advancing render is an
-      // `assert.pixels` snapshot mid-drain or the final written-frame render: the first render of
-      // the bucket gets whatever is left to `tMs`, the rest get 0. Input events dispatched on the
-      // timeline (#399) have already moved the clock to their own `tMs`, so only the remainder
-      // is left for the render.
+      // The written-frame render takes the bucket's clock to `tMs`; whatever an `assert.pixels`
+      // snapshot or a timeline input (#399) has already advanced inside the bucket is not
+      // advanced again.
       fun advanceForThisBucket(): Long = advanceScriptClockTo(tMs)
 
       // Drain script events whose virtual tMs has elapsed by this frame's tMs and dispatch each
@@ -206,14 +204,14 @@ class AndroidRecordingSession(
         if (e.kind == RecordingScriptDataExtensions.ASSERT_PIXELS_EVENT) {
           // Render + freeze the frame *now*, at this assertion's position in the drain (after the
           // events before it, before the ones after it) — the same "before later same-bucket
-          // events" snapshot the desktop session takes. The advance is charged to the bucket once
-          // (above); a later same-bucket event then dispatches against the already-advanced clock
-          // and shows up in the final written frame, not in this frozen snapshot.
+          // events" snapshot the desktop session takes. The snapshot advances only to the
+          // assertion's own `tMs`, not to the bucket's end: a later same-bucket input still lands
+          // at its own script time, and the written-frame render advances the rest.
           val snapshotSrc =
             interactive
               .render(
                 requestId = RenderHost.nextRequestId(),
-                advanceTimeMs = advanceForThisBucket(),
+                advanceTimeMs = advanceScriptClockTo(e.tMs),
               )
               .artifact
               .pathOrNull()

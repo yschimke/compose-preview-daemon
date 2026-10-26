@@ -120,6 +120,41 @@ class AndroidRecordingSessionTest {
   }
 
   /**
+   * Issue #399 — an `assert.pixels` early in a frame bucket snapshots at its own `tMs`. Advancing
+   * it to the bucket's end ran the clock past the inputs that follow it in the bucket, so they all
+   * dispatched at once with no spacing.
+   */
+  @Test
+  fun pixelAssertionEarlyInABucketKeepsLaterInputTiming() {
+    val interactive = TimelineDeltaSession(blankSourcePng("timeline-assert"))
+    val session =
+      AndroidRecordingSession(
+        previewId = INTERACTIVE_PREVIEW_ID,
+        recordingId = "test-rec-timeline-assert",
+        fps = FPS,
+        scale = 1.0f,
+        interactive = interactive,
+        framesDir = tempFolder.newFolder("timeline-assert-frames"),
+        encodedDir = tempFolder.newFolder("timeline-assert-encoded"),
+      )
+
+    session.postScript(
+      listOf(
+        RecordingScriptEvent(tMs = 1L, kind = "assert.pixels"),
+        RecordingScriptEvent(tMs = 10L, kind = "input.pointerDown", pixelX = 4, pixelY = 60),
+        RecordingScriptEvent(tMs = 20L, kind = "input.pointerMove", pixelX = 4, pixelY = 30),
+        RecordingScriptEvent(tMs = 30L, kind = "input.pointerUp", pixelX = 4, pixelY = 4),
+      )
+    )
+    session.stop()
+
+    // Frames at 0 and 33 ms. The snapshot at 1 ms advances 1; the inputs land at 10, 20 and 30;
+    // the written frame advances the last 3.
+    assertEquals(listOf(9L, 10L, 10L), interactive.timelineAdvances)
+    assertEquals(listOf(0L, 1L, 3L), interactive.renderAdvances)
+  }
+
+  /**
    * Issue #399 — a gesture that takes time itself (a click holds its press for 100 ms) reports how
    * far it moved the clock, and the frames it overran advance by 0 instead of running the timeline
    * ahead of the script.

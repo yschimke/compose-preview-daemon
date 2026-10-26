@@ -25,8 +25,9 @@ import ee.schimke.composeai.daemon.protocol.SemanticsInputTarget
  * `input.pointerMove`s, `input.pointerUp` — becomes one `performTouchInput { down(…); moveTo(…); …;
  * up() }` block, with the gaps between the recorded events kept as event time so a swipe's velocity
  * survives. Recorded pixel coordinates are root-relative, so a pixel gesture runs on `onRoot()`;
- * one recorded against a semantic target runs on that node at its centre. Mouse gestures and key
- * events are still left as comments.
+ * one recorded against a single semantic target runs on that node at its centre. A gesture that
+ * moves between targets, or mixes targets and pixels, is left as a comment rather than replayed as
+ * a different interaction, as are mouse gestures and key events.
  *
  * Steps are built from what the recording **actually did**: a [Step] whose `applied` is false (the
  * daemon reported `unsupported` script evidence — e.g. a target that matched no node) is emitted as
@@ -177,30 +178,79 @@ public object RecordingTestGenerator {
     // The previous probe's snapshot — diffed against the next probe to detect appeared/disappeared
     // nodes. Null until the first probe with a snapshot is seen.
     var previousProbe: List<RecordingProbeNode>? = null
+    val gestures = touchGestures(sortedSteps)
     var index = 0
     while (index < sortedSteps.size) {
-      val step = sortedSteps[index]
-      if (isGeneratedTouchStep(step)) {
-        // A run of touch events up to and including the next `pointerUp` is one gesture.
+      val gesture = gestures[index]
+      if (gesture != null) {
+        // Consecutive events of one gesture share a `performTouchInput` block. A step in between
+        // (a probe, say) splits the block, but not the gesture: its timing and pointer position
+        // carry over to the block that continues it.
         var end = index
-        while (
-          end + 1 < sortedSteps.size &&
-            sortedSteps[end].event.kind != POINTER_UP &&
-            isGeneratedTouchStep(sortedSteps[end + 1]) &&
-            sortedSteps[end + 1].event.kind != POINTER_DOWN
-        ) {
-          end++
-        }
-        appendTouchGesture(sortedSteps.subList(index, end + 1).map { it.event }, usage)
+        while (end + 1 < sortedSteps.size && gestures[end + 1] === gesture) end++
+        appendTouchGesture(sortedSteps.subList(index, end + 1).map { it.event }, gesture, usage)
         index = end + 1
         continue
       }
+      val step = sortedSteps[index]
       appendStep(step, previousProbe, usage)
       if (step.event.kind == "recording.probe" && step.probeSemantics != null) {
         previousProbe = step.probeSemantics
       }
       index++
     }
+  }
+
+  /**
+   * One recorded touch gesture: from a `pointerDown` (or the first stray touch event) to its
+   * `pointerUp`, possibly interrupted by other steps. [selector] is the node it runs on —
+   * `onRoot()` for a pixel gesture — or null when it cannot be replayed faithfully. [lastTMs] /
+   * [lastPosition] carry the pointer's state from one emitted block to the next.
+   */
+  private class TouchGesture(val selector: String?, val pixels: Boolean) {
+    var lastTMs: Long? = null
+    var lastPosition: String? = null
+  }
+
+  /** Assign each generated touch step its [TouchGesture]; null for every other step. */
+  private fun touchGestures(sortedSteps: List<Step>): List<TouchGesture?> {
+    val memberIndexes = mutableListOf<MutableList<Int>>()
+    var open: MutableList<Int>? = null
+    sortedSteps.forEachIndexed { i, step ->
+      if (!isGeneratedTouchStep(step)) return@forEachIndexed
+      if (open == null || step.event.kind == POINTER_DOWN) {
+        open = mutableListOf<Int>().also(memberIndexes::add)
+      }
+      open!!.add(i)
+      if (step.event.kind == POINTER_UP) open = null
+    }
+    val result = arrayOfNulls<TouchGesture>(sortedSteps.size)
+    for (members in memberIndexes) {
+      val events = members.map { sortedSteps[it].event }
+      val gesture =
+        TouchGesture(selector = gestureSelector(events), pixels = events.all(::hasPixels))
+      members.forEach { result[it] = gesture }
+    }
+    return result.toList()
+  }
+
+  private fun hasPixels(event: RecordingScriptEvent): Boolean =
+    event.pixelX != null && event.pixelY != null
+
+  /**
+   * Where a gesture can be replayed. Recorded pixels are root-relative, so a gesture whose every
+   * event has them runs on `onRoot()`. A gesture recorded against a semantic target runs at that
+   * node's centre — but only when every event names the same node: the daemon resolved each event
+   * against its own target, so one that moves between nodes (or mixes nodes and pixels) is a path
+   * across the screen that a single node's `center` cannot reproduce. Null leaves it to be replayed
+   * by hand rather than generating a different interaction.
+   */
+  private fun gestureSelector(events: List<RecordingScriptEvent>): String? {
+    if (events.all(::hasPixels)) return "onRoot()"
+    if (events.any(::hasPixels)) return null
+    val selectors = events.map { nodeSelector(it.target) }
+    val first = selectors.first() ?: return null
+    return first.takeIf { selectors.all { it == first } }
   }
 
   /**
@@ -213,67 +263,46 @@ public object RecordingTestGenerator {
       step.event.pointerType?.trim()?.lowercase() != "mouse"
 
   /**
-   * One `performTouchInput { … }` block for a recorded touch gesture. Pixel coordinates are
-   * root-relative, so a gesture with any of them runs on `onRoot()`; one recorded only against a
-   * semantic target runs on that node, at its centre. The recorded gaps become event time
-   * (`moveTo(…, delayMillis = gap)` / `advanceEventTime(gap)`), the same spacing the daemon
-   * dispatched them at (issue #399), so `VelocityTracker` sees the recorded swipe.
+   * One `performTouchInput { … }` block for (part of) a recorded touch [gesture]. The recorded gaps
+   * become event time (`moveTo(…, delayMillis = gap)` / `advanceEventTime(gap)`), the same spacing
+   * the daemon dispatched them at (issue #399), so `VelocityTracker` sees the recorded swipe — and
+   * a hold that a probe interrupted keeps its length.
    */
   private fun StringBuilder.appendTouchGesture(
     events: List<RecordingScriptEvent>,
+    gesture: TouchGesture,
     usage: GestureUsage,
   ) {
-    val hasPixels = events.any { it.pixelX != null && it.pixelY != null }
-    val selector =
-      if (hasPixels) "onRoot()" else events.firstNotNullOfOrNull { nodeSelector(it.target) }
+    val selector = gesture.selector
     if (selector == null) {
       events.forEach {
         appendLine(
-          "    // ${it.kind} ${describeTarget(it)} — no coordinates or testTag/text target " +
-            "recorded; drive it by hand"
+          "    // ${it.kind} ${describeTarget(it)} — gesture has no single node or full pixel " +
+            "path to replay; drive it by hand"
         )
       }
       return
     }
     usage.touch = true
-    if (hasPixels) usage.root = true
+    if (gesture.pixels) usage.root = true
     appendLine("    composeTestRule.$selector.performTouchInput {")
-    var previousTMs: Long? = null
-    var lastPosition: String? = null
     for (event in events) {
-      val gap = previousTMs?.let { (event.tMs - it).coerceAtLeast(0L) } ?: 0L
-      previousTMs = event.tMs
+      val gap = gesture.lastTMs?.let { (event.tMs - it).coerceAtLeast(0L) } ?: 0L
+      gesture.lastTMs = event.tMs
       val position =
-        if (hasPixels) {
-          val x = event.pixelX
-          val y = event.pixelY
-          if (x != null && y != null) {
-            usage.offset = true
-            "Offset(${x}f, ${y}f)"
-          } else null
+        if (gesture.pixels) {
+          usage.offset = true
+          "Offset(${event.pixelX}f, ${event.pixelY}f)"
         } else "center"
       when (event.kind) {
         POINTER_DOWN -> {
-          if (position == null) {
-            appendLine("      // ${event.kind} — no coordinates recorded; drive it by hand")
-            continue
-          }
           if (gap > 0L) appendLine("      advanceEventTime($gap)")
           appendLine("      down($position)")
-          lastPosition = position
         }
-        POINTER_MOVE -> {
-          if (position == null) {
-            appendLine("      // ${event.kind} — no coordinates recorded; drive it by hand")
-            continue
-          }
-          appendLine("      moveTo($position, delayMillis = $gap)")
-          lastPosition = position
-        }
+        POINTER_MOVE -> appendLine("      moveTo($position, delayMillis = $gap)")
         POINTER_UP -> {
-          // Like the daemon, release where the event says, moving there first only if needed. A
-          // targeted gesture stays on its node's centre, so its release never moves.
-          if (position != null && position != "center" && position != lastPosition) {
+          // Like the daemon, release where the event says, moving there first only if needed.
+          if (position != gesture.lastPosition && gesture.lastPosition != null) {
             appendLine("      moveTo($position, delayMillis = $gap)")
           } else if (gap > 0L) {
             appendLine("      advanceEventTime($gap)")
@@ -281,6 +310,7 @@ public object RecordingTestGenerator {
           appendLine("      up()")
         }
       }
+      gesture.lastPosition = position
     }
     appendLine("    }")
   }
