@@ -527,6 +527,15 @@ sealed interface InteractiveCommand {
      * `null` keeps the pre-existing resolution (bundle IR, else the preview class) byte-for-byte.
      */
     val carriedRemoteComposeJson: String? = null,
+    /**
+     * `spec.wearWidget?.slotFor(spec.device)` as primitives (#402): the Wear widget carousel slot
+     * the held composition draws the preview inside, centred on the frame, exactly as the one-shot
+     * render does. All null — every preview but a Wear widget on a watch device — composes the
+     * preview unframed. Primitives for the same do-not-acquire bridge reason as the fields above.
+     */
+    val wearWidgetSlotWidthDp: Float? = null,
+    val wearWidgetSlotHeightDp: Float? = null,
+    val wearWidgetSlotCornerRadiusDp: Float? = null,
   ) : InteractiveCommand
 
   /**

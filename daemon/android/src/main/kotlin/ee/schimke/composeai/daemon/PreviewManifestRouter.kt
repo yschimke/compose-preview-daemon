@@ -220,6 +220,26 @@ internal fun PreviewManifestEntry.renderSpec(): RenderSpec {
     gutterTopDp = resolved.captureGutter.top,
     gutterEndDp = resolved.captureGutter.end,
     gutterBottomDp = resolved.captureGutter.bottom,
+    wearWidget = wearWidget(),
+  )
+}
+
+/**
+ * The Wear widget marker for this entry (#402), or null for every other preview. Built from the
+ * entry-level `widget` object discovery writes (`{"host": "wear", "profile": "wear-widgets"}`) plus
+ * the glance-wear provider the preview binds, which names the slot's shape and container. Only a
+ * Compose preview qualifies: a tile or Glance app widget has its own frame.
+ */
+internal fun PreviewManifestEntry.wearWidget(): WearWidgetSpec? {
+  val widget = widget ?: return null
+  if (widget.host != WearWidgetSpec.HOST_WEAR) return null
+  val resolved = resolved()
+  if (resolved.kind != null && resolved.kind != "COMPOSE") return null
+  return WearWidgetSpec.fromProvider(
+    providerClassName = resolved.previewParameterProviderClassName,
+    slotWidthDp = widget.slotWidthDp,
+    slotHeightDp = widget.slotHeightDp,
+    slotCornerRadiusDp = widget.slotCornerRadiusDp,
   )
 }
 
@@ -298,6 +318,12 @@ data class PreviewManifestEntry(
    * the raw keys is what lets a capture field this daemon does not know yet fall back safely.
    */
   val captures: List<JsonObject> = emptyList(),
+  /**
+   * Discovery's `PreviewInfo.widget` — what kind of widget this preview draws, if any. Read for
+   * [wearWidget]; `host` is a plain string so a host value this daemon does not know yet is simply
+   * not a Wear widget rather than a manifest that fails to decode.
+   */
+  val widget: PreviewWidgetEntry? = null,
 ) {
   fun resolved(): ResolvedRenderParams {
     val p = params
@@ -499,6 +525,21 @@ data class PreviewParamsEntry(
    * the same dp the batch lane does.
    */
   val captureGutter: CaptureGutterDto? = null,
+)
+
+/**
+ * Mirror of compose-ai-tools' `discovery.PreviewWidget`: `{"host": "wear" | "launcher", "profile":
+ * …}`. The `slot*` fields are optional additions a discovery that knows the widget's
+ * `WearWidgetParams` may write; absent, the slot is derived from the provider and the device (see
+ * [WearWidgetSpec.slotFor]). Every field is optional so an older or newer writer decodes.
+ */
+@Serializable
+data class PreviewWidgetEntry(
+  val host: String? = null,
+  val profile: String? = null,
+  val slotWidthDp: Float? = null,
+  val slotHeightDp: Float? = null,
+  val slotCornerRadiusDp: Float? = null,
 )
 
 /**

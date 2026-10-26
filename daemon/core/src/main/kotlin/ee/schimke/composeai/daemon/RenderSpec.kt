@@ -138,6 +138,12 @@ public data class RenderSpec(
    * ([PostCaptureGate.ON_DEMAND_KINDS]) runs only when its kind is here. `null` runs them all.
    */
   val requestedDataKinds: Set<String>? = null,
+  /**
+   * Non-null when the preview draws a Wear widget (#402). Inert on its own: only when the spec's
+   * [device] is a watch does the Android renderer draw the preview inside
+   * [WearWidgetSpec.slotFor]'s slot, centred on the frame, instead of across the whole screen.
+   */
+  val wearWidget: WearWidgetSpec? = null,
 ) {
 
   /** True when any edge carries a gutter; otherwise the render takes the gutter-free path. */

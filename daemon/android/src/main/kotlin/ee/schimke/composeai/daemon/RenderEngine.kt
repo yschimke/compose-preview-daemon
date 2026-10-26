@@ -741,26 +741,31 @@ class RenderEngine(
                             heightDp = pxToDp(spec.heightPx, spec.density),
                           )
                         } else {
-                          InvokeWithOptionalWrapper(
-                            composableMethod = composableMethod!!,
-                            wrapperFqnFromSpec = spec.wrapperClassName,
-                            // A `themeProvider` override (an app-declared @ThemeCatalog
-                            // `PreviewWrapperProvider` FQN) replaces the preview's own
-                            // `@PreviewWrapper` — "render this preview under theme X" — but only
-                            // when
-                            // it resolves; a stale/misspelled FQN falls back to the declared
-                            // wrapper.
-                            themeProviderFqn = spec.overrides?.themeProvider,
-                            previewArgs = previewArgs,
-                            // The preview's parameter knobs, as the declarations a viewer draws
-                            // its controls from — the one-shot render, which is the lane a
-                            // `data/fetch?kind=compose/overrides` reads after.
-                            knobDeclarations =
-                              PreviewKnobDeclarations.of(
-                                spec.knobs,
-                                spec.overrides?.namedOverrides,
-                              ),
-                          )
+                          // A Wear widget forced onto a watch device sits in its carousel slot,
+                          // not across the screen (#402). Null slot — no marker, or no watch
+                          // device — composes the preview exactly as before.
+                          WearWidgetSlotFrame(spec.wearWidget?.slotFor(spec.device)) {
+                            InvokeWithOptionalWrapper(
+                              composableMethod = composableMethod!!,
+                              wrapperFqnFromSpec = spec.wrapperClassName,
+                              // A `themeProvider` override (an app-declared @ThemeCatalog
+                              // `PreviewWrapperProvider` FQN) replaces the preview's own
+                              // `@PreviewWrapper` — "render this preview under theme X" — but only
+                              // when
+                              // it resolves; a stale/misspelled FQN falls back to the declared
+                              // wrapper.
+                              themeProviderFqn = spec.overrides?.themeProvider,
+                              previewArgs = previewArgs,
+                              // The preview's parameter knobs, as the declarations a viewer draws
+                              // its controls from — the one-shot render, which is the lane a
+                              // `data/fetch?kind=compose/overrides` reads after.
+                              knobDeclarations =
+                                PreviewKnobDeclarations.of(
+                                  spec.knobs,
+                                  spec.overrides?.namedOverrides,
+                                ),
+                            )
+                          }
                         }
                       }
                     }

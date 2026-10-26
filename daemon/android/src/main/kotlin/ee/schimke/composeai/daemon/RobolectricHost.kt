@@ -1836,6 +1836,7 @@ open class RobolectricHost(
     val slot = DaemonHostBridge.slot(INTERACTIVE_SLOT_INDEX)
     val replyLatch = CountDownLatch(1)
     val replyError = AtomicReference<Throwable?>(null)
+    val wearWidgetSlot = spec.wearWidget?.slotFor(spec.device)
     slot.interactiveCommands.put(
       InteractiveCommand.Start(
         streamId = streamId,
@@ -1918,6 +1919,10 @@ open class RobolectricHost(
         // A carried Remote Compose document replaces the preview's content in the held session
         // exactly as it does in the one-shot render (`RenderEngine.render`). Validated above.
         carriedRemoteComposeJson = HeldRemoteCompose.encode(spec.overrides?.remoteCompose),
+        // A Wear widget on a watch device sits in its carousel slot in Live too (#402).
+        wearWidgetSlotWidthDp = wearWidgetSlot?.widthDp,
+        wearWidgetSlotHeightDp = wearWidgetSlot?.heightDp,
+        wearWidgetSlotCornerRadiusDp = wearWidgetSlot?.cornerRadiusDp,
       )
     )
     if (!replyLatch.await(INTERACTIVE_START_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
@@ -3541,12 +3546,14 @@ open class RobolectricHost(
                               // composition locals (for example app-owned SharedTransition
                               // scopes),
                               // and a selected theme provider replaces it on the same terms.
-                              InvokeWithOptionalWrapper(
-                                composableMethod = composableMethod!!,
-                                wrapperFqnFromSpec = start.wrapperClassName,
-                                themeProviderFqn = start.themeProviderFqn,
-                                previewArgs = previewArgs,
-                              )
+                              WearWidgetSlotFrame(start.wearWidgetSlot()) {
+                                InvokeWithOptionalWrapper(
+                                  composableMethod = composableMethod!!,
+                                  wrapperFqnFromSpec = start.wrapperClassName,
+                                  themeProviderFqn = start.themeProviderFqn,
+                                  previewArgs = previewArgs,
+                                )
+                              }
                             }
                           }
                         }
