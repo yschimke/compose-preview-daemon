@@ -2,6 +2,7 @@ package ee.schimke.composeai.daemon
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import ee.schimke.composeai.daemon.protocol.DataExtensionId
 import ee.schimke.composeai.daemon.protocol.DataFetchResult
@@ -40,7 +41,11 @@ typealias WallpaperPayload = ee.schimke.composeai.data.wallpaper.WallpaperPayloa
  * when both are present the wallpaper extension runs first so an explicit `material3Theme` override
  * still wins for any role the caller pinned.
  */
-class WallpaperOverrideExtension(private val override: WallpaperOverride?) :
+class WallpaperOverrideExtension
+internal constructor(
+  private val override: WallpaperOverride?,
+  private val material3Available: () -> Boolean,
+) :
   AroundComposableExtension(
     id = ID,
     constraints =
@@ -49,12 +54,51 @@ class WallpaperOverrideExtension(private val override: WallpaperOverride?) :
         provides = setOf(DataExtensionCapability(WallpaperDataProductRegistry.KIND)),
       ),
   ) {
+  constructor(
+    override: WallpaperOverride?
+  ) : this(override, { isMaterial3Loadable(WallpaperOverrideExtension::class.java.classLoader) })
+
   @Composable
   override fun AroundComposable(content: @Composable () -> Unit) {
-    if (override == null) {
+    // A Wear-only app has no `androidx.compose.material3` at all (it themes with
+    // `androidx.wear.compose.material3`), and Compose is consumer-supplied on the Android daemon,
+    // so the Material 3 wrap below would fail the whole render with `NoClassDefFoundError`. Skip
+    // only that wrap; the platform half of the override (system dynamic colours, the Wear
+    // `MaterialTheme`) is planned separately on Android and still applies.
+    //
+    // Probed against this class's own loader, not the preview's: the M3 references below link
+    // through the loader that defined this class, so that is the one that must resolve them.
+    val available = remember { material3Available() }
+    if (override == null || !available) {
       content()
       return
     }
+    Material3WallpaperTheme.Apply(override, content)
+  }
+
+  companion object {
+    val ID: DataExtensionId = DataExtensionId(WallpaperDataProductRegistry.KIND)
+  }
+}
+
+/**
+ * Whether `androidx.compose.material3` resolves from [loader]. Uninitialised lookup, so the answer
+ * costs no static initialiser; mirrors the daemon's `material3OnClasspath` /
+ * `wearMaterial3OnClasspath` probes.
+ */
+internal fun isMaterial3Loadable(loader: ClassLoader?): Boolean = runCatching {
+  Class.forName("androidx.compose.material3.MaterialTheme", false, loader)
+}
+  .isSuccess
+
+/**
+ * Every `androidx.compose.material3` reference of the wallpaper wrap, kept out of
+ * [WallpaperOverrideExtension] so that class links on a classpath without Material 3; this object
+ * is only loaded once the gate has said Material 3 is there.
+ */
+private object Material3WallpaperTheme {
+  @Composable
+  fun Apply(override: WallpaperOverride, content: @Composable () -> Unit) {
     val seed = ComposeColorSpec.resolve(override.seedColor)
     val isDark = override.isDark ?: isMaterialThemeDark()
     val scheme =
@@ -82,10 +126,6 @@ class WallpaperOverrideExtension(private val override: WallpaperOverride?) :
     val surface = MaterialTheme.colorScheme.surface
     val luminance = (surface.red + surface.green + surface.blue) / 3f
     return luminance < 0.5f
-  }
-
-  companion object {
-    val ID: DataExtensionId = DataExtensionId(WallpaperDataProductRegistry.KIND)
   }
 }
 
