@@ -2541,6 +2541,12 @@ open class RobolectricHost(
               gestureOverrides +
               listOf(
                 WallpaperPreviewOverrideExtension(),
+                // The platform half of `overrides.wallpaper` (#400): serves the seed's
+                // `android.R.color.system_*` dynamic colours through a wrapped `LocalContext`, so
+                // `dynamic*ColorScheme(context)` (Material 3 and Wear Material 3) follow it, and
+                // wraps a Wear Material 3 preview in Wear's `MaterialTheme`. Plans null without
+                // a wallpaper override, so a plain render is untouched.
+                WallpaperSystemColorsPreviewOverrideExtension(),
                 Material3ThemePreviewOverrideExtension(),
                 FocusPreviewOverrideExtension(),
                 // Soft-keyboard (IME) overlay. The planner always emits a

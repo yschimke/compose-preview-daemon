@@ -51,3 +51,14 @@ public final class ee/schimke/composeai/daemon/WallpaperPreviewOverrideExtension
 	public synthetic fun plan (Ljava/lang/Object;)Lee/schimke/composeai/data/render/extensions/PlannedDataExtension;
 }
 
+public final class ee/schimke/composeai/daemon/WallpaperSystemColors {
+	public static final field $stable I
+	public static final field INSTANCE Lee/schimke/composeai/daemon/WallpaperSystemColors;
+	public final fun from (Lee/schimke/composeai/daemon/protocol/WallpaperOverride;)Ljava/util/Map;
+	public final fun from-ek8zF_U (JLee/schimke/composeai/daemon/protocol/WallpaperPaletteStyle;D)Ljava/util/Map;
+	public static synthetic fun from-ek8zF_U$default (Lee/schimke/composeai/daemon/WallpaperSystemColors;JLee/schimke/composeai/daemon/protocol/WallpaperPaletteStyle;DILjava/lang/Object;)Ljava/util/Map;
+	public final fun getPALETTE_NAMES ()Ljava/util/List;
+	public final fun getPALETTE_SHADES ()Ljava/util/List;
+	public final fun toneForShade (I)I
+}
+
