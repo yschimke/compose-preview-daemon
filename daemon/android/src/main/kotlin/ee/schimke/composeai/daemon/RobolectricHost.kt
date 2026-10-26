@@ -3591,7 +3591,17 @@ open class RobolectricHost(
               val cmd = slot.interactiveCommands.take()
               when (cmd) {
                 is InteractiveCommand.Dispatch -> {
+                  // #399 — a scripted recording stamps each event at its own script time: advance
+                  // to it first, and report back how far the clock moved in total.
+                  val timelineAdvanceMs = cmd.timelineAdvanceMs
+                  val clockBeforeDispatch = rule.mainClock.currentTime
+                  // Realigning to the looper clock is not time the gesture took, so the timeline
+                  // is not charged for it.
+                  var alignJumpMs = 0L
                   try {
+                    if (timelineAdvanceMs != null) {
+                      advanceHeldClocks(rule, timelineAdvanceMs)
+                    }
                     // #1784 — a semantic target resolves to a node centre here, sandbox-side, where
                     // the live semantics tree lives. Pixel/key dispatch resolves to the wire
                     // coords.
@@ -3606,33 +3616,25 @@ open class RobolectricHost(
                           backend = "android-live",
                         )
                       inputTrace.section("interactive:dispatch") {
-                        dispatchHeldMotion(
-                          rule = rule,
-                          cmd = cmd,
-                          position = position,
-                          glimmerInputProfile = glimmerInputProfile,
-                          enterGlimmerGazeMode = {
-                            glimmerGazeActive.set(true)
-                            rule.runOnUiThread {
-                              glimmerInputModeManager.requestInputMode(
-                                androidx.compose.ui.input.InputMode.Keyboard
-                              )
-                              androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
-                            }
-                            rule.waitForIdle()
-                          },
-                          leaveGlimmerGazeMode = {
-                            glimmerGazeActive.set(false)
-                            rule.runOnUiThread {
-                              glimmerInputModeManager.requestInputMode(
-                                androidx.compose.ui.input.InputMode.Touch
-                              )
-                              glimmerClearFocusGeneration.intValue++
-                              androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
-                            }
-                          },
-                          finishGlimmerClick = {
-                            if (!glimmerGazeActive.get()) {
+                        alignJumpMs =
+                          dispatchHeldMotion(
+                            rule = rule,
+                            cmd = cmd,
+                            position = position,
+                            glimmerInputProfile = glimmerInputProfile,
+                            timeline = timelineAdvanceMs != null,
+                            enterGlimmerGazeMode = {
+                              glimmerGazeActive.set(true)
+                              rule.runOnUiThread {
+                                glimmerInputModeManager.requestInputMode(
+                                  androidx.compose.ui.input.InputMode.Keyboard
+                                )
+                                androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
+                              }
+                              rule.waitForIdle()
+                            },
+                            leaveGlimmerGazeMode = {
+                              glimmerGazeActive.set(false)
                               rule.runOnUiThread {
                                 glimmerInputModeManager.requestInputMode(
                                   androidx.compose.ui.input.InputMode.Touch
@@ -3640,18 +3642,36 @@ open class RobolectricHost(
                                 glimmerClearFocusGeneration.intValue++
                                 androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
                               }
-                            }
-                          },
-                        )
+                            },
+                            finishGlimmerClick = {
+                              if (!glimmerGazeActive.get()) {
+                                rule.runOnUiThread {
+                                  glimmerInputModeManager.requestInputMode(
+                                    androidx.compose.ui.input.InputMode.Touch
+                                  )
+                                  glimmerClearFocusGeneration.intValue++
+                                  androidx.compose.runtime.snapshots.Snapshot
+                                    .sendApplyNotifications()
+                                }
+                              }
+                            },
+                          )
                       }
-                      inputTrace.section("compose:advanceClock") {
-                        advanceHeldClocks(rule, postDispatchAdvanceMs(cmd.kind))
+                      // The interactive settle exists so a live client sees the press land; a
+                      // scripted timeline advances to its next frame itself (#399).
+                      if (timelineAdvanceMs == null) {
+                        inputTrace.section("compose:advanceClock") {
+                          advanceHeldClocks(rule, postDispatchAdvanceMs(cmd.kind))
+                        }
                       }
                       dataDir?.let(inputTrace::write)
                     }
                   } catch (t: Throwable) {
                     cmd.replyError.set(t)
                   } finally {
+                    cmd.replyClockAdvancedMs?.set(
+                      rule.mainClock.currentTime - clockBeforeDispatch - alignJumpMs
+                    )
                     cmd.replyLatch.countDown()
                   }
                 }
@@ -4373,6 +4393,12 @@ open class RobolectricHost(
      * session that is closer to right than the alternative: a live preview is supposed to be
      * running the app's timers, and before this the held composition simply never ran them at all.
      *
+     * **Exact, not rounded** (#399). `mainClock.advanceTimeBy` rounds a duration up to a whole
+     * frame, so a step shorter than [HELD_CLOCK_STEP_MS] moved `mainClock` a full 16 ms while the
+     * looper moved the requested amount: a 33 ms recording frame advanced the animation clock 48
+     * ms, and a 3 ms remainder before an input pushed that input 13 ms late. The sub-frame tail now
+     * advances with `ignoreFrameDuration`, so both clocks move by exactly [totalMs].
+     *
      * Non-positive [totalMs] passes straight through to `mainClock` untouched — recording's frame 0
      * legitimately asks for `advanceTimeMs = 0`, and there is no time there to idle.
      */
@@ -4392,7 +4418,7 @@ open class RobolectricHost(
       var remaining = totalMs
       while (remaining > 0L) {
         val step = minOf(remaining, HELD_CLOCK_STEP_MS)
-        rule.mainClock.advanceTimeBy(step)
+        rule.mainClock.advanceTimeBy(step, ignoreFrameDuration = step < HELD_CLOCK_STEP_MS)
         looper.idleFor(java.time.Duration.ofMillis(step))
         remaining -= step
       }
@@ -4435,9 +4461,10 @@ open class RobolectricHost(
           *,
           androidx.activity.ComponentActivity,
         >
-    ) {
+    ): Long {
       val lag = android.os.SystemClock.uptimeMillis() - rule.mainClock.currentTime
       if (lag > 0L) rule.mainClock.advanceTimeBy(lag, ignoreFrameDuration = true)
+      return lag.coerceAtLeast(0L)
     }
 
     /**
@@ -4461,25 +4488,37 @@ open class RobolectricHost(
       cmd: InteractiveCommand.Dispatch,
       position: Offset,
       glimmerInputProfile: Boolean = false,
+      /**
+       * #399 — the event is driven by a scripted recording's timeline, which has already put the
+       * clocks at the event's script time. Moves are injected with no extra delay and rotary input
+       * does not advance the clock, so consecutive events keep their scripted spacing.
+       */
+      timeline: Boolean = false,
       enterGlimmerGazeMode: () -> Unit = {},
       leaveGlimmerGazeMode: () -> Unit = {},
       finishGlimmerClick: () -> Unit = {},
-    ) {
+    ): Long {
       // A pointer move is the held-session analogue of gaze for Glimmer: focus the smallest
       // focusable under the cursor without synthesising any press. Touch/mobile keeps the ordinary
       // pointer stream below.
       if (glimmerInputProfile && cmd.kind == "pointerMove") {
         enterGlimmerGazeMode()
         if (!performRequestFocusAt(rule, position)) leaveGlimmerGazeMode()
-        return
+        return 0L
       }
       // Issue #3491 — a mouse drag and a finger drag are different gestures to Compose, and only
       // the mouse one drags out a text selection. The wire now says which device it was; absent
       // (every pre-#3491 client) still means touch.
       val mouse = cmd.pointerType?.trim()?.lowercase() == "mouse"
       // Every event below is stamped from `mainClock`; a platform `View` reads it against
-      // `SystemClock`. Line the two up first — see [alignHeldInputClock].
-      alignHeldInputClock(rule)
+      // `SystemClock`. Line the two up first — see [alignHeldInputClock]. On a scripted timeline
+      // (#399) only a gesture's first event realigns: Robolectric's looper clock creeps ahead of
+      // `mainClock` by tens of milliseconds over every idle, and realigning before each move added
+      // that creep to every gap, so a 10 ms-per-move swipe reached `VelocityTracker` at 40 ms per
+      // move — past the gap at which it decides the pointer had stopped.
+      val alignJumpMs =
+        if (timeline && (cmd.kind == "pointerMove" || cmd.kind == "pointerUp")) 0L
+        else alignHeldInputClock(rule)
       when (cmd.kind) {
         // A click is injected as a real press and release, never as the node's `OnClick` semantics
         // action. The action invokes the handler lambda and NOTHING else: no `PressInteraction`
@@ -4526,18 +4565,32 @@ open class RobolectricHost(
           } else heldSurfaceRoot(rule).performTouchInput { down(position) }
         }
         "pointerMove" -> {
-          if (mouse) heldSurfaceRoot(rule).performMouseInput { moveTo(position) }
-          else heldSurfaceRoot(rule).performTouchInput { moveTo(position) }
+          if (mouse) {
+            heldSurfaceRoot(rule).performMouseInput {
+              moveTo(position, delayMillis = if (timeline) 0L else eventPeriodMillis)
+            }
+          } else {
+            heldSurfaceRoot(rule).performTouchInput {
+              moveTo(position, delayMillis = if (timeline) 0L else eventPeriodMillis)
+            }
+          }
         }
+        // #399 — move to the release point only when the pointer is not already there. The
+        // unconditional `moveTo` injected a stationary sample right before the release, which
+        // `VelocityTracker` reads as the pointer having stopped: a fast swipe lost its fling.
         "pointerUp" -> {
           if (mouse) {
             heldSurfaceRoot(rule).performMouseInput {
-              moveTo(position)
+              if (currentPosition != position) {
+                moveTo(position, delayMillis = if (timeline) 0L else eventPeriodMillis)
+              }
               release()
             }
           } else {
             heldSurfaceRoot(rule).performTouchInput {
-              moveTo(position)
+              if (currentPosition() != position) {
+                moveTo(position, delayMillis = if (timeline) 0L else eventPeriodMillis)
+              }
               up()
             }
           }
@@ -4545,8 +4598,8 @@ open class RobolectricHost(
         "rotaryScroll" -> {
           val delta = cmd.scrollDeltaY ?: 0f
           if (delta != 0f) {
-            performRequestFocusAt(rule, position)
-            dispatchRotaryScroll(rule, position, delta)
+            performRequestFocusAt(rule, position, advanceClock = !timeline)
+            dispatchRotaryScroll(rule, position, delta, advanceClock = !timeline)
           }
         }
         "keyDown" -> {
@@ -4566,6 +4619,7 @@ open class RobolectricHost(
         }
       }
       if (glimmerInputProfile && cmd.kind == "click") finishGlimmerClick()
+      return alignJumpMs
     }
 
     /**
@@ -5019,6 +5073,7 @@ open class RobolectricHost(
           androidx.activity.ComponentActivity,
         >,
       position: Offset,
+      advanceClock: Boolean = true,
     ): Boolean {
       val focusables = rule.onAllNodes(hasRequestFocusAction(), useUnmergedTree = true)
       val nodes = focusables.fetchSemanticsNodes(atLeastOneRootRequired = false)
@@ -5029,7 +5084,7 @@ open class RobolectricHost(
           .minByOrNull { (_, node) -> node.boundsInRoot.width * node.boundsInRoot.height }
           ?: return false
       rule.runOnUiThread { target.value.config[SemanticsActions.RequestFocus].action?.invoke() }
-      advanceHeldClocks(rule, POINTER_MOVE_MS)
+      if (advanceClock) advanceHeldClocks(rule, POINTER_MOVE_MS)
       rule.waitForIdle()
       return true
     }
@@ -5042,8 +5097,17 @@ open class RobolectricHost(
         >,
       position: Offset,
       delta: Float,
+      advanceClock: Boolean = true,
     ) {
       val eventTime = rule.mainClock.currentTime
+      // #398 — `scrollDeltaY` is a pixel distance. Compose reads a rotary event back as
+      // `verticalScrollPixels = -AXIS_SCROLL * scaledVerticalScrollFactor`, so invert that here
+      // instead of sending a fixed ±1/3 notch whatever the requested distance was.
+      val scrollFactor =
+        android.view.ViewConfiguration.get(rule.activity).scaledVerticalScrollFactor
+      val axisScroll =
+        if (scrollFactor > 0f) -delta / scrollFactor
+        else if (delta > 0f) -ROTARY_SCROLL_STEP else ROTARY_SCROLL_STEP
       val ev =
         android.view.MotionEvent.obtain(
           /* downTime = */ 0L,
@@ -5060,10 +5124,7 @@ open class RobolectricHost(
             android.view.MotionEvent.PointerCoords().apply {
               x = position.x
               y = position.y
-              setAxisValue(
-                android.view.MotionEvent.AXIS_SCROLL,
-                if (delta > 0f) -ROTARY_SCROLL_STEP else ROTARY_SCROLL_STEP,
-              )
+              setAxisValue(android.view.MotionEvent.AXIS_SCROLL, axisScroll)
             }
           ),
           /* metaState = */ 0,
@@ -5080,7 +5141,7 @@ open class RobolectricHost(
       } finally {
         ev.recycle()
       }
-      advanceHeldClocks(rule, POINTER_MOVE_MS)
+      if (advanceClock) advanceHeldClocks(rule, POINTER_MOVE_MS)
       rule.waitForIdle()
     }
 
@@ -5154,6 +5215,10 @@ open class RobolectricHost(
 
       private const val POINTER_MOVE_MS: Long = 16L
 
+      /**
+       * `AXIS_SCROLL` sent for a rotary event when the view reports no scroll factor to convert
+       * `scrollDeltaY` pixels with (#398). Otherwise the axis value is scaled to the distance.
+       */
       private const val ROTARY_SCROLL_STEP: Float = 1f / 3f
 
       /**

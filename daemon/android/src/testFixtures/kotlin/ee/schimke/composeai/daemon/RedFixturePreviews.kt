@@ -1074,6 +1074,68 @@ fun RotaryToggleSquare() {
 }
 
 /**
+ * Issue #398 — accumulates `RotaryScrollEvent.verticalScrollPixels`, so a test can tell a rotary
+ * dispatch that honours `scrollDeltaY`'s magnitude from one that sends a fixed notch. Red below 100
+ * px, green from 100 px, blue from 600 px.
+ */
+@Composable
+fun RotaryDistanceSquare() {
+  var scrolledPx by
+    androidx.compose.runtime.remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
+  val requester = androidx.compose.runtime.remember { FocusRequester() }
+  LaunchedEffect(Unit) { requester.requestFocus() }
+  val color =
+    when {
+      scrolledPx >= 600f -> Color(0xFF42A5F5)
+      scrolledPx >= 100f -> Color(0xFF66BB6A)
+      else -> Color(0xFFEF5350)
+    }
+  Box(
+    modifier =
+      Modifier.fillMaxSize()
+        .onRotaryScrollEvent {
+          scrolledPx += it.verticalScrollPixels
+          true
+        }
+        .focusRequester(requester)
+        .focusable()
+        .background(color)
+  )
+}
+
+/**
+ * Issue #399 — measures the touch gesture it receives: how long it lasted between down and up, and
+ * the release velocity `VelocityTracker` computes from it. Green when the gesture lasted 30–60 ms
+ * and was moving up faster than 1000 px/s at release (a 40 ms scripted swipe of 80 px); red
+ * otherwise, which is what a recording that pads every event with a 100 ms settle produces.
+ */
+@Composable
+fun FlingTimingSquare() {
+  var flung by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+  val color = if (flung) Color(0xFF66BB6A) else Color(0xFFEF5350)
+  Box(
+    modifier =
+      Modifier.fillMaxSize().background(color).pointerInput(Unit) {
+        awaitPointerEventScope {
+          val down = awaitFirstDown()
+          val tracker = androidx.compose.ui.input.pointer.util.VelocityTracker()
+          tracker.addPosition(down.uptimeMillis, down.position)
+          while (true) {
+            val change = awaitPointerEvent().changes.first()
+            tracker.addPosition(change.uptimeMillis, change.position)
+            if (change.changedToUp()) {
+              val elapsedMs = change.uptimeMillis - down.uptimeMillis
+              val velocityY = tracker.calculateVelocity().y
+              flung = elapsedMs in 30L..60L && velocityY < -1000f
+              break
+            }
+          }
+        }
+      }
+  )
+}
+
+/**
  * Non-composable `@NotificationPreview`-shaped fixture: a top-level `fun(Context): Notification`
  * exactly like the ones the gradle plugin discovers and tags `kind = "NOTIFICATION"`. Used by
  * [AndroidInteractiveSessionTest.nonComposableNotificationKindRendersInHeldSessionInsteadOfErroring]

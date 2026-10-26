@@ -82,6 +82,146 @@ class AndroidRecordingSessionTest {
   }
 
   /**
+   * Issue #399 — a scripted recording places each input at its own `tMs` through
+   * [TimelineInputDispatcher] instead of the live-input dispatch (which settles 100 ms after every
+   * event): the clock moves to the event first, and the frame's render only advances what is left
+   * to the frame's time. A 30 ms swipe stays 30 ms long.
+   */
+  @Test
+  fun scriptedInputsAdvanceToTheirOwnScriptTime() {
+    val interactive = TimelineDeltaSession(blankSourcePng("timeline-swipe"))
+    val session =
+      AndroidRecordingSession(
+        previewId = INTERACTIVE_PREVIEW_ID,
+        recordingId = "test-rec-timeline-swipe",
+        fps = FPS,
+        scale = 1.0f,
+        interactive = interactive,
+        framesDir = tempFolder.newFolder("timeline-swipe-frames"),
+        encodedDir = tempFolder.newFolder("timeline-swipe-encoded"),
+      )
+
+    session.postScript(
+      listOf(
+        RecordingScriptEvent(tMs = 0L, kind = "input.pointerDown", pixelX = 4, pixelY = 60),
+        RecordingScriptEvent(tMs = 10L, kind = "input.pointerMove", pixelX = 4, pixelY = 40),
+        RecordingScriptEvent(tMs = 20L, kind = "input.pointerMove", pixelX = 4, pixelY = 20),
+        RecordingScriptEvent(tMs = 30L, kind = "input.pointerUp", pixelX = 4, pixelY = 4),
+      )
+    )
+    val result = session.stop()
+
+    // ceil(30 ms × 30 fps / 1000) + 1 = 2 frames, at 0 and 33 ms.
+    assertEquals(2, result.frameCount)
+    assertEquals(0, interactive.dispatchCount)
+    assertEquals(listOf(0L, 10L, 10L, 10L), interactive.timelineAdvances)
+    // Frame 1 is at 33 ms; the inputs already brought the clock to 30.
+    assertEquals(listOf(0L, 3L), interactive.renderAdvances)
+  }
+
+  /**
+   * Issue #399 — a gesture that takes time itself (a click holds its press for 100 ms) reports how
+   * far it moved the clock, and the frames it overran advance by 0 instead of running the timeline
+   * ahead of the script.
+   */
+  @Test
+  fun scriptedClickHoldIsChargedToTheTimeline() {
+    val interactive =
+      TimelineDeltaSession(blankSourcePng("timeline-click")).apply {
+        extraAdvanceByKind[ee.schimke.composeai.daemon.protocol.InteractiveInputKind.CLICK] = 100L
+      }
+    val session =
+      AndroidRecordingSession(
+        previewId = INTERACTIVE_PREVIEW_ID,
+        recordingId = "test-rec-timeline-click",
+        fps = FPS,
+        scale = 1.0f,
+        interactive = interactive,
+        framesDir = tempFolder.newFolder("timeline-click-frames"),
+        encodedDir = tempFolder.newFolder("timeline-click-encoded"),
+      )
+
+    session.postScript(
+      listOf(
+        RecordingScriptEvent(tMs = 0L, kind = "input.click", pixelX = 4, pixelY = 4),
+        RecordingScriptEvent(tMs = 120L, kind = "input.pointerDown", pixelX = 4, pixelY = 4),
+      )
+    )
+    val result = session.stop()
+
+    // Frames at 0, 33, 66, 100, 133 ms. The click at 0 ran the clock to 100, so frames 1–3 have
+    // nothing left to advance; the pointerDown at 120 moves 20, and frame 4 the last 13.
+    assertEquals(5, result.frameCount)
+    assertEquals(listOf(0L, 20L), interactive.timelineAdvances)
+    assertEquals(listOf(0L, 0L, 0L, 0L, 13L), interactive.renderAdvances)
+  }
+
+  /**
+   * Issue #399, end to end on a real sandbox — a scripted 40 ms upward swipe must reach the
+   * composable as a 40 ms gesture whose release velocity `VelocityTracker` reads as a fling. The
+   * [FlingTimingSquare] fixture turns green only then; the old dispatch stretched the gesture to
+   * ~400 ms and ended it with a stationary move, which left it red.
+   */
+  @Test
+  fun scriptedSwipeKeepsItsTimingAndReleaseVelocity() {
+    val outputDir = tempFolder.newFolder("recording-fling-renders")
+    val recordingsRoot = tempFolder.newFolder("recordings-fling-root")
+    System.setProperty(RenderEngine.OUTPUT_DIR_PROP, outputDir.absolutePath)
+    System.setProperty(RobolectricHost.RECORDINGS_DIR_PROP, recordingsRoot.absolutePath)
+    System.setProperty("roborazzi.test.record", "true")
+
+    val host = RobolectricHost(sandboxCount = 2, previewSpecResolver = previewSpecResolver())
+    host.start()
+    try {
+      val session =
+        host.acquireRecordingSession(
+          previewId = FLING_PREVIEW_ID,
+          recordingId = "test-rec-android-fling",
+          classLoader = AndroidRecordingSessionTest::class.java.classLoader!!,
+          fps = FPS,
+          scale = 1.0f,
+          overrides = null,
+          live = false,
+        )
+      try {
+        val x = INTERACTIVE_WIDTH_PX / 2
+        session.postScript(
+          listOf(
+            RecordingScriptEvent(tMs = 0L, kind = "input.pointerDown", pixelX = x, pixelY = 90),
+            RecordingScriptEvent(tMs = 10L, kind = "input.pointerMove", pixelX = x, pixelY = 70),
+            RecordingScriptEvent(tMs = 20L, kind = "input.pointerMove", pixelX = x, pixelY = 50),
+            RecordingScriptEvent(tMs = 30L, kind = "input.pointerMove", pixelX = x, pixelY = 30),
+            RecordingScriptEvent(tMs = 40L, kind = "input.pointerUp", pixelX = x, pixelY = 10),
+          )
+        )
+        val result = session.stop()
+        val last =
+          decode(File(result.framesDir, "frame-${"%05d".format(result.frameCount - 1)}.png"))
+        val green = pixelMatchPct(last, GREEN_RGB, perChannelTolerance = 8)
+        assertTrue(
+          "a 40 ms scripted swipe should arrive as a 30–60 ms gesture with fling velocity " +
+            "(green); got ${"%.2f".format(green * 100)}% green",
+          green >= 0.95,
+        )
+      } finally {
+        session.close()
+      }
+    } finally {
+      host.shutdown()
+    }
+  }
+
+  private fun blankSourcePng(name: String): File {
+    val sourcePng = File(tempFolder.newFolder("$name-source"), "source.png")
+    ImageIO.write(
+      java.awt.image.BufferedImage(8, 8, java.awt.image.BufferedImage.TYPE_INT_ARGB),
+      "png",
+      sourcePng,
+    )
+    return sourcePng
+  }
+
+  /**
    * Issues #1964, #2519 — `assert.visible` / `assert.notVisible` resolve against the probe
    * semantics snapshot ([InteractiveSession.captureProbeSemantics]) by `testTag`, `role`+`text`, or
    * `text`, producing APPLIED / FAILED evidence via the shared `evaluateVisibilityAssertion`.
@@ -1984,17 +2124,29 @@ class AndroidRecordingSessionTest {
   }
 
   private fun previewSpecResolver(): (String) -> RenderSpec? = { previewId ->
-    if (previewId == INTERACTIVE_PREVIEW_ID) {
-      RenderSpec(
-        className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
-        functionName = "ClickToggleSquare",
-        widthPx = INTERACTIVE_WIDTH_PX,
-        heightPx = INTERACTIVE_HEIGHT_PX,
-        density = 1.0f,
-        showBackground = true,
-        outputBaseName = "recording-clicktoggle",
-      )
-    } else null
+    when (previewId) {
+      INTERACTIVE_PREVIEW_ID ->
+        RenderSpec(
+          className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+          functionName = "ClickToggleSquare",
+          widthPx = INTERACTIVE_WIDTH_PX,
+          heightPx = INTERACTIVE_HEIGHT_PX,
+          density = 1.0f,
+          showBackground = true,
+          outputBaseName = "recording-clicktoggle",
+        )
+      FLING_PREVIEW_ID ->
+        RenderSpec(
+          className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+          functionName = "FlingTimingSquare",
+          widthPx = INTERACTIVE_WIDTH_PX,
+          heightPx = INTERACTIVE_HEIGHT_PX,
+          density = 1.0f,
+          showBackground = true,
+          outputBaseName = "recording-fling",
+        )
+      else -> null
+    }
   }
 
   private fun decode(file: File): java.awt.image.BufferedImage {
@@ -2224,6 +2376,46 @@ class AndroidRecordingSessionTest {
     }
   }
 
+  /**
+   * Fake for the #399 timeline path: implements [TimelineInputDispatcher], records each input's
+   * requested pre-advance, and reports it back plus [extraAdvanceByKind] for the kind (a click's
+   * press hold on the real host).
+   */
+  private class TimelineDeltaSession(private val sourcePng: File) :
+    InteractiveSession, TimelineInputDispatcher {
+    override val previewId: String = INTERACTIVE_PREVIEW_ID
+    val renderAdvances = mutableListOf<Long?>()
+    val timelineAdvances = mutableListOf<Long>()
+    val extraAdvanceByKind =
+      mutableMapOf<ee.schimke.composeai.daemon.protocol.InteractiveInputKind, Long>()
+    var dispatchCount = 0
+
+    override fun dispatch(input: ee.schimke.composeai.daemon.protocol.InteractiveInputParams) {
+      dispatchCount++
+    }
+
+    override fun dispatchOnTimeline(
+      input: ee.schimke.composeai.daemon.protocol.InteractiveInputParams,
+      advanceBeforeMs: Long,
+    ): Long {
+      timelineAdvances.add(advanceBeforeMs)
+      return advanceBeforeMs + (extraAdvanceByKind[input.kind] ?: 0L)
+    }
+
+    override fun render(requestId: Long, advanceTimeMs: Long?): RenderResult {
+      renderAdvances.add(advanceTimeMs)
+      return RenderResult(
+        id = requestId,
+        classLoaderHashCode = 0,
+        classLoaderName = "timeline-delta-session",
+        artifact = RenderArtifact(sourcePng.absolutePath),
+        metrics = mapOf("tookMs" to 0L),
+      )
+    }
+
+    override fun close() {}
+  }
+
   /** A solid `argb`-filled image, used to build byte-stable golden frames / baselines. */
   private fun solidArgb(width: Int, height: Int, argb: Int): java.awt.image.BufferedImage =
     java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB).apply {
@@ -2232,6 +2424,7 @@ class AndroidRecordingSessionTest {
 
   companion object {
     private const val INTERACTIVE_PREVIEW_ID = "recording-clicktoggle"
+    private const val FLING_PREVIEW_ID = "recording-fling"
     private const val INTERACTIVE_WIDTH_PX = 96
     private const val INTERACTIVE_HEIGHT_PX = 96
     private const val FPS = 30

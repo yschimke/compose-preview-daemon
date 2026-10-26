@@ -7,6 +7,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -590,6 +591,21 @@ sealed interface InteractiveCommand {
      * for pixel dispatch.
      */
     val replyUnresolvedReasonJson: AtomicReference<String?>? = null,
+    /**
+     * Issue #399 — set when a scripted recording drives this dispatch from its own timeline. The
+     * sandbox advances the held clocks by exactly this many milliseconds *before* dispatching (so
+     * the event is stamped at its script time) and skips the interactive post-dispatch settle,
+     * whose 100 ms per event stretched a scripted swipe past `VelocityTracker`'s window and pushed
+     * frame 0 late. Pointer moves are injected without the injection scope's per-move delay. Null
+     * (every interactive dispatch) keeps the live-input timing unchanged.
+     */
+    val timelineAdvanceMs: Long? = null,
+    /**
+     * Issue #399 — when non-null the sandbox writes how far `mainClock` moved while handling this
+     * command (the [timelineAdvanceMs] pre-advance plus anything the gesture itself needs, e.g. a
+     * click's press hold), so the recording timeline can account for it instead of drifting.
+     */
+    val replyClockAdvancedMs: AtomicLong? = null,
     val replyLatch: CountDownLatch,
     val replyError: AtomicReference<Throwable?>,
   ) : InteractiveCommand

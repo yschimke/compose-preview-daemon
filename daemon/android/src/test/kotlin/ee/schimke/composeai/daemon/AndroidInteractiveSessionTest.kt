@@ -724,6 +724,66 @@ class AndroidInteractiveSessionTest {
     }
   }
 
+  /**
+   * Issue #398 — `scrollDeltaY` is a pixel distance, not a direction. The dispatch used to send a
+   * fixed `AXIS_SCROLL` of 1/3 whatever the delta, so 220 and 1000 scrolled the same ~21 px here.
+   * The fixture accumulates `verticalScrollPixels`: 220 px must land green (≥ 100), and a further
+   * 800 px blue (≥ 600). Under the old notch both stay red.
+   */
+  @Test
+  fun rotaryScrollDistanceFollowsScrollDeltaY() {
+    System.setProperty(
+      RenderEngine.OUTPUT_DIR_PROP,
+      tempFolder.newFolder("interactive-rsb-distance").absolutePath,
+    )
+    System.setProperty("roborazzi.test.record", "true")
+    val host = RobolectricHost(sandboxCount = 2, previewSpecResolver = previewSpecResolver())
+    host.start()
+    try {
+      val session =
+        host.acquireInteractiveSession(
+          previewId = ROTARY_DISTANCE_PREVIEW_ID,
+          classLoader = javaClass.classLoader!!,
+        )
+      try {
+        fun rotate(delta: Float) =
+          session.dispatch(
+            InteractiveInputParams(
+              frameStreamId = "irrelevant-on-host-side",
+              kind = InteractiveInputKind.ROTARY_SCROLL,
+              pixelX = INTERACTIVE_WIDTH_PX / 2,
+              pixelY = INTERACTIVE_HEIGHT_PX / 2,
+              scrollDeltaY = delta,
+            )
+          )
+
+        rotate(220f)
+        val afterSmall =
+          decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
+        assertTrue(
+          "a 220 px rotary scroll should accumulate ≥ 100 px (green); got " +
+            "${"%.2f".format(pixelMatchPct(afterSmall, GREEN_RGB, perChannelTolerance = 8) * 100)}%" +
+            " green",
+          pixelMatchPct(afterSmall, GREEN_RGB, perChannelTolerance = 8) >= 0.95,
+        )
+
+        rotate(800f)
+        val afterLarge =
+          decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
+        assertTrue(
+          "a further 800 px should accumulate ≥ 600 px (blue); got " +
+            "${"%.2f".format(pixelMatchPct(afterLarge, BLUE_RGB, perChannelTolerance = 8) * 100)}%" +
+            " blue",
+          pixelMatchPct(afterLarge, BLUE_RGB, perChannelTolerance = 8) >= 0.95,
+        )
+      } finally {
+        session.close()
+      }
+    } finally {
+      host.shutdown()
+    }
+  }
+
   @Test
   fun nonComposableNotificationKindRendersInHeldSessionInsteadOfErroring() {
     // Regression: "TilePreview goes blank on enabled live mode". The held-rule loop used to call
@@ -1561,6 +1621,16 @@ class AndroidInteractiveSessionTest {
           showBackground = true,
           outputBaseName = "interactive-release-position",
         )
+      ROTARY_DISTANCE_PREVIEW_ID ->
+        RenderSpec(
+          className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
+          functionName = "RotaryDistanceSquare",
+          widthPx = INTERACTIVE_WIDTH_PX,
+          heightPx = INTERACTIVE_HEIGHT_PX,
+          density = 1.0f,
+          showBackground = true,
+          outputBaseName = "interactive-rsb-distance",
+        )
       ROTARY_PREVIEW_ID ->
         RenderSpec(
           className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
@@ -1670,6 +1740,7 @@ class AndroidInteractiveSessionTest {
     private const val TEXT_BASELINE_Y = 8
     private const val RELEASE_POSITION_PREVIEW_ID = "interactive-release-position"
     private const val ROTARY_PREVIEW_ID = "interactive-rsb"
+    private const val ROTARY_DISTANCE_PREVIEW_ID = "interactive-rsb-distance"
     private const val NOTIFICATION_PREVIEW_ID = "interactive-notification"
     private const val WRAPPER_REQUIRED_PREVIEW_ID = "interactive-wrapper-required"
     private const val MISSING_RESOURCE_PREVIEW_ID = "interactive-missing-resource"

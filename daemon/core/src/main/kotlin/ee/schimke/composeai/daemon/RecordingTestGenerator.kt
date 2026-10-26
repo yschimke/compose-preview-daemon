@@ -19,6 +19,15 @@ import ee.schimke.composeai.daemon.protocol.SemanticsInputTarget
  * without a snapshot (older daemons, or a probe that captured nothing assertable) fall back to a
  * labelled `// TODO assert state` stub so the spot is still marked.
  *
+ * **Gestures.** `input.rotaryScroll` becomes `performRotaryScrollInput {
+ * rotateToScrollVertically(…) }` with the recorded `scrollDeltaY` as the pixel distance, the unit
+ * the daemon dispatches it in (issue #398). A touch drag — `input.pointerDown`, any
+ * `input.pointerMove`s, `input.pointerUp` — becomes one `performTouchInput { down(…); moveTo(…); …;
+ * up() }` block, with the gaps between the recorded events kept as event time so a swipe's velocity
+ * survives. Recorded pixel coordinates are root-relative, so a pixel gesture runs on `onRoot()`;
+ * one recorded against a semantic target runs on that node at its centre. Mouse gestures and key
+ * events are still left as comments.
+ *
  * Steps are built from what the recording **actually did**: a [Step] whose `applied` is false (the
  * daemon reported `unsupported` script evidence — e.g. a target that matched no node) is emitted as
  * a skipped-step comment, never a `performClick`, so the generated test reflects the captured flow.
@@ -109,8 +118,14 @@ public object RecordingTestGenerator {
     val hasProbeAssertions = sortedSteps.any {
       it.event.kind == "recording.probe" && it.probeSemantics != null
     }
+    // Render the body first: which gesture APIs it used decides the imports and the opt-in, and a
+    // recording without gestures keeps its pre-#403 output byte for byte.
+    val usage = GestureUsage()
+    val body = buildString { appendSteps(sortedSteps, usage) }
     spec.packageName?.takeIf { it.isNotBlank() }?.let { appendLine("package $it").appendLine() }
+    if (usage.offset) appendLine("import androidx.compose.ui.geometry.Offset")
     appendLine("import androidx.compose.ui.test.junit4.createComposeRule")
+    if (usage.rotary) appendLine("import androidx.compose.ui.test.ExperimentalTestApi")
     if (hasProbeAssertions) {
       appendLine("import androidx.compose.ui.test.assertDoesNotExist")
       appendLine("import androidx.compose.ui.test.assertExists")
@@ -118,7 +133,10 @@ public object RecordingTestGenerator {
     }
     appendLine("import androidx.compose.ui.test.onNodeWithTag")
     appendLine("import androidx.compose.ui.test.onNodeWithText")
+    if (usage.root) appendLine("import androidx.compose.ui.test.onRoot")
     appendLine("import androidx.compose.ui.test.performClick")
+    if (usage.rotary) appendLine("import androidx.compose.ui.test.performRotaryScrollInput")
+    if (usage.touch) appendLine("import androidx.compose.ui.test.performTouchInput")
     appendLine("import org.junit.Rule")
     appendLine("import org.junit.Test")
     appendLine()
@@ -137,31 +155,151 @@ public object RecordingTestGenerator {
     appendLine("  @get:Rule val composeTestRule = createComposeRule()")
     appendLine()
     appendLine("  @Test")
+    // `performRotaryScrollInput` is still `@ExperimentalTestApi`.
+    if (usage.rotary) appendLine("  @OptIn(ExperimentalTestApi::class)")
     appendLine("  fun ${spec.methodName}() {")
     appendLine("    composeTestRule.setContent { ${spec.composableInvocation} }")
-    // The previous probe's snapshot — diffed against the next probe to detect appeared/disappeared
-    // nodes. Null until the first probe with a snapshot is seen.
-    var previousProbe: List<RecordingProbeNode>? = null
-    sortedSteps.forEach { step ->
-      appendStep(step, previousProbe)
-      if (step.event.kind == "recording.probe" && step.probeSemantics != null) {
-        previousProbe = step.probeSemantics
-      }
-    }
+    append(body)
     appendLine("  }")
     append("}")
     appendLine()
   }
 
-  private fun StringBuilder.appendStep(step: Step, previousProbe: List<RecordingProbeNode>?) {
+  /** Which optional test APIs the generated body uses — each pulls in its own imports. */
+  private class GestureUsage {
+    var touch = false
+    var rotary = false
+    var root = false
+    var offset = false
+  }
+
+  private fun StringBuilder.appendSteps(sortedSteps: List<Step>, usage: GestureUsage) {
+    // The previous probe's snapshot — diffed against the next probe to detect appeared/disappeared
+    // nodes. Null until the first probe with a snapshot is seen.
+    var previousProbe: List<RecordingProbeNode>? = null
+    var index = 0
+    while (index < sortedSteps.size) {
+      val step = sortedSteps[index]
+      if (isGeneratedTouchStep(step)) {
+        // A run of touch events up to and including the next `pointerUp` is one gesture.
+        var end = index
+        while (
+          end + 1 < sortedSteps.size &&
+            sortedSteps[end].event.kind != POINTER_UP &&
+            isGeneratedTouchStep(sortedSteps[end + 1]) &&
+            sortedSteps[end + 1].event.kind != POINTER_DOWN
+        ) {
+          end++
+        }
+        appendTouchGesture(sortedSteps.subList(index, end + 1).map { it.event }, usage)
+        index = end + 1
+        continue
+      }
+      appendStep(step, previousProbe, usage)
+      if (step.event.kind == "recording.probe" && step.probeSemantics != null) {
+        previousProbe = step.probeSemantics
+      }
+      index++
+    }
+  }
+
+  /**
+   * An applied touch event the generator turns into `performTouchInput`. Mouse gestures (the daemon
+   * routes `pointerType = "mouse"` through `performMouseInput`) stay comments for now.
+   */
+  private fun isGeneratedTouchStep(step: Step): Boolean =
+    step.applied &&
+      step.event.kind in TOUCH_KINDS &&
+      step.event.pointerType?.trim()?.lowercase() != "mouse"
+
+  /**
+   * One `performTouchInput { … }` block for a recorded touch gesture. Pixel coordinates are
+   * root-relative, so a gesture with any of them runs on `onRoot()`; one recorded only against a
+   * semantic target runs on that node, at its centre. The recorded gaps become event time
+   * (`moveTo(…, delayMillis = gap)` / `advanceEventTime(gap)`), the same spacing the daemon
+   * dispatched them at (issue #399), so `VelocityTracker` sees the recorded swipe.
+   */
+  private fun StringBuilder.appendTouchGesture(
+    events: List<RecordingScriptEvent>,
+    usage: GestureUsage,
+  ) {
+    val hasPixels = events.any { it.pixelX != null && it.pixelY != null }
+    val selector =
+      if (hasPixels) "onRoot()" else events.firstNotNullOfOrNull { nodeSelector(it.target) }
+    if (selector == null) {
+      events.forEach {
+        appendLine(
+          "    // ${it.kind} ${describeTarget(it)} — no coordinates or testTag/text target " +
+            "recorded; drive it by hand"
+        )
+      }
+      return
+    }
+    usage.touch = true
+    if (hasPixels) usage.root = true
+    appendLine("    composeTestRule.$selector.performTouchInput {")
+    var previousTMs: Long? = null
+    var lastPosition: String? = null
+    for (event in events) {
+      val gap = previousTMs?.let { (event.tMs - it).coerceAtLeast(0L) } ?: 0L
+      previousTMs = event.tMs
+      val position =
+        if (hasPixels) {
+          val x = event.pixelX
+          val y = event.pixelY
+          if (x != null && y != null) {
+            usage.offset = true
+            "Offset(${x}f, ${y}f)"
+          } else null
+        } else "center"
+      when (event.kind) {
+        POINTER_DOWN -> {
+          if (position == null) {
+            appendLine("      // ${event.kind} — no coordinates recorded; drive it by hand")
+            continue
+          }
+          if (gap > 0L) appendLine("      advanceEventTime($gap)")
+          appendLine("      down($position)")
+          lastPosition = position
+        }
+        POINTER_MOVE -> {
+          if (position == null) {
+            appendLine("      // ${event.kind} — no coordinates recorded; drive it by hand")
+            continue
+          }
+          appendLine("      moveTo($position, delayMillis = $gap)")
+          lastPosition = position
+        }
+        POINTER_UP -> {
+          // Like the daemon, release where the event says, moving there first only if needed. A
+          // targeted gesture stays on its node's centre, so its release never moves.
+          if (position != null && position != "center" && position != lastPosition) {
+            appendLine("      moveTo($position, delayMillis = $gap)")
+          } else if (gap > 0L) {
+            appendLine("      advanceEventTime($gap)")
+          }
+          appendLine("      up()")
+        }
+      }
+    }
+    appendLine("    }")
+  }
+
+  private fun StringBuilder.appendStep(
+    step: Step,
+    previousProbe: List<RecordingProbeNode>?,
+    usage: GestureUsage,
+  ) {
     val event = step.event
     when {
-      event.kind == "input.click" && !step.applied ->
+      (event.kind == "input.click" || event.kind == ROTARY_SCROLL || event.kind in TOUCH_KINDS) &&
+        !step.applied ->
         appendLine(
-          "    // input.click ${describeTarget(event)} — not resolved during the recording; " +
+          "    // ${event.kind} ${describeTarget(event)} — not resolved during the recording; " +
             "step skipped"
         )
       event.kind == "input.click" -> appendLine("    ${clickStep(event)}")
+      event.kind == ROTARY_SCROLL -> appendRotaryScroll(event, usage)
       event.kind == "recording.probe" -> appendProbe(step, previousProbe)
       else ->
         appendLine(
@@ -170,6 +308,35 @@ public object RecordingTestGenerator {
         )
     }
   }
+
+  /**
+   * `input.rotaryScroll` → `performRotaryScrollInput`. `scrollDeltaY` is a pixel distance on the
+   * daemon (issue #398), and `rotateToScrollVertically` takes the same unit with the same sign. The
+   * daemon sends the event to whatever is focused under the pointer; a test sends it to the node
+   * that owns rotary focus, so a recorded target is used when there is one and the root otherwise.
+   */
+  private fun StringBuilder.appendRotaryScroll(event: RecordingScriptEvent, usage: GestureUsage) {
+    val delta = event.scrollDeltaY
+    if (delta == null || delta == 0f) {
+      appendLine("    // ${event.kind} — no scrollDeltaY recorded; nothing to replay")
+      return
+    }
+    val target =
+      nodeSelector(event.target)
+        ?: run {
+          usage.root = true
+          "onRoot()"
+        }
+    usage.rotary = true
+    appendLine(
+      "    composeTestRule.$target.performRotaryScrollInput { " +
+        "rotateToScrollVertically(${delta.toKotlinFloatLiteral()}) }"
+    )
+  }
+
+  private fun Float.toKotlinFloatLiteral(): String =
+    if (this == kotlin.math.floor(this) && kotlin.math.abs(this) < 1e7f) "${toLong()}f"
+    else "${this}f"
 
   private fun clickStep(event: RecordingScriptEvent): String {
     val selector = nodeSelector(event.target)
@@ -275,6 +442,12 @@ public object RecordingTestGenerator {
       }
     return null
   }
+
+  private const val POINTER_DOWN = "input.pointerDown"
+  private const val POINTER_MOVE = "input.pointerMove"
+  private const val POINTER_UP = "input.pointerUp"
+  private const val ROTARY_SCROLL = "input.rotaryScroll"
+  private val TOUCH_KINDS = setOf(POINTER_DOWN, POINTER_MOVE, POINTER_UP)
 
   private fun String.quote(): String = "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 }

@@ -150,6 +150,21 @@ class AndroidRecordingSession(
     }
   }
 
+  /**
+   * Where the held clock is on a scripted timeline, in script milliseconds since frame 0. Moved by
+   * renders ([advanceScriptClockTo]) and by inputs dispatched through [TimelineInputDispatcher],
+   * which may go past an event's `tMs` when the gesture itself takes time (a click holds its
+   * press). Only [stopScripted] uses it.
+   */
+  private var scriptClockMs: Long = 0L
+
+  /** Returns how far to advance the held clock to reach [tMs], and records that it has. */
+  private fun advanceScriptClockTo(tMs: Long): Long {
+    val delta = (tMs - scriptClockMs).coerceAtLeast(0L)
+    scriptClockMs += delta
+    return delta
+  }
+
   private fun stopScripted(): RecordingResult {
     framesDir.mkdirs()
     val sortedEvents = synchronized(timeline) { timeline.toList() }
@@ -161,7 +176,7 @@ class AndroidRecordingSession(
     // captures whatever the held composition rendered to, so this is the authoritative source.
     val startNs = System.nanoTime()
     var nextEventIdx = 0
-    var lastFrameTimeMs = 0L
+    scriptClockMs = 0L
     var frameWidthPx = 0
     var frameHeightPx = 0
     val evidence = mutableListOf<RecordingScriptEvidence>()
@@ -175,17 +190,12 @@ class AndroidRecordingSession(
     for (frameIndex in 0 until totalFrames) {
       val tMs: Long = frameIndex.toLong() * 1000L / fps.toLong()
 
-      // A bucket's virtual clock must advance to `tMs` exactly once, whether the advancing render
-      // is
-      // an `assert.pixels` snapshot mid-drain or the final written-frame render. `advanceFor` hands
-      // the full delta to the first render of the bucket and 0 to the rest.
-      var bucketAdvanceApplied = false
-      fun advanceForThisBucket(): Long =
-        if (bucketAdvanceApplied) 0L
-        else {
-          bucketAdvanceApplied = true
-          if (frameIndex == 0) 0L else tMs - lastFrameTimeMs
-        }
+      // A bucket's virtual clock must reach `tMs` exactly once, whether the advancing render is an
+      // `assert.pixels` snapshot mid-drain or the final written-frame render: the first render of
+      // the bucket gets whatever is left to `tMs`, the rest get 0. Input events dispatched on the
+      // timeline (#399) have already moved the clock to their own `tMs`, so only the remainder
+      // is left for the render.
+      fun advanceForThisBucket(): Long = advanceScriptClockTo(tMs)
 
       // Drain script events whose virtual tMs has elapsed by this frame's tMs and dispatch each
       // through the held-rule loop. Translation back through the InteractiveInputParams shape
@@ -222,15 +232,13 @@ class AndroidRecordingSession(
         nextEventIdx++
       }
 
-      // The written-frame render; `advanceForThisBucket()` must be called before `lastFrameTimeMs`
-      // is bumped so it can compute `tMs - lastFrameTimeMs` (it returns 0 here when an earlier
-      // assert.pixels render already advanced this bucket).
+      // The written-frame render (its advance is 0 when an earlier assert.pixels render or a
+      // timeline input already reached this bucket's `tMs`).
       val rendered =
         interactive.render(
           requestId = RenderHost.nextRequestId(),
           advanceTimeMs = advanceForThisBucket(),
         )
-      lastFrameTimeMs = tMs
       val srcPath =
         rendered.artifact.pathOrNull()
           ?: error(
@@ -651,25 +659,38 @@ class AndroidRecordingSession(
             target.testTag != null ||
             target.role != null ||
             target.text != null)
-      try {
-        interactive.dispatch(
-          InteractiveInputParams(
-            frameStreamId = "android-recording-internal",
-            kind = kind,
-            pixelX = event.pixelX,
-            pixelY = event.pixelY,
-            target = target,
-            scrollDeltaY = event.scrollDeltaY,
-            keyCode = event.keyCode,
-            // #3545 — the character the key typed and the device class the pointer came from. The
-            // sandbox needs both to do more than move a caret: `performKeyInput` inserts from the
-            // code point, and only `performMouseInput` drags out a text selection. Without them a
-            // recorded `TextField` stayed empty and a recorded drag never selected, even though the
-            // very same events dispatched fine outside a recording.
-            text = event.text,
-            pointerType = event.pointerType,
-          )
+      val params =
+        InteractiveInputParams(
+          frameStreamId = "android-recording-internal",
+          kind = kind,
+          pixelX = event.pixelX,
+          pixelY = event.pixelY,
+          target = target,
+          scrollDeltaY = event.scrollDeltaY,
+          keyCode = event.keyCode,
+          // #3545 — the character the key typed and the device class the pointer came from. The
+          // sandbox needs both to do more than move a caret: `performKeyInput` inserts from the
+          // code point, and only `performMouseInput` drags out a text selection. Without them a
+          // recorded `TextField` stayed empty and a recorded drag never selected, even though the
+          // very same events dispatched fine outside a recording.
+          text = event.text,
+          pointerType = event.pointerType,
         )
+      // #399 — a scripted recording drives time itself, so place each input at its own `tMs`
+      // instead of letting the live-input settle add 100 ms after every event. Live recordings
+      // are real-time input and keep the interactive path.
+      val timelineDispatcher = if (live) null else interactive as? TimelineInputDispatcher
+      try {
+        if (timelineDispatcher != null) {
+          // Charge the advance up front: a dispatch that throws (a target that matched no node)
+          // has still moved the clock. A successful one reports what it really moved — more for a
+          // click's press hold, 0 when the input was dropped before reaching the sandbox.
+          val requested = advanceScriptClockTo(event.tMs)
+          val advanced = timelineDispatcher.dispatchOnTimeline(params, requested)
+          scriptClockMs += advanced - requested
+        } else {
+          interactive.dispatch(params)
+        }
       } catch (t: SemanticsTargetUnresolvedException) {
         // #1784 — structured miss: surface the candidate nodes so the agent can disambiguate
         // without

@@ -108,7 +108,7 @@ internal constructor(
    * calls (idempotent) skip the hook.
    */
   private val onCloseHook: () -> Unit = {},
-) : InteractiveSession {
+) : InteractiveSession, TimelineInputDispatcher {
 
   @Volatile private var closed: Boolean = false
 
@@ -203,7 +203,18 @@ internal constructor(
   }
 
   override fun dispatch(input: InteractiveInputParams) {
-    if (closed) return
+    dispatchCommand(input, timelineAdvanceMs = null)
+  }
+
+  override fun dispatchOnTimeline(input: InteractiveInputParams, advanceBeforeMs: Long): Long =
+    dispatchCommand(input, timelineAdvanceMs = advanceBeforeMs.coerceAtLeast(0L))
+
+  /**
+   * Shared body of [dispatch] and [dispatchOnTimeline]. Returns how far the held clock moved while
+   * the sandbox handled the event, or 0 when nothing was dispatched.
+   */
+  private fun dispatchCommand(input: InteractiveInputParams, timelineAdvanceMs: Long?): Long {
+    if (closed) return 0L
     val kind =
       when (input.kind) {
         InteractiveInputKind.CLICK -> "click"
@@ -233,18 +244,19 @@ internal constructor(
           rawTarget.testTag != null ||
           rawTarget.role != null ||
           rawTarget.text != null)
-    if (!isKey && !hasPixels && !rawHasTarget) return
+    if (!isKey && !hasPixels && !rawHasTarget) return 0L
     val target = if (hasPixels) null else rawTarget
     val hasTarget = !hasPixels && rawHasTarget
     // A key event needs *something* to act on: a physical keycode, a typed character, or both. Text
     // without a keycode is ordinary (`€` and every other non-US-layout key has no `KEYCODE_*`), so
     // it must not be dropped here — issue #3491.
-    if (isKey && input.keyCode.isNullOrBlank() && input.text.isNullOrEmpty()) return
+    if (isKey && input.keyCode.isNullOrBlank() && input.text.isNullOrEmpty()) return 0L
     lastUsedAtMs.set(System.currentTimeMillis())
     val replyLatch = CountDownLatch(1)
     val replyError = AtomicReference<Throwable?>(null)
     val replyMatched = if (hasTarget) AtomicBoolean(false) else null
     val replyUnresolvedReasonJson = if (hasTarget) AtomicReference<String?>(null) else null
+    val replyClockAdvancedMs = AtomicLong(0L)
     slot.interactiveCommands.put(
       InteractiveCommand.Dispatch(
         streamId = streamId,
@@ -261,6 +273,8 @@ internal constructor(
         targetText = target?.text,
         replyMatched = replyMatched,
         replyUnresolvedReasonJson = replyUnresolvedReasonJson,
+        timelineAdvanceMs = timelineAdvanceMs,
+        replyClockAdvancedMs = replyClockAdvancedMs,
         replyLatch = replyLatch,
         replyError = replyError,
       )
@@ -297,6 +311,7 @@ internal constructor(
       if (reason != null) throw SemanticsTargetUnresolvedException(reason, message)
       else error(message)
     }
+    return replyClockAdvancedMs.get()
   }
 
   /**
