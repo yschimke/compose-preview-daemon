@@ -93,6 +93,10 @@ dependencies {
 
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.serialization.json)
+  // `ReportedGestureRecompositionTest` composes the reporting seam and recomposes it.
+  testImplementation("androidx.compose.ui:ui-test-junit4")
+  testImplementation("androidx.compose.ui:ui-test-manifest")
+  testImplementation(libs.espresso.core)
 }
 
 composeAiMavenPublishing {

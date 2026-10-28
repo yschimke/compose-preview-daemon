@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -105,13 +106,22 @@ fun Modifier.reportedOneHandedGesture(
     }
     onDispose { controller.unregister(type.wire, label) }
   }
-  return this.oneHandedGesture(
-    gestureConfiguration = gestureConfiguration,
-    enabledInAmbient = enabledInAmbient,
-    interactionSource = interactionSource,
-    onGestureLabel = label,
-    onGestureAvailable = { showIndicator?.let { show -> scope.launch { show() } } },
-    onGesture = onGesture,
+  val latestShowIndicator by rememberUpdatedState(showIndicator)
+  // Remembered so a recomposition leaves the gesture node alone: `oneHandedGesture` wraps
+  // `onGesture` in a new lambda on every call, so a fresh modifier never equals the last one, and
+  // each update re-registers the target, which re-asks the system whether to hint and replays the
+  // indicator. Callbacks are read through the latest state instead of keying the modifier.
+  return this.then(
+    remember(gestureConfiguration, enabledInAmbient, interactionSource, label) {
+      Modifier.oneHandedGesture(
+        gestureConfiguration = gestureConfiguration,
+        enabledInAmbient = enabledInAmbient,
+        interactionSource = interactionSource,
+        onGestureLabel = label,
+        onGestureAvailable = { latestShowIndicator?.let { show -> scope.launch { show() } } },
+        onGesture = { latestOnGesture() },
+      )
+    }
   )
 }
 
