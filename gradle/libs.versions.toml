@@ -349,7 +349,7 @@ composeai-contracts = "3.39.0"
 # weight (rc-players#597; 2.2.1 drew every row at the file's default instance), draw-list sounds and
 # per-frame redraw of clock-driven canvases, then 2.4.0's StateLayout enter/exit and shared elements
 # matched by their AnimationSpec id.
-rcplayers = "2.20.1"
+rcplayers = "2.21.0"
 
 [libraries]
 
