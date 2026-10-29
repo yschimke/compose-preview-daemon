@@ -100,11 +100,12 @@ private constructor(
     // An explicit inbound row wins over the one parsed out of the id, so a caller can render a row
     // of the bare base id without minting a row id for it.
     val row = preview.previewParameterRow?.takeIf { it.isNotBlank() } ?: addressed.row
-    // Resolve the *base* entry's own id, not the requested one: [rowAddressed] has already done
-    // the row split, and asking the resolver to redo it would be a second lookup whose failure
-    // branch is unreachable. The row is applied below.
+    // Resolve the *base* entry [rowAddressed] found, not the requested id: it has already done the
+    // row split. Against that entry alone, not a fresh `manifest.byId()`: the manifest can be
+    // re-read between the two lookups, and the entry addressed may be gone from the newer one or
+    // differ in it. The row is applied below.
     val base =
-      manifestPreviewSpecResolver(manifest.byId())(addressed.entry.id)
+      manifestPreviewSpecResolver(mapOf(addressed.entry.id to addressed.entry))(addressed.entry.id)
         ?: error("PreviewManifestRouter: entry '${addressed.entry.id}' resolved to no spec")
     val spec =
       base
