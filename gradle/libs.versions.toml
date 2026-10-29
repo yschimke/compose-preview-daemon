@@ -282,7 +282,7 @@ material-kolor = "4.0.5"
 # compatibility table (`docs/compatibility.md` upstream).
 metro = "1.4.5"
 # HTTP client used by renderer image support and the Google Fonts resolver.
-okhttp = "5.5.0"
+okhttp = "5.5.1"
 # Coil — image loading. `compileOnly` in `:renderer-android` (see `CoilPreviewSupport`), which
 # swaps the singleton `ImageLoader` for an inline-dispatcher one so `AsyncImage` resolves before a
 # preview is captured (issue #2952). Both majors are pinned because they are separate,
