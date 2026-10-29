@@ -17,10 +17,10 @@ import java.util.concurrent.TimeUnit
  * so a same-size rewrite inside one tick of a coarse-timestamp filesystem is still picked up.
  *
  * A missing file keeps the last value. A file that does not parse — caught halfway through a
- * rewrite, say — keeps it too, reports the failure to [onReadFailed] and is tried again on the next
- * call. [initial] is the caller's own parse of [file]; the first [current] checks it against the
- * file once more, because the caller's read and this object's first look at the file are not one
- * atomic step.
+ * rewrite, say — keeps it too and reports the failure to [onReadFailed] once; it is tried again
+ * once it changes, under the same freshness rule as a parse that succeeded. [initial] is the
+ * caller's own parse of [file]; the first [current] checks it against the file once more, because
+ * the caller's read and this object's first look at the file are not one atomic step.
  */
 public class FollowedFile<T : Any>(
   private val file: File,
@@ -60,6 +60,9 @@ public class FollowedFile<T : Any>(
           read(file)
         } catch (e: Exception) {
           onReadFailed(e)
+          // Pin the last good value to this stamp, so a file that stays broken is not parsed and
+          // reported again on every lookup; the next write moves the stamp and is tried afresh.
+          snapshot = Snapshot(stamp, readAtNanos, snapshot.value)
           return snapshot.value
         }
       snapshot = Snapshot(stamp, readAtNanos, value)

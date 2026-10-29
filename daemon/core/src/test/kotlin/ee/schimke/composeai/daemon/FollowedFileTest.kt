@@ -90,6 +90,12 @@ class FollowedFileTest {
     write("broken", modified = 2_000_000L)
     assertEquals("A", followed.current())
     assertEquals(1, failures.size)
+    val readsWhileBroken = reads
+
+    // Still broken, unchanged: neither parsed nor reported again.
+    assertEquals("A", followed.current())
+    assertEquals(readsWhileBroken, reads)
+    assertEquals(1, failures.size)
 
     write("B", modified = 3_000_000L)
     assertEquals("B", followed.current())
