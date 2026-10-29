@@ -266,8 +266,8 @@ public final class ee/schimke/composeai/daemon/PreviewManifestEntry$Companion {
 public final class ee/schimke/composeai/daemon/PreviewManifestRouter : ee/schimke/composeai/daemon/DesktopHost {
 	public static final field $stable I
 	public static final field Companion Lee/schimke/composeai/daemon/PreviewManifestRouter$Companion;
-	public fun <init> (Lee/schimke/composeai/daemon/PreviewManifest;Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/UserClassLoaderHolder;Ljava/io/File;)V
-	public synthetic fun <init> (Lee/schimke/composeai/daemon/PreviewManifest;Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/UserClassLoaderHolder;Ljava/io/File;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lee/schimke/composeai/daemon/PreviewManifest;Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/UserClassLoaderHolder;Ljava/io/File;Ljava/io/File;)V
+	public synthetic fun <init> (Lee/schimke/composeai/daemon/PreviewManifest;Lee/schimke/composeai/daemon/RenderEngine;Lee/schimke/composeai/daemon/UserClassLoaderHolder;Ljava/io/File;Ljava/io/File;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun submit (Lee/schimke/composeai/daemon/RenderRequest;J)Lee/schimke/composeai/daemon/RenderResult;
 }
 

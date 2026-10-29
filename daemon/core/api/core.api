@@ -409,6 +409,12 @@ public final class ee/schimke/composeai/daemon/FfmpegEncoder$RecordingFormatChoi
 	public static fun values ()[Lee/schimke/composeai/daemon/FfmpegEncoder$RecordingFormatChoice;
 }
 
+public final class ee/schimke/composeai/daemon/FollowedFile {
+	public fun <init> (Ljava/io/File;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljava/io/File;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun current ()Ljava/lang/Object;
+}
+
 public final class ee/schimke/composeai/daemon/GifEncoder {
 	public static final field INSTANCE Lee/schimke/composeai/daemon/GifEncoder;
 	public final fun encodeFromPngFrames (Ljava/util/List;ILjava/io/File;)V

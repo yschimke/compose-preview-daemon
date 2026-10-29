@@ -209,6 +209,7 @@ fun main(args: Array<String>) {
         // Captures' `renderOutput` is relative to the manifest, so the still lands where the
         // manifest declares it (compose-ai-tools#6114).
         manifestDir = manifestFile.absoluteFile.parentFile,
+        manifestFile = manifestFile,
       )
     } else {
       if (sandboxCount > 1) {

@@ -32,25 +32,42 @@ import okio.Path.Companion.toPath
  * `id` and `className`/`functionName` are required; everything else falls back to [RenderSpec]'s
  * defaults.
  */
-class PreviewManifestRouter(
-  private val manifest: PreviewManifest,
-  engine: RenderEngine = RenderEngine(),
-  userClassloaderHolder: UserClassLoaderHolder? = null,
-  /**
-   * The manifest file's directory, against which each capture's `renderOutput` resolves. `null` (a
-   * manifest handed over in memory) disables declared outputs: every render keeps the default
-   * `<outputDir>/<outputBaseName>.png`.
-   */
-  private val manifestDir: File? = null,
+class PreviewManifestRouter
+private constructor(
+  private val manifest: RoutedManifest,
+  engine: RenderEngine,
+  userClassloaderHolder: UserClassLoaderHolder?,
+  private val manifestDir: File?,
 ) :
   DesktopHost(
     engine = engine,
     userClassloaderHolder = userClassloaderHolder,
     // Without a resolver DesktopHost advertises no interactive/recording support.
-    previewSpecResolver = manifestPreviewSpecResolver(manifest.previews.associateBy { it.id }),
+    previewSpecResolver = { previewId -> manifestPreviewSpecResolver(manifest.byId())(previewId) },
   ) {
 
-  private val byId: Map<String, PreviewManifestEntry> = manifest.previews.associateBy { it.id }
+  constructor(
+    manifest: PreviewManifest,
+    engine: RenderEngine = RenderEngine(),
+    userClassloaderHolder: UserClassLoaderHolder? = null,
+    /**
+     * The manifest file's directory, against which each capture's `renderOutput` resolves. `null`
+     * (a manifest handed over in memory) disables declared outputs: every render keeps the default
+     * `<outputDir>/<outputBaseName>.png`.
+     */
+    manifestDir: File? = null,
+    /**
+     * The file [manifest] was read from. When set, the router follows it: a `previews.json` the
+     * Gradle plugin rewrites while the daemon runs — a `@Preview` added, removed or edited — is
+     * what the next lookup resolves against (compose-ai-tools#6239). `null` keeps [manifest] as is.
+     */
+    manifestFile: File? = null,
+  ) : this(
+    manifest = RoutedManifest(manifest, manifestFile),
+    engine = engine,
+    userClassloaderHolder = userClassloaderHolder,
+    manifestDir = manifestDir,
+  )
 
   override fun submit(request: RenderRequest, timeoutMs: Long): RenderResult {
     require(request !is RenderRequest.Shutdown) {
@@ -78,7 +95,7 @@ class PreviewManifestRouter(
       rowAddressed(previewId)
         ?: error(
           "PreviewManifestRouter: no manifest entry for previewId='$previewId'. " +
-            "Manifest knows: ${byId.keys}"
+            "Manifest knows: ${manifest.byId().keys}"
         )
     // An explicit inbound row wins over the one parsed out of the id, so a caller can render a row
     // of the bare base id without minting a row id for it.
@@ -87,7 +104,7 @@ class PreviewManifestRouter(
     // the row split, and asking the resolver to redo it would be a second lookup whose failure
     // branch is unreachable. The row is applied below.
     val base =
-      manifestPreviewSpecResolver(byId)(addressed.entry.id)
+      manifestPreviewSpecResolver(manifest.byId())(addressed.entry.id)
         ?: error("PreviewManifestRouter: entry '${addressed.entry.id}' resolved to no spec")
     val spec =
       base
@@ -116,6 +133,7 @@ class PreviewManifestRouter(
    * previewId" error.
    */
   internal fun rowAddressed(previewId: String): Addressed? {
+    val byId = manifest.byId()
     byId[previewId]?.let {
       return Addressed(it, null)
     }
@@ -219,6 +237,31 @@ class PreviewManifestRouter(
       }
     }
   }
+}
+
+/**
+ * The entries a [PreviewManifestRouter] resolves against, by id: [manifest] as handed over, or —
+ * given the [file] it came from — the file as it is now (see [FollowedFile]).
+ */
+internal class RoutedManifest(manifest: PreviewManifest, file: File?) {
+  private val fixed = manifest.previews.associateBy { it.id }
+  private val followed = file?.let {
+    FollowedFile(
+      file = it,
+      initial = fixed,
+      read = { changed ->
+        PreviewManifestRouter.loadManifest(changed).previews.associateBy { entry -> entry.id }
+      },
+      onReadFailed = { e ->
+        System.err.println(
+          "compose-ai-tools desktop daemon: PreviewManifestRouter kept the previous manifest; " +
+            "'$it' did not load (${e.message})"
+        )
+      },
+    )
+  }
+
+  fun byId(): Map<String, PreviewManifestEntry> = followed?.current() ?: fixed
 }
 
 @Serializable data class PreviewManifest(val previews: List<PreviewManifestEntry>)
