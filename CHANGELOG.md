@@ -1,5 +1,25 @@
 # Changelog
 
+## [3.27.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.26.0...v3.27.0) (2026-10-29)
+
+
+### Features
+
+* **wallpaper:** bridge overrides.wallpaper to system dynamic colours and Wear Compose M3 ([#412](https://github.com/yschimke/compose-preview-daemon/issues/412)) ([1a3743d](https://github.com/yschimke/compose-preview-daemon/commit/1a3743d1c90a771c7de2f71f2663912866776d60))
+
+
+### Bug Fixes
+
+* **deps:** update androidx ([#419](https://github.com/yschimke/compose-preview-daemon/issues/419)) ([47f7dd4](https://github.com/yschimke/compose-preview-daemon/commit/47f7dd489e0b36489d1731194764f4168c71659b))
+* **deps:** update dependency com.squareup.okhttp3:okhttp to v5.5.1 ([#420](https://github.com/yschimke/compose-preview-daemon/issues/420)) ([d3b1fde](https://github.com/yschimke/compose-preview-daemon/commit/d3b1fde629c697dc67e78bca0aa2f5a14600e93a))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.20.1 ([#416](https://github.com/yschimke/compose-preview-daemon/issues/416)) ([1201866](https://github.com/yschimke/compose-preview-daemon/commit/12018661b9c810d9268231fec2ae2580d35a0aaf))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.21.0 ([#418](https://github.com/yschimke/compose-preview-daemon/issues/418)) ([d5f756b](https://github.com/yschimke/compose-preview-daemon/commit/d5f756b546abd33dd6954cfae38bea09e9c8316c))
+* **deps:** update dependency org.jetbrains.kotlinx:kotlinx-serialization-json to v1.12.0 ([#414](https://github.com/yschimke/compose-preview-daemon/issues/414)) ([0016e83](https://github.com/yschimke/compose-preview-daemon/commit/0016e839bacda76ed7302d133fdc2f7b6b4713aa))
+* **deps:** update roborazzi to v1.77.0 ([#421](https://github.com/yschimke/compose-preview-daemon/issues/421)) ([1d80439](https://github.com/yschimke/compose-preview-daemon/commit/1d80439a5c211cbfe0115e33f3b7fd5ced794909))
+* **gestures:** stop reportedOneHandedGesture replaying the hint on recomposition ([#417](https://github.com/yschimke/compose-preview-daemon/issues/417)) ([0293b5b](https://github.com/yschimke/compose-preview-daemon/commit/0293b5bffec50b2ea7ae9eeffe01ba0f78c62f60))
+* resolve a desktop route against one manifest snapshot, and report a broken manifest once ([#423](https://github.com/yschimke/compose-preview-daemon/issues/423)) ([65d91a8](https://github.com/yschimke/compose-preview-daemon/commit/65d91a87260120a395f0258e71b4741ec6590794))
+* the manifest router follows previews.json, so a @Preview added while the daemon runs renders ([#422](https://github.com/yschimke/compose-preview-daemon/issues/422)) ([9b619aa](https://github.com/yschimke/compose-preview-daemon/commit/9b619aacb28d59e047e4c7f5c561da77584ce890))
+
 ## [3.26.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.25.1...v3.26.0) (2026-10-26)
 
 
