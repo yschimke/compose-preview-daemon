@@ -2,14 +2,27 @@ package ee.schimke.composeai.daemon
 
 import android.os.OutcomeReceiver
 import android.view.HapticFeedbackConstants
+import com.google.wear.Sdk
 import com.google.wear.services.tiles.TileInstance
+import com.google.wear.services.tiles.TilesManager
 import java.util.concurrent.Executor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implements
 
+@RunWith(RobolectricTestRunner::class)
+@Config(
+  sdk = [35],
+  shadows =
+    [ShadowWearHapticFeedbackConstants::class, ShadowWearSdk::class, ShadowTilesManager::class],
+  instrumentedPackages = ["com.google.wear"],
+)
 class ShadowWearSdkTest {
   @Test
   fun `shadows target optional Wear SDK APIs by class name`() {
@@ -68,5 +81,30 @@ class ShadowWearSdkTest {
     assertTrue(scheduled)
     assertNotNull(received)
     assertTrue(received!!.isEmpty())
+  }
+
+  @Test
+  fun `instrumented Wear SDK calls use simulator behavior rather than placeholders`() {
+    assertEquals(
+      HapticFeedbackConstants.CLOCK_TICK,
+      com.google.wear.input.WearHapticFeedbackConstants.getScrollTick(),
+    )
+
+    val tiles = Sdk.getWearManager(RuntimeEnvironment.getApplication(), TilesManager::class.java)
+    assertNotNull(tiles)
+
+    var received: List<TileInstance>? = null
+    tiles!!.getActiveTiles(
+      Executor { it.run() },
+      object : OutcomeReceiver<List<TileInstance>, Exception> {
+        override fun onResult(result: List<TileInstance>) {
+          received = result
+        }
+
+        override fun onError(error: Exception) = throw AssertionError(error)
+      },
+    )
+
+    assertEquals(emptyList<TileInstance>(), received)
   }
 }
