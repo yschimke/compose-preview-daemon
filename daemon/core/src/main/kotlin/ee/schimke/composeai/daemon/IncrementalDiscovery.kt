@@ -129,11 +129,11 @@ public class IncrementalDiscovery(
     val jars = if (target != null) dependencyJars(target) else emptyList()
     return try {
       ClassGraph()
+        .enableClassInfo()
         .enableMethodInfo()
         .enableAnnotationInfo()
         .ignoreMethodVisibility()
-        .overrideClasspath(scanRoots.map { it.toAbsolutePath().toString() })
-        .ignoreParentClassLoaders()
+        .enableClasspathEntries(scanRoots.map { it.toAbsolutePath().toString() })
         .scan()
         .use { scanResult -> collectPreviews(scanResult, file, target, jars) }
     } catch (t: Throwable) {
@@ -179,14 +179,14 @@ public class IncrementalDiscovery(
     while (pending.isNotEmpty()) {
       val found =
         ClassGraph()
+          .enableClassInfo()
           .enableAnnotationInfo()
-          .overrideClasspath(jars.map { it.toAbsolutePath().toString() })
-          .ignoreParentClassLoaders()
+          .enableClasspathEntries(jars.map { it.toAbsolutePath().toString() })
           .acceptClasses(*pending.toTypedArray())
           .scan()
           .use { result ->
             pending.associateWith { name ->
-              result.getClassInfo(name)?.annotationInfo?.map { it.detach() }.orEmpty()
+              result.getClassInfo(name)?.allAnnotationInfo?.map { it.detach() }.orEmpty()
             }
           }
       pending.forEach { jarAnnotations[it] = found[it].orEmpty() }
@@ -209,12 +209,12 @@ public class IncrementalDiscovery(
     val targetRoot = target?.let { runCatching { it.toAbsolutePath().normalize() }.getOrNull() }
     // An annotation class this scan only saw referenced is an external placeholder with no
     // annotations of its own; leave it unresolved so the dependency JARs are asked.
-    val local = { name: String ->
-      scanResult
-        .getClassInfo(name)
-        ?.takeUnless { it.isExternalClass }
-        ?.annotationInfo
-        ?.map { it.detach() }
+    // Explicit types: ClassGraph 5 annotates its API with jspecify, which isn't on this classpath,
+    // and Kotlin refuses to infer a type carrying an annotation it cannot see.
+    val local: (String) -> List<Ann>? = { name ->
+      val info: ClassInfo? = scanResult.getClassInfo(name)
+      if (info == null || info.isExternalClass) null
+      else info.allAnnotationInfo.map { annotation: AnnotationInfo -> annotation.detach() }
     }
     val methods = mutableListOf<Pair<ClassInfo, MethodInfo>>()
     for (classInfo in scanResult.allClasses) {
@@ -236,7 +236,7 @@ public class IncrementalDiscovery(
     // A full-classpath scan (no target) already holds every annotation class.
     if (jars.isNotEmpty()) {
       annotationsFromJars(
-        methods.flatMap { (_, method) -> method.annotationInfo.map { it.name } },
+        methods.flatMap { (_, method) -> method.allAnnotationInfo.map { it.name } },
         jars,
         local,
       )
@@ -245,7 +245,7 @@ public class IncrementalDiscovery(
 
     val results = LinkedHashSet<PreviewInfoDto>()
     for ((classInfo, method) in methods) {
-      val annotations = method.annotationInfo?.map { it.detach() }.orEmpty()
+      val annotations = method.allAnnotationInfo?.map { it.detach() }.orEmpty()
       val direct = collectDirectPreviews(annotations)
       val expansions =
         if (direct.isNotEmpty()) direct
