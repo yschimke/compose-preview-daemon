@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.27.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.0...v3.27.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **client:** fail a waiting request at once when the daemon process exits ([#432](https://github.com/yschimke/compose-preview-daemon/issues/432)) ([061376f](https://github.com/yschimke/compose-preview-daemon/commit/061376fe8a2ab7756c9c1ffce3e5de24e6334456))
+* **daemon:** register Wear SDK shadows in sandbox ([#431](https://github.com/yschimke/compose-preview-daemon/issues/431)) ([996d21a](https://github.com/yschimke/compose-preview-daemon/commit/996d21a352767adf27d60ccdfc249dc46edeb671))
+* **deps:** update dependency org.jetbrains.skiko:skiko-awt to v0.156.0 ([#429](https://github.com/yschimke/compose-preview-daemon/issues/429)) ([76daa65](https://github.com/yschimke/compose-preview-daemon/commit/76daa653ba1acd91fbd8ccb0987b81df72561eba))
+* shadow optional Wear SDK APIs in simulations ([#430](https://github.com/yschimke/compose-preview-daemon/issues/430)) ([8aa966e](https://github.com/yschimke/compose-preview-daemon/commit/8aa966e1c468e0dce50997e56360ea11f949f173))
+
+
+### CI
+
+* **renovate:** hold ClassGraph below 6 ([#424](https://github.com/yschimke/compose-preview-daemon/issues/424)) ([7da08a6](https://github.com/yschimke/compose-preview-daemon/commit/7da08a66b870b9d40de59fa72ca52c7698b9461f))
+
 ## [3.27.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.26.0...v3.27.0) (2026-10-29)
 
 
