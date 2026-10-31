@@ -144,12 +144,11 @@ open class SandboxHoldingRunner(testClass: Class<*>) :
       clockPackages.forEach { builder.addInstrumentedPackage(it) }
       builder.addInstrumentedClass(ConsumerClock.SHADOW_SYSTEM)
     }
-    // Generic android.jar deliberately excludes Wear's optional SDK. When the daemon bundles the
-    // simulator-only signature surface, instrument it so static API calls reach the conservative
-    // Robolectric shadows registered below rather than the placeholder method bodies.
-    if (isWearSdkStubsAvailable(sandboxParentLoader())) {
-      builder.addInstrumentedPackage(WEAR_SDK_PACKAGE)
-    }
+    // Generic android.jar deliberately excludes Wear's optional SDK. The daemon always bundles
+    // the simulator-only signature surface, but that runtime dependency is deliberately absent
+    // from a consumer's AppComposeFirstLoader. Instrument unconditionally instead of probing the
+    // consumer loader, so static calls reach the conservative Robolectric shadows below.
+    builder.addInstrumentedPackage(WEAR_SDK_PACKAGE)
     // B2.0: optional user-package exclusion. Empty when sysprop is unset; existing in-process
     // tests that rely on the default sandbox-classpath path are unaffected.
     DaemonProperties.userClassPackages.read().forEach { builder.doNotAcquirePackage(it) }
@@ -216,18 +215,12 @@ open class SandboxHoldingRunner(testClass: Class<*>) :
         // connector not on classpath — skip gesture shadow
       }
     }
-    // Wear SDK optional-platform shadows. The signature jar is daemon-only; this registration
-    // never changes an application's packaged classpath. It is deliberately gated so older
-    // daemon distributions that lack the jar continue rendering non-Wear consumers unchanged.
-    if (isWearSdkStubsAvailable(sandboxParentLoader())) {
-      try {
-        shadows += ShadowWearHapticFeedbackConstants::class.java
-        shadows += ShadowWearSdk::class.java
-        shadows += ShadowTilesManager::class.java
-      } catch (_: NoClassDefFoundError) {
-        // connector or signature jar not present — retain the normal generic-Android sandbox.
-      }
-    }
+    // Wear SDK optional-platform shadows. Their signatures are daemon-only, so this never
+    // changes an application's packaged classpath. Register them independently of the consumer
+    // loader: that loader intentionally cannot see the daemon's runtime-only signature jar.
+    shadows += ShadowWearHapticFeedbackConstants::class.java
+    shadows += ShadowWearSdk::class.java
+    shadows += ShadowTilesManager::class.java
     // Runtime-permissions tracker shadow. Always registered — `android.content.ContextWrapper`
     // is core Android, present on every consumer classpath, so the symbolic links the shadow
     // declares always resolve. The shadow forwards `checkPermission(...)` to the real
@@ -333,17 +326,6 @@ internal fun isWearGestureAvailable(loader: ClassLoader?): Boolean {
     "androidx.wear.compose.material3.onehandedgesture.OneHandedGestureModifierKt",
     loader,
   )
-}
-
-/**
- * Returns true when the daemon distribution includes its simulator-only optional Wear SDK surface.
- *
- * `android.jar` intentionally does not contain `com.google.wear.*`; Wear apps compile against a
- * second optional platform jar. The daemon supplies signatures in a separate runtime artifact so
- * the classes can be instrumented and shadowed without leaking them into an application's APK.
- */
-internal fun isWearSdkStubsAvailable(loader: ClassLoader?): Boolean {
-  return isClassVisible("com.google.wear.Sdk", loader)
 }
 
 /** Package instrumented so the Wear SDK static methods are interceptable by Robolectric. */
