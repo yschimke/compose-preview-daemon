@@ -116,6 +116,11 @@ dependencies {
   // the ambient connector above.
   implementation(project(":data-gestures-connector"))
   runtimeOnly(project(":data-gestures-robolectric-stubs"))
+  // Wear SDK compatibility surface. The signature-only Android library supplies the optional
+  // platform classes that generic android.jar omits; the connector shadows only the safe,
+  // simulator-owned behavior exercised by Wear Compose / Tiles.
+  implementation(project(":data-wear-sdk-connector"))
+  runtimeOnly(project(":data-wear-sdk-robolectric-stubs"))
   // Display-filter connector — DisplayFilterDataProductRegistry + DisplayFilterDataProducer.
   // DaemonMain reads `composeai.displayfilter.filters` via `DisplayFilterConfig` to decide
   // whether to register the extension; the host's render pipeline reads the same prop and
