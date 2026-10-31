@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.OutcomeReceiver
 import android.view.HapticFeedbackConstants
@@ -67,6 +68,7 @@ class ShadowWearSdk {
  */
 @Implements(className = "com.google.wear.services.tiles.TilesManager")
 class ShadowTilesManager {
+  @SuppressLint("NewApi")
   @Implementation
   fun getActiveTiles(
     executor: Executor,
