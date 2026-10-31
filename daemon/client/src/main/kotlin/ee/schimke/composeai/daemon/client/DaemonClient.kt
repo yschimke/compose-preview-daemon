@@ -101,6 +101,13 @@ public class DaemonClient(
   private val nextId = AtomicLong(1)
   private val responseSlots = ConcurrentHashMap<Long, LinkedBlockingQueue<JsonObject>>()
   private val closed = java.util.concurrent.atomic.AtomicBoolean(false)
+  /**
+   * Set once the reader has stopped (EOF: the daemon process exited, or [close]). Requests waiting
+   * for a reply, and any sent after, then fail at once instead of waiting out their timeout: a
+   * daemon that died on startup (a stale classpath, `ClassNotFoundException`) left `initialize`
+   * blocked for its whole two minutes.
+   */
+  @Volatile private var readerStopped = false
   private val readerThread =
     Thread({ runReader() }, threadName).apply {
       isDaemon = true
@@ -750,11 +757,16 @@ public class DaemonClient(
   private fun sendAndAwait(id: Long, request: JsonRpcRequest, timeout: Duration): JsonObject {
     val slot = responseSlots.computeIfAbsent(id) { LinkedBlockingQueue() }
     try {
+      // After registering the slot, so a reader stopping now either sees the slot or is seen here.
+      if (readerStopped) throw connectionClosed(request.method)
       sendFrame(json.encodeToString(JsonRpcRequest.serializer(), request))
-      return slot.poll(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
-        ?: error(
-          "DaemonClient: response for id=$id (method=${request.method}) timed out after $timeout"
-        )
+      val reply =
+        slot.poll(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
+          ?: error(
+            "DaemonClient: response for id=$id (method=${request.method}) timed out after $timeout"
+          )
+      if (reply === CONNECTION_CLOSED) throw connectionClosed(request.method)
+      return reply
     } finally {
       responseSlots.remove(id, slot)
     }
@@ -806,9 +818,18 @@ public class DaemonClient(
       System.err.println("DaemonClient reader: ${e.message}")
       e.printStackTrace(System.err)
     } finally {
+      // Wake every request still waiting for a reply that can no longer come.
+      readerStopped = true
+      responseSlots.values.forEach { it.offer(CONNECTION_CLOSED) }
       runCatching { onClose() }
     }
   }
+
+  private fun connectionClosed(method: String) =
+    IOException(
+      "DaemonClient: the daemon closed its connection before answering $method " +
+        "(the process exited; its stderr says why)"
+    )
 
   private fun readFrame(input: InputStream): ByteArray? {
     var contentLength = -1
@@ -886,6 +907,9 @@ public class DaemonBootFailedException(message: String) : IllegalStateException(
 
 /** The `bootProgress` phases after which nothing more is coming for the boot that answered. */
 private val TERMINAL_BOOT_PHASES = setOf(BootPhase.READY, BootPhase.FAILED)
+
+/** Offered to waiting response slots when the reader stops; compared by identity. */
+private val CONNECTION_CLOSED: JsonObject = JsonObject(emptyMap())
 
 /** JSON-RPC "method not found": what a daemon that predates a request answers it with. */
 private const val METHOD_NOT_FOUND: Int = -32601
