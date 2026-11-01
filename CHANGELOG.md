@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.27.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.1...v3.27.2) (2026-11-01)
+
+
+### Bug Fixes
+
+* **daemon:** stop a warm-up for an edit that finished between two passes ([#435](https://github.com/yschimke/compose-preview-daemon/issues/435)) ([0d7868c](https://github.com/yschimke/compose-preview-daemon/commit/0d7868c261e0f34e451f03a540066e21b8a536f8))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.39.1 ([#434](https://github.com/yschimke/compose-preview-daemon/issues/434)) ([7192282](https://github.com/yschimke/compose-preview-daemon/commit/7192282a0fd7e5c2c283cb7f66262fceca64a085))
+
 ## [3.27.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.0...v3.27.1) (2026-11-01)
 
 
