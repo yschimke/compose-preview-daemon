@@ -10,6 +10,7 @@ import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
 
@@ -68,7 +69,15 @@ internal constructor(
   /** Edits waiting for the lock: a warm-up stops after its current pass when there are any. */
   private val waitingCompiles = AtomicInteger()
 
+  /**
+   * Every edit that has arrived, ever. A warm-up compares it with the value it started with, so an
+   * edit that arrived, took the lock between two passes and finished before the warm-up looked at
+   * [waitingCompiles] again still stops it: without this the warm-up saw no waiter and ran on.
+   */
+  private val arrivedCompiles = AtomicLong()
+
   override fun compile(sources: List<Path>, changes: SourceChangeSet?): BtaCompileService.Outcome {
+    arrivedCompiles.incrementAndGet()
     waitingCompiles.incrementAndGet()
     try {
       return synchronized(this) { compileLocked(sources, changes) }
@@ -168,6 +177,7 @@ internal constructor(
    */
   public fun warmUp(moduleSources: List<String> = emptyList()): WarmUp {
     val start = System.nanoTime()
+    val arrivedAtStart = arrivedCompiles.get()
     fun elapsedMs() = (System.nanoTime() - start) / 1_000_000
     val budgetNs = warmUpBudgetMs * 1_000_000
     val warm =
@@ -193,7 +203,7 @@ internal constructor(
     while (
       passes < warmUpMaxPasses && (passes == 0 || System.nanoTime() - jitPassesFrom < budgetNs)
     ) {
-      if (waitingCompiles.get() > 0) {
+      if (waitingCompiles.get() > 0 || arrivedCompiles.get() != arrivedAtStart) {
         interrupted = true
         break
       }
