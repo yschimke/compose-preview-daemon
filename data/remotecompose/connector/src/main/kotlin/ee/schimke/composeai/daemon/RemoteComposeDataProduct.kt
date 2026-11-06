@@ -242,7 +242,7 @@ private fun wearWidgetsProfile(): Profile {
     ?.let {
       return it
     }
-  return createProfile(operationProfiles = PROFILE_WEAR_WIDGETS)
+  return createProfile(profileFlags = PROFILE_WEAR_WIDGETS)
 }
 
 /**
