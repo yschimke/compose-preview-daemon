@@ -2,8 +2,9 @@
 
 package ee.schimke.composeai.daemon
 
-import androidx.compose.remote.creation.compose.action.Action
+import androidx.compose.remote.creation.compose.action.RemoteAction
 import androidx.compose.remote.creation.compose.action.hostAction
+import androidx.compose.remote.creation.compose.capture.createProfile
 import androidx.compose.remote.creation.compose.state.rf
 import androidx.compose.remote.creation.compose.state.rs
 import androidx.compose.remote.creation.profile.Profile
@@ -216,18 +217,43 @@ fun RemoteComposeProfile.toRcPlatformProfile(): Profile =
     RemoteComposeProfile.ANDROIDX9 -> RcPlatformProfiles.ANDROIDX9
     RemoteComposeProfile.WIDGETS_V6 -> RcPlatformProfiles.WIDGETS_V6
     RemoteComposeProfile.WIDGETS_V7 -> RcPlatformProfiles.WIDGETS_V7
-    RemoteComposeProfile.WEAR_WIDGETS -> RcPlatformProfiles.WEAR_WIDGETS
+    RemoteComposeProfile.WEAR_WIDGETS -> wearWidgetsProfile()
   }
 
+private const val PROFILE_WEAR_WIDGETS: Int = 0x800
+
+private fun wearWidgetsProfile(): Profile {
+  runCatching {
+    val glanceProfiles =
+      Class.forName(
+        "androidx.glance.wear.GlanceWearProfiles",
+        false,
+        Profile::class.java.classLoader,
+      )
+    val instance = glanceProfiles.getField("INSTANCE").get(null)
+    glanceProfiles.getMethod("getWearWidgets").invoke(instance) as Profile
+  }
+    .getOrNull()
+    ?.let {
+      return it
+    }
+  runCatching { RcPlatformProfiles::class.java.getField("WEAR_WIDGETS").get(null) as Profile }
+    .getOrNull()
+    ?.let {
+      return it
+    }
+  return createProfile(profileFlags = PROFILE_WEAR_WIDGETS)
+}
+
 /**
- * Build a host-action [Action] from the protocol payload. Mirrors the alpha API's factory —
+ * Build a host-action [RemoteAction] from the protocol payload. Mirrors the alpha API's factory —
  * `hostAction(payload: RemoteString, handlerId: RemoteFloat)` — wrapping the wire `(String, Float)`
  * pair via the same `.rs` / `.rf` helpers the sample uses. (The concrete `HostAction` type went
  * `internal` in compose-remote alpha13; `hostAction(...)` is its public replacement.) Useful for
  * user code that wants to materialise a daemon-supplied action descriptor into a live
  * `RemoteButton(onClick = …)`.
  */
-fun RemoteHostAction.toHostAction(): Action = hostAction(payload.rs, handlerId.rf)
+fun RemoteHostAction.toHostAction(): RemoteAction = hostAction(payload.rs, handlerId.rf)
 
 /**
  * `AroundComposable` extension that owns the Remote Compose surface. The extension is **always
