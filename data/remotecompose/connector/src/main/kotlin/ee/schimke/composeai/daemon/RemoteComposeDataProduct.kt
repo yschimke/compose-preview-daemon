@@ -224,15 +224,15 @@ private const val PROFILE_WEAR_WIDGETS: Int = 0x800
 
 private fun wearWidgetsProfile(): Profile {
   runCatching {
-      val glanceProfiles =
-        Class.forName(
-          "androidx.glance.wear.GlanceWearProfiles",
-          false,
-          Profile::class.java.classLoader,
-        )
-      val instance = glanceProfiles.getField("INSTANCE").get(null)
-      glanceProfiles.getMethod("getWearWidgets").invoke(instance) as Profile
-    }
+    val glanceProfiles =
+      Class.forName(
+        "androidx.glance.wear.GlanceWearProfiles",
+        false,
+        Profile::class.java.classLoader,
+      )
+    val instance = glanceProfiles.getField("INSTANCE").get(null)
+    glanceProfiles.getMethod("getWearWidgets").invoke(instance) as Profile
+  }
     .getOrNull()
     ?.let {
       return it
