@@ -1,5 +1,27 @@
 # Changelog
 
+## [3.27.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.2...v3.27.3) (2026-11-07)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.android.tools.build:gradle to v9.5.0 ([#442](https://github.com/yschimke/compose-preview-daemon/issues/442)) ([1d7c650](https://github.com/yschimke/compose-preview-daemon/commit/1d7c650dbd6265d3b59c0415ea16e0218234c63a))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.40.0 ([#448](https://github.com/yschimke/compose-preview-daemon/issues/448)) ([6adb398](https://github.com/yschimke/compose-preview-daemon/commit/6adb398fb7e73c99649e916cde2a4efab548c8c7))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.22.0 ([#437](https://github.com/yschimke/compose-preview-daemon/issues/437)) ([1488629](https://github.com/yschimke/compose-preview-daemon/commit/148862932db53238c478f84fa337e56fb29f6a74))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.23.0 ([#443](https://github.com/yschimke/compose-preview-daemon/issues/443)) ([69176be](https://github.com/yschimke/compose-preview-daemon/commit/69176be2faba0b197fc10099ccad1d27874bdafe))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.24.0 ([#445](https://github.com/yschimke/compose-preview-daemon/issues/445)) ([f34df10](https://github.com/yschimke/compose-preview-daemon/commit/f34df10890254d59bc3212526f995813993c01f4))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.25.0 ([#446](https://github.com/yschimke/compose-preview-daemon/issues/446)) ([72a994a](https://github.com/yschimke/compose-preview-daemon/commit/72a994a52b8f7633139d3d5a5f688dc0cb3b58cf))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.26.0 ([#447](https://github.com/yschimke/compose-preview-daemon/issues/447)) ([1ec37b6](https://github.com/yschimke/compose-preview-daemon/commit/1ec37b6c827092795e1aa7a1fd4900a5a29aeb02))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.27.0 ([#449](https://github.com/yschimke/compose-preview-daemon/issues/449)) ([018facf](https://github.com/yschimke/compose-preview-daemon/commit/018facf5a14651bda8f35abec1df41ddbabdc71d))
+
+
+### Chores
+
+* **deps:** update agp to v9.5.0 ([#441](https://github.com/yschimke/compose-preview-daemon/issues/441)) ([2da7777](https://github.com/yschimke/compose-preview-daemon/commit/2da7777aea510044e20636e16b31fbf270bfb2db))
+* **deps:** update dependency dev.zacsweers.metro to v1.5.0 ([#439](https://github.com/yschimke/compose-preview-daemon/issues/439)) ([5cc6f97](https://github.com/yschimke/compose-preview-daemon/commit/5cc6f97f6cfed6e188bc7bfaba714272cd7a209d))
+* **deps:** update dependency dev.zacsweers.metro to v1.5.1 ([#444](https://github.com/yschimke/compose-preview-daemon/issues/444)) ([a25a434](https://github.com/yschimke/compose-preview-daemon/commit/a25a434a13323a201dcbe5ac4b9a6a9d10ee98e3))
+* **deps:** update gradle/actions action to v6.4.1 ([#440](https://github.com/yschimke/compose-preview-daemon/issues/440)) ([24efe34](https://github.com/yschimke/compose-preview-daemon/commit/24efe345801a185c67f096c05cb464b3d7e9b23b))
+
 ## [3.27.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.1...v3.27.2) (2026-11-01)
 
 
