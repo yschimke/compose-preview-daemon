@@ -117,7 +117,7 @@ public data class ScrollCapture(
   val mode: String,
   val axis: String = "VERTICAL",
   val maxScrollPx: Int = 0,
-  val reduceMotion: Boolean = true,
+  val reduceMotion: Boolean = false,
   val atEnd: Boolean = false,
   val reachedPx: Int? = null,
 )

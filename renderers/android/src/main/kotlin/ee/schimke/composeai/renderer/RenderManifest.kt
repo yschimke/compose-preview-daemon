@@ -127,7 +127,7 @@ data class ScrollCapture(
   val mode: ScrollMode,
   val axis: ScrollAxis = ScrollAxis.VERTICAL,
   val maxScrollPx: Int = 0,
-  val reduceMotion: Boolean = true,
+  val reduceMotion: Boolean = false,
   /**
    * Per-frame delay for [ScrollMode.GIF] captures, in milliseconds. `0` means "renderer default"
    * ([ScrollGifEncoder.DEFAULT_FRAME_DELAY_MS]).
