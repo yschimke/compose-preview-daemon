@@ -2532,7 +2532,7 @@ class RenderEngine(
     val flattenWearScroll = isRound && spec.heightPx > spec.widthPx
 
     // `@ScrollingPreview(END)`: resolved before composition, because the same annotation's
-    // `reduceMotion` (default `true`) is a composition local — a Wear `TransformingLazyColumn`
+    // `reduceMotion` (default `false`) is a composition local — a Wear `TransformingLazyColumn`
     // composed with motion enabled has already baked its edge transforms by the time a scroll
     // drive could run, so the daemon's frame would disagree with the Gradle render's. Mirrors
     // `RobolectricRenderTest`, which reads the same flag off the preview's captures and wraps

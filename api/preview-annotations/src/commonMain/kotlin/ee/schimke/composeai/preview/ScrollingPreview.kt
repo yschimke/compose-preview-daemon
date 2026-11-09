@@ -34,14 +34,20 @@ annotation class ScrollingPreview(
    * `LocalReduceMotion provides ReduceMotion(true)` to flatten Wear `TransformingLazyColumn` item
    * transforms.
    *
+   * Defaults to false so a still matches what a watch shows with its default settings (reduce
+   * motion off): items at the top and bottom edges are scaled and faded by the list's
+   * `TransformationSpec`. Flattening those stills hides that transform and makes content at the
+   * edges look clipped when it isn't on a device. Opt in to `true` to review the flat layout.
+   *
    * [ScrollMode.LONG] and [ScrollMode.GIF] ignore this flag — each medium has exactly one sensible
    * setting, applied automatically: a LONG stitch **always flattens** (mid-scale items baked into
    * slices produce ghost/duplicate bands the content-aware stitcher cannot collapse), and a GIF
    * **always keeps motion** (its frames genuinely animate, so the flattened look would just hide
    * what the watch shows). One annotation therefore yields a clean LONG still *and* a lively GIF
-   * with no per-mode configuration.
+   * with no per-mode configuration. Discovery records LONG captures with `reduceMotion = true` to
+   * match.
    */
-  val reduceMotion: Boolean = true,
+  val reduceMotion: Boolean = false,
   /** Which axis to drive. Only [ScrollAxis.VERTICAL] is rendered today. */
   val axis: ScrollAxis = ScrollAxis.VERTICAL,
   /**

@@ -2,6 +2,7 @@ package ee.schimke.composeai.daemon
 
 import java.nio.file.Files
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -515,6 +516,8 @@ class PreviewIndexTest {
       assertNotNull("an END capture must resolve a drive", end)
       assertEquals("END", end!!.mode)
       assertEquals("VERTICAL", end.axis)
+      // An explicit `reduceMotion = true` opts the still into the flattened Wear layout.
+      assertTrue(end.reduceMotion)
       // TOP is already what an undriven render produces, so it asks for no drive.
       assertNull(index.staticScrollFor("TopPreview_1"))
       assertNull(index.staticScrollFor("PlainPreview_1"))
@@ -527,6 +530,8 @@ class PreviewIndexTest {
       assertNotNull("unanimous END captures must resolve a drive", timed)
       assertEquals("HORIZONTAL", timed!!.axis)
       assertEquals(400, timed.maxScrollPx)
+      // Omitted `reduceMotion` keeps motion, matching a watch's default settings.
+      assertFalse(timed.reduceMotion)
       // A scroll-less GIF capture beside the END one is a separate output, not a rival frame.
       assertEquals("END", index.staticScrollFor("EndPlusGifPreview_1")?.mode)
     } finally {

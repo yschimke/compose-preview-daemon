@@ -200,7 +200,7 @@ public data class ScrollCaptureDto(
    * `@ScrollingPreview(reduceMotion = …)`. Carried for wire parity; the renderer reads it via the
    * same field after population from this DTO.
    */
-  val reduceMotion: Boolean = true,
+  val reduceMotion: Boolean = false,
   /**
    * `@ScrollingPreview(frameIntervalMs = N)` for `GIF` mode. `0` means "renderer default
    * (`ScrollGifEncoder.DEFAULT_FRAME_DELAY_MS`)".

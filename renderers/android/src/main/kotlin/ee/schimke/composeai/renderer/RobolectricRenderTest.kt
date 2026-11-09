@@ -1691,9 +1691,17 @@ abstract class RobolectricRenderTestBase(
           // the respective capture and restoring it after, so one
           // multi-mode composition yields a clean LONG still and a lively
           // GIF with no per-mode configuration.
+          //
+          // Only the TOP / END stills' flag decides the starting state: a LONG capture always
+          // records `reduceMotion = true` (it always flattens), and letting that leak in would
+          // flatten the stills of a multi-mode annotation such as `[END, LONG]`.
           val annotationReduceMotion =
-            preview.captures.any { it.scroll?.reduceMotion == true } ||
-              preview.dataProducts.any { it.scroll?.reduceMotion == true }
+            preview.captures.any {
+              val scroll = it.scroll
+              scroll != null &&
+                (scroll.mode == ScrollMode.TOP || scroll.mode == ScrollMode.END) &&
+                scroll.reduceMotion
+            }
           val reduceMotionLocal =
             if (annotationReduceMotion || scrollCaptureInProgress) WearReduceMotionLocal.get()
             else null
