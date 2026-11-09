@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.27.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.3...v3.27.4) (2026-11-09)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.41.0 ([#450](https://github.com/yschimke/compose-preview-daemon/issues/450)) ([c531cb1](https://github.com/yschimke/compose-preview-daemon/commit/c531cb18cedc7a037a1ea5346ffe9fc79a9586ff))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.28.0 ([#451](https://github.com/yschimke/compose-preview-daemon/issues/451)) ([2d77d35](https://github.com/yschimke/compose-preview-daemon/commit/2d77d35b9c2a032ba5c6536b71e5c69312311726))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.29.0 ([#453](https://github.com/yschimke/compose-preview-daemon/issues/453)) ([53dd209](https://github.com/yschimke/compose-preview-daemon/commit/53dd209d0e2a6aef830ed40e3e7dcf952ec63565))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.31.0 ([#455](https://github.com/yschimke/compose-preview-daemon/issues/455)) ([47743e7](https://github.com/yschimke/compose-preview-daemon/commit/47743e77fdcf0067c13e02ea5fb004c631f844f8))
+* **deps:** update dependency org.checkerframework:checker-qual to v4.4.0 ([#456](https://github.com/yschimke/compose-preview-daemon/issues/456)) ([21c9def](https://github.com/yschimke/compose-preview-daemon/commit/21c9def1148740758fab6df830628ed2117fc7aa))
+* **scroll:** keep Wear motion in TOP/END stills by default ([#457](https://github.com/yschimke/compose-preview-daemon/issues/457)) ([47b0e61](https://github.com/yschimke/compose-preview-daemon/commit/47b0e6104f5a5302b1f6229641568ed899a18cf6))
+
+
+### Chores
+
+* **deps:** update dependency yschimke/compose-preview-xr to v2.0.3 ([#454](https://github.com/yschimke/compose-preview-daemon/issues/454)) ([e5ba1c0](https://github.com/yschimke/compose-preview-daemon/commit/e5ba1c072689c42f46ad3aef7c8893d9f07ca6e4))
+
 ## [3.27.3](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.2...v3.27.3) (2026-11-07)
 
 
