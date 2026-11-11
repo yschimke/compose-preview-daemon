@@ -159,7 +159,11 @@ internal class WarmFrontendPhase(private val keepAlive: () -> Disposable) :
           val registrars = configuration.getCompilerExtensions(FirExtensionRegistrar)
           val librariesScope = environment.getSearchScopeForProjectLibraries()
           val libraryList =
-            JvmFrontendPipelinePhase.createLibraryListForJvm(moduleName, configuration, emptyList())
+            JvmFrontendPipelinePhase.createLibraryListForJvm(
+              moduleName,
+              configuration,
+              friendPaths(configuration),
+            )
           val context = FirJvmSessionFactory.Context(configuration, environment, librariesScope)
           val shared =
             FirJvmSessionFactory.createSharedLibrarySession(

@@ -126,6 +126,8 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
           jvmTarget,
           "-module-name",
           moduleName,
+          // The module's other files come from classesDir, so it must see their internals.
+          "-Xfriend-paths=${classesDir.path}",
           "-no-stdlib",
           "-no-reflect",
         ) + sources

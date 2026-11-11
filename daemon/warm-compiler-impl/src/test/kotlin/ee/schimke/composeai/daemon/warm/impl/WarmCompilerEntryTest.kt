@@ -104,6 +104,29 @@ class WarmCompilerEntryTest {
   }
 
   @Test
+  fun `an edit calling another file's internal function compiles`() {
+    // The other file is read from the class directory, not from source: without it as a friend
+    // path its internals are invisible ("Cannot access 'Label': it is internal in file").
+    write(
+      "Label.kt",
+      label("plain").replace("@Composable fun Label(", "@Composable internal fun Label("),
+    )
+    stockCompile(src.listFiles()!!.toList(), classes)
+    entry.javaClass.getMethod("invalidate").invoke(entry)
+
+    val screen = write("Screen.kt", screen("red"))
+    val result = compile(screen)
+    assertEquals(result.toString(), "ok", result["status"])
+
+    val reference = File(root, "reference")
+    stockCompile(src.listFiles()!!.toList(), reference)
+    assertArrayEquals(
+      File(reference, "demo/ScreenKt.class").readBytes(),
+      File(classes, "demo/ScreenKt.class").readBytes(),
+    )
+  }
+
+  @Test
   fun `repeated edits reuse the class-path state and the module index`() {
     val screen = write("Screen.kt", screen("red"))
     assertEquals("ok", compile(screen)["status"])

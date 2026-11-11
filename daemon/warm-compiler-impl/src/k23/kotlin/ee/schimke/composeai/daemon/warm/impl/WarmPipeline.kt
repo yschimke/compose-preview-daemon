@@ -163,7 +163,8 @@ internal class WarmFrontendPhase(
       cached
         ?: run {
           val librariesScope = environment.getSearchScopeForProjectLibraries()
-          val libraryList = createLibraryListForJvm(moduleName, configuration, emptyList())
+          val libraryList =
+            createLibraryListForJvm(moduleName, configuration, friendPaths(configuration))
           val context = FirJvmSessionFactory.Context(configuration, environment, librariesScope)
           val shared =
             FirJvmSessionFactory.createSharedLibrarySession(
