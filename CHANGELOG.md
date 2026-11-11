@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.27.5](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.4...v3.27.5) (2026-11-11)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.31.1 ([#458](https://github.com/yschimke/compose-preview-daemon/issues/458)) ([8f401b9](https://github.com/yschimke/compose-preview-daemon/commit/8f401b96617ab4996183ff77e9442e9732d0ef9b))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.32.0 ([#461](https://github.com/yschimke/compose-preview-daemon/issues/461)) ([2366f11](https://github.com/yschimke/compose-preview-daemon/commit/2366f11b7f220ada005a28cd7fba4f37351ff37b))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.32.1 ([#462](https://github.com/yschimke/compose-preview-daemon/issues/462)) ([4dcfd46](https://github.com/yschimke/compose-preview-daemon/commit/4dcfd46ed8ee70195cc3471f36f6dc53a210549e))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v2.33.0 ([#463](https://github.com/yschimke/compose-preview-daemon/issues/463)) ([1a8daec](https://github.com/yschimke/compose-preview-daemon/commit/1a8daec88b51b8b6f22219fc7f08fa607ccdda07))
+* **deps:** update dependency org.jetbrains.skiko:skiko-awt to v0.156.1 ([#464](https://github.com/yschimke/compose-preview-daemon/issues/464)) ([8817f70](https://github.com/yschimke/compose-preview-daemon/commit/8817f70aeca9b6c014c3cee108146014c28392c6))
+* **warm-compiler:** let an edit see its module's internal declarations ([#465](https://github.com/yschimke/compose-preview-daemon/issues/465)) ([558c9d6](https://github.com/yschimke/compose-preview-daemon/commit/558c9d6cf098f09ec92200351ed7319a6b8e78fb))
+
+
+### Chores
+
+* **deps:** update dependency dev.zacsweers.metro to v1.5.2 ([#460](https://github.com/yschimke/compose-preview-daemon/issues/460)) ([bc5f17f](https://github.com/yschimke/compose-preview-daemon/commit/bc5f17fb079367c48636c8572672cb99359f4593))
+
 ## [3.27.4](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.3...v3.27.4) (2026-11-09)
 
 
