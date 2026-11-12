@@ -119,7 +119,10 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
       parseCommandLineArguments<K2JVMCompilerArguments>(
         listOf(
           "-classpath",
-          (compileClasspath + classesDir.path).joinToString(File.pathSeparator),
+          // The class directory first: the first copy of a class on the class path wins, and
+          // AGP's unit-test class path carries a jar of the module's own classes ahead of the rest.
+          // Resolved from that jar, which is no friend, the module's internals are invisible.
+          (listOf(classesDir.path) + compileClasspath).joinToString(File.pathSeparator),
           "-d",
           stagingDir.path,
           "-jvm-target",
