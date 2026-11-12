@@ -12,6 +12,8 @@
 #      a module skipped for three releases is compared against its own baseline, so nothing is
 #      ever missed by a gap), other than in a test source set (see TEST_SOURCE), or
 #   2. a module it depends on is being published, or
+#      (a project that publishes nothing itself, such as `:daemon:warm-compiler-impl`, counts as
+#      part of every published module that references it, so its changes fall under rule 1), or
 #   3. a shared build input changed, which can move every artifact at once, or
 #   4. the version catalog changed an entry its own build script uses (a catalog entry that a
 #      shared build file uses is rule 3 instead, and publishes everything).
@@ -111,10 +113,15 @@ settings = open("settings.gradle.kts", encoding="utf-8").read()
 dirs = dict(re.findall(r'project\("(:[^"]+)"\)\.projectDir = file\("([^"]+)"\)', settings))
 paths = re.findall(r'^include\("(:[^"]+)"\)', settings, re.M)
 
+# A project reference in a build script: `project(":x")`, and the `project(path = ":x", ...)` form
+# that names a configuration of it (`:daemon:core` takes the warm-compiler jars that way).
+PROJECT_REF = re.compile(r'project\(\s*(?:path\s*=\s*)?"(:[^"]+)"')
+
 modules = {}   # artifactId -> directory
 deps = {}      # artifactId -> [artifactId]
 path_to_id = {}
 platforms = {} # artifactId -> directory, for `composeai.maven-publishing-platform` projects (the BOM)
+unpublished = {}  # project path -> (directory, [project path]) for projects that publish nothing
 for p in paths:
     d = dirs.get(p, p.lstrip(":").replace(":", "/"))
     try:
@@ -126,14 +133,34 @@ for p in paths:
         if m:
             platforms[m.group(1)] = d
         continue
+    refs = PROJECT_REF.findall(text)
     if 'composeai.maven-publishing")' not in text:
+        unpublished[p] = (d, refs)
         continue
     aid = p.lstrip(":").replace(":", "-")
     modules[aid] = d
     path_to_id[p] = aid
-    deps[aid] = [m.lstrip(":").replace(":", "-")
-                 for m in re.findall(r'project\("(:[^"]+)"\)', text)]
+    deps[aid] = [m.lstrip(":").replace(":", "-") for m in refs]
 deps = {a: [d for d in ds if d in modules] for a, ds in deps.items()}
+
+def bundled_dirs(refs):
+    """Directories of the unpublished projects reached from `refs` through unpublished projects
+    only. Such a project ships inside whatever published module pulls it in (the warm-compiler jars
+    are resources of `daemon-core`), so a change to it is a change to that module (rule 1). A
+    published project on the way is not followed: it is rule 2's."""
+    out, stack, seen = [], list(refs), set()
+    while stack:
+        ref = stack.pop()
+        if ref in seen or ref not in unpublished:
+            continue
+        seen.add(ref)
+        directory, more = unpublished[ref]
+        out.append(directory)
+        stack.extend(more)
+    return sorted(out)
+
+bundled = {aid: bundled_dirs(PROJECT_REF.findall(open(d + "/build.gradle.kts", encoding="utf-8").read()))
+           for aid, d in modules.items()}
 
 def central_release(aid):
     """The newest version of `aid` on Central, or None if it has never published there.
@@ -484,6 +511,9 @@ for aid, directory in modules.items():
         print(f"  {aid}: never published; publishing", file=sys.stderr)
         dirty.add(aid)
     elif changed_since(recorded[aid], directory):
+        dirty.add(aid)
+    elif any(changed_since(recorded[aid], b) for b in bundled[aid]):
+        print(f"  {aid}: a project it bundles changed since v{recorded[aid]}", file=sys.stderr)
         dirty.add(aid)
     elif recorded[aid] in catalog_pats and uses_catalog_change(directory, catalog_pats[recorded[aid]]):
         print(f"  {aid}: uses a changed catalog entry; publishing", file=sys.stderr)

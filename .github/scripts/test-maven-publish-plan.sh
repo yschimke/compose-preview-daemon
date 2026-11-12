@@ -36,6 +36,8 @@ include(":alpha")
 include(":beta")
 include(":gamma")
 project(":gamma").projectDir = file("lib/gamma")
+include(":impl")
+project(":impl").projectDir = file("lib/impl")
 include(":bom")
 
 dependencyResolutionManagement {
@@ -99,6 +101,18 @@ val embeddedPlayerVersion = libs.versions.rcplayers.get()
 EOF
 mkdir -p lib/gamma/src/jvmMain/kotlin
 echo 'class Gamma' > lib/gamma/src/jvmMain/kotlin/Gamma.kt
+# An unpublished project gamma bundles, the way `:daemon:core` bundles `:daemon:warm-compiler-impl`
+# through a named configuration rather than a plain `project(":x")`.
+mkdir -p lib/impl/src/main/kotlin lib/impl/src/test/kotlin
+cat > lib/impl/build.gradle.kts <<'EOF2'
+plugins { id("composeai.base-conventions") }
+EOF2
+echo 'class Impl' > lib/impl/src/main/kotlin/Impl.kt
+echo 'class ImplTest' > lib/impl/src/test/kotlin/ImplTest.kt
+cat >> lib/gamma/build.gradle.kts <<'EOF2'
+val bundled = configurations.create("bundled")
+dependencies { bundled(project(path = ":impl", configuration = "jars")) }
+EOF2
 cat > build-logic/src/main/kotlin/Conventions.kt <<'EOF'
 package conventions
 
@@ -182,6 +196,16 @@ check() {
 # Nothing changed: nothing publishes.
 change_nothing() { :; }
 check nothing ""
+
+# v3.27.5: the warm compiler changed only in an unpublished project that `daemon-core` bundles, and
+# nothing republished `daemon-core`, so the fix never reached Central. A bundled project's change is
+# a change to every module that bundles it.
+change_bundled_main() { echo 'class Impl { val fixed = true }' > lib/impl/src/main/kotlin/Impl.kt; }
+check bundled_main "gamma"
+
+# ...but, as for a module's own tests, not when only its tests changed.
+change_bundled_test_only() { echo 'class ImplTest { val more = 1 }' > lib/impl/src/test/kotlin/ImplTest.kt; }
+check bundled_test_only ""
 
 # v2.21.2: a comment-only edit to the root build.
 change_root_comment_only() {
