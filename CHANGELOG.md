@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.27.7](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.6...v3.27.7) (2026-11-12)
+
+
+### Bug Fixes
+
+* **warm-compiler:** put the module's class directory first on the class path ([#471](https://github.com/yschimke/compose-preview-daemon/issues/471)) ([cd7782a](https://github.com/yschimke/compose-preview-daemon/commit/cd7782aa5252a85ea4ab70b49f2147a081c2c053))
+
+
+### Chores
+
+* **main:** release 3.27.6 ([#468](https://github.com/yschimke/compose-preview-daemon/issues/468)) ([96ef8a4](https://github.com/yschimke/compose-preview-daemon/commit/96ef8a4722c973c5d23ff5a95466304b19c2861e))
+
 ## [3.27.6](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.5...v3.27.6) (2026-11-12)
 
 
