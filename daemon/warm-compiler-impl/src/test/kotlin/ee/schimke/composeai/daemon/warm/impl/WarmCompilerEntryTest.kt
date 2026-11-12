@@ -51,21 +51,23 @@ class WarmCompilerEntryTest {
         ClassLoader.getPlatformClassLoader(),
       )
     stockCompile(src.listFiles()!!.toList(), classes)
-    entry =
-      loader
-        .loadClass("ee.schimke.composeai.daemon.warm.impl.WarmCompilerEntry")
-        .getConstructor(Map::class.java)
-        .newInstance(
-          mapOf(
-            "compileClasspath" to composeRuntime,
-            "classesDir" to classes.path,
-            "moduleName" to "demo",
-            "stagingDir" to File(root, "staging").path,
-            "pluginClasspath" to composePlugin,
-            "pluginOptions" to listOf(pluginOption),
-          )
-        ) as AutoCloseable
+    entry = newEntry(composeRuntime)
   }
+
+  private fun newEntry(compileClasspath: List<String>): AutoCloseable =
+    loader
+      .loadClass("ee.schimke.composeai.daemon.warm.impl.WarmCompilerEntry")
+      .getConstructor(Map::class.java)
+      .newInstance(
+        mapOf(
+          "compileClasspath" to compileClasspath,
+          "classesDir" to classes.path,
+          "moduleName" to "demo",
+          "stagingDir" to File(root, "staging").path,
+          "pluginClasspath" to composePlugin,
+          "pluginOptions" to listOf(pluginOption),
+        )
+      ) as AutoCloseable
 
   @After
   fun tearDown() {
@@ -124,6 +126,38 @@ class WarmCompilerEntryTest {
       File(reference, "demo/ScreenKt.class").readBytes(),
       File(classes, "demo/ScreenKt.class").readBytes(),
     )
+  }
+
+  @Test
+  fun `an internal call compiles when a jar of the module's own classes comes first`() {
+    // AGP's unit-test class path, which the daemon compiles against, carries a jar of the module's
+    // own classes (`bundle<Variant>ClassesToRuntimeJar`) ahead of everything else. The first copy
+    // of
+    // a class on the class path wins, so unless the class directory comes first, `Label` resolves
+    // from that jar, which is no friend, and its internals are invisible again.
+    write(
+      "Label.kt",
+      label("plain").replace("@Composable fun Label(", "@Composable internal fun Label("),
+    )
+    stockCompile(src.listFiles()!!.toList(), classes)
+    val moduleJar = File(root, "module-classes.jar")
+    java.util.jar.JarOutputStream(moduleJar.outputStream()).use { jar ->
+      classes
+        .walkTopDown()
+        .filter { it.isFile }
+        .forEach { file ->
+          jar.putNextEntry(java.util.jar.JarEntry(file.relativeTo(classes).invariantSeparatorsPath))
+          file.inputStream().use { it.copyTo(jar) }
+          jar.closeEntry()
+        }
+    }
+    val agpShaped = newEntry(listOf(moduleJar.path) + composeRuntime)
+    try {
+      val result = compileWith(agpShaped, write("Screen.kt", screen("red")))
+      assertEquals(result.toString(), "ok", result["status"])
+    } finally {
+      agpShaped.close()
+    }
   }
 
   @Test
@@ -271,11 +305,13 @@ class WarmCompilerEntryTest {
     entry.javaClass.getMethod("warmUp", List::class.java).invoke(entry, files.map { it.path })
       as Map<String, Any?>
 
-  private fun compile(vararg files: File): Map<String, Any?> {
+  private fun compile(vararg files: File): Map<String, Any?> = compileWith(entry, *files)
+
+  private fun compileWith(target: AutoCloseable, vararg files: File): Map<String, Any?> {
     @Suppress("UNCHECKED_CAST")
-    return entry.javaClass
+    return target.javaClass
       .getMethod("compile", List::class.java)
-      .invoke(entry, files.map { it.path }) as Map<String, Any?>
+      .invoke(target, files.map { it.path }) as Map<String, Any?>
   }
 
   @Suppress("UNCHECKED_CAST")
