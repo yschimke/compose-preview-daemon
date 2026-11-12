@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.27.6](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.5...v3.27.6) (2026-11-12)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3 ([#467](https://github.com/yschimke/compose-preview-daemon/issues/467)) ([744c36d](https://github.com/yschimke/compose-preview-daemon/commit/744c36d2b9c12b66e1140e2805749d4f98804d66))
+
+
+### Chores
+
+* **deps:** update actions/setup-java action to v6.2.0 ([#466](https://github.com/yschimke/compose-preview-daemon/issues/466)) ([5e2118f](https://github.com/yschimke/compose-preview-daemon/commit/5e2118f31532c80dc807401326bcdbdd4c96265c))
+* **main:** release 3.27.5 ([#459](https://github.com/yschimke/compose-preview-daemon/issues/459)) ([5ae1f98](https://github.com/yschimke/compose-preview-daemon/commit/5ae1f98ef161d44c52df0cfcef368860e513ee1f))
+
 ## [3.27.5](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.4...v3.27.5) (2026-11-11)
 
 
