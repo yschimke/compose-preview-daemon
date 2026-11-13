@@ -4009,6 +4009,25 @@ open class RobolectricHost(
                     cmd.replyLatch.countDown()
                   }
                 }
+                is InteractiveCommand.DispatchRemoteComposeChange -> {
+                  try {
+                    val decoded = HeldRemoteCompose.decodeChange(cmd.changeJson)
+                    rule.runOnUiThread {
+                      when (decoded) {
+                        is ee.schimke.composeai.daemon.protocol.RemoteComposeChange.Profile ->
+                          RemoteComposeController.setProfile(decoded.value)
+                        is ee.schimke.composeai.daemon.protocol.RemoteComposeChange.NamedValue ->
+                          RemoteComposeController.setNamedValue(decoded.name, decoded.value)
+                      }
+                    }
+                    advanceHeldClocks(rule, HELD_CAPTURE_ADVANCE_MS)
+                    rule.waitForIdle()
+                  } catch (t: Throwable) {
+                    cmd.replyError.set(t)
+                  } finally {
+                    cmd.replyLatch.countDown()
+                  }
+                }
                 is InteractiveCommand.Close -> {
                   // Issue #1204 — dispose every live recomposition observer for this session
                   // before returning, AND drop the bridge counter slot so a session that ended

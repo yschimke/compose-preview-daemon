@@ -26,7 +26,7 @@ import okio.Path.Companion.toPath
 public object DwfDocumentSeed {
 
   /**
-   * Default watch-face preview epoch: `2026-11-18T10:10:30Z` (Wednesday 10:10:30 UTC), matching
+   * Default watch-face preview epoch: `2025-11-18T10:10:30Z` (Tuesday 10:10:30 UTC), matching
    * `DwfRenderMain.DEFAULT_PREVIEW_TIME_MILLIS` so live and one-shot daemon renders open on the
    * exact clock hands/digits the static bake captured unless `overrides.clockEpochMillis` is set.
    */

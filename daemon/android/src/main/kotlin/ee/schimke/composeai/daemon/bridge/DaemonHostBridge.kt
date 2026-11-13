@@ -935,4 +935,16 @@ sealed interface InteractiveCommand {
     val replyLatch: CountDownLatch,
     val replyError: AtomicReference<Throwable?>,
   ) : InteractiveCommand
+
+  /**
+   * Apply a live `interactive/setRemoteCompose` edit (`profile` or `namedValue`) inside the
+   * sandbox's own `RemoteComposeController` so the held composition recomposes with the updated
+   * value. Travels as JSON (`java.lang.String`) for the do-not-acquire bridge invariant.
+   */
+  data class DispatchRemoteComposeChange(
+    override val streamId: String,
+    val changeJson: String,
+    val replyLatch: CountDownLatch,
+    val replyError: AtomicReference<Throwable?>,
+  ) : InteractiveCommand
 }

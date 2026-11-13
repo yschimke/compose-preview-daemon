@@ -4,8 +4,10 @@ import ee.schimke.composeai.daemon.protocol.InteractiveInputKind
 import ee.schimke.composeai.daemon.protocol.InteractiveInputParams
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import ee.schimke.composeai.daemon.protocol.RecordingScriptEvent
+import ee.schimke.composeai.daemon.protocol.RemoteComposeChange
 import ee.schimke.composeai.daemon.protocol.RemoteComposeOverride
 import ee.schimke.composeai.daemon.protocol.RemoteComposePlayerKind
+import ee.schimke.composeai.daemon.protocol.RemoteNamedValue
 import ee.schimke.composeai.daemon.protocol.UiMode
 import java.awt.image.BufferedImage
 import java.io.File
@@ -210,6 +212,137 @@ class DesktopCarriedRemoteComposeTest {
     assertTrue(redShare(oneShot(CATALOG_PREVIEW_ID, PreviewOverrides(widthPx = SIZE_PX))) >= 0.95)
   }
 
+  @Test
+  fun dwfPreviewManifestSessionHonoursClockAndLiveNamedValueOverrides() {
+    val manifestDir = tempFolder.newFolder("dwf-manifest")
+    manifestDir
+      .resolve("dwf-renders/dwf__sample.rc")
+      .apply { parentFile.mkdirs() }
+      .writeBytes(DWF_SAMPLE)
+    val manifestFile = manifestDir.resolve("previews.json")
+    manifestFile.writeText(
+      """
+      {
+        "previews": [
+          {
+            "id": "dwf__sample",
+            "functionName": "sample_dwf_watchface",
+            "className": "",
+            "params": {
+              "device": "id:wearos_large_round",
+              "widthDp": 450,
+              "heightDp": 450,
+              "density": 1.0,
+              "showBackground": false,
+              "dwfAssetPath": "raw/sample_dwf_watchface.xml"
+            },
+            "captures": [
+              { "renderOutput": "dwf-renders/dwf__sample.png" }
+            ]
+          }
+        ]
+      }
+      """
+        .trimIndent(),
+    )
+
+    val router =
+      PreviewManifestRouter(
+        PreviewManifestRouter.loadManifest(manifestFile),
+        engine = RenderEngine(outputDir = tempFolder.newFolder("dwf-renders-out")),
+        manifestDir = manifestDir,
+      )
+    router.start()
+    try {
+      val defaultClock =
+        decode(
+          File(
+            router
+              .submit(RenderRequest.Render(target = RenderTarget.Preview("dwf__sample")))
+              .artifact
+              .pathOrNull()!!,
+          ),
+        )
+      assertEquals(450, defaultClock.width)
+      assertDrawn("DWF one-shot renders at default 10:10:30 UTC", defaultClock)
+
+      // 2026-11-18T03:45:00Z moves the watch hands and digital readout.
+      val shiftedClock =
+        decode(
+          File(
+            router
+              .submit(
+                RenderRequest.Render(
+                  target =
+                    RenderTarget.Preview(
+                      previewId = "dwf__sample",
+                      overrides = PreviewOverrides(clockEpochMillis = 1_763_437_500_000L),
+                    ),
+                ),
+              )
+              .artifact
+              .pathOrNull()!!,
+          ),
+        )
+      assertDrawn("DWF one-shot renders at overridden clock", shiftedClock)
+      assertDiffers("clockEpochMillis moves the DWF watch face", defaultClock, shiftedClock)
+
+      // Complication / ambient namedValues merge over the seeded DWF .rc document without dropping
+      // documentBase64 or playerId.
+      val ambientOneShot =
+        decode(
+          File(
+            router
+              .submit(
+                RenderRequest.Render(
+                  target =
+                    RenderTarget.Preview(
+                      previewId = "dwf__sample",
+                      overrides =
+                        PreviewOverrides(
+                          remoteCompose =
+                            RemoteComposeOverride.Builder()
+                              .also {
+                                it.namedValues =
+                                  mapOf("dwf.is_ambient" to RemoteNamedValue.BooleanValue(true))
+                              }
+                              .build(),
+                        ),
+                    ),
+                ),
+              )
+              .artifact
+              .pathOrNull()!!,
+          ),
+        )
+      assertDrawn("DWF one-shot renders in ambient namedValue mode", ambientOneShot)
+      assertDiffers("dwf.is_ambient changes the DWF watch face", defaultClock, ambientOneShot)
+
+      val session =
+        router.acquireInteractiveSession(previewId = "dwf__sample", classLoader = LOADER)
+      try {
+        val heldInitial = frame(session)
+        assertDrawn("held DWF session renders without a preview class", heldInitial)
+        assertTrue(
+          "DesktopInteractiveSession accepts live namedValue updates for carried DWF scenes",
+          session.dispatchRemoteComposeChange(
+            RemoteComposeChange.NamedValue("dwf.is_ambient", RemoteNamedValue.BooleanValue(true)),
+          ),
+        )
+        val heldAmbient = frame(session)
+        assertDiffers(
+          "live dispatchRemoteComposeChange updates the held DWF watch face",
+          heldInitial,
+          heldAmbient,
+        )
+      } finally {
+        session.close()
+      }
+    } finally {
+      router.shutdown()
+    }
+  }
+
   private fun oneShot(previewId: String, overrides: PreviewOverrides): BufferedImage {
     val result =
       host.submit(
@@ -263,6 +396,16 @@ class DesktopCarriedRemoteComposeTest {
             .getResourceAsStream("/rc-fixtures/Stepper-ideal-default-compact.rc"),
         ) {
           "missing Stepper fixture"
+        }
+        .use { it.readBytes() }
+
+    val DWF_SAMPLE: ByteArray =
+      checkNotNull(
+          DesktopCarriedRemoteComposeTest::class
+            .java
+            .getResourceAsStream("/rc-fixtures/dwf-sample-watchface.rc"),
+        ) {
+          "missing DWF sample fixture"
         }
         .use { it.readBytes() }
 

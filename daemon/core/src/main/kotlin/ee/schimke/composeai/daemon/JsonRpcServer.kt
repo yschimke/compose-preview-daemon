@@ -2846,7 +2846,11 @@ public class JsonRpcServer(
     if (classpathDirtyEmitted.get() || shutdownRequested.get()) return
     val session = interactiveSessions[params.frameStreamId] ?: return
     try {
-      session.dispatchRemoteComposeChange(params.change)
+      if (session.dispatchRemoteComposeChange(params.change)) {
+        interactiveTargets[params.frameStreamId]?.let { target ->
+          requestInteractiveRender(params.frameStreamId, target.previewId, session)
+        }
+      }
     } catch (e: Throwable) {
       System.err.println(
         "compose-ai-daemon: interactive/setRemoteCompose dispatch failed: ${e.message}",
