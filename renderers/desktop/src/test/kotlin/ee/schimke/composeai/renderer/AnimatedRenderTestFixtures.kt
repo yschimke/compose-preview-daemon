@@ -39,7 +39,7 @@ fun SweepingDot() {
   Box(modifier = Modifier.size(64.dp).background(Color.Black)) {
     Box(
       modifier =
-        Modifier.offset(x = 48.dp * fraction, y = 24.dp).size(16.dp).background(Color.White)
+        Modifier.offset(x = 48.dp * fraction, y = 24.dp).size(16.dp).background(Color.White),
     )
   }
 }
@@ -76,7 +76,7 @@ fun LinearClockRuler() {
       modifier =
         Modifier.offset { IntOffset((LINEAR_CLOCK_TRAVEL_PX * fraction).roundToInt(), 0) }
           .size(8.dp, 4.dp)
-          .background(Color.White)
+          .background(Color.White),
     )
   }
 }

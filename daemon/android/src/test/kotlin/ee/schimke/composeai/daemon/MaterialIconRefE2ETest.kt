@@ -43,8 +43,8 @@ class MaterialIconRefE2ETest {
               heightPx = 48,
               density = 1.0f,
               outputBaseName = "material-icon-row",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -85,7 +85,7 @@ class MaterialIconRefE2ETest {
       assertTrue(
         "…and to the exact drawing on Google's icon CDN",
         svg.contains(
-          """data-material-icon-url="https://fonts.gstatic.com/s/i/materialicons/menu/v1/24px.svg""""
+          """data-material-icon-url="https://fonts.gstatic.com/s/i/materialicons/menu/v1/24px.svg"""",
         ),
       )
       // A different style must resolve to a different CDN family, not collapse onto
@@ -94,7 +94,7 @@ class MaterialIconRefE2ETest {
         "Outlined.AccountCircle keeps its own style",
         svg.contains(
           "data-material-icon-url=\"https://fonts.gstatic.com/s/i/materialiconsoutlined/" +
-            "account_circle/v1/24px.svg\""
+            "account_circle/v1/24px.svg\"",
         ),
       )
       assertTrue(

@@ -129,7 +129,7 @@ public fun driveHoverPreview(
   if (target == null) {
     System.err.println(
       "@OverrideVariant hover: no interactive node at index $targetIndex; " +
-        "capturing the undriven state."
+        "capturing the undriven state.",
     )
     return false
   }
@@ -194,7 +194,7 @@ public fun driveFocusPreview(
   val focusables = rule.onAllNodes(focusableNodeMatcher()).fetchSemanticsNodes()
   if (tabIndex !in focusables.indices) {
     System.err.println(
-      "@OverrideVariant focus: no focusable node at index $tabIndex; capturing the undriven state."
+      "@OverrideVariant focus: no focusable node at index $tabIndex; capturing the undriven state.",
     )
     return false
   }
@@ -206,7 +206,7 @@ public fun driveFocusPreview(
   // one that declined is the plausible-but-wrong picture this change exists to remove.
   if (rule.onAllNodes(isFocused()).fetchSemanticsNodes().isEmpty()) {
     System.err.println(
-      "@OverrideVariant focus: nothing took focus at index $tabIndex; capturing the undriven state."
+      "@OverrideVariant focus: nothing took focus at index $tabIndex; capturing the undriven state.",
     )
     return false
   }
@@ -235,7 +235,7 @@ public fun driveDragPreview(
   val targets = rule.onAllNodes(matcher).fetchSemanticsNodes()
   if (targetIndex !in targets.indices) {
     System.err.println(
-      "@OverrideVariant drag: no interactive node at index $targetIndex; interaction unavailable."
+      "@OverrideVariant drag: no interactive node at index $targetIndex; interaction unavailable.",
     )
     return false
   }
@@ -351,7 +351,7 @@ object PreviewManifestLoader {
       // module, which is the cost the filter exists to avoid; say why instead.
       System.err.println(
         "composePreviewRender: $ID_FILTER_FILE_PROPERTY names '$path', which is not a readable " +
-          "file; falling back to ${PreviewFilter.ID_FILTER_PROPERTY}."
+          "file; falling back to ${PreviewFilter.ID_FILTER_PROPERTY}.",
       )
     }
     return PreviewFilter.patternsFrom(PreviewFilter.ID_FILTER_PROPERTY)
@@ -523,7 +523,7 @@ object PreviewManifestLoader {
               row.entry.dataProducts.sumOf { it.cost.toDouble() }
         }
         .sortedWith(
-          compareByDescending<Pair<PreviewRow, Double>> { it.second }.thenBy { it.first.entry.id }
+          compareByDescending<Pair<PreviewRow, Double>> { it.second }.thenBy { it.first.entry.id },
         )
     val shardLoads = DoubleArray(shardCount)
     val ours = mutableListOf<PreviewRow>()
@@ -549,7 +549,7 @@ object PreviewManifestLoader {
         // declares no knob or that nothing seeded, which is the zero-argument invoke every plain
         // preview has always used.
         ?: return listOf(
-          PreviewRow(entry, PreviewKnobBake.seedArgs(entry.knobs, overrideSeedMap(entry)))
+          PreviewRow(entry, PreviewKnobBake.seedArgs(entry.knobs, overrideSeedMap(entry))),
         )
     val limit = entry.params.previewParameterLimit.coerceAtLeast(0)
     if (limit == 0) return emptyList()
@@ -562,14 +562,14 @@ object PreviewManifestLoader {
         // `.error.json` so the failing preview surfaces its cause on the panel instead of silently
         // vanishing, then drop only this preview from the shard.
         System.err.println(
-          "@PreviewParameter(provider = $providerFqn) on '${entry.id}' failed to load: ${e.message}"
+          "@PreviewParameter(provider = $providerFqn) on '${entry.id}' failed to load: ${e.message}",
         )
         providerErrorOutputFile(entry)?.let { RenderErrorSidecar.write(it, e) }
         return emptyList()
       }
     if (values.isEmpty()) {
       System.err.println(
-        "@PreviewParameter(provider = $providerFqn) on '${entry.id}' produced no values — skipping."
+        "@PreviewParameter(provider = $providerFqn) on '${entry.id}' produced no values — skipping.",
       )
       return emptyList()
     }
@@ -591,7 +591,7 @@ object PreviewManifestLoader {
     if (keptRows.size < allSuffixes.size) {
       System.err.println(
         "@PreviewParameter on '${entry.id}': skipping ${allSuffixes.size - keptRows.size} of " +
-          "${allSuffixes.size} row(s) excluded by ${PreviewFilter.ROW_EXCLUDE_PROPERTY}"
+          "${allSuffixes.size} row(s) excluded by ${PreviewFilter.ROW_EXCLUDE_PROPERTY}",
       )
     }
     val rows = values.mapIndexed { idx, value ->
@@ -1166,7 +1166,7 @@ abstract class RobolectricRenderTestBase(
       writeRemoteComposeSidecar(pngFile)
     } catch (e: Throwable) {
       System.err.println(
-        "Render failed for ${preview.className}.${preview.functionName}: ${e.message}"
+        "Render failed for ${preview.className}.${preview.functionName}: ${e.message}",
       )
       RenderErrorSidecar.write(pngFile, e)
       // Don't rethrow — keep the JUnit test green so a single
@@ -1245,7 +1245,7 @@ abstract class RobolectricRenderTestBase(
         overridesSidecarJson.encodeToString(
           ee.schimke.composeai.data.overrides.PreviewOverridesPayload.serializer(),
           payload,
-        )
+        ),
       )
     } catch (e: Throwable) {
       System.err.println("Failed to write overrides sidecar: ${e.message}")
@@ -1299,7 +1299,7 @@ abstract class RobolectricRenderTestBase(
       if (json == null) {
         if (sidecar.isFile && !sidecar.delete()) {
           System.err.println(
-            "Failed to delete stale remotecompose sidecar: ${sidecar.absolutePath}"
+            "Failed to delete stale remotecompose sidecar: ${sidecar.absolutePath}",
           )
         }
         return
@@ -1433,7 +1433,7 @@ abstract class RobolectricRenderTestBase(
       androidx.test.core.app.ApplicationProvider.getApplicationContext()
     org.robolectric.Shadows.shadowOf(appContext.packageManager)
       .addActivityIfNotPresent(
-        android.content.ComponentName(appContext.packageName, ComponentActivity::class.java.name)
+        android.content.ComponentName(appContext.packageName, ComponentActivity::class.java.name),
       )
 
     // Seed `Typeface.sSystemFontMap` with the Pixel-system-family aliases
@@ -1742,7 +1742,7 @@ abstract class RobolectricRenderTestBase(
           // phone, a wearable (issue #3491).
           val keyboardExtension =
             KeyboardOverrideExtension(
-              deviceScoped = !params.device.isNullOrBlank() || params.showSystemUi
+              deviceScoped = !params.device.isNullOrBlank() || params.showSystemUi,
             )
           // `@AmbientPreview` discovery stamps the same `AmbientCapture` onto every capture
           // of an annotated function (single-shot per function — one preview produces one
@@ -1813,7 +1813,7 @@ abstract class RobolectricRenderTestBase(
           val inspectionModeState = androidx.compose.runtime.mutableStateOf(inspectionMode)
           val providedValues = buildList {
             LocaleCompositionLocals.providedValue(
-                RuntimeEnvironment.getApplication().resources.configuration
+                RuntimeEnvironment.getApplication().resources.configuration,
               )
               ?.let(::add)
             if (scrollCaptureProvidable != null) {
@@ -1951,7 +1951,7 @@ abstract class RobolectricRenderTestBase(
                           extensionId = PermissionsOverrideExtension.ID,
                           previewId = preview.id,
                           renderMode = null,
-                        )
+                        ),
                       ) {
                         launcherWidgetOrPlain()
                       }
@@ -2020,7 +2020,7 @@ abstract class RobolectricRenderTestBase(
                   .thenBy { it.advanceTimeMillis ?: it.settleTargetMs ?: CAPTURE_ADVANCE_MS }
                   // An animated capture consumes a time window after its target. Keep same-target
                   // still/product jobs before that window opens.
-                  .thenBy { if (it is CaptureRenderJob && it.capture.animation != null) 1 else 0 }
+                  .thenBy { if (it is CaptureRenderJob && it.capture.animation != null) 1 else 0 },
               )
           var captureIndex = 0
           jobs.forEachIndexed { jobIndex, job ->
@@ -2093,7 +2093,7 @@ abstract class RobolectricRenderTestBase(
             if (draggedEndScroll != null && !driveScrollingPreviewToEnd(rule, draggedEndScroll)) {
               System.err.println(
                 "@ScrollingPreview on '${preview.id}' but no scrollable composable found on axis " +
-                  "${draggedEndScroll.axis} — dragging the initial frame."
+                  "${draggedEndScroll.axis} — dragging the initial frame.",
               )
             }
             val focus = capture?.focus
@@ -2431,7 +2431,7 @@ abstract class RobolectricRenderTestBase(
                       "write a single-frame PNG into the .${outputFile.extension.lowercase()} " +
                       "output path. Most often the preview has an unbounded axis: pin widthDp " +
                       "AND heightDp on an @AnimatedPreview so the frames share one fixed size."
-                  }
+                  },
                 ),
               )
             } else if (productFellThrough) {
@@ -2442,7 +2442,7 @@ abstract class RobolectricRenderTestBase(
                 IllegalStateException(
                   "@ScrollingPreview($modeName) on '${preview.id}': no scrollable " +
                     "composable found on axis $axisName — refusing to write a " +
-                    "single-frame capture into the data product path."
+                    "single-frame capture into the data product path.",
                 ),
               )
             } else if (
@@ -2460,7 +2460,7 @@ abstract class RobolectricRenderTestBase(
                 if (!driveScrollingPreviewToEnd(rule, scroll)) {
                   System.err.println(
                     "@ScrollingPreview on '${preview.id}' but no scrollable " +
-                      "composable found on axis ${scroll.axis} — capturing initial frame."
+                      "composable found on axis ${scroll.axis} — capturing initial frame.",
                   )
                 }
               }
@@ -2686,7 +2686,7 @@ abstract class RobolectricRenderTestBase(
                 } catch (t: Throwable) {
                   System.err.println(
                     "RobolectricRenderTest: displayfilter write failed for " +
-                      "${preview.id}: ${t.javaClass.simpleName}: ${t.message}"
+                      "${preview.id}: ${t.javaClass.simpleName}: ${t.message}",
                   )
                 }
               }
@@ -2710,7 +2710,7 @@ abstract class RobolectricRenderTestBase(
                 } catch (t: Throwable) {
                   System.err.println(
                     "RobolectricRenderTest: deviceframe write failed for " +
-                      "${preview.id}: ${t.javaClass.simpleName}: ${t.message}"
+                      "${preview.id}: ${t.javaClass.simpleName}: ${t.message}",
                   )
                 }
               }
@@ -2867,14 +2867,14 @@ abstract class RobolectricRenderTestBase(
    * in particular `showBackground = true` on a `uiMode = UI_MODE_NIGHT_YES` preview is not white.
    */
   private fun resolveBackgroundColor(
-    params: RenderPreviewParams
+    params: RenderPreviewParams,
   ): androidx.compose.ui.graphics.Color =
     androidx.compose.ui.graphics.Color(
       ee.schimke.composeai.data.render.PreviewBackground.resolveArgbForUiMode(
         showBackground = params.showBackground,
         backgroundColor = params.backgroundColor,
         uiMode = params.uiMode,
-      )
+      ),
     )
 
   companion object {
@@ -3248,7 +3248,7 @@ private fun handleLongCaptureInternal(
           extensionId = DataExtensionId(ScrollPreviewExtension.KIND_LONG),
           previewId = previewId,
           renderMode = "scroll-long",
-        )
+        ),
       )
 
     // Drive at the planner's stride (80% of the viewport so each
@@ -3304,7 +3304,7 @@ private fun handleLongCaptureInternal(
       }
     if (result is ScrollDriveResult.NoScrollable) {
       System.err.println(
-        "@ScrollingPreview(LONG) on '$previewId': no scrollable composable — falling through."
+        "@ScrollingPreview(LONG) on '$previewId': no scrollable composable — falling through.",
       )
       return false
     }
@@ -3368,7 +3368,7 @@ private fun handleLongCaptureInternal(
     ) ?: return false
     if (isRound) applyWearPillClip(outputFile)
     System.err.println(
-      "@ScrollingPreview(LONG) on '$previewId': stitched ${slices.size} slices + settled final frame."
+      "@ScrollingPreview(LONG) on '$previewId': stitched ${slices.size} slices + settled final frame.",
     )
     return true
   } finally {
@@ -3523,7 +3523,7 @@ private fun settlePressedRipple(rule: AndroidComposeTestRule<*, ComponentActivit
 
 /** Every [RIPPLE_HOST_VIEW_CLASS] under the activity's decor view, in traversal order. */
 private fun rippleHostViews(
-  rule: AndroidComposeTestRule<*, ComponentActivity>
+  rule: AndroidComposeTestRule<*, ComponentActivity>,
 ): List<android.view.View> {
   val found = mutableListOf<android.view.View>()
   fun walk(view: android.view.View) {
@@ -3561,7 +3561,7 @@ private fun forceSoftwareRipple(host: android.view.View) {
     .onFailure {
       System.err.println(
         "pressed settle: could not force the software ripple path ($it) — the pressed capture " +
-          "may publish an unsettled ripple. See settlePressedRipple."
+          "may publish an unsettled ripple. See settlePressedRipple.",
       )
     }
 }
@@ -3956,7 +3956,7 @@ private fun handleGifCaptureInternal(
     val resetResult = driveScrollToStart(rule, scroll.axis.toProductAxis())
     if (resetResult is ScrollDriveResult.NoScrollable) {
       System.err.println(
-        "@ScrollingPreview(GIF) on '$previewId': no scrollable composable — falling through."
+        "@ScrollingPreview(GIF) on '$previewId': no scrollable composable — falling through.",
       )
       return false
     }
@@ -3979,14 +3979,14 @@ private fun handleGifCaptureInternal(
             viewportPx = viewportLayoutPx.toFloat(),
             density = density,
             frameIntervalMs = frameIntervalMs,
-          )
+          ),
         )
         .scrollFrames(
           ExtensionFrameContext(
             extensionId = DataExtensionId("render/scroll/gif"),
             previewId = previewId,
             renderMode = "scroll-gif",
-          )
+          ),
         )
 
     var scrolledPx = 0f
@@ -4049,7 +4049,7 @@ private fun handleGifCaptureInternal(
         frameDelaysMs = frameDelays.toIntArray(),
       ) ?: return false
     System.err.println(
-      "@ScrollingPreview(GIF) on '$previewId': encoded ${frames.size} frames → ${written.name}."
+      "@ScrollingPreview(GIF) on '$previewId': encoded ${frames.size} frames → ${written.name}.",
     )
     return true
   } finally {
@@ -4206,7 +4206,7 @@ internal fun captureDecodableFrame(
       System.err.println(
         "$role: captured frame ${file.name} did not decode " +
           "(attempt ${attempt + 1}/$FRAME_CAPTURE_ATTEMPTS); re-capturing. " +
-          "Cause: ${e.message}"
+          "Cause: ${e.message}",
       )
     }
   }
@@ -4297,7 +4297,7 @@ internal fun handleAnimatedCapture(
           System.err.println(
             "@AnimatedPreview(showCurves=true): inspector unavailable on " +
               "this Compose UI Tooling version, falling back to GIF " +
-              "without curve overlay. Cause: ${e.message}"
+              "without curve overlay. Cause: ${e.message}",
           )
         }
         .getOrNull()
@@ -4438,14 +4438,14 @@ internal fun handleAnimatedCapture(
         // `<stem>.raw.<ext>` beside the capture, in its container — as `@InteractionPreview` does.
         val rawOutput =
           outputFile.resolveSibling(
-            "${outputFile.nameWithoutExtension}.raw.${outputFile.extension}"
+            "${outputFile.nameWithoutExtension}.raw.${outputFile.extension}",
           )
         encodeAnimatedFrames(rawComposedFrames, rawOutput, animation.format, frameIntervalMs)
           ?: return false
         // Composite only the captured Glimmer surface. Curve panels are renderer-owned UI and
         // should retain their ordinary colours rather than receiving the simulated environment.
         composePresentationFrames(
-          rawFrames.map { GlimmerEnvironmentCompositor.composite(it, environment) }
+          rawFrames.map { GlimmerEnvironmentCompositor.composite(it, environment) },
         )
       } ?: rawComposedFrames
     val written =
@@ -4461,7 +4461,7 @@ internal fun handleAnimatedCapture(
     val curvesLabel = if (tracks.isNotEmpty()) " + ${tracks.size} curve track(s)" else ""
     System.err.println(
       "@AnimatedPreview on '$previewId': encoded ${composedFrames.size} frames " +
-        "($durationLabel)$curvesLabel → ${written.name}."
+        "($durationLabel)$curvesLabel → ${written.name}.",
     )
     return true
   } finally {
@@ -4562,7 +4562,7 @@ private fun handleFocusGifCapture(
     System.err.println(
       "@FocusedPreview(gif=true) on '$previewId': encoded ${frames.size} frames → " +
         written.name +
-        "."
+        ".",
     )
     return true
   } finally {
@@ -4706,7 +4706,7 @@ private fun AmbientCapture.toAmbientOverride(): AmbientOverride =
  * previews.
  */
 private fun overrideSeedMap(
-  preview: RenderPreviewEntry
+  preview: RenderPreviewEntry,
 ): Map<String, ee.schimke.composeai.daemon.protocol.PreviewOverrideValue>? =
   preview.overrides?.toNamedOverrides()?.ifEmpty { null }
 
@@ -4738,7 +4738,7 @@ private fun PermissionsCapture.toPermissionsOverride(): PermissionsOverride =
           PermissionGrantCaptureState.GRANTED -> PermissionGrantStateOverride.GRANTED
           PermissionGrantCaptureState.DENIED -> PermissionGrantStateOverride.DENIED
         }
-      }
+      },
   )
 
 /**

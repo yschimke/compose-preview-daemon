@@ -478,7 +478,7 @@ class RemoteComposeDataProductRegistry : DataProductRegistry {
             kind = KIND,
             schemaVersion = SCHEMA_VERSION,
             payload = json.encodeToJsonElement(RemoteComposePayload.serializer(), payload),
-          )
+          ),
         )
       }
       DOC_KIND -> {
@@ -488,7 +488,7 @@ class RemoteComposeDataProductRegistry : DataProductRegistry {
             kind = DOC_KIND,
             schemaVersion = DOC_SCHEMA_VERSION,
             payload = json.encodeToJsonElement(documentPayloadSerializer, documentPayload(bytes)),
-          )
+          ),
         )
       }
       else -> DataProductRegistry.Outcome.Unknown
@@ -590,7 +590,7 @@ class RemoteComposeDataProductRegistry : DataProductRegistry {
         "(${unapplied.sorted().joinToString(", ")}): the preview's Remote Compose player " +
         "does not support them. Only previews played through the connector " +
         "(@PreviewWrapper(RemotePreviewWrapper::class), RemoteContentPreview, " +
-        "RemoteOverridablePreview) or reading LocalRemoteComposeHost receive named values."
+        "RemoteOverridablePreview) or reading LocalRemoteComposeHost receive named values.",
     )
   }
 

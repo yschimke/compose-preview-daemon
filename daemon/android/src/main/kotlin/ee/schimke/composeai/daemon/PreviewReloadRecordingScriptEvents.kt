@@ -48,7 +48,7 @@ object PreviewReloadRecordingScriptEvents {
                 "`rememberSaveable` state both reset. Use `lifecycle.event` (pause/resume) for " +
                 "config-change-style audits where rememberSaveable state should survive.",
             supported = true,
-          )
+          ),
         ),
     )
 

@@ -142,7 +142,7 @@ private fun QueueRow(track: String) {
       Box(
         Modifier.size(40.dp)
           .clip(RoundedCornerShape(8.dp))
-          .background(Brush.linearGradient(listOf(Color(0xFF35D6C8), Color(0xFF0A8278))))
+          .background(Brush.linearGradient(listOf(Color(0xFF35D6C8), Color(0xFF0A8278)))),
       )
       Spacer(Modifier.width(14.dp))
       Text(track, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Medium)

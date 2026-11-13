@@ -20,7 +20,7 @@ class LayoutInspectorSnapshotTest {
         component = name,
         bounds = LayoutInspectorBounds(0, 0, 100, 100),
         size = LayoutInspectorSize(100, 100),
-      )
+      ),
     )
 
   @Test

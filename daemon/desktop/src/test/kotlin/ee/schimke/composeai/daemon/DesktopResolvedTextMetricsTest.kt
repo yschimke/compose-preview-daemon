@@ -130,7 +130,7 @@ class DesktopResolvedTextMetricsTest {
                 ),
             )
           }
-          .find("tracked")
+          .find("tracked"),
       ) {
         "no tracked node captured"
       }

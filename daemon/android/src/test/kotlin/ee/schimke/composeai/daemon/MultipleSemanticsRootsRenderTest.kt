@@ -29,9 +29,9 @@ class MultipleSemanticsRootsRenderTest {
                   className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
                   functionName = "MultipleSemanticsRoots",
                   params = PreviewParamsEntry(widthDp = 96, heightDp = 96, density = 1.0f),
-                )
-              )
-          )
+                ),
+              ),
+          ),
       )
 
     host.start()

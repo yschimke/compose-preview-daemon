@@ -74,7 +74,7 @@ internal class ClasspathEntryHashes {
           md.update(0)
           md.update(
             "${attrs.size()}:${attrs.lastModifiedTime().to(TimeUnit.NANOSECONDS)}"
-              .toByteArray(Charsets.UTF_8)
+              .toByteArray(Charsets.UTF_8),
           )
           md.update(0)
           count++

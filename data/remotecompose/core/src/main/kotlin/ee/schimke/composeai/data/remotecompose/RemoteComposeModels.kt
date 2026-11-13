@@ -42,7 +42,7 @@ public data class RemoteComposeKnobDeclaration(val name: String, val default: Re
  */
 @Serializable
 public data class RemoteComposeDeclarationsPayload(
-  val declarations: List<RemoteComposeKnobDeclaration> = emptyList()
+  val declarations: List<RemoteComposeKnobDeclaration> = emptyList(),
 ) {
   /**
    * The player that drew this capture (`"androidx-embedded"` / `"androidx-view"`), recorded because

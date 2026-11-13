@@ -18,7 +18,7 @@ fun RemoteComposeRobotoFlexCard() {
       checkNotNull(
           RemoteDocument::class
             .java
-            .getResourceAsStream("/remote-compose/wear-m3-roboto-flex-card.rc.b64")
+            .getResourceAsStream("/remote-compose/wear-m3-roboto-flex-card.rc.b64"),
         )
         .bufferedReader()
         .use { it.readText() }

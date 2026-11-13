@@ -21,7 +21,7 @@ fun OverrideLeakSticker() {
   Box(
     modifier =
       Modifier.fillMaxSize()
-        .background(previewOverrideColor(key = LEAK_KNOB_KEY, default = Color(0xFF1B5E20)))
+        .background(previewOverrideColor(key = LEAK_KNOB_KEY, default = Color(0xFF1B5E20))),
   )
 }
 

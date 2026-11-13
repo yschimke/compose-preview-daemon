@@ -105,7 +105,7 @@ class InMemoryStillCaptureTest {
           assertTrue(
             (0 until entries.length).any {
               entries.item(it).attributes.getNamedItem("value")?.nodeValue == "metadata-survives"
-            }
+            },
           )
         } finally {
           reader.dispose()
@@ -159,8 +159,8 @@ class InMemoryStillCaptureTest {
           RoborazziOptions.RecordOptions(
             imageIoFormat =
               JvmImageIoFormat(
-                awtImageWriter = AwtImageWriter { file, _, _ -> file.writeText("not a png") }
-              )
+                awtImageWriter = AwtImageWriter { file, _, _ -> file.writeText("not a png") },
+              ),
           ),
       )
     val output = temporary.newFolder().resolve("bad.png")
@@ -198,9 +198,9 @@ class InMemoryStillCaptureTest {
         output,
         options.copy(
           recordOptions =
-            options.recordOptions.copy(pixelBitConfig = RoborazziOptions.PixelBitConfig.Rgb565)
+            options.recordOptions.copy(pixelBitConfig = RoborazziOptions.PixelBitConfig.Rgb565),
         ),
-      )
+      ),
     )
   }
 
@@ -258,7 +258,7 @@ class InMemoryStillCaptureTest {
                 assertTrue(output.isFile)
                 reports++
               }
-            }
+            },
           ),
       )
     assertFalse(canDeferStillEncoding(output, options))

@@ -45,7 +45,7 @@ class S7LatencyRecordOnlyRealModeTest {
               id = previewId,
               className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
               functionName = "RedSquare",
-            )
+            ),
           ),
       )
 
@@ -82,7 +82,7 @@ class S7LatencyRecordOnlyRealModeTest {
             "S7 real: daemon reported tookMs=$daemonTookMs (wire metric is hardcoded 0 today)",
         )
         System.err.println(
-          "S7LatencyRecordOnlyRealModeTest: $tag wall=${took}ms daemonTookMs=$daemonTookMs"
+          "S7LatencyRecordOnlyRealModeTest: $tag wall=${took}ms daemonTookMs=$daemonTookMs",
         )
       }
 
@@ -90,7 +90,7 @@ class S7LatencyRecordOnlyRealModeTest {
       assertEquals("Daemon must exit cleanly. Stderr=\n${client.dumpStderr()}", 0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "S7LatencyRecordOnlyRealModeTest failed; daemon stderr:\n${client.dumpStderr()}"
+        "S7LatencyRecordOnlyRealModeTest failed; daemon stderr:\n${client.dumpStderr()}",
       )
       throw t
     } finally {

@@ -84,7 +84,7 @@ fun ReloadDashboardPreview() {
                       Box(
                         Modifier.weight(1f)
                           .height((3 + (bar * 7 + service) % 10).dp)
-                          .background(Brush.verticalGradient(listOf(Color.Cyan, Color.Blue)))
+                          .background(Brush.verticalGradient(listOf(Color.Cyan, Color.Blue))),
                       )
                     }
                   }

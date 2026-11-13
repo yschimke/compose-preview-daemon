@@ -165,7 +165,7 @@ class UserClassLoaderHolderJarReloadTest {
         public String get() { return "$value"; }
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val compiler = assertNotNull(ToolProvider.getSystemJavaCompiler())
     val exit = compiler.run(null, null, null, "-d", out.absolutePath, source.absolutePath)

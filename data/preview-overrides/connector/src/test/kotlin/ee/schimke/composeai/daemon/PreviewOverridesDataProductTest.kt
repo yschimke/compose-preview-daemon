@@ -48,7 +48,7 @@ class PreviewOverridesDataProductTest {
   fun planner_threads_named_overrides_through_to_extension() {
     val overrides =
       PreviewOverrides(
-        namedOverrides = mapOf("label" to PreviewOverrideValue.StringValue("Tap me"))
+        namedOverrides = mapOf("label" to PreviewOverrideValue.StringValue("Tap me")),
       )
     val planned = PreviewOverridesPreviewOverrideExtension().plan(overrides)
     assertTrue(planned is PreviewOverridesOverrideExtension)
@@ -90,7 +90,7 @@ class PreviewOverridesDataProductTest {
       mapOf(
         "label" to PreviewOverrideValue.StringValue("hi"),
         "rowCount" to PreviewOverrideValue.IntValue(4),
-      )
+      ),
     )
     assertEquals(PreviewOverrideValue.StringValue("hi"), c.valueOf("label"))
     assertEquals(PreviewOverrideValue.IntValue(4), c.valueOf("rowCount"))
@@ -105,10 +105,20 @@ class PreviewOverridesDataProductTest {
     val c = PreviewOverrideController
     c.record(decl("rowCount", PreviewOverrideType.INT, PreviewOverrideValue.IntValue(3)))
     c.record(
-      decl("rowLabel", PreviewOverrideType.STRING, PreviewOverrideValue.StringValue("a"), index = 0)
+      decl(
+        "rowLabel",
+        PreviewOverrideType.STRING,
+        PreviewOverrideValue.StringValue("a"),
+        index = 0,
+      ),
     )
     c.record(
-      decl("rowLabel", PreviewOverrideType.STRING, PreviewOverrideValue.StringValue("b"), index = 1)
+      decl(
+        "rowLabel",
+        PreviewOverrideType.STRING,
+        PreviewOverrideValue.StringValue("b"),
+        index = 1,
+      ),
     )
     // Re-declare rowCount (a recomposition): replaces in place, no duplicate, order kept.
     c.record(decl("rowCount", PreviewOverrideType.INT, PreviewOverrideValue.IntValue(3)))
@@ -131,7 +141,7 @@ class PreviewOverridesDataProductTest {
   fun on_render_captures_declarations_then_clears_when_empty() {
     val registry = PreviewOverridesDataProductRegistry()
     PreviewOverrideController.record(
-      decl("label", PreviewOverrideType.STRING, PreviewOverrideValue.StringValue("Tap me"))
+      decl("label", PreviewOverrideType.STRING, PreviewOverrideValue.StringValue("Tap me")),
     )
 
     registry.onRender(
@@ -142,7 +152,7 @@ class PreviewOverridesDataProductTest {
     )
     assertTrue(
       registry.fetch("preview-1", "compose/overrides", params = null, inline = true)
-        is DataProductRegistry.Outcome.Ok
+        is DataProductRegistry.Outcome.Ok,
     )
 
     // A subsequent render that declared nothing must drop the stale payload.

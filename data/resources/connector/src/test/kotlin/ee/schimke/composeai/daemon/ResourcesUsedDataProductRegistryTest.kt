@@ -43,7 +43,7 @@ class ResourcesUsedDataProductRegistryTest {
     val file =
       rootDir.resolve(previewId).also { it.mkdirs() }.resolve(ResourcesUsedDataProducer.FILE)
     file.writeText(
-      """{"references":[{"resourceType":"string","resourceName":"app_name","packageName":"com.example","resolvedValue":"Demo","consumers":[]}]}"""
+      """{"references":[{"resourceType":"string","resourceName":"app_name","packageName":"com.example","resolvedValue":"Demo","consumers":[]}]}""",
     )
     val registry = ResourcesUsedDataProductRegistry(rootDir)
 

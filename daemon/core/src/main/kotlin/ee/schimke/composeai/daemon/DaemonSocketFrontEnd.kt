@@ -199,7 +199,7 @@ public class DaemonSocketFrontEnd(
         method != null && HELD_SESSION_PREFIXES.any(method::startsWith) -> {
           if (id != null) {
             connection.send(
-              error(id, ERR_METHOD_NOT_FOUND, "$method is not served over the daemon socket")
+              error(id, ERR_METHOD_NOT_FOUND, "$method is not served over the daemon socket"),
             )
           }
         }
@@ -224,7 +224,7 @@ public class DaemonSocketFrontEnd(
             id,
             ERR_INVALID_PARAMS,
             "this daemon was initialized with different options; start a separate one",
-          )
+          ),
         )
         return
       }
@@ -535,8 +535,8 @@ public class DaemonSocketFrontEnd(
             "id" to id,
             "error" to
               JsonObject(mapOf("code" to JsonPrimitive(code), "message" to JsonPrimitive(message))),
-          )
-        )
+          ),
+        ),
       )
 
     /** A front end when [DaemonProperties.socketPath] is set, else `null` (serve stdio). */

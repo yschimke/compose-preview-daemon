@@ -21,7 +21,7 @@ public class SubprocessDaemonClientFactory(
    * spares of its overlay signature via `composeai.daemon.sandboxWorker.spares`, and the pool is
    * asked to top that signature back up for the next launch.
    */
-  private val sparePool: SandboxSparePool? = null
+  private val sparePool: SandboxSparePool? = null,
 ) : DaemonClientFactory {
   /** See the secondary constructor. A property rather than a primary parameter to keep the ABI. */
   private var environment: ChildEnvironment = ChildEnvironment.Default

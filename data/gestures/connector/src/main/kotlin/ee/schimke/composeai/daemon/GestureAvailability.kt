@@ -72,9 +72,9 @@ public fun oneHandedGestureSourceAvailable(context: Context): Boolean = runCatch
   val impl = Class.forName(SDK_GESTURE_INPUT_MANAGER_IMPL).getDeclaredConstructor().newInstance()
   impl.javaClass.getMethod("isAvailable", Context::class.java).invoke(impl, context) as Boolean
 }
-  // Any failure is the honest `false`: a classpath without wear-compose 1.7 has no gesture source,
-  // and a bridge this reader can no longer call is one it must not answer for.
-  .getOrDefault(false)
+// Any failure is the honest `false`: a classpath without wear-compose 1.7 has no gesture source,
+// and a bridge this reader can no longer call is one it must not answer for.
+.getOrDefault(false)
 
 /**
  * The bridge class, named here once. [ShadowSdkGestureInputManager] shadows this same name — the

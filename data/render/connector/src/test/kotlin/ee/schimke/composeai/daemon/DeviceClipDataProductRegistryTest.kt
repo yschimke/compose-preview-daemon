@@ -60,9 +60,9 @@ class DeviceClipDataProductRegistryTest {
                   className = "com.example.WearKt",
                   methodName = "Wear",
                   params = PreviewParamsDto(device = "id:wearos_large_round"),
-                )
+                ),
             ),
-        )
+        ),
       )
 
     val outcome =
@@ -96,9 +96,9 @@ class DeviceClipDataProductRegistryTest {
                   className = "com.example.PhoneKt",
                   methodName = "Phone",
                   params = PreviewParamsDto(device = "id:pixel_5"),
-                )
+                ),
             ),
-        )
+        ),
       )
 
     val outcome =
@@ -127,9 +127,9 @@ class DeviceClipDataProductRegistryTest {
                   id = "plain",
                   className = "com.example.PlainKt",
                   methodName = "Plain",
-                )
+                ),
             ),
-        )
+        ),
       )
 
     val outcome =
@@ -160,9 +160,9 @@ class DeviceClipDataProductRegistryTest {
                   methodName = "Round",
                   params =
                     PreviewParamsDto(device = "spec:width=300dp,height=300dp,dpi=320,isRound=true"),
-                )
+                ),
             ),
-        )
+        ),
       )
 
     val attachment =
@@ -191,9 +191,9 @@ class DeviceClipDataProductRegistryTest {
                   className = "com.example.WearKt",
                   methodName = "Wear",
                   params = PreviewParamsDto(device = "id:wearos_small_round"),
-                )
+                ),
             ),
-        )
+        ),
       )
     registry.onRender(
       previewId = "wear",
@@ -250,7 +250,7 @@ class DeviceClipDataProductRegistryTest {
       ),
     )
     assertTrue(
-      registry.attachmentsFor("missing", setOf(DeviceClipDataProductRegistry.KIND)).isEmpty()
+      registry.attachmentsFor("missing", setOf(DeviceClipDataProductRegistry.KIND)).isEmpty(),
     )
   }
 }

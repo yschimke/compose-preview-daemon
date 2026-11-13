@@ -468,7 +468,7 @@ class JsonRpcServerHistoryIntegrationTest {
                         classLoaderName = cl?.javaClass?.name ?: "<null>",
                         artifact = RenderArtifact(pngFile.toAbsolutePath().toString()),
                         metrics = mapOf("tookMs" to 1L),
-                      )
+                      ),
                     )
                 }
                 // Never enqueued here: `submit` only accepts a Render. Present so the `when` stays

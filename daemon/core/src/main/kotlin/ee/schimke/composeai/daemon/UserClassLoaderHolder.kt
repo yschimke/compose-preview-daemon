@@ -78,7 +78,7 @@ public class UserClassLoaderHolder(
       current = null
       // Pairs with the `allocate` line: a swap with no allocate means the render path missed it.
       System.err.println(
-        "compose-ai-daemon: [classloader] swap requested urlCount=${urls.size} liveLoaders=${trackedLoaders.size}"
+        "compose-ai-daemon: [classloader] swap requested urlCount=${urls.size} liveLoaders=${trackedLoaders.size}",
       )
     }
   }
@@ -129,7 +129,7 @@ public class UserClassLoaderHolder(
     // An mtime that does not advance across saves means the compile rewrote nothing.
     System.err.println(
       "compose-ai-daemon: [classloader] allocate child loader parent=${resolvedParent.javaClass.name} " +
-        "loaderId=${System.identityHashCode(fresh).toString(16)} urls=${urlsSummary(urls)}"
+        "loaderId=${System.identityHashCode(fresh).toString(16)} urls=${urlsSummary(urls)}",
     )
     onSwap?.invoke(fresh)
     return fresh
@@ -148,13 +148,13 @@ public class UserClassLoaderHolder(
         directories.tip(warm::ownBytes)
       } catch (failure: Exception) {
         System.err.println(
-          "compose-ai-daemon: [classloader] tip capture failed, reloading all: $failure"
+          "compose-ai-daemon: [classloader] tip capture failed, reloading all: $failure",
         )
         null
       }
     if (tip == null) {
       System.err.println(
-        "compose-ai-daemon: [classloader] tip unavailable, replacing the base loader"
+        "compose-ai-daemon: [classloader] tip unavailable, replacing the base loader",
       )
       base = null
       baseDirectories = null
@@ -175,7 +175,7 @@ public class UserClassLoaderHolder(
     System.err.println(
       "compose-ai-daemon: [classloader] allocate tip loader over " +
         "base=${System.identityHashCode(warm).toString(16)} " +
-        "loaderId=${System.identityHashCode(fresh).toString(16)} reloadedClasses=${owned.size}"
+        "loaderId=${System.identityHashCode(fresh).toString(16)} reloadedClasses=${owned.size}",
     )
     onSwap?.invoke(fresh)
     return fresh

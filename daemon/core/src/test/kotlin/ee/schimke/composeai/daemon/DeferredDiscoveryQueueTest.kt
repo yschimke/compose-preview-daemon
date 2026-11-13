@@ -133,7 +133,7 @@ class DeferredDiscoveryQueueTest {
           } catch (t: Throwable) {
             errors.incrementAndGet()
           }
-        }
+        },
       )
     q.enqueue("/a.kt")
     q.enqueue("/bad.kt")

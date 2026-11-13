@@ -105,7 +105,7 @@ class PlainRenderCoalescingTest {
     fun renderNow(id: Int) =
       frame(
         """{"jsonrpc":"2.0","id":$id,"method":"renderNow","params":{
-              "previews":["preview-A"],"tier":"fast"}}"""
+              "previews":["preview-A"],"tier":"fast"}}""",
       )
   }
 
@@ -155,7 +155,7 @@ class PlainRenderCoalescingTest {
         """{"jsonrpc":"2.0","id":1,"method":"initialize","params":{
               "protocolVersion":2,"clientVersion":"test","workspaceRoot":"/tmp",
               "moduleId":":t","moduleProjectDir":"/tmp",
-              "capabilities":{"visibility":true,"metrics":false}}}"""
+              "capabilities":{"visibility":true,"metrics":false}}}""",
       )
       assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 1 })
       send.frame("""{"jsonrpc":"2.0","method":"initialized","params":{}}""")

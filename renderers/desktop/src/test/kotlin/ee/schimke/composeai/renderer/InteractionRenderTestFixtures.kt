@@ -48,7 +48,7 @@ fun ThreeCellSelector() {
         modifier =
           Modifier.size(30.dp)
             .background(if (index == selected) Color.White else Color.DarkGray)
-            .clickable { selected = index }
+            .clickable { selected = index },
       )
     }
   }
@@ -69,7 +69,7 @@ fun HoldToLight() {
       Modifier.size(30.dp).background(if (pressed) Color.White else Color.DarkGray).clickable(
         interactionSource = interactionSource,
         indication = null,
-      ) {}
+      ) {},
   )
 }
 

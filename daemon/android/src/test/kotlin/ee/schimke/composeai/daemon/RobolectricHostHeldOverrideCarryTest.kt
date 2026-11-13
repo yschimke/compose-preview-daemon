@@ -54,11 +54,11 @@ class RobolectricHostHeldOverrideCarryTest {
                 mapOf(
                   "split" to PreviewOverrideValue.BooleanValue(true),
                   "label" to PreviewOverrideValue.StringValue("Primary"),
-                )
-            )
+                ),
+            ),
           ),
           PreviewOverrides(
-            namedOverrides = mapOf("label" to PreviewOverrideValue.StringValue("edited"))
+            namedOverrides = mapOf("label" to PreviewOverrideValue.StringValue("edited")),
           ),
         )
 
@@ -83,7 +83,7 @@ class RobolectricHostHeldOverrideCarryTest {
             PreviewOverrides(
               focus = FocusOverride.Builder().also { it.tabIndex = 2 }.build(),
               talkBack = true,
-            )
+            ),
           ),
           PreviewOverrides(),
         )

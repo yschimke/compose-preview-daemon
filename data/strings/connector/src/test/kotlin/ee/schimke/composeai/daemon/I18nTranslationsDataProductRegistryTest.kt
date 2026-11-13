@@ -43,7 +43,7 @@ class I18nTranslationsDataProductRegistryTest {
     val file =
       rootDir.resolve(previewId).also { it.mkdirs() }.resolve(I18nTranslationsDataProducer.FILE)
     file.writeText(
-      """{"supportedLocales":["en","de"],"renderedLocale":"en","defaultLocale":"en","strings":[{"nodeId":"1","boundsInScreen":"0,0,10,10","resourceName":"R.string.sign_in","rendered":"Sign in","translations":{"en":"Sign in","de":"Anmelden"}}]}"""
+      """{"supportedLocales":["en","de"],"renderedLocale":"en","defaultLocale":"en","strings":[{"nodeId":"1","boundsInScreen":"0,0,10,10","resourceName":"R.string.sign_in","rendered":"Sign in","translations":{"en":"Sign in","de":"Anmelden"}}]}""",
     )
     val registry = I18nTranslationsDataProductRegistry(rootDir)
 
@@ -140,7 +140,7 @@ class I18nTranslationsDataProductRegistryTest {
     val file =
       rootDir.resolve(previewId).also { it.mkdirs() }.resolve(I18nTranslationsDataProducer.FILE)
     file.writeText(
-      """{"supportedLocales":["en"],"renderedLocale":"en","defaultLocale":"en","strings":[]}"""
+      """{"supportedLocales":["en"],"renderedLocale":"en","defaultLocale":"en","strings":[]}""",
     )
 
     val attachment = registry.attachmentsFor(previewId, setOf("i18n/translations")).single()

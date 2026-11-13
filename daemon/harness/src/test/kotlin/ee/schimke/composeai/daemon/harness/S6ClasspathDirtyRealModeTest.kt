@@ -68,7 +68,7 @@ class S6ClasspathDirtyRealModeTest {
               id = previewId,
               className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
               functionName = "RedSquare",
-            )
+            ),
           ),
       )
 
@@ -154,11 +154,11 @@ class S6ClasspathDirtyRealModeTest {
       )
       val totalMs = System.currentTimeMillis() - s6Start
       System.err.println(
-        "S6ClasspathDirtyRealModeTest: render → fileChanged → exit in ${totalMs}ms"
+        "S6ClasspathDirtyRealModeTest: render → fileChanged → exit in ${totalMs}ms",
       )
     } catch (t: Throwable) {
       System.err.println(
-        "S6ClasspathDirtyRealModeTest failed; daemon stderr:\n${client.dumpStderr()}"
+        "S6ClasspathDirtyRealModeTest failed; daemon stderr:\n${client.dumpStderr()}",
       )
       throw t
     } finally {

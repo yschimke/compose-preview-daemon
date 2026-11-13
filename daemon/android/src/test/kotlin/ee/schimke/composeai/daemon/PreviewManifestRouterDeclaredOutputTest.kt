@@ -111,7 +111,7 @@ class PreviewManifestRouterDeclaredOutputTest {
                 "captures": [{"renderOutput": "declared/nested/red-square.png"}] }
           ] }
           """
-            .trimIndent()
+            .trimIndent(),
         )
       }
     val host =

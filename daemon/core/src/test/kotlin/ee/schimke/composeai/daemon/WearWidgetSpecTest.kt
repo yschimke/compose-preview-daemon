@@ -76,7 +76,7 @@ class WearWidgetSpecTest {
     val base = RenderSpec(className = "a.B", functionName = "f", wearWidget = WearWidgetSpec())
     val merged =
       base.mergedWith(
-        ee.schimke.composeai.daemon.protocol.PreviewOverrides(device = "id:wearos_large_round")
+        ee.schimke.composeai.daemon.protocol.PreviewOverrides(device = "id:wearos_large_round"),
       )
     assertEquals(WearWidgetSpec(), merged.wearWidget)
     assertEquals("id:wearos_large_round", merged.device)

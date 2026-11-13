@@ -71,7 +71,7 @@ class AndroidRecordingSessionTest {
       )
 
     session.postScript(
-      listOf(RecordingScriptEvent(tMs = 67L, kind = "input.click", pixelX = 4, pixelY = 4))
+      listOf(RecordingScriptEvent(tMs = 67L, kind = "input.click", pixelX = 4, pixelY = 4)),
     )
     val result = session.stop()
 
@@ -107,7 +107,7 @@ class AndroidRecordingSessionTest {
         RecordingScriptEvent(tMs = 10L, kind = "input.pointerMove", pixelX = 4, pixelY = 40),
         RecordingScriptEvent(tMs = 20L, kind = "input.pointerMove", pixelX = 4, pixelY = 20),
         RecordingScriptEvent(tMs = 30L, kind = "input.pointerUp", pixelX = 4, pixelY = 4),
-      )
+      ),
     )
     val result = session.stop()
 
@@ -144,7 +144,7 @@ class AndroidRecordingSessionTest {
         RecordingScriptEvent(tMs = 10L, kind = "input.pointerDown", pixelX = 4, pixelY = 60),
         RecordingScriptEvent(tMs = 20L, kind = "input.pointerMove", pixelX = 4, pixelY = 30),
         RecordingScriptEvent(tMs = 30L, kind = "input.pointerUp", pixelX = 4, pixelY = 4),
-      )
+      ),
     )
     session.stop()
 
@@ -180,7 +180,7 @@ class AndroidRecordingSessionTest {
       listOf(
         RecordingScriptEvent(tMs = 0L, kind = "input.click", pixelX = 4, pixelY = 4),
         RecordingScriptEvent(tMs = 120L, kind = "input.pointerDown", pixelX = 4, pixelY = 4),
-      )
+      ),
     )
     val result = session.stop()
 
@@ -227,7 +227,7 @@ class AndroidRecordingSessionTest {
             RecordingScriptEvent(tMs = 20L, kind = "input.pointerMove", pixelX = x, pixelY = 50),
             RecordingScriptEvent(tMs = 30L, kind = "input.pointerMove", pixelX = x, pixelY = 30),
             RecordingScriptEvent(tMs = 40L, kind = "input.pointerUp", pixelX = x, pixelY = 10),
-          )
+          ),
         )
         val result = session.stop()
         val last =
@@ -317,7 +317,7 @@ class AndroidRecordingSessionTest {
           "assert.notVisible",
           SemanticsInputTarget(role = "Button", text = "Missing"),
         ), // APPLIED
-      )
+      ),
     )
     val result = session.stop()
     val asserts = result.scriptEvents.filter { it.kind.startsWith("assert.") }
@@ -388,7 +388,7 @@ class AndroidRecordingSessionTest {
         textEq(SemanticsInputTarget(testTag = "absent"), "Submit"), // FAILED (no match)
         textEq(SemanticsInputTarget(ref = "r1"), "Submit"), // FAILED (ref unsupported)
         textEq(SemanticsInputTarget(testTag = "submit"), null), // FAILED (no expected)
-      )
+      ),
     )
     val asserts = session.stop().scriptEvents.filter { it.kind == "assert.textEquals" }
     assertEquals(6, asserts.size)
@@ -445,7 +445,7 @@ class AndroidRecordingSessionTest {
         pixels(driftingBaseline.absolutePath), // FAILED (drift)
         pixels(File(sourceDir, "missing.png").absolutePath), // FAILED (no baseline)
         pixels(null), // FAILED (no path)
-      )
+      ),
     )
     val asserts = session.stop().scriptEvents.filter { it.kind == "assert.pixels" }
     assertEquals(4, asserts.size)
@@ -497,7 +497,7 @@ class AndroidRecordingSessionTest {
       listOf(
         RecordingScriptEvent(tMs = 0L, kind = "assert.pixels", inputText = baseline.absolutePath),
         RecordingScriptEvent(tMs = 0L, kind = "input.click", pixelX = 4, pixelY = 4),
-      )
+      ),
     )
     val asserts = session.stop().scriptEvents.filter { it.kind == "assert.pixels" }
     assertEquals(1, asserts.size)
@@ -686,7 +686,7 @@ class AndroidRecordingSessionTest {
         kind = InteractiveInputKind.CLICK,
         pixelX = 4,
         pixelY = 4,
-      )
+      ),
     )
     Thread.sleep(90)
     val result = session.stop()
@@ -732,7 +732,7 @@ class AndroidRecordingSessionTest {
         kind = InteractiveInputKind.CLICK,
         pixelX = 4,
         pixelY = 4,
-      )
+      ),
     )
     Thread.sleep(90)
     val result = session.stop()
@@ -767,7 +767,7 @@ class AndroidRecordingSessionTest {
     try {
       try {
         session.postScript(
-          listOf(RecordingScriptEvent(tMs = 0L, kind = "input.click", pixelX = 1, pixelY = 1))
+          listOf(RecordingScriptEvent(tMs = 0L, kind = "input.click", pixelX = 1, pixelY = 1)),
         )
         fail("expected live recording to reject postScript")
       } catch (expected: IllegalStateException) {
@@ -806,7 +806,7 @@ class AndroidRecordingSessionTest {
           kind = InteractiveInputKind.CLICK,
           pixelX = 1,
           pixelY = 1,
-        )
+        ),
       )
       fail("expected scripted recording to reject postInput")
     } catch (expected: IllegalStateException) {
@@ -853,7 +853,7 @@ class AndroidRecordingSessionTest {
             kind = RecordingScriptDataExtensions.PROBE_EVENT,
             label = "after-save-marker",
           ),
-        )
+        ),
       )
       val result = session.stop()
 
@@ -920,7 +920,7 @@ class AndroidRecordingSessionTest {
             kind = "a11y.action.$actionKind",
             nodeContentDescription = "Target-$actionKind",
           )
-        }
+        },
       )
       val result = session.stop()
 
@@ -988,8 +988,8 @@ class AndroidRecordingSessionTest {
             tMs = 0L,
             kind = "a11y.action.click",
             nodeContentDescription = "Save",
-          )
-        )
+          ),
+        ),
       )
       val result = session.stop()
 
@@ -1049,7 +1049,7 @@ class AndroidRecordingSessionTest {
           RecordingScriptEvent(tMs = 0L, kind = "a11y.action.next"),
           RecordingScriptEvent(tMs = 30L, kind = "a11y.action.previous"),
           RecordingScriptEvent(tMs = 60L, kind = "a11y.action.next"),
-        )
+        ),
       )
       val result = session.stop()
 
@@ -1114,8 +1114,8 @@ class AndroidRecordingSessionTest {
             tMs = 0L,
             kind = "a11y.action.click",
             nodeContentDescription = "Nonexistent",
-          )
-        )
+          ),
+        ),
       )
       val result = session.stop()
 
@@ -1271,8 +1271,8 @@ class AndroidRecordingSessionTest {
           RecordingScriptEvent(
             tMs = 0L,
             kind = LifecycleRecordingScriptEvents.LIFECYCLE_PAUSE_EVENT,
-          )
-        )
+          ),
+        ),
       )
       val result = session.stop()
 
@@ -1323,7 +1323,7 @@ class AndroidRecordingSessionTest {
               role = "Button",
               text = "Submit",
               boundsInRoot = "0,0,10,10",
-            )
+            ),
           ),
       )
     val interactive = RecordingDeltaSession(sourcePng).apply { dispatchTargetMiss = reason }
@@ -1345,8 +1345,8 @@ class AndroidRecordingSessionTest {
             tMs = 0L,
             kind = "input.click",
             target = SemanticsInputTarget(testTag = "does-not-exist"),
-          )
-        )
+          ),
+        ),
       )
       val result = session.stop()
 
@@ -1398,8 +1398,8 @@ class AndroidRecordingSessionTest {
           RecordingScriptEvent(
             tMs = 0L,
             kind = PreviewReloadRecordingScriptEvents.PREVIEW_RELOAD_EVENT,
-          )
-        )
+          ),
+        ),
       )
       val result = session.stop()
 
@@ -1455,8 +1455,8 @@ class AndroidRecordingSessionTest {
           RecordingScriptEvent(
             tMs = 0L,
             kind = PreviewReloadRecordingScriptEvents.PREVIEW_RELOAD_EVENT,
-          )
-        )
+          ),
+        ),
       )
       val result = session.stop()
 
@@ -1595,8 +1595,8 @@ class AndroidRecordingSessionTest {
             tMs = 0L,
             kind = NavigationRecordingScriptEvents.NAV_DEEP_LINK_EVENT,
             deepLinkUri = "",
-          )
-        )
+          ),
+        ),
       )
       val result = session.stop()
 
@@ -1645,8 +1645,8 @@ class AndroidRecordingSessionTest {
     try {
       session.postScript(
         listOf(
-          RecordingScriptEvent(tMs = 0L, kind = NavigationRecordingScriptEvents.NAV_BACK_EVENT)
-        )
+          RecordingScriptEvent(tMs = 0L, kind = NavigationRecordingScriptEvents.NAV_BACK_EVENT),
+        ),
       )
       val result = session.stop()
 
@@ -1695,8 +1695,8 @@ class AndroidRecordingSessionTest {
             tMs = 0L,
             kind = StateRecordingScriptEvents.STATE_SAVE_EVENT,
             checkpointId = "before",
-          )
-        )
+          ),
+        ),
       )
       val result = session.stop()
 
@@ -1741,7 +1741,7 @@ class AndroidRecordingSessionTest {
 
     try {
       session.postScript(
-        listOf(RecordingScriptEvent(tMs = 0L, kind = StateRecordingScriptEvents.STATE_SAVE_EVENT))
+        listOf(RecordingScriptEvent(tMs = 0L, kind = StateRecordingScriptEvents.STATE_SAVE_EVENT)),
       )
       val result = session.stop()
 
@@ -1792,8 +1792,8 @@ class AndroidRecordingSessionTest {
             tMs = 0L,
             kind = StateRecordingScriptEvents.STATE_RESTORE_EVENT,
             checkpointId = "before",
-          )
-        )
+          ),
+        ),
       )
       val result = session.stop()
 
@@ -1841,8 +1841,8 @@ class AndroidRecordingSessionTest {
             tMs = 0L,
             kind = StateRecordingScriptEvents.STATE_RESTORE_EVENT,
             checkpointId = "never-saved",
-          )
-        )
+          ),
+        ),
       )
       val result = session.stop()
 
@@ -1893,8 +1893,8 @@ class AndroidRecordingSessionTest {
     try {
       session.postScript(
         listOf(
-          RecordingScriptEvent(tMs = 0L, kind = StateRecordingScriptEvents.STATE_RECREATE_EVENT)
-        )
+          RecordingScriptEvent(tMs = 0L, kind = StateRecordingScriptEvents.STATE_RECREATE_EVENT),
+        ),
       )
       val result = session.stop()
 
@@ -1947,8 +1947,8 @@ class AndroidRecordingSessionTest {
     try {
       session.postScript(
         listOf(
-          RecordingScriptEvent(tMs = 0L, kind = StateRecordingScriptEvents.STATE_RECREATE_EVENT)
-        )
+          RecordingScriptEvent(tMs = 0L, kind = StateRecordingScriptEvents.STATE_RECREATE_EVENT),
+        ),
       )
       val result = session.stop()
 
@@ -2007,8 +2007,8 @@ class AndroidRecordingSessionTest {
               kind = "input.click",
               pixelX = INTERACTIVE_WIDTH_PX / 2,
               pixelY = INTERACTIVE_HEIGHT_PX / 2,
-            )
-          )
+            ),
+          ),
         )
         val result = session.stop()
 

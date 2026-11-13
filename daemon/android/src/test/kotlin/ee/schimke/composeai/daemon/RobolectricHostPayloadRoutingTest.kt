@@ -28,7 +28,7 @@ class RobolectricHostPayloadRoutingTest {
             previewParameterProviderClassName = "com.example.ThemePreviewParameterProvider",
             previewParameterLimit = 3,
           )
-        }
+        },
       )
 
     val spec =
@@ -77,7 +77,7 @@ class RobolectricHostPayloadRoutingTest {
         preview(
           "p",
           PreviewOverrides(widthPx = 1000, heightPx = 200, orientation = Orientation.PORTRAIT),
-        )
+        ),
       )
 
     assertEquals(1000, spec.widthPx)
@@ -140,7 +140,7 @@ class RobolectricHostPayloadRoutingTest {
           wrapWidth = wrapWidth,
           wrapHeight = wrapHeight,
         )
-      }
+      },
     )
 
   @Test
@@ -153,7 +153,7 @@ class RobolectricHostPayloadRoutingTest {
             className = "com.example.PlainPreviewKt",
             functionName = "PlainPreview",
           )
-        }
+        },
       )
 
     val routed = host.resolvedSpec(preview("plain"))

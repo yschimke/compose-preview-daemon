@@ -57,7 +57,7 @@ class DeviceBackgroundDataProductRegistry(previewIndex: PreviewIndex) : DataProd
         displayName = "Device background",
         facets = listOf(DataProductFacet.STRUCTURED),
         sampling = SamplingPolicy.End,
-      )
+      ),
     )
 
   override fun fetch(
@@ -69,7 +69,7 @@ class DeviceBackgroundDataProductRegistry(previewIndex: PreviewIndex) : DataProd
     if (kind != KIND) return DataProductRegistry.Outcome.Unknown
     val payload = payloadFor(previewId) ?: return DataProductRegistry.Outcome.NotAvailable
     return DataProductRegistry.Outcome.Ok(
-      DataFetchResult(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload)
+      DataFetchResult(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload),
     )
   }
 
@@ -77,7 +77,7 @@ class DeviceBackgroundDataProductRegistry(previewIndex: PreviewIndex) : DataProd
     if (KIND !in kinds) return emptyList()
     val payload = payloadFor(previewId) ?: return emptyList()
     return listOf(
-      DataProductAttachment(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload)
+      DataProductAttachment(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload),
     )
   }
 

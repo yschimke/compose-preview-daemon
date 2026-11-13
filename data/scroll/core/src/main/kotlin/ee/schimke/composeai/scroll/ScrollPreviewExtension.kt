@@ -142,7 +142,7 @@ object ScrollPreviewExtension {
                 "<path>",
               ),
             productKinds = listOf(KIND_LONG),
-          )
+          ),
         ),
       steps = listOf(longScrollScenario, longScrollEncoder),
     )
@@ -168,7 +168,7 @@ object ScrollPreviewExtension {
               ),
             agentRecommended = true,
             usageModes = setOf(PreviewExtensionUsageMode.SuggestedExtraPreview),
-          )
+          ),
         ),
       steps = listOf(annotationSuggester),
     )
@@ -200,7 +200,7 @@ object ScrollPreviewExtension {
                 "<path>",
               ),
             productKinds = listOf(KIND_GIF),
-          )
+          ),
         ),
       steps = listOf(gifScrollScenario, gifScrollEncoder),
     )

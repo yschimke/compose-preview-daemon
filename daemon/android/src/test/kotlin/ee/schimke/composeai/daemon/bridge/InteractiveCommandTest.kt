@@ -115,7 +115,7 @@ class InteractiveCommandTest {
     DaemonHostBridge.reset()
     val slot = DaemonHostBridge.slot(0)
     slot.interactiveCommands.put(
-      InteractiveCommand.Render(streamId = "stream-leftover", requestId = 1L)
+      InteractiveCommand.Render(streamId = "stream-leftover", requestId = 1L),
     )
     assertEquals(1, slot.interactiveCommands.size)
 

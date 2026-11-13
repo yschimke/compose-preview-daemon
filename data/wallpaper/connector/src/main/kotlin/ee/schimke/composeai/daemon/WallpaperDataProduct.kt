@@ -55,7 +55,7 @@ internal constructor(
       ),
   ) {
   constructor(
-    override: WallpaperOverride?
+    override: WallpaperOverride?,
   ) : this(override, { isMaterial3Loadable(WallpaperOverrideExtension::class.java.classLoader) })
 
   @Composable
@@ -163,7 +163,7 @@ class WallpaperDataProductRegistry : DataProductRegistry {
         attachable = true,
         fetchable = true,
         requiresRerender = false,
-      )
+      ),
     )
 
   fun capture(previewId: String?, payload: WallpaperPayload) {
@@ -189,7 +189,7 @@ class WallpaperDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(WallpaperPayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -201,7 +201,7 @@ class WallpaperDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(WallpaperPayload.serializer(), payload),
-      )
+      ),
     )
   }
 

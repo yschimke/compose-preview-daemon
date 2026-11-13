@@ -83,7 +83,10 @@ class ScrollDriveDiagnosticsTest {
           listOf(ScrollDriveDiagnostics.UnlandedStep("scroll LONG", step(landed = false))),
         unverifiedScrollSeams =
           listOf(
-            ScrollDriveDiagnostics.UnverifiedSeam("scroll LONG", seam(signal = 0.0, residual = 0.3))
+            ScrollDriveDiagnostics.UnverifiedSeam(
+              "scroll LONG",
+              seam(signal = 0.0, residual = 0.3),
+            ),
           ),
       )
     assertTrue(

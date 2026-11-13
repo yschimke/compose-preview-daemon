@@ -42,7 +42,7 @@ class LottieTimelineDataProductRegistryTest {
   fun `fetch reports the asset timeline`() {
     val registry =
       LottieTimelineDataProductRegistry(
-        indexWith(lottiePreview("lottie__spin", "lottie/spin.json"))
+        indexWith(lottiePreview("lottie__spin", "lottie/spin.json")),
       )
 
     val outcome =
@@ -66,7 +66,7 @@ class LottieTimelineDataProductRegistryTest {
   fun `fetch for an unknown kind is Unknown`() {
     val registry =
       LottieTimelineDataProductRegistry(
-        indexWith(lottiePreview("lottie__spin", "lottie/spin.json"))
+        indexWith(lottiePreview("lottie__spin", "lottie/spin.json")),
       )
     assertEquals(
       DataProductRegistry.Outcome.Unknown,
@@ -108,7 +108,7 @@ class LottieTimelineDataProductRegistryTest {
   fun `attachmentsFor ships the timeline for a lottie preview`() {
     val registry =
       LottieTimelineDataProductRegistry(
-        indexWith(lottiePreview("lottie__spin", "lottie/spin.json"))
+        indexWith(lottiePreview("lottie__spin", "lottie/spin.json")),
       )
     val attachments =
       registry.attachmentsFor("lottie__spin", setOf(LottieTimelineDataProductRegistry.KIND))

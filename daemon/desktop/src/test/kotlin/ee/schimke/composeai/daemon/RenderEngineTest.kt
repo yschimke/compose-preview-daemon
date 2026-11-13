@@ -54,8 +54,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "carried-bytes",
-              )
-            )
+              ),
+            ),
         )
       val result = host.submit(request, timeoutMs = 60_000)
 
@@ -102,8 +102,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "red-square",
-              )
-            )
+              ),
+            ),
         )
       val result = host.submit(request, timeoutMs = 60_000)
 
@@ -174,8 +174,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "wireframe-red",
-              )
-            )
+              ),
+            ),
         )
       host.submit(request, timeoutMs = 60_000)
 
@@ -233,8 +233,8 @@ class RenderEngineTest {
                 baseSpec.copy(
                   uiMode = RenderSpec.SpecUiMode.LIGHT,
                   outputBaseName = "dark-aware-light",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 60_000,
         )
@@ -246,8 +246,8 @@ class RenderEngineTest {
                 baseSpec.copy(
                   uiMode = RenderSpec.SpecUiMode.DARK,
                   outputBaseName = "dark-aware-dark",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 60_000,
         )
@@ -298,8 +298,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "figma-raster",
-              )
-            )
+              ),
+            ),
         )
       host.submit(request, timeoutMs = 60_000)
 
@@ -356,8 +356,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "px-corner",
-              )
-            )
+              ),
+            ),
         )
       host.submit(request, timeoutMs = 60_000)
 
@@ -404,8 +404,8 @@ class RenderEngineTest {
                 density = 2.0f,
                 showBackground = true,
                 outputBaseName = "morph-corner",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 60_000,
       )
@@ -453,8 +453,8 @@ class RenderEngineTest {
                 density = 2.0f,
                 showBackground = true,
                 outputBaseName = "generic-outline",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 60_000,
       )
@@ -522,8 +522,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "cut-corner",
-              )
-            )
+              ),
+            ),
         )
       host.submit(request, timeoutMs = 60_000)
 
@@ -567,8 +567,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "fidelity-card",
-              )
-            )
+              ),
+            ),
         )
       host.submit(request, timeoutMs = 60_000)
 
@@ -665,8 +665,8 @@ class RenderEngineTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "padded-icon",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 60_000,
         )
@@ -744,8 +744,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "$baseName",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 60_000,
       )
@@ -799,8 +799,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "private-red-square",
-              )
-            )
+              ),
+            ),
         )
       val result = host.submit(request, timeoutMs = 60_000)
 
@@ -855,8 +855,8 @@ class RenderEngineTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "preview-parameter-square_PARAM_1",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 60_000,
         )
@@ -909,8 +909,8 @@ class RenderEngineTest {
                     density = 1.0f,
                     showBackground = true,
                     outputBaseName = "case-square_$row",
-                  )
-                )
+                  ),
+                ),
             ),
             timeoutMs = 60_000,
           )
@@ -951,8 +951,8 @@ class RenderEngineTest {
                   heightPx = 64,
                   density = 1.0f,
                   outputBaseName = "case-square_DARK",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 60_000,
         )
@@ -992,8 +992,8 @@ class RenderEngineTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "preview-parameter-square",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 60_000,
         )
@@ -1035,8 +1035,8 @@ class RenderEngineTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "warmup-$i",
-                )
-              )
+                ),
+              ),
           )
         val startNs = System.nanoTime()
         val result = host.submit(request, timeoutMs = 60_000)
@@ -1054,7 +1054,7 @@ class RenderEngineTest {
       // own that). We just want them visible in `gradle test --info` output.
       println(
         "RenderEngineTest 10-render warm-up: total=${totalMs}ms first=${firstMs}ms " +
-          "warm-median=${warmMedianMs}ms ratio=${"%.2f".format(ratio)} per-render=$perRenderMs"
+          "warm-median=${warmMedianMs}ms ratio=${"%.2f".format(ratio)} per-render=$perRenderMs",
       )
     } finally {
       host.shutdown()

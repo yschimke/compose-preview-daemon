@@ -89,7 +89,7 @@ class RemoteDocumentPreviewShadowTest {
     RemoteComposeController.set(
       RemoteComposeOverride.Builder()
         .also { it.namedValues = mapOf("fill" to RemoteNamedValue.ColorValue("#FF00D775")) }
-        .build()
+        .build(),
     )
     RemoteComposeController.clearDeclarations()
     assertFalse(RemoteComposeController.namedValuesWereConsumed())

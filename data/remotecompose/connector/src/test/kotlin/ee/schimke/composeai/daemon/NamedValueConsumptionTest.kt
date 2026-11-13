@@ -55,7 +55,7 @@ class NamedValueConsumptionTest {
         extensionId = RemoteComposeOverrideExtension.ID,
         previewId = PREVIEW_ID,
         renderMode = null,
-      )
+      ),
     ) {
       content()
     }

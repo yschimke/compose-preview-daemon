@@ -45,5 +45,5 @@ annotation class GestureHintPreview(
    * the annotation; `false` forces hints off, useful when stacked under a multi-preview annotation
    * that enables them elsewhere.
    */
-  val showHints: Boolean = true
+  val showHints: Boolean = true,
 )

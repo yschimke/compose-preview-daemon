@@ -136,7 +136,7 @@ private fun invokeNotificationPreviewFunction(
       else ->
         error(
           "NotificationPreview '$functionName' has unsupported signature; " +
-            "expected 0 or 1 (Context) parameters, found ${method.parameterTypes.size}"
+            "expected 0 or 1 (Context) parameters, found ${method.parameterTypes.size}",
         )
     }
   return result as? Notification
@@ -161,7 +161,7 @@ private fun findNotificationPreviewMethod(
     ?: candidates.firstOrNull { it.parameterTypes.isEmpty() }
     ?: error(
       "NotificationPreview '$functionName' on '$className' has no supported overload " +
-        "(expected no-arg or single Context parameter)"
+        "(expected no-arg or single Context parameter)",
     )
 }
 

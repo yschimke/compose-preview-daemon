@@ -52,7 +52,7 @@ internal class Coil3PreviewInstaller : CoilPreviewInstaller {
         .fetcherCoroutineContext(Dispatchers.Main.immediate)
         .decoderCoroutineContext(Dispatchers.Main.immediate)
         .eventListener(DiagnosticEventListener)
-        .build()
+        .build(),
     )
   }
 

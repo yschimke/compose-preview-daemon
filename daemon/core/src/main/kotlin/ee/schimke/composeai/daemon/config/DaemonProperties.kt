@@ -964,36 +964,36 @@ public object DaemonProperties {
     appendLine()
     appendLine("  Source of truth: DaemonProperties in")
     appendLine(
-      "  daemon/core/src/main/kotlin/ee/schimke/composeai/daemon/config/DaemonProperties.kt"
+      "  daemon/core/src/main/kotlin/ee/schimke/composeai/daemon/config/DaemonProperties.kt",
     )
     appendLine(
       "  Regenerate:      ./gradlew :daemon:core:test --tests '*DaemonPropertiesDocTest*' " +
-        "-Pcomposeai.docs.regenerate=true"
+        "-Pcomposeai.docs.regenerate=true",
     )
     appendLine("-->")
     appendLine()
     appendLine("# Preview daemon — tunables")
     appendLine()
     appendLine(
-      "Every `composeai.daemon.*` system property the daemon and its launch descriptor understand,"
+      "Every `composeai.daemon.*` system property the daemon and its launch descriptor understand,",
     )
     appendLine(
-      "generated from the typed registry so the list cannot drift from the code that reads it."
+      "generated from the typed registry so the list cannot drift from the code that reads it.",
     )
     appendLine()
     appendLine(
       "Pass one with `-D<name>=<value>` on the daemon JVM. The Gradle-facing knobs " +
-        "(`maxHeapMb`, `warmSpare`,"
+        "(`maxHeapMb`, `warmSpare`,",
     )
     appendLine(
       "`maxRendersPerSandbox`, `backgroundSandboxBoot`) are normally set through the " +
-        "`composePreview.daemon { … }`"
+        "`composePreview.daemon { … }`",
     )
     appendLine("DSL rather than by hand — see [CONFIG.md](CONFIG.md).")
     appendLine()
     appendLine(
       "\"Default\" is the value used when the property is unset **or** unparseable: a typo never " +
-        "silently"
+        "silently",
     )
     appendLine("flips a knob.")
     for (group in GROUPS) {
@@ -1006,7 +1006,7 @@ public object DaemonProperties {
       appendLine("| --- | --- | --- | --- |")
       for (property in entries) {
         appendLine(
-          "| `${property.name}` | ${property.typeLabel} | ${property.defaultLabel} | ${property.doc} |"
+          "| `${property.name}` | ${property.typeLabel} | ${property.defaultLabel} | ${property.doc} |",
         )
       }
     }

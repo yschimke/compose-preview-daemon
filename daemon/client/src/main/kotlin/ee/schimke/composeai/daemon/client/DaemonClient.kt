@@ -177,7 +177,7 @@ public class DaemonClient(
       val end =
         terminal.poll(leftMs, TimeUnit.MILLISECONDS)
           ?: error(
-            "DaemonClient: daemon answered initialize but did not finish booting in $timeout"
+            "DaemonClient: daemon answered initialize but did not finish booting in $timeout",
           )
       if (end.phase == BootPhase.FAILED) {
         throw DaemonBootFailedException(end.message ?: "the daemon's host failed to start")
@@ -763,7 +763,7 @@ public class DaemonClient(
       val reply =
         slot.poll(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
           ?: error(
-            "DaemonClient: response for id=$id (method=${request.method}) timed out after $timeout"
+            "DaemonClient: response for id=$id (method=${request.method}) timed out after $timeout",
           )
       if (reply === CONNECTION_CLOSED) throw connectionClosed(request.method)
       return reply
@@ -828,7 +828,7 @@ public class DaemonClient(
   private fun connectionClosed(method: String) =
     IOException(
       "DaemonClient: the daemon closed its connection before answering $method " +
-        "(the process exited; its stderr says why)"
+        "(the process exited; its stderr says why)",
     )
 
   private fun readFrame(input: InputStream): ByteArray? {

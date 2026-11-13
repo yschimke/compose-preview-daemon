@@ -65,11 +65,11 @@ class PreviewManifestRouterRoutingTest {
                         key = "checked",
                         kind = OverrideSeedKind.BOOLEAN,
                         raw = "false",
-                      )
+                      ),
                     ),
                 ),
-            )
-          )
+            ),
+          ),
       )
     val router = PreviewManifestRouter(manifest = manifest)
 
@@ -104,8 +104,8 @@ class PreviewManifestRouterRoutingTest {
                   heightDp = 100,
                   wrapperClassName = "com.example.RemotePreviewWrapper",
                 ),
-            )
-          )
+            ),
+          ),
       )
     val router = PreviewManifestRouter(manifest = manifest)
 
@@ -139,8 +139,8 @@ class PreviewManifestRouterRoutingTest {
                   previewParameterProviderClassName = "com.example.ThemeProvider",
                   previewParameterLimit = 3,
                 ),
-            )
-          )
+            ),
+          ),
       )
 
     val routed = PreviewManifestRouter(manifest = manifest).routedSpec("themed")
@@ -169,8 +169,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "Plain",
               params = PreviewParamsEntry(widthDp = 100, heightDp = 100),
-            )
-          )
+            ),
+          ),
       )
 
     val routed = PreviewManifestRouter(manifest = manifest).routedSpec("plain")
@@ -196,8 +196,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "TcpConnectPanel",
               params = PreviewParamsEntry(widthDp = 340, density = 2.625f, showBackground = true),
-            )
-          )
+            ),
+          ),
       )
     val routed = PreviewManifestRouter(manifest = manifest).routedSpec("tcp")
 
@@ -227,8 +227,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "Sticker",
               params = PreviewParamsEntry(density = 2.0f, showBackground = true),
-            )
-          )
+            ),
+          ),
       )
     val routed = PreviewManifestRouter(manifest = manifest).routedSpec("sticker")
 
@@ -253,8 +253,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "Sized",
               params = PreviewParamsEntry(widthDp = 300, heightDp = 170),
-            )
-          )
+            ),
+          ),
       )
     val routed = PreviewManifestRouter(manifest = manifest).routedSpec("sized")
 
@@ -279,8 +279,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "TcpConnectPanel",
               params = PreviewParamsEntry(widthDp = 340, density = 2.625f),
-            )
-          )
+            ),
+          ),
       )
     val routed =
       PreviewManifestRouter(manifest = manifest).routedSpec("tcp", PreviewOverrides(heightPx = 900))
@@ -303,8 +303,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "Plain",
               params = PreviewParamsEntry(widthDp = 100, heightDp = 100),
-            )
-          )
+            ),
+          ),
       )
     val router = PreviewManifestRouter(manifest = manifest)
 
@@ -330,8 +330,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.GlancePreviewsKt",
               functionName = "MyWidgetPreview",
               params = PreviewParamsEntry(widthDp = 200, heightDp = 200, kind = "GLANCE_APPWIDGET"),
-            )
-          )
+            ),
+          ),
       )
     val router = PreviewManifestRouter(manifest = manifest)
 
@@ -362,8 +362,8 @@ class PreviewManifestRouterRoutingTest {
                   kind = "WEAR_THEME_CATALOG",
                   wrapperClassName = "com.example.JetcasterWearDarkThemeCatalog",
                 ),
-            )
-          )
+            ),
+          ),
       )
 
     val routed = PreviewManifestRouter(manifest = manifest).routedSpec("wearthemecatalog__Dark")
@@ -408,7 +408,7 @@ class PreviewManifestRouterRoutingTest {
               // UI_MODE_NIGHT_NO (0x10) | UI_MODE_TYPE_NORMAL (0x01)
               params = PreviewParamsEntry(widthDp = 411, heightDp = 914, uiMode = 0x11),
             ),
-          )
+          ),
       )
     val router = PreviewManifestRouter(manifest = manifest)
 
@@ -438,8 +438,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "Screen",
               params = PreviewParamsEntry(widthDp = 411, heightDp = 914, uiMode = 0x21),
-            )
-          )
+            ),
+          ),
       )
     val routed =
       PreviewManifestRouter(manifest = manifest)
@@ -473,8 +473,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "FeedScreen",
               params = PreviewParamsEntry(widthDp = 400, fontScale = 1.5f, locale = "ar-XB"),
-            )
-          )
+            ),
+          ),
       )
     val router = PreviewManifestRouter(manifest = manifest)
 
@@ -495,8 +495,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "FeedScreen",
               params = PreviewParamsEntry(widthDp = 400, fontScale = 1.5f),
-            )
-          )
+            ),
+          ),
       )
     val router = PreviewManifestRouter(manifest = manifest)
 
@@ -517,8 +517,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "FeedScreen",
               params = PreviewParamsEntry(widthDp = 400, fontScale = 1.0f),
-            )
-          )
+            ),
+          ),
       )
     val router = PreviewManifestRouter(manifest = manifest)
 
@@ -549,8 +549,8 @@ class PreviewManifestRouterRoutingTest {
                   heightDp = 192,
                   density = 2.0f,
                 ),
-            )
-          )
+            ),
+          ),
       )
     val router = PreviewManifestRouter(manifest = manifest)
 
@@ -580,8 +580,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "Phone",
               params = PreviewParamsEntry(device = "id:pixel_5", density = 2.75f),
-            )
-          )
+            ),
+          ),
       )
 
     val routed = PreviewManifestRouter(manifest = manifest).routedSpec("phone")
@@ -605,8 +605,8 @@ class PreviewManifestRouterRoutingTest {
               className = "com.example.PreviewsKt",
               functionName = "WearTile",
               params = PreviewParamsEntry(device = "id:wearos_small_round", density = 2.0f),
-            )
-          )
+            ),
+          ),
       )
     val router = PreviewManifestRouter(manifest = manifest)
 
@@ -696,8 +696,8 @@ class PreviewManifestRouterRoutingTest {
                 className = "com.example.PreviewsKt",
                 functionName = "Sized",
                 params = PreviewParamsEntry(widthDp = 100, heightDp = 200, density = 2.0f),
-              )
-            )
-        )
+              ),
+            ),
+        ),
     )
 }

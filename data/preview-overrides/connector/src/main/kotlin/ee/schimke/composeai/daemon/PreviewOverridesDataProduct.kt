@@ -67,7 +67,7 @@ import kotlinx.serialization.json.JsonElement
  * preview content reaches a `previewOverride*` call.
  */
 class PreviewOverridesOverrideExtension(
-  private val seed: Map<String, PreviewOverrideValue>? = null
+  private val seed: Map<String, PreviewOverrideValue>? = null,
 ) : AroundComposableHook {
 
   override val id: DataExtensionId = ID
@@ -153,7 +153,7 @@ class PreviewOverridesDataProductRegistry : DataProductRegistry {
         // the declarations themselves are a by-product of that render, not something to re-render
         // for.
         requiresRerender = false,
-      )
+      ),
     )
 
   override fun fetch(
@@ -169,7 +169,7 @@ class PreviewOverridesDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(PreviewOverridesPayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -181,7 +181,7 @@ class PreviewOverridesDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(PreviewOverridesPayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -238,7 +238,7 @@ class PreviewOverridesDataProductRegistry : DataProductRegistry {
    * `PermissionsDataProductRegistry`'s `SandboxPermissionsBridgeReader`.
    */
   private class SandboxPreviewOverridesBridgeReader(
-    private val snapshotMethod: java.lang.reflect.Method
+    private val snapshotMethod: java.lang.reflect.Method,
   ) {
     fun snapshot(scope: String): List<String> =
       try {
@@ -267,7 +267,7 @@ class PreviewOverridesDataProductRegistry : DataProductRegistry {
                   PreviewOverridesDataProductRegistry::class.java.classLoader,
                 )
               SandboxPreviewOverridesBridgeReader(
-                snapshotMethod = cls.getMethod("snapshot", String::class.java)
+                snapshotMethod = cls.getMethod("snapshot", String::class.java),
               )
             } catch (_: ClassNotFoundException) {
               null

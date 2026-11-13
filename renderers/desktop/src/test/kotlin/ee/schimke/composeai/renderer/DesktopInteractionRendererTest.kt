@@ -85,7 +85,7 @@ class DesktopInteractionRendererTest {
     val bare = ApngFrames.read(render("ThreeCellSelector", spec(targets = listOf(2)), "no-gutter"))
     val guttered =
       ApngFrames.read(
-        render("ThreeCellSelector", spec(targets = listOf(2)), "gutter", captureGutter = gutter)
+        render("ThreeCellSelector", spec(targets = listOf(2)), "gutter", captureGutter = gutter),
       )
 
     val bareFrame = bare.first()

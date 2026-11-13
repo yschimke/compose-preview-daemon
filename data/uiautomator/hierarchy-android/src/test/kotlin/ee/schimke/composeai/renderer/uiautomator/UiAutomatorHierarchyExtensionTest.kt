@@ -179,7 +179,7 @@ class UiAutomatorHierarchyExtensionTest {
             previewId = "preview",
             renderMode = null,
             products = store.scopedFor(extension),
-          )
+          ),
         )
       }
     assertTrue(
@@ -213,7 +213,7 @@ class UiAutomatorHierarchyExtensionTest {
             UiAutomatorHierarchyContextKeys.Options provides
               UiAutomatorHierarchyOptions(includeNonActionable = false, merged = false),
           ),
-      )
+      ),
     )
 
     val payload = store.get(UiAutomatorDataProducts.Hierarchy)
@@ -240,7 +240,7 @@ class UiAutomatorHierarchyExtensionTest {
         products = store2.scopedFor(extension),
         data =
           ExtensionContextData.of(UiAutomatorHierarchyContextKeys.SemanticsRoot provides rootNode),
-      )
+      ),
     )
     val defaulted = store2.get(UiAutomatorDataProducts.Hierarchy)
     assertNotNull(defaulted)

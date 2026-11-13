@@ -48,7 +48,7 @@ class ThemeProviderWireIntegrationTest {
     val themed =
       renderOverJsonRpc(
         overridesJson =
-          """{"themeProvider":"ee.schimke.composeai.daemon.BluePrimaryThemeProvider"}"""
+          """{"themeProvider":"ee.schimke.composeai.daemon.BluePrimaryThemeProvider"}""",
       )
 
     val themedBluePct = pixelMatchPct(themed, themePrimaryRgb, perChannelTolerance = 8)
@@ -92,7 +92,7 @@ class ThemeProviderWireIntegrationTest {
                 className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
                 methodName = "WallpaperAwareSquare",
                 sourceFile = sourceKt.toAbsolutePath().toString(),
-              )
+              ),
           ),
       )
     val manifest =
@@ -107,8 +107,8 @@ class ThemeProviderWireIntegrationTest {
               heightPx = 120,
               density = 1.0f,
               outputBaseName = previewId,
-            )
-          )
+            ),
+          ),
       )
 
     val clientToServerOut = PipedOutputStream()

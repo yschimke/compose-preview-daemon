@@ -21,7 +21,7 @@ class AccessibilityRefsTest {
             node("Submit", role = "Button"),
             node("Cancel", role = "Button"),
             node("Heading", role = "TextView"),
-          )
+          ),
         )
         .map { it.ref }
 

@@ -46,7 +46,7 @@ internal object UniformStillCheck {
         "WARNING: preview '$previewId' captured a uniform " +
           "#%08X %dx%d frame although its composition has %d semantics node(s); the capture "
             .format(colour, image.width, image.height, countDescendants(root)) +
-          "probably drew nothing (compose-ai-tools#6229). File: ${file.path}"
+          "probably drew nothing (compose-ai-tools#6229). File: ${file.path}",
       )
     } catch (t: Throwable) {
       if (t is VirtualMachineError) throw t

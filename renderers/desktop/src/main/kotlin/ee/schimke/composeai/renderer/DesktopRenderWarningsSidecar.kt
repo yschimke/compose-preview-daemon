@@ -47,7 +47,7 @@ object DesktopRenderWarningsSidecar {
       fileSystem.write(sidecarPath) { writeUtf8(encodePhasePin(role, atMs)) }
     } catch (writeFailure: Throwable) {
       System.err.println(
-        "Failed to write render-warnings sidecar for ${pngFile.name}: ${writeFailure.message}"
+        "Failed to write render-warnings sidecar for ${pngFile.name}: ${writeFailure.message}",
       )
     }
   }
@@ -73,8 +73,8 @@ object DesktopRenderWarningsSidecar {
       .append(
         jsonString(
           "$role: captured at the declared ${atMs}ms phase; " +
-            "a chosen coordinate, not a failed settle."
-        )
+            "a chosen coordinate, not a failed settle.",
+        ),
       )
     append("}]}")
   }

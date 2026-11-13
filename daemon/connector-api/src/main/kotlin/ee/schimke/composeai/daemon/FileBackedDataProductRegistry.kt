@@ -79,7 +79,7 @@ public abstract class FileBackedDataProductRegistry(
           readInlinePayload(previewId, kind, file)
         } catch (t: Throwable) {
           return DataProductRegistry.Outcome.FetchFailed(
-            message = "could not parse $kind for $previewId: ${t.message}"
+            message = "could not parse $kind for $previewId: ${t.message}",
           )
         } ?: return missingOutcome(previewId, kind)
       DataProductRegistry.Outcome.Ok(
@@ -88,7 +88,7 @@ public abstract class FileBackedDataProductRegistry(
           schemaVersion = cap.schemaVersion,
           payload = payload,
           extras = extras(previewId, kind, payload),
-        )
+        ),
       )
     } else {
       DataProductRegistry.Outcome.Ok(
@@ -97,7 +97,7 @@ public abstract class FileBackedDataProductRegistry(
           schemaVersion = cap.schemaVersion,
           path = file.absolutePath,
           extras = extras(previewId, kind, payload = null),
-        )
+        ),
       )
     }
   }
@@ -116,7 +116,7 @@ public abstract class FileBackedDataProductRegistry(
               readInlinePayload(previewId, kind, file)
             } catch (t: Throwable) {
               System.err.println(
-                "${this::class.simpleName}: parse $kind failed for $previewId: ${t.message}"
+                "${this::class.simpleName}: parse $kind failed for $previewId: ${t.message}",
               )
               continue
             } ?: continue

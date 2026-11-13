@@ -103,7 +103,7 @@ class S11HistoryPruneTest {
       // newest-1 by cap), 3 dropped.
       val result =
         client.historyPrune(
-          HistoryPruneParams(maxEntriesPerPreview = 2, maxAgeDays = 0, maxTotalSizeBytes = 0L)
+          HistoryPruneParams(maxEntriesPerPreview = 2, maxAgeDays = 0, maxTotalSizeBytes = 0L),
         )
       assertEquals(3, result.removedEntries.size)
       assertTrue("freedBytes must be positive after live prune", result.freedBytes > 0L)
@@ -131,7 +131,7 @@ class S11HistoryPruneTest {
             maxAgeDays = 0,
             maxTotalSizeBytes = 0L,
             dryRun = true,
-          )
+          ),
         )
       assertEquals(1, dryResult.removedEntries.size)
       // Disk state unchanged from before the dry-run.

@@ -95,7 +95,7 @@ private fun PrivateSweepingDot() {
   Box(modifier = Modifier.size(64.dp).background(Color.Black)) {
     Box(
       modifier =
-        Modifier.offset(x = 48.dp * fraction, y = 24.dp).size(16.dp).background(Color.White)
+        Modifier.offset(x = 48.dp * fraction, y = 24.dp).size(16.dp).background(Color.White),
     )
   }
 }

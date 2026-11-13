@@ -29,7 +29,7 @@ class PreviewKnobBakeTest {
          {"name":"count","index":1,"type":"INT","default":"3"},
          {"name":"enabled","index":2,"type":"BOOLEAN","default":"true"}]
         """
-          .trimIndent()
+          .trimIndent(),
       )
     assertEquals(knobs, parsed)
   }
@@ -59,7 +59,7 @@ class PreviewKnobBakeTest {
       listOf(PreviewKnobSpec("ok", 1, "INT", null)),
       PreviewKnobBake.parse(
         """[{"index":0,"type":"STRING"},{"name":"noIndex","type":"INT"},
-            {"name":"noType","index":9},{"name":"ok","index":1,"type":"INT"}]"""
+            {"name":"noType","index":9},{"name":"ok","index":1,"type":"INT"}]""",
       ),
     )
   }

@@ -86,7 +86,7 @@ class ResourcePreviewRenderTallyTest {
   fun `isOutputFailure sees an IOException wrapped in a runtime exception`() {
     assertTrue(ResourcePreviewRenderTest.isOutputFailure(IOException("boom")))
     assertTrue(
-      ResourcePreviewRenderTest.isOutputFailure(RuntimeException("wrap", IOException("disk full")))
+      ResourcePreviewRenderTest.isOutputFailure(RuntimeException("wrap", IOException("disk full"))),
     )
     // A pure rasterisation failure (no IOException anywhere in the chain) is NOT fatal.
     assertTrue(!ResourcePreviewRenderTest.isOutputFailure(UnsupportedOperationException("no draw")))
@@ -112,7 +112,7 @@ class ResourcePreviewRenderTallyTest {
               status = "skipped",
               message = "no <monochrome> layer for THEMED_LIGHT",
             ),
-          )
+          ),
       )
     val json = Json { ignoreUnknownKeys = true }
     val decoded = json.decodeFromString<RenderErrorReport>(json.encodeToString(report))

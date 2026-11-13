@@ -92,7 +92,7 @@ class AndroidRecordingSession(
           if (liveFailure == null) liveFailure = t
           System.err.println(
             "compose-ai-daemon: AndroidRecordingSession($recordingId) tick-thread uncaught " +
-              "${t.javaClass.simpleName}: ${t.message}"
+              "${t.javaClass.simpleName}: ${t.message}",
           )
         }
         start()
@@ -144,7 +144,7 @@ class AndroidRecordingSession(
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: AndroidRecordingSession.stop($recordingId): interactive.close threw " +
-            "${t.javaClass.simpleName}: ${t.message}; continuing"
+            "${t.javaClass.simpleName}: ${t.message}; continuing",
         )
       }
     }
@@ -217,10 +217,10 @@ class AndroidRecordingSession(
               .pathOrNull()
               ?: error(
                 "AndroidRecordingSession: interactive.render returned no pngPath for assert.pixels " +
-                  "at frame $frameIndex"
+                  "at frame $frameIndex",
               )
           pendingPixels.add(
-            PendingPixelAssert(evidence.size, captureScaledFrameBytes(snapshotSrc), e)
+            PendingPixelAssert(evidence.size, captureScaledFrameBytes(snapshotSrc), e),
           )
           evidence.add(failedEvidence(e, "assert.pixels: not evaluated"))
         } else {
@@ -240,7 +240,7 @@ class AndroidRecordingSession(
       val srcPath =
         rendered.artifact.pathOrNull()
           ?: error(
-            "AndroidRecordingSession: interactive.render returned no pngPath at frame $frameIndex"
+            "AndroidRecordingSession: interactive.render returned no pngPath at frame $frameIndex",
           )
       val dst = File(framesDir, "frame-${"%05d".format(frameIndex)}.png")
       val dims = copyAndMaybeScale(File(srcPath), dst, scale)
@@ -258,7 +258,7 @@ class AndroidRecordingSession(
     System.err.println(
       "compose-ai-daemon: AndroidRecordingSession.stop($recordingId): rendered $totalFrames " +
         "frame(s) covering ${durationMs}ms scripted time in ${tookMs}ms wall " +
-        "(scale=$scale, fps=$fps, ${frameWidthPx}x${frameHeightPx}px)"
+        "(scale=$scale, fps=$fps, ${frameWidthPx}x${frameHeightPx}px)",
     )
     return RecordingResult(
       frameCount = totalFrames,
@@ -332,7 +332,7 @@ class AndroidRecordingSession(
           } catch (t: Throwable) {
             System.err.println(
               "compose-ai-daemon: assert.pixels diff-artefact write failed at t=${event.tMs}ms: " +
-                "${t.javaClass.simpleName}: ${t.message}"
+                "${t.javaClass.simpleName}: ${t.message}",
             )
           }
         }
@@ -348,7 +348,7 @@ class AndroidRecordingSession(
       if (thread.isAlive) {
         System.err.println(
           "compose-ai-daemon: AndroidRecordingSession.stop($recordingId, live): " +
-            "tick thread did not exit within 10s; continuing anyway"
+            "tick thread did not exit within 10s; continuing anyway",
         )
       }
     }
@@ -1042,7 +1042,7 @@ class AndroidRecordingSession(
           rendered.artifact.pathOrNull()
             ?: error(
               "AndroidRecordingSession: interactive.render returned no pngPath at live frame " +
-                frameIndex
+                frameIndex,
             )
         val dst = File(framesDir, "frame-${"%05d".format(frameIndex)}.png")
         val dims = copyAndMaybeScale(File(srcPath), dst, scale)
@@ -1068,7 +1068,7 @@ class AndroidRecordingSession(
       liveFailure = t
       System.err.println(
         "compose-ai-daemon: AndroidRecordingSession.runLiveTickLoop($recordingId) failed at " +
-          "frame $liveFrameCount: ${t.javaClass.simpleName}: ${t.message}"
+          "frame $liveFrameCount: ${t.javaClass.simpleName}: ${t.message}",
       )
     }
   }
@@ -1104,7 +1104,7 @@ class AndroidRecordingSession(
       result
         ?: error(
           "AndroidRecordingSession.encode($format): stop() must be called before encode() " +
-            "(recordingId='$recordingId')"
+            "(recordingId='$recordingId')",
         )
     encodedDir.mkdirs()
     return when (format) {
@@ -1184,7 +1184,7 @@ class AndroidRecordingSession(
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: AndroidRecordingSession.close($recordingId): interactive.close threw " +
-            "${t.javaClass.simpleName}: ${t.message}; continuing"
+            "${t.javaClass.simpleName}: ${t.message}; continuing",
         )
       }
     }

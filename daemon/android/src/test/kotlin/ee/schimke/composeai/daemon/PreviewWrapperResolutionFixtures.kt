@@ -122,7 +122,7 @@ fun WrapperRequiredScrollableFixturePreview() {
         modifier =
           Modifier.fillMaxWidth()
             .height(24.dp)
-            .background(if (index % 2 == 0) Color(0xFFEF5350) else Color(0xFF1B5E20))
+            .background(if (index % 2 == 0) Color(0xFFEF5350) else Color(0xFF1B5E20)),
       )
     }
   }

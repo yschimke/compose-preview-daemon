@@ -182,7 +182,7 @@ public class HistoryManager(
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: HistoryManager.recordRender(${entry.id}): write to ${source.id} " +
-            "failed (${t.javaClass.simpleName}: ${t.message})"
+            "failed (${t.javaClass.simpleName}: ${t.message})",
         )
       }
     }
@@ -242,7 +242,7 @@ public class HistoryManager(
         } catch (t: Throwable) {
           System.err.println(
             "compose-ai-daemon: HistoryManager.list: source ${source.id} list() threw " +
-              "(${t.javaClass.simpleName}: ${t.message}); skipping"
+              "(${t.javaClass.simpleName}: ${t.message}); skipping",
           )
           continue
         }
@@ -338,7 +338,7 @@ public class HistoryManager(
         } catch (t: Throwable) {
           System.err.println(
             "compose-ai-daemon: HistoryManager.prune: source ${source.id} prune() threw " +
-              "(${t.javaClass.simpleName}: ${t.message}); skipping"
+              "(${t.javaClass.simpleName}: ${t.message}); skipping",
           )
           PruneResult.EMPTY
         }
@@ -361,12 +361,12 @@ public class HistoryManager(
               removedIds = combinedRemoved.toList(),
               freedBytes = combinedFreed,
               reason = reason,
-            )
+            ),
           )
         } catch (t: Throwable) {
           System.err.println(
             "compose-ai-daemon: HistoryManager.pruneNow: pruneListener threw " +
-              "(${t.javaClass.simpleName}: ${t.message}); ignoring"
+              "(${t.javaClass.simpleName}: ${t.message}); ignoring",
           )
         }
       }
@@ -412,7 +412,7 @@ public class HistoryManager(
           } catch (t: Throwable) {
             System.err.println(
               "compose-ai-daemon: HistoryManager auto-prune pass failed " +
-                "(${t.javaClass.simpleName}: ${t.message}); will retry on next interval"
+                "(${t.javaClass.simpleName}: ${t.message}); will retry on next interval",
             )
           }
         },
@@ -454,7 +454,7 @@ public class HistoryManager(
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: HistoryManager.closeSources: ${source.id} close failed " +
-            "(${t.javaClass.simpleName}: ${t.message})"
+            "(${t.javaClass.simpleName}: ${t.message})",
         )
       }
     }
@@ -533,7 +533,7 @@ public class HistoryManager(
                 warnEmitter = warnEmitter,
                 debounceMs = gitRefDebounceMs,
                 publishPolicy = gitRefPublishPolicy,
-              )
+              ),
             )
           }
         }

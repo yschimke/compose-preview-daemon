@@ -48,8 +48,8 @@ public fun captureRoborazziVisuallySettledFrame(
                   check(frame == null) { "Multiple images in one settling sample" }
                   frame = image
                   context = metadata.toMap()
-                }
-            )
+                },
+            ),
         ),
       reportOptions =
         options.reportOptions.copy(
@@ -61,7 +61,7 @@ public fun captureRoborazziVisuallySettledFrame(
               ) {
                 reports += captureResult to roborazziTaskType
               }
-            }
+            },
         ),
     )
   try {
@@ -76,8 +76,8 @@ public fun captureRoborazziVisuallySettledFrame(
           image.width == decoded.width &&
             image.height == decoded.height &&
             pixels.contentEquals(
-              decoded.getRGB(0, 0, decoded.width, decoded.height, null, 0, decoded.width)
-            )
+              decoded.getRGB(0, 0, decoded.width, decoded.height, null, 0, decoded.width),
+            ),
         ) {
           "$role final PNG changed pixels during encoding"
         }

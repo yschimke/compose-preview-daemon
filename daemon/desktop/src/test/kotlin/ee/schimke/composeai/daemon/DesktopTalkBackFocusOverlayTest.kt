@@ -93,7 +93,7 @@ class DesktopTalkBackFocusOverlayTest {
   @Test
   fun `out of range focused stop is clamped`() {
     assertNotNull(
-      DesktopTalkBackFocusOverlay.overlayPngBytes(blackPng(400, 400), nodes, focusedStop = 99)
+      DesktopTalkBackFocusOverlay.overlayPngBytes(blackPng(400, 400), nodes, focusedStop = 99),
     )
   }
 }

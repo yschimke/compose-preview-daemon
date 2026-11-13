@@ -28,8 +28,8 @@ class PermissionsControllerTest {
   fun `set replaces the grant map`() {
     PermissionsController.set(
       PermissionsOverride(
-        grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
-      )
+        grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED),
+      ),
     )
     assertEquals(
       PermissionGrantStateOverride.GRANTED,
@@ -39,8 +39,8 @@ class PermissionsControllerTest {
     // A subsequent override that drops CAMERA revokes it — no merge with previous state.
     PermissionsController.set(
       PermissionsOverride(
-        grants = mapOf("android.permission.RECORD_AUDIO" to PermissionGrantStateOverride.DENIED)
-      )
+        grants = mapOf("android.permission.RECORD_AUDIO" to PermissionGrantStateOverride.DENIED),
+      ),
     )
     assertNull(PermissionsController.grantFor("android.permission.CAMERA"))
     assertEquals(
@@ -53,8 +53,8 @@ class PermissionsControllerTest {
   fun `set with null clears the override`() {
     PermissionsController.set(
       PermissionsOverride(
-        grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
-      )
+        grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED),
+      ),
     )
     PermissionsController.set(null)
     assertTrue(PermissionsController.grants.value.isEmpty())
@@ -79,8 +79,8 @@ class PermissionsControllerTest {
     try {
       PermissionsController.set(
         PermissionsOverride(
-          grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
-        )
+          grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED),
+        ),
       )
       PermissionsController.set(null)
       assertEquals(2, fires)
@@ -93,8 +93,8 @@ class PermissionsControllerTest {
   fun `resetForNewSession drops grants and queried`() {
     PermissionsController.set(
       PermissionsOverride(
-        grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
-      )
+        grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED),
+      ),
     )
     PermissionsController.recordQuery("android.permission.CAMERA")
     PermissionsController.resetForNewSession()

@@ -27,7 +27,7 @@ class CatalogEntryWireTest {
           }]
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertEquals("FilledButton", manifest.previews.single().catalog?.parallel)
@@ -60,7 +60,7 @@ class CatalogEntryWireTest {
           }]
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val catalog = manifest.previews.single().catalog
@@ -100,7 +100,7 @@ class CatalogEntryWireTest {
           }]
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val (claimed, plain) = manifest.previews.map { it.catalog }
@@ -142,7 +142,7 @@ class CatalogEntryWireTest {
           }]
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val (component, variant) = manifest.previews.map { it.catalog }
@@ -166,7 +166,7 @@ class CatalogEntryWireTest {
           }]
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertEquals(false, manifest.previews.single().catalog?.perBreakpoint)
@@ -198,7 +198,7 @@ class CatalogEntryWireTest {
           ]
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val byId = manifest.previews.associateBy { it.id }
@@ -230,7 +230,7 @@ class CatalogEntryWireTest {
           }]
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertEquals(
@@ -257,7 +257,7 @@ class CatalogEntryWireTest {
           }]
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     assertEquals(emptyList<String>(), manifest.previews.single().catalog?.breakpointKit)

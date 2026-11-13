@@ -54,13 +54,13 @@ class DesktopCarriedRemoteComposeAbsentTest {
           remoteCompose =
             RemoteComposeOverride.Builder()
               .also { it.documentBase64 = Base64.getEncoder().encodeToString(byteArrayOf(0, 1, 2)) }
-              .build()
+              .build(),
         )
       for (previewId in listOf(RED_PREVIEW_ID, "com.example.NotInTheManifestKt.Nothing")) {
         try {
           host.submit(
             RenderRequest.Render(
-              target = RenderTarget.Preview(previewId = previewId, overrides = carried)
+              target = RenderTarget.Preview(previewId = previewId, overrides = carried),
             ),
             timeoutMs = 60_000,
           )

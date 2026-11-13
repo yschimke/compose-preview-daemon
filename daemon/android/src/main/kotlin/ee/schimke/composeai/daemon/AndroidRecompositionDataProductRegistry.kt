@@ -87,7 +87,7 @@ open class AndroidRecompositionDataProductRegistry : DataProductRegistry {
         attachable = true,
         fetchable = true,
         requiresRerender = true,
-      )
+      ),
     )
 
   override fun fetch(
@@ -106,7 +106,7 @@ open class AndroidRecompositionDataProductRegistry : DataProductRegistry {
         val state = subscriptions[previewId]
         if (globallyUnavailable || state?.instrumentationUnavailable == true) {
           return DataProductRegistry.Outcome.FetchFailed(
-            message = "compose/recomposition: instrumentation unavailable for this Compose runtime"
+            message = "compose/recomposition: instrumentation unavailable for this Compose runtime",
           )
         }
         val nodes =
@@ -124,13 +124,13 @@ open class AndroidRecompositionDataProductRegistry : DataProductRegistry {
             kind = KIND,
             schemaVersion = SCHEMA_VERSION,
             payload = json.encodeToJsonElement(RecompositionPayload.serializer(), payload),
-          )
+          ),
         )
       }
       MODE_SNAPSHOT -> DataProductRegistry.Outcome.RequiresRerender(MODE_RECOMPOSITION_RENDER)
       else ->
         DataProductRegistry.Outcome.FetchFailed(
-          message = "compose/recomposition: unknown mode '$mode' (expected 'delta' or 'snapshot')"
+          message = "compose/recomposition: unknown mode '$mode' (expected 'delta' or 'snapshot')",
         )
     }
   }
@@ -154,7 +154,7 @@ open class AndroidRecompositionDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(RecompositionPayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -171,7 +171,7 @@ open class AndroidRecompositionDataProductRegistry : DataProductRegistry {
       if (rawMode == MODE_DELTA && live == null) {
         System.err.println(
           "compose-ai-daemon: AndroidRecompositionDataProductRegistry: subscribe mode='delta' for " +
-            "previewId='$previewId' but no live interactive session; treating as 'snapshot'"
+            "previewId='$previewId' but no live interactive session; treating as 'snapshot'",
         )
         MODE_SNAPSHOT
       } else rawMode
@@ -260,14 +260,14 @@ open class AndroidRecompositionDataProductRegistry : DataProductRegistry {
         replyLatch = replyLatch,
         replyError = replyError,
         replyUnavailable = replyUnavailable,
-      )
+      ),
     )
     val arrived = replyLatch.await(OBSERVE_INSTALL_TIMEOUT_SEC, TimeUnit.SECONDS)
     if (!arrived) {
       System.err.println(
         "compose-ai-daemon: AndroidRecompositionDataProductRegistry: StartObserve timed out for " +
           "previewId='$previewId' streamId='${live.streamId}'; held loop may be stuck. " +
-          "Marking instrumentation unavailable for this subscription."
+          "Marking instrumentation unavailable for this subscription.",
       )
       state.instrumentationUnavailable = true
       return
@@ -277,7 +277,7 @@ open class AndroidRecompositionDataProductRegistry : DataProductRegistry {
       System.err.println(
         "compose-ai-daemon: AndroidRecompositionDataProductRegistry: StartObserve threw on " +
           "previewId='$previewId' streamId='${live.streamId}': " +
-          "${err.javaClass.simpleName}: ${err.message}"
+          "${err.javaClass.simpleName}: ${err.message}",
       )
       state.instrumentationUnavailable = true
       return
@@ -305,19 +305,19 @@ open class AndroidRecompositionDataProductRegistry : DataProductRegistry {
           previewId = previewId,
           replyLatch = replyLatch,
           replyError = replyError,
-        )
+        ),
       )
       if (!replyLatch.await(OBSERVE_INSTALL_TIMEOUT_SEC, TimeUnit.SECONDS)) {
         System.err.println(
           "compose-ai-daemon: AndroidRecompositionDataProductRegistry: StopObserve timed out for " +
-            "previewId='$previewId' streamId='$streamId'; dropping bridge counters anyway"
+            "previewId='$previewId' streamId='$streamId'; dropping bridge counters anyway",
         )
       }
       val err = replyError.get()
       if (err != null) {
         System.err.println(
           "compose-ai-daemon: AndroidRecompositionDataProductRegistry: StopObserve threw " +
-            "(${err.javaClass.simpleName}: ${err.message}); continuing"
+            "(${err.javaClass.simpleName}: ${err.message}); continuing",
         )
       }
     }

@@ -58,8 +58,8 @@ class ScaledTypographyExportTest {
               heightPx = 600,
               density = density,
               outputBaseName = previewId,
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()

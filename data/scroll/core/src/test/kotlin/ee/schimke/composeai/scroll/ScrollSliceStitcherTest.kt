@@ -290,7 +290,7 @@ class ScrollSliceStitcherTest {
         if (e != a) {
           throw AssertionError(
             "pixel mismatch at ($x, $y): expected 0x${Integer.toHexString(e)}, " +
-              "got 0x${Integer.toHexString(a)}"
+              "got 0x${Integer.toHexString(a)}",
           )
         }
       }

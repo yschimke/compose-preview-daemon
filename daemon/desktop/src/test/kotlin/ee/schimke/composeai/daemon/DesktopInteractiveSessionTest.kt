@@ -92,7 +92,7 @@ class DesktopInteractiveSessionTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = 32,
             pixelY = 32,
-          )
+          ),
         )
 
         // 3. Re-render — the second frame should now paint the `clicked = true` branch (green).
@@ -159,7 +159,7 @@ class DesktopInteractiveSessionTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = 142,
             pixelY = 26,
-          )
+          ),
         )
 
         val second = session.render(requestId = RenderHost.nextRequestId())
@@ -231,7 +231,7 @@ class DesktopInteractiveSessionTest {
             pixelX = 32,
             pixelY = 32,
             pointerId = 0,
-          )
+          ),
         )
 
         assertEquals(
@@ -517,7 +517,7 @@ class DesktopInteractiveSessionTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = 62,
             pixelY = 62,
-          )
+          ),
         )
         val afterMiss = session.render(requestId = RenderHost.nextRequestId())
         assertTrue(
@@ -531,7 +531,7 @@ class DesktopInteractiveSessionTest {
             frameStreamId = "test-target-tag-hit",
             kind = InteractiveInputKind.CLICK,
             target = SemanticsInputTarget(testTag = "target-box"),
-          )
+          ),
         )
         val afterHit = session.render(requestId = RenderHost.nextRequestId())
         val greenMatch = pixelMatchPct(readPng(File(afterHit.artifact.pathOrNull()!!)), 0x66BB6A, 8)
@@ -668,7 +668,7 @@ class DesktopInteractiveSessionTest {
             frameStreamId = "test-stream-key-1",
             kind = InteractiveInputKind.KEY_DOWN,
             keyCode = "29",
-          )
+          ),
         )
 
         // Re-render — `Modifier.onKeyEvent` should have flipped `pressed = true` and the box
@@ -743,7 +743,7 @@ class DesktopInteractiveSessionTest {
             frameStreamId = "test-stream-key-unmapped",
             kind = InteractiveInputKind.KEY_DOWN,
             keyCode = "183",
-          )
+          ),
         )
 
         val second = session.render(requestId = RenderHost.nextRequestId())

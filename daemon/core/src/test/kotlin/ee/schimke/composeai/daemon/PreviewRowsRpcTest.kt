@@ -45,7 +45,7 @@ class PreviewRowsRpcTest {
   fun `a parameterized preview enumerates its rows as addressable ids`() {
     val host =
       RowsFakeHost(
-        rows = mapOf("Screen" to listOf("Crimson", "Teal", "PARAM_2"), "Plain" to emptyList())
+        rows = mapOf("Screen" to listOf("Crimson", "Teal", "PARAM_2"), "Plain" to emptyList()),
       )
     val h = bringUp(host)
 

@@ -47,8 +47,8 @@ class RenderEngineFigmaSvgScrollTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "$baseName",
-              )
-            )
+              ),
+            ),
         )
       host.submit(request, timeoutMs = 120_000)
     } finally {

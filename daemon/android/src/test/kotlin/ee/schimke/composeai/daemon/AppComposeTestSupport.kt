@@ -71,7 +71,7 @@ internal object AppComposeTestSupport {
             RenderTarget.Forensic(
               outPath = dump.absolutePath,
               survey = listOf("androidx.compose.runtime.Composer", MARKER_CLASS),
-            )
+            ),
         ),
         timeoutMs = 180_000,
       )
@@ -92,8 +92,8 @@ internal object AppComposeTestSupport {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "red-square",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -139,7 +139,7 @@ internal object AppComposeTestSupport {
   private fun appComposeJar(dir: File): File {
     val source =
       File(
-        androidx.compose.runtime.Composer::class.java.protectionDomain.codeSource.location.toURI()
+        androidx.compose.runtime.Composer::class.java.protectionDomain.codeSource.location.toURI(),
       )
     require(source.isFile) {
       "expected the Compose runtime as a jar on the test classpath: $source"

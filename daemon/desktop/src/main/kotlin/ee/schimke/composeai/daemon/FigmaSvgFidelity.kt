@@ -89,7 +89,7 @@ object FigmaSvgFidelity {
     } catch (t: Throwable) {
       System.err.println(
         "FigmaSvgFidelity: fidelity write failed for ${previewDir.name}: " +
-          "${t.javaClass.simpleName}: ${t.message}"
+          "${t.javaClass.simpleName}: ${t.message}",
       )
       null
     }
@@ -114,7 +114,7 @@ object FigmaSvgFidelity {
       html.writeText(
         "<!doctype html><meta charset=utf-8>" +
           "<style>html,body{margin:0;padding:0;background:transparent}svg{display:block}</style>" +
-          svgText
+          svgText,
       )
       val proc =
         ProcessBuilder(

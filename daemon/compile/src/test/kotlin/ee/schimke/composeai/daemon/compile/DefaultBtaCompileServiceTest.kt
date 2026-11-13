@@ -59,7 +59,7 @@ class DefaultBtaCompileServiceTest {
           DefaultBtaCompileService.CompileBackend { sources, changes ->
             lastSources = sources
             lastChanges = changes
-          }
+          },
       )
     val outcome =
       service.compile(
@@ -79,7 +79,7 @@ class DefaultBtaCompileServiceTest {
     var lastChanges: SourcesChanges? = null
     val service =
       DefaultBtaCompileService(
-        backend = DefaultBtaCompileService.CompileBackend { _, changes -> lastChanges = changes }
+        backend = DefaultBtaCompileService.CompileBackend { _, changes -> lastChanges = changes },
       )
     val outcome =
       service.compile(
@@ -103,7 +103,7 @@ class DefaultBtaCompileServiceTest {
         backend =
           DefaultBtaCompileService.CompileBackend { _, _ ->
             error("kotlin-build-tools-impl missing from classpath")
-          }
+          },
       )
     val outcome = service.compile(sources = listOf(Path.of("/tmp/Hi.kt")), changes = null)
     assertTrue("expected Fallback, got $outcome", outcome is BtaCompileService.Outcome.Fallback)
@@ -118,7 +118,7 @@ class DefaultBtaCompileServiceTest {
   fun `backend throw with no message falls back to the exception class name`() {
     val service =
       DefaultBtaCompileService(
-        backend = DefaultBtaCompileService.CompileBackend { _, _ -> throw IllegalStateException() }
+        backend = DefaultBtaCompileService.CompileBackend { _, _ -> throw IllegalStateException() },
       )
     val outcome = service.compile(sources = listOf(Path.of("/tmp/Hi.kt")), changes = null)
     val reason = (outcome as BtaCompileService.Outcome.Fallback).reason
@@ -197,7 +197,7 @@ class DefaultBtaCompileServiceTest {
         backend =
           DefaultBtaCompileService.CompileBackend { _, _ ->
             throw BtaCompileDiagnosticException(errors)
-          }
+          },
       )
     val outcome = service.compile(sources = listOf(Path.of("/tmp/Hi.kt")), changes = null)
     assertTrue(

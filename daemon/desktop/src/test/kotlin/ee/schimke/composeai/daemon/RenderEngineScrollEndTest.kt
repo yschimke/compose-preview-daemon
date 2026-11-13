@@ -81,8 +81,8 @@ class RenderEngineScrollEndTest {
                 showBackground = true,
                 previewId = "$previewId",
                 outputBaseName = "$previewId",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )

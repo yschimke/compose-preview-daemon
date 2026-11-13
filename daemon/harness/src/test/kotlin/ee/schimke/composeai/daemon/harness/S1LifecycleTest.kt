@@ -62,7 +62,7 @@ class S1LifecycleTest {
     // 2. previews.json.
     val previewsJson = File(fixtureDir, "previews.json")
     previewsJson.writeText(
-      """[{"id":"$previewId","className":"fake.Preview1","functionName":"Preview1"}]"""
+      """[{"id":"$previewId","className":"fake.Preview1","functionName":"Preview1"}]""",
     )
 
     // (Sanity check — leave commented out. Uncomment to verify the failure path writes diff
@@ -119,7 +119,7 @@ class S1LifecycleTest {
           "S1 pixel diff failed: ${diff.message} " +
             "(maxDelta=${diff.maxDelta}, offending=${diff.offendingPixelCount}). " +
             "Artefacts under ${reportsDir.absolutePath}. " +
-            "Stderr=\n${client.dumpStderr()}"
+            "Stderr=\n${client.dumpStderr()}",
         )
       }
 

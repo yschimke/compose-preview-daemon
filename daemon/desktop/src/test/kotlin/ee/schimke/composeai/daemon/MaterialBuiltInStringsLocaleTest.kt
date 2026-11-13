@@ -153,7 +153,7 @@ class MaterialBuiltInStringsLocaleTest {
           heightPx = 96,
           density = 1.0f,
           localeTag = "de",
-        )
+        ),
       )
     try {
       assertEquals(
@@ -185,7 +185,7 @@ class MaterialBuiltInStringsLocaleTest {
    * does not need).
    */
   private fun materialStrings(
-    wrap: @Composable (content: @Composable () -> Unit) -> Unit = { it() }
+    wrap: @Composable (content: @Composable () -> Unit) -> Unit = { it() },
   ): List<String> {
     val scene =
       ImageComposeScene(width = 320, height = 96, density = Density(1f)) {

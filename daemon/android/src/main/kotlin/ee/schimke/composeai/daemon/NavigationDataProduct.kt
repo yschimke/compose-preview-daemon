@@ -51,7 +51,7 @@ object NavigationDataProducer {
         intent = activity.intent?.toWireIntent(),
         onBackPressed =
           NavigationBackPressedState(
-            hasEnabledCallbacks = activity.onBackPressedDispatcher.hasEnabledCallbacks()
+            hasEnabledCallbacks = activity.onBackPressedDispatcher.hasEnabledCallbacks(),
           ),
       )
     val previewDir = rootDir.resolve(previewId).also { it.mkdirs() }

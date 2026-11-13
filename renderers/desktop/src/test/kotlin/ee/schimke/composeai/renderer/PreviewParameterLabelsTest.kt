@@ -15,7 +15,7 @@ class PreviewParameterLabelsTest {
   fun `pair uses first as label`() {
     val suffixes =
       PreviewParameterLabels.suffixesFor(
-        listOf("on" to Any(), "off" to Any(), "unavailable" to Any())
+        listOf("on" to Any(), "off" to Any(), "unavailable" to Any()),
       )
     assertEquals(listOf("_on", "_off", "_unavailable"), suffixes)
   }
@@ -66,7 +66,7 @@ class PreviewParameterLabelsTest {
   fun `spaces and parens are sanitized`() {
     val suffixes =
       PreviewParameterLabels.suffixesFor(
-        listOf("tile light (light)" to Any(), "tile dark (dark)" to Any())
+        listOf("tile light (light)" to Any(), "tile dark (dark)" to Any()),
       )
     assertEquals(listOf("_tile_light_light", "_tile_dark_dark"), suffixes)
   }
@@ -111,7 +111,7 @@ class PreviewParameterLabelsTest {
   fun `labels that only resemble the reserved shape are kept`() {
     val suffixes =
       PreviewParameterLabels.suffixesFor(
-        listOf(Labeled("PARAM_x"), Labeled("PARAM_1a"), Labeled("PARAMS_1"))
+        listOf(Labeled("PARAM_x"), Labeled("PARAM_1a"), Labeled("PARAMS_1")),
       )
     assertEquals(listOf("_PARAM_x", "_PARAM_1a", "_PARAMS_1"), suffixes)
   }

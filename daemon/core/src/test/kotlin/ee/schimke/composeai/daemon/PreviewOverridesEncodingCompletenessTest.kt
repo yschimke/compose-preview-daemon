@@ -117,7 +117,7 @@ class PreviewOverridesEncodingCompletenessTest {
       keyboard = KeyboardOverride(visible = true, pressedKey = "a"),
       permissions =
         PermissionsOverride(
-          grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
+          grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED),
         ),
       remoteCompose =
         RemoteComposeOverride.Builder().also { it.profile = RemoteComposeProfile.ANDROIDX }.build(),
@@ -348,7 +348,7 @@ private class PayloadCapturingCompletenessHost : RenderHost {
                     id = req.id,
                     classLoaderHashCode = 0,
                     classLoaderName = "overrides-completeness-test",
-                  )
+                  ),
                 )
               }
               // Never enqueued here: `submit` only accepts a Render. Present so the `when` stays

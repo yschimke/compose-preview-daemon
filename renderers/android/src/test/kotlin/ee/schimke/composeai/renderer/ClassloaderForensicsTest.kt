@@ -129,7 +129,7 @@ class ClassloaderForensicsTest {
    * (visible in the diff) rather than a thrown exception.
    */
   private fun readInstrumentationFilters(
-    loader: ClassLoader?
+    loader: ClassLoader?,
   ): Triple<List<String>, List<String>, List<String>> {
     if (loader == null) return Triple(emptyList(), emptyList(), emptyList())
     return try {

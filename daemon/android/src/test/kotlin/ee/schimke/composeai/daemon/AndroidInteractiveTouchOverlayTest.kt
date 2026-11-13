@@ -55,7 +55,7 @@ class AndroidInteractiveTouchOverlayTest {
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = INTERACTIVE_HEIGHT_PX / 2,
             pointerId = 1,
-          )
+          ),
         )
         val pressed = session.render(requestId = RenderHost.nextRequestId())
         assertNotNull("pressed render must produce a PNG path", pressed.artifact.pathOrNull())
@@ -76,7 +76,7 @@ class AndroidInteractiveTouchOverlayTest {
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = INTERACTIVE_HEIGHT_PX / 2,
             pointerId = 1,
-          )
+          ),
         )
         session.render(requestId = RenderHost.nextRequestId())
       } finally {

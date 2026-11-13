@@ -106,7 +106,7 @@ class DesktopRecordingSessionTest {
               pixelX = COMPONENT_WIDTH_PX / 2,
               pixelY = COMPONENT_HEIGHT_PX / 2,
             ),
-          )
+          ),
         )
 
         val result = session.stop()
@@ -325,8 +325,8 @@ class DesktopRecordingSessionTest {
               kind = "input.click",
               pixelX = COMPONENT_WIDTH_PX / 2,
               pixelY = COMPONENT_HEIGHT_PX / 2,
-            )
-          )
+            ),
+          ),
         )
         val result = session.stop()
         // Scale 2× → output frame is 240×120, not 120×60.
@@ -421,7 +421,7 @@ class DesktopRecordingSessionTest {
               pixelX = COMPONENT_WIDTH_PX / 2,
               pixelY = COMPONENT_HEIGHT_PX / 2,
             ),
-          )
+          ),
         )
         val stop = session.stop()
         assertTrue("frame count must be > 1 for a 200ms timeline at 30fps", stop.frameCount > 1)
@@ -534,7 +534,7 @@ class DesktopRecordingSessionTest {
             kind = ee.schimke.composeai.daemon.protocol.InteractiveInputKind.CLICK,
             pixelX = COMPONENT_WIDTH_PX / 2,
             pixelY = COMPONENT_HEIGHT_PX / 2,
-          )
+          ),
         )
 
         // Post-click window: let a few more frames render so the post-click state (green) lands.
@@ -692,7 +692,7 @@ class DesktopRecordingSessionTest {
             kind = ee.schimke.composeai.daemon.protocol.InteractiveInputKind.CLICK,
             pixelX = COMPONENT_WIDTH_PX / 2,
             pixelY = COMPONENT_HEIGHT_PX / 2,
-          )
+          ),
         )
 
         // Give the tick loop time to absorb the click, recompose, and throw.
@@ -847,8 +847,8 @@ class DesktopRecordingSessionTest {
               kind = "input.click",
               target =
                 ee.schimke.composeai.daemon.protocol.SemanticsInputTarget(testTag = "target-box"),
-            )
-          )
+            ),
+          ),
         )
         val result = session.stop()
 
@@ -925,10 +925,10 @@ class DesktopRecordingSessionTest {
               kind = "input.click",
               target =
                 ee.schimke.composeai.daemon.protocol.SemanticsInputTarget(
-                  testTag = "does-not-exist"
+                  testTag = "does-not-exist",
                 ),
-            )
-          )
+            ),
+          ),
         )
         val result = session.stop()
 
@@ -1014,7 +1014,7 @@ class DesktopRecordingSessionTest {
             assertEvent(0L, "assert.visible", "does-not-exist"), // absent → FAILED + candidates
             assertEvent(0L, "assert.notVisible", "does-not-exist"), // absent → APPLIED
             assertEvent(0L, "assert.notVisible", "target-box"), // present → FAILED
-          )
+          ),
         )
         val result = session.stop()
         val asserts = result.scriptEvents.filter { it.kind.startsWith("assert.") }
@@ -1104,7 +1104,7 @@ class DesktopRecordingSessionTest {
             textAssert(0L, "greeting", "Hello"), // matches → APPLIED
             textAssert(0L, "greeting", "Goodbye"), // wrong text → FAILED
             textAssert(0L, "missing", "Hello"), // no such node → FAILED
-          )
+          ),
         )
         val result = session.stop()
         val asserts = result.scriptEvents.filter { it.kind == "assert.textEquals" }
@@ -1143,7 +1143,7 @@ class DesktopRecordingSessionTest {
       .acquireRecordingSession(FIXTURE_PREVIEW_ID, recordingId, classLoader, FPS, 1.0f, null)
       .use { s ->
         s.postScript(
-          listOf(RecordingScriptEvent(tMs = 0L, kind = "assert.pixels", inputText = baselinePath))
+          listOf(RecordingScriptEvent(tMs = 0L, kind = "assert.pixels", inputText = baselinePath)),
         )
         s.stop().scriptEvents.single { it.kind == "assert.pixels" }
       }
@@ -1246,8 +1246,8 @@ class DesktopRecordingSessionTest {
               tMs = 0L,
               kind = "input.keyDown",
               keyCode = "29", // KEYCODE_A
-            )
-          )
+            ),
+          ),
         )
 
         val result = session.stop()
@@ -1332,8 +1332,8 @@ class DesktopRecordingSessionTest {
               tMs = 0L,
               kind = "input.keyDown",
               keyCode = "183", // KEYCODE_F13 — outside the desktop translation table
-            )
-          )
+            ),
+          ),
         )
 
         val result = session.stop()

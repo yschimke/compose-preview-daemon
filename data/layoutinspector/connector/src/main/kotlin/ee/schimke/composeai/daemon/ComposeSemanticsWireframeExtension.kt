@@ -48,7 +48,7 @@ class ComposeSemanticsWireframeExtension(
     val previewId = context.get(RenderArtifactContextKeys.PreviewId) ?: outputBaseName
     val payload =
       context.semanticsPayload(
-        if (densityAware) context.get(RenderArtifactContextKeys.Density) ?: 1f else null
+        if (densityAware) context.get(RenderArtifactContextKeys.Density) ?: 1f else null,
       )
     ComposeSemanticsWireframeDataProducer.writeSvg(
       rootDir = rootDir,

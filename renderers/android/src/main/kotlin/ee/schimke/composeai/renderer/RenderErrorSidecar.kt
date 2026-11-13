@@ -73,7 +73,7 @@ internal object RenderErrorSidecar {
       fileSystem.write(sidecar.path.toPath()) { writeUtf8(sb.toString()) }
     } catch (sidecarWriteFailure: Throwable) {
       System.err.println(
-        "Failed to write render-error sidecar for ${pngFile.name}: ${sidecarWriteFailure.message}"
+        "Failed to write render-error sidecar for ${pngFile.name}: ${sidecarWriteFailure.message}",
       )
     }
   }

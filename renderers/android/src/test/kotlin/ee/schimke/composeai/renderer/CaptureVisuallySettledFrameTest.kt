@@ -17,7 +17,7 @@ class CaptureVisuallySettledFrameTest {
         advanceTimeMillis = null,
         hasFollowingJobs = false,
         hasContinuousAmbientMotion = true,
-      )
+      ),
     )
   }
 
@@ -31,7 +31,7 @@ class CaptureVisuallySettledFrameTest {
         advanceTimeMillis = null,
         hasFollowingJobs = false,
         hasExactSettle = true,
-      )
+      ),
     )
     // Auto settle names a bound, not a moment, so it keeps the probe.
     assertTrue(
@@ -39,7 +39,7 @@ class CaptureVisuallySettledFrameTest {
         advanceTimeMillis = null,
         hasFollowingJobs = false,
         hasExactSettle = false,
-      )
+      ),
     )
   }
 
@@ -49,19 +49,19 @@ class CaptureVisuallySettledFrameTest {
       shouldAdvanceClockForVisualSettling(
         advanceTimeMillis = null,
         hasFollowingJobs = false,
-      )
+      ),
     )
     assertFalse(
       shouldAdvanceClockForVisualSettling(
         advanceTimeMillis = 200L,
         hasFollowingJobs = false,
-      )
+      ),
     )
     assertFalse(
       shouldAdvanceClockForVisualSettling(
         advanceTimeMillis = null,
         hasFollowingJobs = true,
-      )
+      ),
     )
   }
 

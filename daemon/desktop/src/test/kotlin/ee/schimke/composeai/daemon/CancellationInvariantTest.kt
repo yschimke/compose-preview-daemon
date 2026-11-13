@@ -96,8 +96,8 @@ class CancellationInvariantTest {
                             density = 1.0f,
                             showBackground = true,
                             outputBaseName = "slow-square",
-                          )
-                        )
+                          ),
+                        ),
                     ),
                     timeoutMs = 30_000,
                   )
@@ -189,7 +189,7 @@ class CancellationInvariantTest {
         "CancellationInvariantTest: submit=${submitStartMs - submitStartMs}ms " +
           "shutdownIssued=+${shutdownStartMs - submitStartMs}ms " +
           "shutdownReturned=+${shutdownReturnedAtMs - submitStartMs}ms (≥ ~500ms expected " +
-          "given SlowSquare's Thread.sleep(500)) drainOk=true"
+          "given SlowSquare's Thread.sleep(500)) drainOk=true",
       )
     } finally {
       // Belt-and-braces: if we threw before shutdown, drain on the way out so this test can't

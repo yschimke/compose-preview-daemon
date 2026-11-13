@@ -50,8 +50,8 @@ class FigmaSvgGenericOutlineShapeTest {
                 density = 1.0f,
                 showBackground = false,
                 outputBaseName = "generic-outline",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )

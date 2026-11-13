@@ -70,7 +70,7 @@ class RemoteComposeSeedTimingTest {
         extensionId = RemoteComposeOverrideExtension.ID,
         previewId = "seed-timing",
         renderMode = null,
-      )
+      ),
     ) {
       content()
     }

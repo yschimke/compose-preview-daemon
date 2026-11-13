@@ -89,7 +89,7 @@ class DesktopRecordingLocaleTest {
               pixelX = 32,
               pixelY = 32,
             ),
-          )
+          ),
         )
         session.stop()
 

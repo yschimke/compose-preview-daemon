@@ -92,7 +92,7 @@ class S1LifecycleRealModeTest {
         ]
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val classpath =
@@ -172,7 +172,7 @@ class S1LifecycleRealModeTest {
       assertEquals("Daemon must exit cleanly. Stderr=\n${client.dumpStderr()}", 0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "S1LifecycleRealModeTest failed; stderr from daemon:\n" + client.dumpStderr()
+        "S1LifecycleRealModeTest failed; stderr from daemon:\n" + client.dumpStderr(),
       )
       throw t
     } finally {

@@ -37,7 +37,7 @@ class RenderTraceDataProductRegistry : DataProductRegistry {
         displayName = "Render trace",
         facets = listOf(DataProductFacet.STRUCTURED, DataProductFacet.PROFILE),
         sampling = SamplingPolicy.Aggregate,
-      )
+      ),
     )
 
   override fun onRender(
@@ -64,7 +64,7 @@ class RenderTraceDataProductRegistry : DataProductRegistry {
     if (kind != KIND) return DataProductRegistry.Outcome.Unknown
     val payload = latestPayloads[previewId] ?: return DataProductRegistry.Outcome.NotAvailable
     return DataProductRegistry.Outcome.Ok(
-      DataFetchResult(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload)
+      DataFetchResult(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload),
     )
   }
 
@@ -72,7 +72,7 @@ class RenderTraceDataProductRegistry : DataProductRegistry {
     if (KIND !in kinds) return emptyList()
     val payload = latestPayloads[previewId] ?: return emptyList()
     return listOf(
-      DataProductAttachment(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload)
+      DataProductAttachment(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload),
     )
   }
 

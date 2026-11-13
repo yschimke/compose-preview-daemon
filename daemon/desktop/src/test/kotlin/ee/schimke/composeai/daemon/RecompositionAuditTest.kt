@@ -194,7 +194,7 @@ class RecompositionAuditTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = 32,
             pixelY = 32,
-          )
+          ),
         )
         session.render(requestId = RenderHost.nextRequestId())
         val postClick =

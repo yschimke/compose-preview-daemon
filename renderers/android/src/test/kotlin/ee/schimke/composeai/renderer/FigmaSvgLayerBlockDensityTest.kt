@@ -97,7 +97,7 @@ class FigmaSvgLayerBlockDensityTest {
               Box(
                 Modifier.size(25.dp)
                   .graphicsLayer { alpha = if (size.height < 40.dp.toPx()) 0.5f else 1f }
-                  .background(Color.Red)
+                  .background(Color.Red),
               )
             }
           }

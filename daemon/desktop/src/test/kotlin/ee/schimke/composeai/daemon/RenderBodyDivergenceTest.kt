@@ -79,7 +79,7 @@ class RenderBodyDivergenceTest {
       System.err.println(
         "note: pixels agree but PNG encodings differ — daemon ${daemonPng.size} bytes vs " +
           "standalone ${standalonePng.size} bytes, first difference at byte " +
-          "${firstDifference(daemonPng, standalonePng)}"
+          "${firstDifference(daemonPng, standalonePng)}",
       )
     }
   }
@@ -113,8 +113,8 @@ class RenderBodyDivergenceTest {
                   density = DENSITY,
                   showBackground = true,
                   outputBaseName = "divergence-daemon",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -144,7 +144,7 @@ class RenderBodyDivergenceTest {
         /* showBackground = */ "true",
         /* backgroundColor = */ "0",
         outputFile.absolutePath,
-      )
+      ),
     )
     assertTrue("standalone renderer wrote no file", outputFile.isFile)
     return outputFile.readBytes()

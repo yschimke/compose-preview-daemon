@@ -21,7 +21,7 @@ import kotlinx.serialization.json.jsonPrimitive
  * serialised by the caller (the daemon dispatches per-stream from one thread).
  */
 public class XrSessionManager(
-  private val factory: XrRenderServerFactory = XrRenderServerFactory.Native
+  private val factory: XrRenderServerFactory = XrRenderServerFactory.Native,
 ) : AutoCloseable {
 
   // The one shared native process, started on first open(); null until then / after close().
@@ -108,7 +108,7 @@ public class XrSessionManager(
       server?.stop(id)
     } catch (t: Throwable) {
       System.err.println(
-        "XrSessionManager: stop($id) threw ${t.javaClass.simpleName}: ${t.message}; continuing"
+        "XrSessionManager: stop($id) threw ${t.javaClass.simpleName}: ${t.message}; continuing",
       )
     }
   }
@@ -127,7 +127,7 @@ public class XrSessionManager(
         it.close()
       } catch (t: Throwable) {
         System.err.println(
-          "XrSessionManager: server close threw ${t.javaClass.simpleName}: ${t.message}; continuing"
+          "XrSessionManager: server close threw ${t.javaClass.simpleName}: ${t.message}; continuing",
         )
       }
     }

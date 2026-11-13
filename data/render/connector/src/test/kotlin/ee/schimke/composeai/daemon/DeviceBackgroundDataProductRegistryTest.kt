@@ -53,9 +53,9 @@ class DeviceBackgroundDataProductRegistryTest {
                   className = "com.example.PreviewKt",
                   methodName = "Explicit",
                   params = PreviewParamsDto(backgroundColor = 0xFF112233),
-                )
+                ),
             ),
-        )
+        ),
       )
 
     val payload = fetchPayload(registry, "explicit")
@@ -78,9 +78,9 @@ class DeviceBackgroundDataProductRegistryTest {
                   className = "com.example.PreviewKt",
                   methodName = "ShowBackground",
                   params = PreviewParamsDto(showBackground = true),
-                )
+                ),
             ),
-        )
+        ),
       )
 
     val payload = fetchPayload(registry, "show-background")
@@ -102,9 +102,9 @@ class DeviceBackgroundDataProductRegistryTest {
                   id = "plain",
                   className = "com.example.PreviewKt",
                   methodName = "Plain",
-                )
+                ),
             ),
-        )
+        ),
       )
 
     val payload = fetchPayload(registry, "plain")
@@ -126,9 +126,9 @@ class DeviceBackgroundDataProductRegistryTest {
                   id = "themed",
                   className = "com.example.PreviewKt",
                   methodName = "Themed",
-                )
+                ),
             ),
-        )
+        ),
       )
     val context =
       PreviewContext.Builder(
@@ -140,7 +140,7 @@ class DeviceBackgroundDataProductRegistryTest {
         .putInspectionValue(
           "compose.material3.themePayload",
           FakeThemePayload(
-            FakeResolvedTokens(mapOf("background" to "#FFABCDEF", "surface" to "#FF111111"))
+            FakeResolvedTokens(mapOf("background" to "#FFABCDEF", "surface" to "#FF111111")),
           ),
         )
         .build()
@@ -174,9 +174,9 @@ class DeviceBackgroundDataProductRegistryTest {
                   className = "com.example.PreviewKt",
                   methodName = "Explicit",
                   params = PreviewParamsDto(backgroundColor = 0xFF112233),
-                )
+                ),
             ),
-        )
+        ),
       )
     registry.onRender(
       "explicit",
@@ -208,9 +208,9 @@ class DeviceBackgroundDataProductRegistryTest {
                   className = "com.example.PreviewKt",
                   methodName = "ShowBackground",
                   params = PreviewParamsDto(showBackground = true),
-                )
+                ),
             ),
-        )
+        ),
       )
     registry.onRender(
       "show-background",
@@ -241,9 +241,9 @@ class DeviceBackgroundDataProductRegistryTest {
                   id = "themed",
                   className = "com.example.PreviewKt",
                   methodName = "Themed",
-                )
+                ),
             ),
-        )
+        ),
       )
     registry.onRender(
       "themed",
@@ -261,7 +261,7 @@ class DeviceBackgroundDataProductRegistryTest {
             .putInspectionValue(
               "compose.material3.themePayload",
               FakeThemePayload(
-                FakeResolvedTokens(mapOf("background" to "#00123456", "surface" to "#FF654321"))
+                FakeResolvedTokens(mapOf("background" to "#00123456", "surface" to "#FF654321")),
               ),
             )
             .build(),

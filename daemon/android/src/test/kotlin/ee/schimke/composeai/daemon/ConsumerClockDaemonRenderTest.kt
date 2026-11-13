@@ -70,8 +70,8 @@ class ConsumerClockDaemonRenderTest {
               density = 1.0f,
               showBackground = false,
               outputBaseName = name,
-            )
-          )
+            ),
+          ),
       ),
       timeoutMs = 120_000,
     )

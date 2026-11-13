@@ -37,8 +37,8 @@ class FigmaSvgDeviceFrameTest {
               density = 2.0f,
               device = "id:wearos_large_round",
               outputBaseName = "wear-device-frame",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -66,7 +66,7 @@ class FigmaSvgDeviceFrameTest {
       val svgHeight = size.groupValues[2].toInt()
 
       System.err.println(
-        "FIGMA-SVG-DEVICE-FRAME png=${image.width}x${image.height} svg=${svgWidth}x$svgHeight"
+        "FIGMA-SVG-DEVICE-FRAME png=${image.width}x${image.height} svg=${svgWidth}x$svgHeight",
       )
       // `id:wearos_large_round` is 227dp at density 2 — the render must compose at the device's
       // 454², not the router's fixed 320² fallback.

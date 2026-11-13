@@ -74,7 +74,7 @@ class RecompositionAttachmentsAndroidRealModeTest {
               functionName = "ClickToggleSquare",
               widthPx = 96,
               heightPx = 96,
-            )
+            ),
           ),
         // Issue #1204 — interactive sessions need slot 1 pinned; the harness manifest path
         // defaults to a single sandbox, so we explicitly opt into a 2-sandbox pool.
@@ -146,7 +146,7 @@ class RecompositionAttachmentsAndroidRealModeTest {
           params["dataProducts"]?.jsonArray
             ?: error(
               "every renderFinished while subscribed must carry dataProducts; got params=$params, " +
-                "stderr=${client.dumpStderr()}"
+                "stderr=${client.dumpStderr()}",
             )
         val recomp =
           attachments
@@ -155,7 +155,7 @@ class RecompositionAttachmentsAndroidRealModeTest {
             ?: error(
               "every renderFinished while subscribed must carry a compose/recomposition " +
                 "attachment; got kinds=" +
-                attachments.map { it.jsonObject["kind"]?.jsonPrimitive?.contentOrNull }
+                attachments.map { it.jsonObject["kind"]?.jsonPrimitive?.contentOrNull },
             )
         assertEquals(2, recomp["schemaVersion"]?.jsonPrimitive?.long?.toInt())
         assertEquals(
@@ -200,7 +200,7 @@ class RecompositionAttachmentsAndroidRealModeTest {
     } catch (t: Throwable) {
       System.err.println(
         "RecompositionAttachmentsAndroidRealModeTest failed; stderr from daemon:\n" +
-          client.dumpStderr()
+          client.dumpStderr(),
       )
       throw t
     } finally {

@@ -72,7 +72,7 @@ class ShadowSdkGestureInputManagerTest {
         key = "samplewear:test",
         sdkGestureAction = GestureStateController.SDK_ACTION_PRIMARY,
         isOverlay = false,
-      )
+      ),
     )
 
     shadow.subscribeToSdkGestureAction(

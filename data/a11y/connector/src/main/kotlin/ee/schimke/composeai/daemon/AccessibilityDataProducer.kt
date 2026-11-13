@@ -204,7 +204,7 @@ class AccessibilityDataProductRegistry(private val rootDir: File) :
           mediaTypes = listOf("image/png"),
           sampling = SamplingPolicy.End,
         ),
-      )
+      ),
   ) {
 
   /**
@@ -272,7 +272,7 @@ class AccessibilityDataProductRegistry(private val rootDir: File) :
         path = overlay.absolutePath,
         mediaType = "image/png",
         sizeBytes = overlay.length().takeIf { it > 0 },
-      )
+      ),
     )
   }
 

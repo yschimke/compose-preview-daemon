@@ -90,12 +90,12 @@ class SandboxSparePoolTest {
     val api35 =
       descriptor(
         systemProperties =
-          mapOf("robolectric.offline" to "true", DaemonProperties.Names.SANDBOX_SDK to "35")
+          mapOf("robolectric.offline" to "true", DaemonProperties.Names.SANDBOX_SDK to "35"),
       )
     val api37 =
       descriptor(
         systemProperties =
-          mapOf("robolectric.offline" to "true", DaemonProperties.Names.SANDBOX_SDK to "37")
+          mapOf("robolectric.offline" to "true", DaemonProperties.Names.SANDBOX_SDK to "37"),
       )
 
     assertThat(pool.signatureOf(api37)).isNotEqualTo(pool.signatureOf(api35))
@@ -135,14 +135,14 @@ class SandboxSparePoolTest {
     // A launcher the pool did not pick, or a descriptor that already decides, is left alone.
     val other = descriptor().newBuilder().also { it.javaLauncher = "/opt/jdk/bin/java" }.build()
     assertThat(
-        pool.spareCommand(other, 0, javaFeatureVersion = 21).any { it.contains("TrimNativeHeap") }
+        pool.spareCommand(other, 0, javaFeatureVersion = 21).any { it.contains("TrimNativeHeap") },
       )
       .isFalse()
     val off = pool(SandboxSparePool.Config(maxSpares = 1, perSignature = 1, trimNativeHeapMs = 0))
     assertThat(
         off.spareCommand(descriptor(), 0, javaFeatureVersion = 21).any {
           it.contains("TrimNativeHeap")
-        }
+        },
       )
       .isFalse()
   }
@@ -324,7 +324,7 @@ class SandboxSparePoolTest {
       factory.withReservedSpares(
         d.newBuilder()
           .also { it.systemProperties = mapOf(DaemonProperties.Names.SANDBOX_COUNT to "1") }
-          .build()
+          .build(),
       )
     assertThat(single.spareEligible).isFalse()
     pool.close()
@@ -348,7 +348,7 @@ class SandboxSparePoolTest {
     fun handshake(pid: Long, port: Int) {
       stdoutSink.write("noise from robolectric\n".toByteArray())
       stdoutSink.write(
-        "${SandboxSparePool.SPARE_HANDSHAKE_PREFIX} pid=$pid port=$port\n".toByteArray()
+        "${SandboxSparePool.SPARE_HANDSHAKE_PREFIX} pid=$pid port=$port\n".toByteArray(),
       )
       stdoutSink.flush()
     }

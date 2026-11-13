@@ -239,7 +239,7 @@ object DaemonHostBridge {
     }
     error(
       "DaemonHostBridge.registerSandbox: no free sandbox slot for ${loader.javaClass.name} " +
-        "— ${list.size} slots, all claimed. Did configureSlotCount get called with too low a value?"
+        "— ${list.size} slots, all claimed. Did configureSlotCount get called with too low a value?",
     )
   }
 

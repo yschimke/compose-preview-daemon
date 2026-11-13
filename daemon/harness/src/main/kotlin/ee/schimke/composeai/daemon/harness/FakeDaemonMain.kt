@@ -42,7 +42,7 @@ fun main(args: Array<String>) {
     System.getProperty("composeai.harness.fixtureDir")
       ?: error(
         "FakeDaemonMain: -Dcomposeai.harness.fixtureDir=<path> is required (the directory " +
-          "containing previews.json + per-preview PNG fixtures)"
+          "containing previews.json + per-preview PNG fixtures)",
       )
   val fixtureDir = File(fixtureProp)
   require(fixtureDir.isDirectory) {
@@ -72,7 +72,7 @@ fun main(args: Array<String>) {
           )
       }
       System.err.println(
-        "compose-ai-daemon harness: PreviewIndex seeded (previewCount=${byId.size})"
+        "compose-ai-daemon harness: PreviewIndex seeded (previewCount=${byId.size})",
       )
       PreviewIndex.fromMap(path = manifestFile.toPath(), byId = byId)
     } else {
@@ -88,7 +88,7 @@ fun main(args: Array<String>) {
           .map { Path.of(it) }
       System.err.println(
         "compose-ai-daemon harness: IncrementalDiscovery active " +
-          "(classpath=${classpath.size}, previewCount=${previewIndex.size})"
+          "(classpath=${classpath.size}, previewCount=${previewIndex.size})",
       )
       IncrementalDiscovery(classpath = classpath)
     } else null
@@ -107,7 +107,7 @@ fun main(args: Array<String>) {
   val historyManager: HistoryManager? = historyDirProp?.let { dir ->
     System.err.println(
       "compose-ai-daemon harness: HistoryManager active (dir=$dir, gitRefs=${gitRefHistoryRefs}, " +
-        "pruneConfig=$pruneConfig)"
+        "pruneConfig=$pruneConfig)",
     )
     HistoryManager.forLocalFsAndGitRefs(
       historyDir = Path.of(dir),

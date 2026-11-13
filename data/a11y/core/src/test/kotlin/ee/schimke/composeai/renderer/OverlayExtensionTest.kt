@@ -45,7 +45,7 @@ class OverlayExtensionTest {
             previewId = "preview",
             renderMode = null,
             products = store.scopedFor(extension),
-          )
+          ),
         )
       }
     assertTrue(ex.message!!, ex.message!!.contains(OverlayContextKeys.OutputDirectory.name))
@@ -97,7 +97,7 @@ class OverlayExtensionTest {
     assertTrue(
       "expected both consumers after the hierarchy producer, got $ordered",
       ordered.containsAll(
-        listOf(OverlayExtension.EXTENSION_ID, TouchTargetsExtension.EXTENSION_ID)
+        listOf(OverlayExtension.EXTENSION_ID, TouchTargetsExtension.EXTENSION_ID),
       ),
     )
   }

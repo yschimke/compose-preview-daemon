@@ -45,8 +45,8 @@ class FontsUsedDataProductRegistryTest {
                 style = "normal",
                 fellBackFrom = null,
                 droppedVariationSettings = "'wght' 750",
-              )
-            )
+              ),
+            ),
         ),
     )
 
@@ -79,7 +79,7 @@ class FontsUsedDataProductRegistryTest {
     assertEquals("Lato", font["resolvedFamily"]!!.jsonPrimitive.content)
     assertTrue(
       font["droppedVariationSettings"] == null ||
-        font["droppedVariationSettings"]!!.toString() == "null"
+        font["droppedVariationSettings"]!!.toString() == "null",
     )
   }
 
@@ -101,8 +101,8 @@ class FontsUsedDataProductRegistryTest {
                 sourceFile = null,
                 fellBackFrom = listOf("Poppins"),
                 consumerNodeIds = emptyList(),
-              )
-            )
+              ),
+            ),
         ),
     )
 

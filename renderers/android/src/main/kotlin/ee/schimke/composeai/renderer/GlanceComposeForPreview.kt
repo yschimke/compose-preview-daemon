@@ -150,7 +150,7 @@ internal object GlanceComposeForPreview {
             { if (it.composesPreview) 0 else 1 },
             { -it.suppliedArgumentCount },
             { it.method.name },
-          )
+          ),
         )
         .firstOrNull()
     if (best != null) return best
@@ -167,7 +167,7 @@ internal object GlanceComposeForPreview {
         "and none of them matches a signature this renderer can call. " +
         "composeForPreview(GlanceAppWidget, Context, Int, AppWidgetProviderInfo) arrived in " +
         "androidx.glance:glance-appwidget 1.2.0 — upgrade the rendered project's Glance to 1.2.0 " +
-        "or newer to render its app-widget previews."
+        "or newer to render its app-widget previews.",
     )
   }
 
@@ -204,7 +204,7 @@ internal object GlanceComposeForPreview {
       ?: throw GlanceComposerUnavailableException(
         "${describe()} returned ${result?.javaClass?.name ?: "null"} rather than RemoteViews. " +
           "The Glance on the render classpath" +
-          "${codeSourceSuffix(method.declaringClass)} is not one this renderer understands."
+          "${codeSourceSuffix(method.declaringClass)} is not one this renderer understands.",
       )
   }
 

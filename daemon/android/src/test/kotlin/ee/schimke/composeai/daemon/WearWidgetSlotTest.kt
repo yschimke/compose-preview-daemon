@@ -53,7 +53,7 @@ class WearWidgetSlotTest {
     val spec =
       entry(
           """{"host":"wear","slotWidthDp":180,"slotHeightDp":90,"slotCornerRadiusDp":12,""" +
-            """"futureField":{"x":1}}"""
+            """"futureField":{"x":1}}""",
         )
         .renderSpec()
     assertEquals(WearWidgetSlot(180f, 90f, 12f), spec.wearWidget?.slotFor("id:wearos_small_round"))
@@ -115,8 +115,8 @@ class WearWidgetSlotTest {
               functionName = "RedSquare",
               params = PreviewParamsEntry(widthDp = 64, heightDp = 64, density = 2.0f),
               widget = widget,
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -124,7 +124,7 @@ class WearWidgetSlotTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            target = preview("wear-widget", device?.let { PreviewOverrides(device = it) })
+            target = preview("wear-widget", device?.let { PreviewOverrides(device = it) }),
           ),
           timeoutMs = 120_000,
         )

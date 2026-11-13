@@ -83,7 +83,7 @@ class ScrollDataProductRegistryTest {
       rootDir.resolve(ScrollDataProductRegistry.SCROLL_LONG_SUBDIR).resolve("$previewId.png")
     longFile.parentFile.mkdirs()
     longFile.writeBytes(
-      byteArrayOf(0x89.toByte(), 'P'.code.toByte(), 'N'.code.toByte(), 'G'.code.toByte())
+      byteArrayOf(0x89.toByte(), 'P'.code.toByte(), 'N'.code.toByte(), 'G'.code.toByte()),
     )
 
     val outcome =
@@ -112,7 +112,7 @@ class ScrollDataProductRegistryTest {
     longFile.parentFile.mkdirs()
     // Real PNG signature plus 4 bytes of garbage — definitely not JSON.
     longFile.writeBytes(
-      byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x01, 0x02, 0x03)
+      byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x01, 0x02, 0x03),
     )
 
     val outcome =

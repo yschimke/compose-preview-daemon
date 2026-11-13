@@ -68,7 +68,7 @@ object TalkBackFocusOverlay {
     if (stops.isEmpty()) return null
     if (!sourcePng.exists()) {
       System.err.println(
-        "[compose-a11y] talkback overlay skipped: source PNG missing at ${sourcePng.absolutePath}"
+        "[compose-a11y] talkback overlay skipped: source PNG missing at ${sourcePng.absolutePath}",
       )
       return null
     }
@@ -83,7 +83,7 @@ object TalkBackFocusOverlay {
     } catch (t: Throwable) {
       System.err.println(
         "[compose-a11y] talkback overlay failed for ${sourcePng.name}: " +
-          "${t.javaClass.simpleName}: ${t.message}"
+          "${t.javaClass.simpleName}: ${t.message}",
       )
       t.printStackTrace(System.err)
       null

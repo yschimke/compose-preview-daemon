@@ -108,7 +108,7 @@ object RemoteComposePlayerSelection {
       System.err.println(
         "compose-preview: -D$PROPERTY=$raw names no render-time Remote Compose player; drawing " +
           "with the default (androidx-embedded). Valid values: androidx-embedded (aka embedded), " +
-          "androidx-view (aka java, view). cmp-android, the CMP player, is replay-only."
+          "androidx-view (aka java, view). cmp-android, the CMP player, is replay-only.",
       )
     }
     return selected ?: DEFAULT

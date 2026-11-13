@@ -275,7 +275,7 @@ class FigmaSvgGlimmerCardRenderTest {
                 1.0f to Color(0xFFE763F9),
                 start = Offset.Zero,
                 end = Offset(HEADER_INTRINSIC, HEADER_INTRINSIC),
-              )
+              ),
             ),
             contentDescription = "Header artwork",
             contentScale = ContentScale.FillWidth,
@@ -287,7 +287,7 @@ class FigmaSvgGlimmerCardRenderTest {
             Modifier.padding(end = 12.dp)
               .size(48.dp)
               .fakeIconTint(painter)
-              .paint(painter, contentScale = ContentScale.Fit)
+              .paint(painter, contentScale = ContentScale.Fit),
           )
           Column(Modifier.fillMaxWidth()) {
             // Glimmer's own `Text` takes its colour from `currentContentColor()`, i.e. the white
@@ -308,7 +308,7 @@ class FigmaSvgGlimmerCardRenderTest {
 
   /** The first node in the captured tree matching [predicate], depth-first. */
   private fun LayoutInspectorPayload.node(
-    predicate: (LayoutInspectorNode) -> Boolean
+    predicate: (LayoutInspectorNode) -> Boolean,
   ): LayoutInspectorNode {
     fun walk(node: LayoutInspectorNode): LayoutInspectorNode? =
       if (predicate(node)) node else node.children.firstNotNullOfOrNull(::walk)

@@ -57,7 +57,7 @@ object DesktopSemanticsWireframe {
       // A bake failure must not take down the render — the SVG is still written, and a missing PNG
       // degrades to "SVG only" rather than failing the whole data product.
       System.err.println(
-        "[compose-wireframe] desktop bake failed: ${t.javaClass.simpleName}: ${t.message}"
+        "[compose-wireframe] desktop bake failed: ${t.javaClass.simpleName}: ${t.message}",
       )
       null
     }

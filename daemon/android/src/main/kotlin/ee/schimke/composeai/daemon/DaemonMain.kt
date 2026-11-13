@@ -73,7 +73,7 @@ fun main(args: Array<String>) {
   if (hasUserClasses) {
     System.err.println(
       "compose-ai-tools daemon: UserClassLoaderHolder active " +
-        "(urls=${userClassUrls.size}, dirs=${userClassUrls.map { it.path }})"
+        "(urls=${userClassUrls.size}, dirs=${userClassUrls.map { it.path }})",
     )
   }
 
@@ -121,7 +121,7 @@ fun main(args: Array<String>) {
       val loaded = PreviewIndex.loadFromFile(Path.of(previewsJsonPath))
       System.err.println(
         "compose-ai-tools daemon: PreviewIndex loaded " +
-          "(path=${loaded.path}, previewCount=${loaded.size})"
+          "(path=${loaded.path}, previewCount=${loaded.size})",
       )
       loaded
     } else {
@@ -147,7 +147,7 @@ fun main(args: Array<String>) {
     System.err.println(
       "compose-ai-tools daemon: composeai.harness.previewsManifest set to '$manifestPath' but " +
         "file does not exist; falling back to PreviewIndex-backed RobolectricHost until " +
-        "composePreviewDiscover writes the manifest"
+        "composePreviewDiscover writes the manifest",
     )
   }
   val host: RenderHost =
@@ -155,7 +155,7 @@ fun main(args: Array<String>) {
       val manifest = PreviewManifestRouter.loadManifest(manifestFile)
       System.err.println(
         "compose-ai-tools daemon: PreviewManifestRouter active " +
-          "(manifest=$manifestPath, previews=${manifest.previews.map { it.id }})"
+          "(manifest=$manifestPath, previews=${manifest.previews.map { it.id }})",
       )
       // The Gradle plugin also sets the historical "harness" manifest sysprop for production
       // Android daemons so previewId renderNow calls still route through the manifest. In that
@@ -184,7 +184,7 @@ fun main(args: Array<String>) {
                   ?: error(
                     "DaemonHostBridge.sandboxClassLoaderRef is null — sandbox prologue didn't run. " +
                       "Did SandboxHoldingRunner.holdSandboxOpen execute setSandboxClassLoader before " +
-                      "the host called publishChildLoader?"
+                      "the host called publishChildLoader?",
                   )
               },
               transformer = ConsumerClockRewriter.fromSystemProperties(),
@@ -193,7 +193,7 @@ fun main(args: Array<String>) {
         else null
       if (routerSandboxCount > 1) {
         System.err.println(
-          "compose-ai-tools daemon: sandbox pool active (sandboxCount=$routerSandboxCount)"
+          "compose-ai-tools daemon: sandbox pool active (sandboxCount=$routerSandboxCount)",
         )
       }
       PreviewManifestRouter(
@@ -214,7 +214,7 @@ fun main(args: Array<String>) {
     } else {
       if (sandboxCount > 1) {
         System.err.println(
-          "compose-ai-tools daemon: sandbox pool active (sandboxCount=$sandboxCount)"
+          "compose-ai-tools daemon: sandbox pool active (sandboxCount=$sandboxCount)",
         )
       }
       RobolectricHost(
@@ -243,7 +243,7 @@ fun main(args: Array<String>) {
             .map { File(it) }
         System.err.println(
           "compose-ai-tools daemon: ClasspathFingerprint active " +
-            "(cheap=${cheap.size}, classpath=${classpath.size})"
+            "(cheap=${cheap.size}, classpath=${classpath.size})",
         )
         ClasspathFingerprint(cheapSignalFiles = cheap, classpathEntries = classpath)
       }
@@ -261,7 +261,7 @@ fun main(args: Array<String>) {
           .map { Path.of(it) }
       System.err.println(
         "compose-ai-tools daemon: IncrementalDiscovery active " +
-          "(classpath=${classpath.size}, previewCount=${previewIndex.size})"
+          "(classpath=${classpath.size}, previewCount=${previewIndex.size})",
       )
       IncrementalDiscovery(classpath = classpath)
     } else null
@@ -284,7 +284,7 @@ fun main(args: Array<String>) {
       historyDirProp?.let { dir ->
         System.err.println(
           "compose-ai-tools daemon: HistoryManager active (dir=$dir, gitRefs=${gitRefHistoryRefs}, " +
-            "gitRefSyncMode=$gitRefSyncMode, pruneConfig=$pruneConfig)"
+            "gitRefSyncMode=$gitRefSyncMode, pruneConfig=$pruneConfig)",
         )
         HistoryManager.forLocalFsAndGitRefs(
           historyDir = Path.of(dir),
@@ -406,7 +406,7 @@ fun main(args: Array<String>) {
                 DataExtensionDescriptor(
                   id = PermissionsOverrideExtension.ID,
                   displayName = "Runtime permissions override",
-                )
+                ),
               ),
           )
         }
@@ -440,7 +440,7 @@ fun main(args: Array<String>) {
                   DataExtensionDescriptor(
                     id = RemoteComposeOverrideExtension.ID,
                     displayName = "Remote Compose state + host actions",
-                  )
+                  ),
                 ),
             )
           }
@@ -463,7 +463,7 @@ fun main(args: Array<String>) {
                 DataExtensionDescriptor(
                   id = TouchOverlayExtension.ID,
                   displayName = "Touch event overlay",
-                )
+                ),
               ),
           )
         }
@@ -493,7 +493,7 @@ fun main(args: Array<String>) {
                 DataExtensionDescriptor(
                   id = PreviewOverridesOverrideExtension.ID,
                   displayName = "Named preview overrides",
-                )
+                ),
               ),
           )
         }
@@ -513,7 +513,7 @@ fun main(args: Array<String>) {
                 DataExtensionDescriptor(
                   id = LauncherWidgetExtension.ID,
                   displayName = "Launcher widget container size",
-                )
+                ),
               ),
           )
         }
@@ -722,12 +722,12 @@ fun main(args: Array<String>) {
     System.err.println(
       "compose-ai-tools daemon-android: in-process compile available (Kotlin Build Tools API " +
         "loaded) — engaged only when the editor sets composePreview.daemon.compileInProcess=true; " +
-        "otherwise compiles run via Gradle"
+        "otherwise compiles run via Gradle",
     )
   } else {
     System.err.println(
       "compose-ai-tools daemon-android: in-process compile unavailable (Build Tools API not " +
-        "configured for this module) — compiles run via Gradle"
+        "configured for this module) — compiles run via Gradle",
     )
   }
 
@@ -784,7 +784,7 @@ private inline fun MutableList<Extension>.tryAdd(label: String, build: () -> Ext
   } catch (e: LinkageError) {
     System.err.println(
       "compose-ai-tools daemon: extension '$label' unavailable on this classpath — " +
-        "${e.javaClass.simpleName}: ${e.message}"
+        "${e.javaClass.simpleName}: ${e.message}",
     )
   }
 }

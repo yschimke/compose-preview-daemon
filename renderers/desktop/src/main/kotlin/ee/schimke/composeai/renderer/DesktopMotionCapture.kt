@@ -128,7 +128,7 @@ internal class MotionFrameCollector(
           frameDelaysMs = IntArray(frameImages.size) { frameIntervalMs },
         )
           ?: throw IllegalStateException(
-            "Motion capture: GIF encoder declined for ${outputFile.name}"
+            "Motion capture: GIF encoder declined for ${outputFile.name}",
           )
     }
   }
@@ -284,7 +284,7 @@ private fun findMotionComposableMethod(
   val candidate =
     clazz.declaredMethods.firstOrNull { m -> m.name == name && m.parameterCount >= argCount + 2 }
       ?: throw NoSuchMethodException(
-        "Couldn't find composable method $name on ${clazz.name} taking $argCount parameter(s)"
+        "Couldn't find composable method $name on ${clazz.name} taking $argCount parameter(s)",
       )
   val declaredTypes = candidate.parameterTypes.take(argCount).toTypedArray()
   return clazz.getDeclaredComposableMethod(name, *declaredTypes)
@@ -553,7 +553,7 @@ internal fun recordMotionCapture(
   System.err.println(
     "Motion capture on ${outputFile.name}: content grew from ${pass.crop.width}×" +
       "${pass.crop.height} to ${retryCrop.width}×${retryCrop.height} during the recording — " +
-      "re-recording at the larger size so the expansion isn't clipped."
+      "re-recording at the larger size so the expansion isn't clipped.",
   )
   val second = MotionFrameCollector(format, outputFile, padArgb)
   record(second, retryCrop)

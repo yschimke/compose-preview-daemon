@@ -48,7 +48,7 @@ class SeedEvidenceCaptureTest {
           it.namedValues =
             mapOf(
               "fill" to
-                ee.schimke.composeai.daemon.protocol.RemoteNamedValue.ColorValue("#FF42A5F5")
+                ee.schimke.composeai.daemon.protocol.RemoteNamedValue.ColorValue("#FF42A5F5"),
             )
         }
         .build()
@@ -59,7 +59,7 @@ class SeedEvidenceCaptureTest {
           extensionId = RemoteComposeOverrideExtension.ID,
           previewId = "evidence",
           renderMode = null,
-        )
+        ),
       ) {
         Column(
           modifier = Modifier.background(Color.White).padding(16.dp),
@@ -94,7 +94,7 @@ class SeedEvidenceCaptureTest {
   private fun Swatch(label: String, color: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
       androidx.compose.foundation.layout.Box(
-        modifier = Modifier.size(120.dp, 72.dp).background(color)
+        modifier = Modifier.size(120.dp, 72.dp).background(color),
       )
       BasicText(label, style = TextStyle(fontSize = 12.sp, color = Color(0xFF202124)))
     }

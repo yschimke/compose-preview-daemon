@@ -82,7 +82,7 @@ class GestureAvailabilityTest {
     // source, and this reader must say so rather than sink the render it was called from.
     assertFalse(
       runCatching { Class.forName("androidx.wear.compose.material3.onehandedgesture.NoSuchBridge") }
-        .isSuccess
+        .isSuccess,
     )
   }
 }

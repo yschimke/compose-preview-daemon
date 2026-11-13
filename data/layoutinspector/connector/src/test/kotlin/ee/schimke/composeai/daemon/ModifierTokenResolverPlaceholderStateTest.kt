@@ -83,8 +83,8 @@ class ModifierTokenResolverPlaceholderStateTest {
     assertTrue(ModifierTokenResolver.isPlaceholderElement(block(PlaceholderStateDouble(false))))
     assertTrue(
       ModifierTokenResolver.isPlaceholderElement(
-        PlaceholderShimmerElement(PlaceholderStateDouble(false))
-      )
+        PlaceholderShimmerElement(PlaceholderStateDouble(false)),
+      ),
     )
     assertFalse(ModifierTokenResolver.isPlaceholderElement(DrawWithContentElement(AppDrawLambda())))
     assertFalse(ModifierTokenResolver.isPlaceholderElement(Any()))

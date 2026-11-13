@@ -38,8 +38,8 @@ class PermissionsDataProductTest {
     val extension =
       PermissionsOverrideExtension(
         PermissionsOverride(
-          grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
-        )
+          grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED),
+        ),
       )
     val hook: AroundComposableHook = extension
 
@@ -68,10 +68,10 @@ class PermissionsDataProductTest {
           permissions =
             PermissionsOverride(
               grants =
-                mapOf("android.permission.RECORD_AUDIO" to PermissionGrantStateOverride.DENIED)
-            )
-        )
-      )
+                mapOf("android.permission.RECORD_AUDIO" to PermissionGrantStateOverride.DENIED),
+            ),
+        ),
+      ),
     )
   }
 
@@ -159,8 +159,8 @@ class PermissionsDataProductTest {
           mapOf(
             "android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED,
             "android.permission.RECORD_AUDIO" to PermissionGrantStateOverride.DENIED,
-          )
-      )
+          ),
+      ),
     )
     PermissionsController.recordQuery("android.permission.CAMERA")
     PermissionsController.recordQuery("android.permission.RECORD_AUDIO")
@@ -176,8 +176,8 @@ class PermissionsDataProductTest {
               mapOf(
                 "android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED,
                 "android.permission.RECORD_AUDIO" to PermissionGrantStateOverride.DENIED,
-              )
-          )
+              ),
+          ),
       ),
       previewContext = null,
     )

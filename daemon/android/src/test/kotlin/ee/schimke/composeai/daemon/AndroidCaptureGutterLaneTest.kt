@@ -39,7 +39,7 @@ class AndroidCaptureGutterLaneTest {
               density = 2.0f,
               captureGutter = CaptureGutterDto(start = 4, top = 4, end = 4, bottom = 5),
             ),
-        )
+        ),
       )
     assertEquals(4, spec.gutterStartDp)
     assertEquals(5, spec.gutterBottomDp)
@@ -59,7 +59,7 @@ class AndroidCaptureGutterLaneTest {
           className = "com.example.FooKt",
           methodName = "Foo",
           params = PreviewParamsDto(),
-        )
+        ),
       )
     assertTrue(!spec.hasCaptureGutter())
     assertEquals(0, spec.gutterHorizontalPx())
@@ -77,8 +77,8 @@ class AndroidCaptureGutterLaneTest {
             gutterTopDp = 2,
             gutterEndDp = 3,
             gutterBottomDp = 4,
-          )
-        )
+          ),
+        ),
       )
     assertEquals(1, parsed.gutterStartDp)
     assertEquals(2, parsed.gutterTopDp)
@@ -115,12 +115,12 @@ class AndroidCaptureGutterLaneTest {
             gutterEndDp = 0,
             gutterBottomDp = 8,
           )
-        }
+        },
       )
 
     val resolved =
       host.reshapeRenderTarget(
-        preview("media-podcastcontrolbuttons", PreviewOverrides(uiMode = UiMode.LIGHT))
+        preview("media-podcastcontrolbuttons", PreviewOverrides(uiMode = UiMode.LIGHT)),
       )
     assertTrue("the resolve must produce a spec target: $resolved", resolved is RenderTarget.Spec)
     val spec = (resolved as RenderTarget.Spec).spec
@@ -144,7 +144,7 @@ class AndroidCaptureGutterLaneTest {
       RobolectricHost(
         previewSpecResolver = {
           RenderSpec(previewId = it, className = "com.example.FooKt", functionName = "Foo")
-        }
+        },
       )
 
     val resolved = host.reshapeRenderTarget(preview("plain"))
@@ -160,7 +160,7 @@ class AndroidCaptureGutterLaneTest {
         functionName = "Foo",
         params =
           PreviewParamsEntry(
-            captureGutter = CaptureGutterDto(start = 4, top = 4, end = 4, bottom = 5)
+            captureGutter = CaptureGutterDto(start = 4, top = 4, end = 4, bottom = 5),
           ),
       )
     assertEquals(CaptureGutterDto(4, 4, 4, 5), entry.resolved().captureGutter)
@@ -173,7 +173,7 @@ class AndroidCaptureGutterLaneTest {
         )
         .resolved()
         .captureGutter
-        .isEmpty()
+        .isEmpty(),
     )
   }
 
@@ -289,8 +289,8 @@ class AndroidCaptureGutterLaneTest {
                   density = 1.0f,
                   captureGutter = captureGutter,
                 ),
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()

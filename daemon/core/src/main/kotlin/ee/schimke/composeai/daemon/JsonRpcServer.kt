@@ -399,7 +399,7 @@ public class JsonRpcServer(
     ConcurrentHashMap<
       String,
       java.util.concurrent.ConcurrentLinkedQueue<
-        ee.schimke.composeai.daemon.protocol.InteractiveInputParams
+        ee.schimke.composeai.daemon.protocol.InteractiveInputParams,
       >,
     >()
 
@@ -1024,7 +1024,7 @@ public class JsonRpcServer(
       }
     }
     StartupTimings.mark(
-      if (result.booting) "initialize responded (host still booting)" else "initialize responded"
+      if (result.booting) "initialize responded (host still booting)" else "initialize responded",
     )
   }
 
@@ -1141,7 +1141,7 @@ public class JsonRpcServer(
             reason =
               "kind=$kind is not renderable by the daemon yet; " +
                 "the Gradle composePreviewRender pipeline produces its captures",
-          )
+          ),
         )
         continue
       }
@@ -1175,7 +1175,7 @@ public class JsonRpcServer(
               RejectedRender(
                 id = previewId,
                 reason = "coalesced: override-bearing render already in flight for this previewId",
-              )
+              ),
             )
             continue
           }
@@ -1436,7 +1436,7 @@ public class JsonRpcServer(
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: data product onRender failed for $previewId " +
-          "(${describeThrowable(t)})"
+          "(${describeThrowable(t)})",
       )
     }
     val tookMs = result.metrics?.get("tookMs") ?: 0L
@@ -1565,7 +1565,7 @@ public class JsonRpcServer(
         } catch (t: Throwable) {
           System.err.println(
             "compose-ai-daemon: history: failed to read PNG bytes for $previewId at $pngPath " +
-              "(${describeThrowable(t)}); skipping history entry"
+              "(${describeThrowable(t)}); skipping history entry",
           )
           return
         }
@@ -1617,7 +1617,7 @@ public class JsonRpcServer(
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: history: HistoryManager.recordRender($previewId) threw " +
-            "(${describeThrowable(t)}); continuing"
+            "(${describeThrowable(t)}); continuing",
         )
         return
       }
@@ -1643,7 +1643,7 @@ public class JsonRpcServer(
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: history: $kind fetch for $previewId failed " +
-          "(${describeThrowable(t)}); recording entry without it"
+          "(${describeThrowable(t)}); recording entry without it",
       )
       null
     }
@@ -1659,7 +1659,7 @@ public class JsonRpcServer(
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: data product onRenderFailed failed for $previewId " +
-          "(${describeThrowable(t)})"
+          "(${describeThrowable(t)})",
       )
     }
     // D3 — wake any data/fetch waiter that queued this render so it can return
@@ -1667,7 +1667,7 @@ public class JsonRpcServer(
     dataFetchWaiters
       .remove(failure.hostId)
       ?.complete(
-        RerenderOutcome.Failed(failure.cause.message ?: failure.cause.javaClass.simpleName)
+        RerenderOutcome.Failed(failure.cause.message ?: failure.cause.javaClass.simpleName),
       )
     // #1789 — classify the failure into a typed RenderErrorKind + a one-line fix hint for
     // recognized skew signatures, instead of the old blanket kind = "internal".
@@ -1712,14 +1712,14 @@ public class JsonRpcServer(
       when (
         val outcome =
           RenderMetrics.fromFlatMap(
-            result.metrics?.takeUnless { it.keys.all { key -> key == "tookMs" } }
+            result.metrics?.takeUnless { it.keys.all { key -> key == "tookMs" } },
           )
       ) {
         is RenderMetrics.FromFlatMapResult.AbsentSource -> null
         is RenderMetrics.FromFlatMapResult.PartialMap -> {
           System.err.println(
             "compose-ai-daemon: RenderMetrics partial map for previewId='$previewId' " +
-              "(missing keys: ${outcome.missingKeys.joinToString(",")}); emitting metrics=null"
+              "(missing keys: ${outcome.missingKeys.joinToString(",")}); emitting metrics=null",
           )
           null
         }
@@ -1734,7 +1734,7 @@ public class JsonRpcServer(
       "compose-ai-daemon: [renderFinished] previewId=$previewId " +
         "subscribedKinds=${subscriptions.kindsFor(previewId).sorted()} " +
         "globalAttachKinds=${globalAttachKinds.sorted()} " +
-        "attachments=${attachments.map { it.kind }}"
+        "attachments=${attachments.map { it.kind }}",
     )
     return RenderFinishedParams.Builder(id = previewId, pngPath = pngPath, tookMs = tookMs)
       .also {
@@ -1880,7 +1880,7 @@ public class JsonRpcServer(
                     .fetch(params.previewId, params.kind, stripForce(params.params), params.inline)
                 } catch (t: Throwable) {
                   DataProductRegistry.Outcome.FetchFailed(
-                    "registry threw on post-rerender fetch: ${t.message ?: t.javaClass.simpleName}"
+                    "registry threw on post-rerender fetch: ${t.message ?: t.javaClass.simpleName}",
                   )
                 }
               if (secondOutcome is DataProductRegistry.Outcome.RequiresRerender) {
@@ -1921,7 +1921,7 @@ public class JsonRpcServer(
             renderResultsQueue.put(raw)
           } catch (e: Throwable) {
             System.err.println(
-              "compose-ai-daemon: data/fetch host.submit($hostId) failed: ${e.message}"
+              "compose-ai-daemon: data/fetch host.submit($hostId) failed: ${e.message}",
             )
             renderResultsQueue.put(RenderResultOrFailure.Failure(hostId, e))
           }
@@ -2087,7 +2087,7 @@ public class JsonRpcServer(
               dataExtensionIds = info.dataExtensionIds,
               previewExtensionIds = info.previewExtensionIds,
             )
-          }
+          },
       )
     sendResponse(req.id, encode(ExtensionsListResult.serializer(), result))
   }
@@ -2234,7 +2234,7 @@ public class JsonRpcServer(
         // the v1 fall-back path so the client gets a usable streamId.
         System.err.println(
           "compose-ai-daemon: interactive/start: acquireInteractiveSession failed for " +
-            "previewId='${params.previewId}': $reason; falling back to v1 dispatch"
+            "previewId='${params.previewId}': $reason; falling back to v1 dispatch",
         )
         fallbackReason = reason
         null
@@ -2373,7 +2373,7 @@ public class JsonRpcServer(
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: xr/updatePanels failed for ${params.frameStreamId}: " +
-            "${describeThrowable(t)}"
+            "${describeThrowable(t)}",
         )
         return
       }
@@ -2440,7 +2440,7 @@ public class JsonRpcServer(
       // decoder state this method exists to release.
       System.err.println(
         "compose-ai-daemon: xr/stop close failed for ${params.frameStreamId}: " +
-          "${describeThrowable(t)}; continuing"
+          "${describeThrowable(t)}; continuing",
       )
     }
     if (finalFrame != null) {
@@ -2606,7 +2606,7 @@ public class JsonRpcServer(
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: stream/stop: session.close() threw " +
-            "(${describeThrowable(t)}); continuing"
+            "(${describeThrowable(t)}); continuing",
         )
       }
     }
@@ -2616,7 +2616,7 @@ public class JsonRpcServer(
   }
 
   private fun handleStreamVisibility(
-    params: ee.schimke.composeai.daemon.protocol.StreamVisibilityParams
+    params: ee.schimke.composeai.daemon.protocol.StreamVisibilityParams,
   ) {
     val resumed =
       streamRegistry.setVisibility(
@@ -2637,7 +2637,7 @@ public class JsonRpcServer(
   }
 
   private fun handleInteractiveStop(
-    params: ee.schimke.composeai.daemon.protocol.InteractiveStopParams
+    params: ee.schimke.composeai.daemon.protocol.InteractiveStopParams,
   ) {
     // Idempotent on stale or unknown stream ids per INTERACTIVE.md § 8 — `remove` is a no-op
     // when the key isn't present, which is exactly the contract we want.
@@ -2651,7 +2651,7 @@ public class JsonRpcServer(
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: interactive/stop: session.close() threw " +
-            "(${describeThrowable(t)}); continuing"
+            "(${describeThrowable(t)}); continuing",
         )
       }
     }
@@ -2841,7 +2841,7 @@ public class JsonRpcServer(
    * was already wired before this notification was added.
    */
   private fun handleInteractiveSetRemoteCompose(
-    params: ee.schimke.composeai.daemon.protocol.InteractiveSetRemoteComposeParams
+    params: ee.schimke.composeai.daemon.protocol.InteractiveSetRemoteComposeParams,
   ) {
     if (classpathDirtyEmitted.get() || shutdownRequested.get()) return
     val session = interactiveSessions[params.frameStreamId] ?: return
@@ -2849,7 +2849,7 @@ public class JsonRpcServer(
       session.dispatchRemoteComposeChange(params.change)
     } catch (e: Throwable) {
       System.err.println(
-        "compose-ai-daemon: interactive/setRemoteCompose dispatch failed: ${e.message}"
+        "compose-ai-daemon: interactive/setRemoteCompose dispatch failed: ${e.message}",
       )
       e.printStackTrace(System.err)
     }
@@ -2864,7 +2864,7 @@ public class JsonRpcServer(
    * the canonical path, as with `interactive/setRemoteCompose`).
    */
   private fun handleInteractiveSetLottie(
-    params: ee.schimke.composeai.daemon.protocol.InteractiveSetLottieParams
+    params: ee.schimke.composeai.daemon.protocol.InteractiveSetLottieParams,
   ) {
     if (classpathDirtyEmitted.get() || shutdownRequested.get()) return
     val target = interactiveTargets[params.frameStreamId] ?: return
@@ -2874,7 +2874,7 @@ public class JsonRpcServer(
   }
 
   private fun handleInteractiveInput(
-    params: ee.schimke.composeai.daemon.protocol.InteractiveInputParams
+    params: ee.schimke.composeai.daemon.protocol.InteractiveInputParams,
   ) {
     val target =
       interactiveTargets[params.frameStreamId]
@@ -2955,7 +2955,7 @@ public class JsonRpcServer(
                 // exception).
                 System.err.println(
                   "compose-ai-daemon: interactive/input target unresolved on stream '$streamId' " +
-                    "(${e.reason.code}, matchCount=${e.reason.matchCount}); dropping input"
+                    "(${e.reason.code}, matchCount=${e.reason.matchCount}); dropping input",
                 )
               }
             }
@@ -2968,7 +2968,7 @@ public class JsonRpcServer(
             renderResultsQueue.put(result)
           } catch (e: Throwable) {
             System.err.println(
-              "compose-ai-daemon: interactive session render($hostId) failed: ${e.message}"
+              "compose-ai-daemon: interactive session render($hostId) failed: ${e.message}",
             )
             e.printStackTrace(System.err)
             renderResultsQueue.put(RenderResultOrFailure.Failure(hostId, e))
@@ -3110,7 +3110,7 @@ public class JsonRpcServer(
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: recording/start: acquireRecordingSession failed for " +
-            "previewId='${params.previewId}': ${describeThrowable(t)}"
+            "previewId='${params.previewId}': ${describeThrowable(t)}",
         )
         sendErrorResponse(
           id = req.id,
@@ -3130,7 +3130,7 @@ public class JsonRpcServer(
   }
 
   private fun handleRecordingScript(
-    params: ee.schimke.composeai.daemon.protocol.RecordingScriptParams
+    params: ee.schimke.composeai.daemon.protocol.RecordingScriptParams,
   ) {
     val session = recordings[params.recordingId] ?: return // Stale id; drop silently.
     try {
@@ -3138,7 +3138,7 @@ public class JsonRpcServer(
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: recording/script: postScript failed for " +
-          "recordingId='${params.recordingId}': ${describeThrowable(t)}"
+          "recordingId='${params.recordingId}': ${describeThrowable(t)}",
       )
     }
   }
@@ -3150,7 +3150,7 @@ public class JsonRpcServer(
    * which we log but don't propagate — notifications are fire-and-forget).
    */
   private fun handleRecordingInput(
-    params: ee.schimke.composeai.daemon.protocol.RecordingInputParams
+    params: ee.schimke.composeai.daemon.protocol.RecordingInputParams,
   ) {
     val session = recordings[params.recordingId] ?: return
     try {
@@ -3158,7 +3158,7 @@ public class JsonRpcServer(
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: recording/input: postInput failed for " +
-          "recordingId='${params.recordingId}': ${describeThrowable(t)}"
+          "recordingId='${params.recordingId}': ${describeThrowable(t)}",
       )
     }
   }
@@ -3208,7 +3208,7 @@ public class JsonRpcServer(
             )
           } catch (t: Throwable) {
             System.err.println(
-              "compose-ai-daemon: recording/stop($${params.recordingId}) failed: ${t.message}"
+              "compose-ai-daemon: recording/stop($${params.recordingId}) failed: ${t.message}",
             )
             sendErrorResponse(
               id = req.id,
@@ -3265,7 +3265,7 @@ public class JsonRpcServer(
         encode(
           ee.schimke.composeai.daemon.protocol.RecordingGenerateTestResult.serializer(),
           ee.schimke.composeai.daemon.protocol.RecordingGenerateTestResult(
-            source = RecordingTestGenerator.generate(spec)
+            source = RecordingTestGenerator.generate(spec),
           ),
         ),
       )
@@ -3319,7 +3319,7 @@ public class JsonRpcServer(
             )
           } catch (t: Throwable) {
             System.err.println(
-              "compose-ai-daemon: recording/encode($${params.recordingId}) failed: ${t.message}"
+              "compose-ai-daemon: recording/encode($${params.recordingId}) failed: ${t.message}",
             )
             sendErrorResponse(
               id = req.id,
@@ -3377,7 +3377,7 @@ public class JsonRpcServer(
     val outcome =
       if (service == null) {
         ee.schimke.composeai.daemon.compile.BtaCompileService.Outcome.Fallback(
-          "btaCompileService not configured — launch descriptor missing btaCompilerClasspath"
+          "btaCompileService not configured — launch descriptor missing btaCompilerClasspath",
         )
       } else {
         try {
@@ -3391,7 +3391,7 @@ public class JsonRpcServer(
         } catch (t: Throwable) {
           System.err.println("compose-ai-daemon: compileSources threw — falling back: $t")
           ee.schimke.composeai.daemon.compile.BtaCompileService.Outcome.Fallback(
-            t.message ?: t.javaClass.simpleName
+            t.message ?: t.javaClass.simpleName,
           )
         }
       }
@@ -3639,7 +3639,7 @@ public class JsonRpcServer(
               } catch (t: Throwable) {
                 System.err.println(
                   "compose-ai-daemon: incrementalDiscovery: invalid path '$path' " +
-                    "(${describeThrowable(t)}); skipping"
+                    "(${describeThrowable(t)}); skipping",
                 )
                 return@Thread
               }
@@ -3651,7 +3651,8 @@ public class JsonRpcServer(
             emitDiscoveryUpdated(diff)
           } catch (t: Throwable) {
             System.err.println(
-              "compose-ai-daemon: incrementalDiscovery worker failed " + "(${describeThrowable(t)})"
+              "compose-ai-daemon: incrementalDiscovery worker failed " +
+                "(${describeThrowable(t)})",
             )
             t.printStackTrace(System.err)
           }
@@ -3820,7 +3821,7 @@ public class JsonRpcServer(
     } catch (e: Throwable) {
       System.err.println(
         "compose-ai-daemon: xrSessions.close failed: ${describeThrowable(e)}; " +
-          "continuing shutdown"
+          "continuing shutdown",
       )
     }
   }
@@ -3845,7 +3846,7 @@ public class JsonRpcServer(
       } catch (e: Throwable) {
         System.err.println(
           "compose-ai-daemon: closeAllInteractiveSessions: session.close() " +
-            "(${session.previewId}) threw ${describeThrowable(e)}; continuing"
+            "(${session.previewId}) threw ${describeThrowable(e)}; continuing",
         )
       }
     }
@@ -3865,7 +3866,7 @@ public class JsonRpcServer(
       } catch (e: Throwable) {
         System.err.println(
           "compose-ai-daemon: closeAllRecordingSessions: session.close() " +
-            "(${session.previewId}) threw ${describeThrowable(e)}; continuing"
+            "(${session.previewId}) threw ${describeThrowable(e)}; continuing",
         )
       }
     }

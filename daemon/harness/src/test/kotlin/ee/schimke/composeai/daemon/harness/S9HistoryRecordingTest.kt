@@ -101,7 +101,7 @@ class S9HistoryRecordingTest {
       assertEquals(0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "S9HistoryRecordingTest failed; stderr from daemon:\n${client.dumpStderr()}"
+        "S9HistoryRecordingTest failed; stderr from daemon:\n${client.dumpStderr()}",
       )
       throw t
     } finally {

@@ -206,7 +206,7 @@ object ActivityFreeCaptureSpikeMain {
         ManagementFactory.getOperatingSystemMXBean() as com.sun.management.OperatingSystemMXBean
       val classes = ManagementFactory.getClassLoadingMXBean()
       println(
-        "[measure] mode=$mode readyMs=${runtime.uptime} cpuMs=${os.processCpuTime / 1_000_000} loadedClasses=${classes.totalLoadedClassCount}"
+        "[measure] mode=$mode readyMs=${runtime.uptime} cpuMs=${os.processCpuTime / 1_000_000} loadedClasses=${classes.totalLoadedClassCount}",
       )
       for (cycle in 0..2) for ((index, name) in fixtures.withIndex()) {
         val outputName = "$cycle-$name"
@@ -228,7 +228,7 @@ object ActivityFreeCaptureSpikeMain {
           captureWindow(name, outputName, mode == "activity")
         }
         println(
-          "[measure] mode=$mode cycle=$cycle fixture=$name renderMs=${(System.nanoTime() - start) / 1_000_000} uptimeMs=${runtime.uptime} cpuMs=${os.processCpuTime / 1_000_000} loadedClasses=${classes.totalLoadedClassCount}"
+          "[measure] mode=$mode cycle=$cycle fixture=$name renderMs=${(System.nanoTime() - start) / 1_000_000} uptimeMs=${runtime.uptime} cpuMs=${os.processCpuTime / 1_000_000} loadedClasses=${classes.totalLoadedClassCount}",
         )
       }
     }
@@ -254,7 +254,7 @@ object ActivityFreeCaptureSpikeMain {
     fun phase(label: String) {
       val now = System.nanoTime()
       println(
-        "[phase] mode=${if (useActivity) "activity" else "window"} output=$outputName fixture=$name phase=$label ms=${(now - phaseStart) / 1_000_000}"
+        "[phase] mode=${if (useActivity) "activity" else "window"} output=$outputName fixture=$name phase=$label ms=${(now - phaseStart) / 1_000_000}",
       )
       phaseStart = now
     }
@@ -264,7 +264,7 @@ object ActivityFreeCaptureSpikeMain {
     if (useActivity) {
       org.robolectric.Shadows.shadowOf(app.packageManager)
         .addActivityIfNotPresent(
-          android.content.ComponentName(app.packageName, ComponentActivity::class.java.name)
+          android.content.ComponentName(app.packageName, ComponentActivity::class.java.name),
         )
     }
     val activityRule = if (useActivity) createAndroidComposeRule<ComponentActivity>() else null
@@ -374,9 +374,9 @@ object ActivityFreeCaptureSpikeMain {
                     "getViewRootImpl",
                   )
                 org.robolectric.shadow.api.Shadow.extract<
-                    org.robolectric.shadows.ShadowViewRootImpl
+                    org.robolectric.shadows.ShadowViewRootImpl,
                   >(
-                    root
+                    root,
                   )
                   .callWindowFocusChanged(true)
               }
@@ -399,7 +399,7 @@ object ActivityFreeCaptureSpikeMain {
                 rule.runOnUiThread {
                   val connection =
                     checkNotNull(
-                      root.view.onCreateInputConnection(android.view.inputmethod.EditorInfo())
+                      root.view.onCreateInputConnection(android.view.inputmethod.EditorInfo()),
                     ) {
                       "Focused text field did not expose an Android InputConnection"
                     }
@@ -436,7 +436,7 @@ object ActivityFreeCaptureSpikeMain {
               // resizes it to the declared frame; fetching its own root avoids the screen crop.
               val bitmap =
                 requireNotNull(
-                  roots[index].fetchImage(RoborazziOptions.RecordOptions(applyDeviceCrop = false))
+                  roots[index].fetchImage(RoborazziOptions.RecordOptions(applyDeviceCrop = false)),
                 )
               android.graphics.Bitmap.createScaledBitmap(bitmap, 320, 320, true)
                 .captureRoboImage(file = renders.resolve("$outputName.png"))
@@ -448,7 +448,7 @@ object ActivityFreeCaptureSpikeMain {
               requireNotNull(
                   (roots[index].root as ViewRootForTest)
                     .view
-                    .fetchImage(RoborazziOptions.RecordOptions(applyDeviceCrop = false))
+                    .fetchImage(RoborazziOptions.RecordOptions(applyDeviceCrop = false)),
                 )
                 .captureRoboImage(file = renders.resolve("$outputName.png"))
             }
@@ -479,8 +479,8 @@ object ActivityFreeCaptureSpikeMain {
               .resolve("$outputName-semantics.json")
               .writeText(
                 Json.encodeToString(
-                  UiAutomatorHierarchyExtractor.extract(root, includeNonActionable = true)
-                )
+                  UiAutomatorHierarchyExtractor.extract(root, includeNonActionable = true),
+                ),
               )
             phase("extract")
           } finally {

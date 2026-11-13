@@ -98,8 +98,8 @@ class RenderEngineScrollLongTest {
                 previewId = "$previewId",
                 outputBaseName = "$previewId",
                 renderMode = "scroll-long",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 240_000,
       )

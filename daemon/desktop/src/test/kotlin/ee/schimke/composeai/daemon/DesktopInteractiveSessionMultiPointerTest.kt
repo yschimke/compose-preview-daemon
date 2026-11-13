@@ -80,10 +80,10 @@ class DesktopInteractiveSessionMultiPointerTest {
 
         // 1+2. Two pointerDowns — id=1 upper-left of centre, id=2 lower-right of centre.
         session.dispatch(
-          input(InteractiveInputKind.POINTER_DOWN, centre - startSpread, centre - startSpread, 1)
+          input(InteractiveInputKind.POINTER_DOWN, centre - startSpread, centre - startSpread, 1),
         )
         session.dispatch(
-          input(InteractiveInputKind.POINTER_DOWN, centre + startSpread, centre + startSpread, 2)
+          input(InteractiveInputKind.POINTER_DOWN, centre + startSpread, centre + startSpread, 2),
         )
 
         // 3. Three move pairs walking both fingers symmetrically outward. We dispatch them in
@@ -92,19 +92,19 @@ class DesktopInteractiveSessionMultiPointerTest {
         for (step in 1..3) {
           val spread = (startSpread + (endSpread - startSpread) * step.toFloat() / 3f).toInt()
           session.dispatch(
-            input(InteractiveInputKind.POINTER_MOVE, centre - spread, centre - spread, 1)
+            input(InteractiveInputKind.POINTER_MOVE, centre - spread, centre - spread, 1),
           )
           session.dispatch(
-            input(InteractiveInputKind.POINTER_MOVE, centre + spread, centre + spread, 2)
+            input(InteractiveInputKind.POINTER_MOVE, centre + spread, centre + spread, 2),
           )
         }
 
         // 4. Lift both fingers.
         session.dispatch(
-          input(InteractiveInputKind.POINTER_UP, centre - endSpread, centre - endSpread, 1)
+          input(InteractiveInputKind.POINTER_UP, centre - endSpread, centre - endSpread, 1),
         )
         session.dispatch(
-          input(InteractiveInputKind.POINTER_UP, centre + endSpread, centre + endSpread, 2)
+          input(InteractiveInputKind.POINTER_UP, centre + endSpread, centre + endSpread, 2),
         )
 
         // Render again — the held scene's `mutableStateOf` should have absorbed the zoom callback

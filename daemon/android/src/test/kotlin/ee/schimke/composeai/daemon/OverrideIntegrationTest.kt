@@ -51,8 +51,8 @@ class OverrideIntegrationTest {
               heightPx = 64,
               density = 1.0f,
               outputBaseName = "red-square-default",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -115,7 +115,7 @@ class OverrideIntegrationTest {
          "captures":[{"drag":{"targetIndex":0}}]}
       ]}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val previousPreviewsJson = System.getProperty(PreviewIndex.PREVIEWS_JSON_PATH_PROP)
     System.setProperty(PreviewIndex.PREVIEWS_JSON_PATH_PROP, previewsJson.absolutePath)
@@ -142,8 +142,8 @@ class OverrideIntegrationTest {
                 entry("interaction-focused", OverrideVariantInteraction.Focused),
                 entry("interaction-pressed", OverrideVariantInteraction.Pressed),
                 entry("interaction-dragged"),
-              )
-          )
+              ),
+          ),
       )
     host.start()
     try {
@@ -202,8 +202,8 @@ class OverrideIntegrationTest {
                 entry(focusedId, OverrideVariantInteraction.Focused),
                 entry(pressedId, OverrideVariantInteraction.Pressed),
                 entry(restingAfterPressId),
-              )
-          )
+              ),
+          ),
       )
     host.start()
     try {
@@ -264,8 +264,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "dark-aware",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -335,8 +335,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "pseudolocale-string",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -399,8 +399,8 @@ class OverrideIntegrationTest {
               heightPx = 64,
               density = 1.0f,
               outputBaseName = "red-square-device",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -459,8 +459,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "red-advance",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()

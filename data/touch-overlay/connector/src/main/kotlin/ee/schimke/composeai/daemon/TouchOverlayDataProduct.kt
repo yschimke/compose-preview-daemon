@@ -278,7 +278,7 @@ class TouchOverlayExtension :
               }
             }
           }
-        }
+        },
     ) {
       content()
       Canvas(modifier = Modifier.fillMaxSize()) {

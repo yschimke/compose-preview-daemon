@@ -82,7 +82,7 @@ class DesktopSemanticsTokensTest {
       Box(
         Modifier.testTag("card")
           .background(Color(0xFF006A60), RoundedCornerShape(12.dp))
-          .padding(16.dp)
+          .padding(16.dp),
       ) {
         Text("Card body")
       }
@@ -264,7 +264,7 @@ class DesktopSemanticsTokensTest {
       Box(
         Modifier.testTag("animated")
           .size(width = 76.dp, height = 56.dp)
-          .background(Color(0xFFFFE523), animatedShape)
+          .background(Color(0xFFFFE523), animatedShape),
       )
     }
 
@@ -415,7 +415,7 @@ class DesktopSemanticsTokensTest {
       Box(
         Modifier.testTag("chip")
           .border(BorderStroke(1.dp, Color(0xFFCAC4D0)), CircleShape)
-          .size(24.dp)
+          .size(24.dp),
       )
     }
 

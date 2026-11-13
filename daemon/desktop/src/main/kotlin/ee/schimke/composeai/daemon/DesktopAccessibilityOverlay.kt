@@ -105,7 +105,7 @@ object DesktopAccessibilityOverlay {
     if (nodes.isEmpty()) return null
     if (!sourcePng.exists()) {
       System.err.println(
-        "[compose-a11y] overlay skipped: source PNG missing at ${sourcePng.absolutePath}"
+        "[compose-a11y] overlay skipped: source PNG missing at ${sourcePng.absolutePath}",
       )
       return null
     }
@@ -116,7 +116,7 @@ object DesktopAccessibilityOverlay {
       // writeArtifacts and skip the JSON sidecars too — masking the failure as "no a11y data".
       System.err.println(
         "[compose-a11y] overlay failed for ${sourcePng.name}: " +
-          "${t.javaClass.simpleName}: ${t.message}"
+          "${t.javaClass.simpleName}: ${t.message}",
       )
       t.printStackTrace(System.err)
       null
@@ -134,7 +134,7 @@ object DesktopAccessibilityOverlay {
     if (source == null) {
       System.err.println(
         "[compose-a11y] overlay skipped: ImageIO could not decode " +
-          "${sourcePng.absolutePath} (size=${sourcePng.length()} bytes)"
+          "${sourcePng.absolutePath} (size=${sourcePng.length()} bytes)",
       )
       return null
     }
@@ -238,7 +238,7 @@ object DesktopAccessibilityOverlay {
           offsetY + r.top * scale,
           (r.right - r.left) * scale,
           (r.bottom - r.top) * scale,
-        )
+        ),
       )
     }
   }
@@ -261,7 +261,12 @@ object DesktopAccessibilityOverlay {
       val x = offsetX + r.left * scale + 0.5f
       val yTop = offsetY + r.top * scale + 0.5f
       g.draw(
-        Rectangle2D.Float(x, yTop, (r.right - r.left) * scale - 1f, (r.bottom - r.top) * scale - 1f)
+        Rectangle2D.Float(
+          x,
+          yTop,
+          (r.right - r.left) * scale - 1f,
+          (r.bottom - r.top) * scale - 1f,
+        ),
       )
     }
     g.stroke = BasicStroke(1f)
@@ -286,7 +291,7 @@ object DesktopAccessibilityOverlay {
         offsetY + r.top * scale + inset,
         (r.right - r.left) * scale - 2 * inset,
         (r.bottom - r.top) * scale - 2 * inset,
-      )
+      ),
     )
     g.stroke = BasicStroke(1f)
     val cx = offsetX + max(r.left * scale, BADGE_RADIUS)

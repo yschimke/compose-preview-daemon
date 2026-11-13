@@ -209,11 +209,11 @@ val dumpClassloaderDiff =
     // Projects forbids reaching into another project's `layout`. Dev-only diagnostic inputs.
     val standaloneJson =
       layout.settingsDirectory.file(
-        "renderers/android/build/reports/classloader-forensics/standalone.json"
+        "renderers/android/build/reports/classloader-forensics/standalone.json",
       )
     val daemonJson =
       layout.settingsDirectory.file(
-        "daemon/android/build/reports/classloader-forensics/daemon.json"
+        "daemon/android/build/reports/classloader-forensics/daemon.json",
       )
     val diffMdFile = layout.buildDirectory.file("reports/classloader-forensics/diff.md")
     val diffJsonFile = layout.buildDirectory.file("reports/classloader-forensics/diff.json")
@@ -306,7 +306,7 @@ val saveLoopKotlin =
 dependencies {
   harnessBtaImpl("org.jetbrains.kotlin:kotlin-build-tools-impl:$saveLoopKotlin")
   harnessComposePlugin(
-    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:$saveLoopKotlin"
+    "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:$saveLoopKotlin",
   )
 }
 
@@ -320,7 +320,7 @@ tasks.withType<Test>().configureEach {
         "-Dcomposeai.harness.btaImplClasspath=${btaImpl.asPath}",
         "-Dcomposeai.harness.composePlugin=${composePlugin.asPath}",
       )
-    }
+    },
   )
   // The save-to-pixels benchmark's knobs, forwarded from `-Pharness.saveLoop.*`.
   for (key in listOf("modes", "iterations", "warmup", "extraJvmArgs", "trace")) {

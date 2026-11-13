@@ -53,8 +53,8 @@ class KeyboardDataProductTest {
     // Sibling overrides shouldn't change the always-on shape.
     assertNotNull(
       planner.plan(
-        PreviewOverrides(ambient = AmbientOverride(state = AmbientStateOverride.AMBIENT))
-      )
+        PreviewOverrides(ambient = AmbientOverride(state = AmbientStateOverride.AMBIENT)),
+      ),
     )
     assertNotNull(planner.plan(PreviewOverrides(keyboard = KeyboardOverride(visible = false))))
   }

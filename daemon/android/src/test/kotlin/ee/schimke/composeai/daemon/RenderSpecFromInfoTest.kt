@@ -14,7 +14,7 @@ class RenderSpecFromInfoTest {
           className = "com.example.FooKt",
           methodName = "Foo",
           params = null,
-        )
+        ),
       )
 
     assertEquals("preview-id", spec.previewId)
@@ -30,7 +30,7 @@ class RenderSpecFromInfoTest {
           className = "com.example.FooKt",
           methodName = "Foo",
           params = PreviewParamsDto(widthDp = 200, density = 1.5f),
-        )
+        ),
       )
 
     assertEquals("preview-id", spec.previewId)
@@ -47,7 +47,7 @@ class RenderSpecFromInfoTest {
           className = "com.example.CatalogPreviewsKt",
           methodName = "CheckboxButtonChecked",
           params = PreviewParamsDto(),
-        )
+        ),
       )
     val variant =
       renderSpecFromInfo(
@@ -56,7 +56,7 @@ class RenderSpecFromInfoTest {
           className = "com.example.CatalogPreviewsKt",
           methodName = "CheckboxButtonChecked",
           params = PreviewParamsDto(),
-        )
+        ),
       )
 
     assertEquals("CheckboxButtonChecked", base.outputBaseName)
@@ -82,7 +82,7 @@ class RenderSpecFromInfoTest {
               wrapSandboxHeightDp = 227,
               density = 2.0f,
             ),
-        )
+        ),
       )
 
     assertEquals(true, spec.wrapWidth)
@@ -100,7 +100,7 @@ class RenderSpecFromInfoTest {
           className = "com.example.CatalogPreviewsKt",
           methodName = "Specimen",
           params = PreviewParamsDto(widthDp = 120, wrapSandboxWidthDp = 227, density = 2.0f),
-        )
+        ),
       )
 
     assertEquals(false, spec.wrapWidth)

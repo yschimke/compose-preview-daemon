@@ -54,7 +54,7 @@ class S2DrainSemanticsRealModeTest {
               id = previewId,
               className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
               functionName = "SlowSquare",
-            )
+            ),
           ),
       )
 
@@ -117,7 +117,7 @@ class S2DrainSemanticsRealModeTest {
       )
     } catch (t: Throwable) {
       System.err.println(
-        "S2DrainSemanticsRealModeTest failed; daemon stderr:\n${client.dumpStderr()}"
+        "S2DrainSemanticsRealModeTest failed; daemon stderr:\n${client.dumpStderr()}",
       )
       throw t
     } finally {

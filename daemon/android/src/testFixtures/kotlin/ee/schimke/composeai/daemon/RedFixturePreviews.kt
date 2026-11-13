@@ -127,14 +127,14 @@ fun MultipleSemanticsRoots() {
     modifier =
       Modifier.fillMaxSize().background(Color(0xFFEF5350)).semantics {
         contentDescription = "activity-surface"
-      }
+      },
   )
   Popup {
     Box(
       modifier =
         Modifier.size(24.dp).background(Color(0xFF42A5F5)).semantics {
           contentDescription = "popup-surface"
-        }
+        },
     )
   }
 }
@@ -154,7 +154,7 @@ fun VisualOnlySurfaceWithPopup() {
       modifier =
         Modifier.size(24.dp).background(Color(0xFF42A5F5)).semantics {
           contentDescription = "popup-surface"
-        }
+        },
     )
   }
 }
@@ -173,7 +173,7 @@ fun DialogWindowSurface() {
       modifier =
         Modifier.size(64.dp).background(Color(0xFF42A5F5)).semantics {
           contentDescription = "dialog-surface"
-        }
+        },
     )
   }
 }
@@ -306,7 +306,7 @@ fun InteractionStateSquare() {
           state = rememberDraggableState {},
           orientation = Orientation.Horizontal,
           interactionSource = interactionSource,
-        )
+        ),
   )
 }
 
@@ -324,7 +324,7 @@ fun InputModeSizedInteractionStateSquare() {
     modifier =
       Modifier.size(size)
         .background(if (focused) Color(0xFFFFA726) else Color(0xFFEF5350))
-        .focusable(interactionSource = interactionSource)
+        .focusable(interactionSource = interactionSource),
   )
 }
 
@@ -473,7 +473,7 @@ fun GraphicsLayerAndWideVector() {
       Modifier.testTag("hidden-circle")
         .size(40.dp)
         .graphicsLayer { alpha = 0f }
-        .background(Color.Blue, RoundedCornerShape(20.dp))
+        .background(Color.Blue, RoundedCornerShape(20.dp)),
     )
     Icon(
       imageVector = diamond,
@@ -572,7 +572,7 @@ fun AlphaZeroRecordButton() {
           Modifier.testTag("input-field")
             .width(120.dp)
             .height(24.dp)
-            .background(Color(0xFF3A3A3A), RoundedCornerShape(12.dp))
+            .background(Color(0xFF3A3A3A), RoundedCornerShape(12.dp)),
       )
       Box(modifier = Modifier.width(8.dp).height(1.dp))
       Box(contentAlignment = Alignment.Center) {
@@ -585,7 +585,7 @@ fun AlphaZeroRecordButton() {
                 scaleX = 0.8f
                 scaleY = 0.8f
               }
-              .background(Color(0xFF2962FF), RoundedCornerShape(20.dp))
+              .background(Color(0xFF2962FF), RoundedCornerShape(20.dp)),
         )
         Icon(
           imageVector = mic,
@@ -643,7 +643,7 @@ fun VectorIconInAnimatedLayout() {
         Modifier.testTag("fab-content").graphicsLayer {
           scaleX = 1.5f
           scaleY = 1.5f
-        }
+        },
     ) {
       Icon(
         imageVector = create,
@@ -800,7 +800,7 @@ fun ResourceReadingPreview() {
     modifier =
       Modifier.width(size)
         .height(size)
-        .background(if (label.isNotBlank()) color else Color.Transparent)
+        .background(if (label.isNotBlank()) color else Color.Transparent),
   )
 }
 
@@ -856,7 +856,7 @@ fun ClickToggleSquare() {
           awaitFirstDown()
           clicked = true
         }
-      }
+      },
   )
 }
 
@@ -1017,7 +1017,7 @@ fun RippleOnlySquare() {
           indication = androidx.compose.material3.ripple(color = Color(0xFF0000FF)),
         ) {
           // Inert on purpose — see the KDoc.
-        }
+        },
     )
   }
 }
@@ -1049,7 +1049,7 @@ fun ReleasePositionSquare() {
             }
           }
         }
-      }
+      },
   )
 }
 
@@ -1069,7 +1069,7 @@ fun RotaryToggleSquare() {
         }
         .focusRequester(requester)
         .focusable()
-        .background(color)
+        .background(color),
   )
 }
 
@@ -1099,7 +1099,7 @@ fun RotaryDistanceSquare() {
         }
         .focusRequester(requester)
         .focusable()
-        .background(color)
+        .background(color),
   )
 }
 
@@ -1131,7 +1131,7 @@ fun FlingTimingSquare() {
             }
           }
         }
-      }
+      },
   )
 }
 
@@ -1155,7 +1155,7 @@ fun RedNotification(context: android.content.Context): android.app.Notification 
         channelId,
         "Red fixture",
         android.app.NotificationManager.IMPORTANCE_DEFAULT,
-      )
+      ),
     )
     return android.app.Notification.Builder(context, channelId)
       .setSmallIcon(android.R.drawable.ic_dialog_info)
@@ -1197,7 +1197,7 @@ fun LazyColumnListPreview() {
                 Box(
                   modifier =
                     Modifier.size(24.dp)
-                      .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp))
+                      .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp)),
                 )
                 Text(text = label, style = MaterialTheme.typography.labelSmall)
               }
@@ -1212,7 +1212,7 @@ fun LazyColumnListPreview() {
             modifier =
               Modifier.fillMaxWidth()
                 .background(if (index % 2 == 0) Color(0xFFEEEEEE) else Color.White)
-                .padding(12.dp)
+                .padding(12.dp),
           ) {
             Text(text = "Row $index", style = MaterialTheme.typography.titleMedium)
           }
@@ -1369,7 +1369,7 @@ fun EditableTextFieldSquare() {
         androidx.compose.ui.text.input.TextFieldValue(
           TEXT_FIELD_SEED,
           androidx.compose.ui.text.TextRange(TEXT_FIELD_SEED.length),
-        )
+        ),
       )
     }
   val focusRequester = androidx.compose.runtime.remember { FocusRequester() }
@@ -1433,7 +1433,7 @@ fun GenericOutlineShapeSquare() {
             lineTo(size.width / 2f, size.height)
             lineTo(0f, size.height / 2f)
             close()
-          }
+          },
         )
     }
   }
@@ -1449,7 +1449,7 @@ fun BouncyCastleProviderSquare() {
   val digest = java.security.MessageDigest.getInstance("SHA-256", "BC").digest(message)
   check(
     digest.joinToString("") { "%02x".format(it.toInt() and 255) } ==
-      "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+      "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
   )
   val cipher = javax.crypto.Cipher.getInstance("AES/ECB/PKCS7Padding", "BC")
   check(cipher.provider === provider)
@@ -1508,7 +1508,7 @@ fun DenseDashboardPreview() {
                       Box(
                         Modifier.weight(1f)
                           .height((3 + (bar * 7 + service) % 10).dp)
-                          .background(Brush.verticalGradient(listOf(Color.Cyan, Color.Blue)))
+                          .background(Brush.verticalGradient(listOf(Color.Cyan, Color.Blue))),
                       )
                     }
                   }

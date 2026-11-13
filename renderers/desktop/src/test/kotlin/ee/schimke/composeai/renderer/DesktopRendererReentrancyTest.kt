@@ -44,7 +44,7 @@ class DesktopRendererReentrancyTest {
     if (!SKIKO_LOADED) {
       System.err.println(
         "DesktopRendererReentrancyTest skipped entirely: skiko's native library did not load, so " +
-          "the renderer-reentrancy gate never ran. Cause: $skikoLoadFailure"
+          "the renderer-reentrancy gate never ran. Cause: $skikoLoadFailure",
       )
     }
     Assume.assumeTrue("skiko natives unavailable: $skikoLoadFailure", SKIKO_LOADED)
@@ -76,7 +76,7 @@ class DesktopRendererReentrancyTest {
       "renderer reentrancy: $RENDER_COUNT renders in one JVM — first ${firstMs}ms " +
         "(in-process warm-up only; JVM + Skiko boot already paid before the timer), " +
         "subsequent ${laterMs.joinToString("/")}ms (mean ${laterMs.average().toInt()}ms). " +
-        "Each of these is a whole `javaexec` today."
+        "Each of these is a whole `javaexec` today.",
     )
 
     // The property the pool depends on: a render on a warm process is the same picture as the
@@ -199,7 +199,7 @@ class DesktopRendererReentrancyTest {
         /* showBackground = */ "true",
         /* backgroundColor = */ "0",
         target.absolutePath,
-      )
+      ),
     )
   }
 

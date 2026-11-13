@@ -78,7 +78,7 @@ class LocaleCompositionLocalsResolutionTest {
       mapOf(
         "androidx.compose.ui.platform.CompositionLocalsKt" to FakeCompositionLocalsKt::class.java,
         "androidx.compose.ui.text.intl.LocaleList" to FakeLocaleList::class.java,
-      )
+      ),
     )
 
   private fun provide(cp: StubClasspath, tags: String = "de-DE") =
@@ -184,7 +184,7 @@ class LocaleCompositionLocalsResolutionTest {
         mapOf(
           "androidx.compose.ui.platform.CompositionLocalsKt" to FakeCompositionLocalsKt::class.java,
           "androidx.compose.ui.text.intl.LocaleList" to ConstructorlessLocaleList::class.java,
-        )
+        ),
       )
 
     val stderr = capturingStderr { assertNull(provide(incompatible)) }
@@ -209,8 +209,8 @@ class LocaleCompositionLocalsResolutionTest {
       StubClasspath(
         mapOf(
           "androidx.compose.ui.platform.CompositionLocalsKt" to
-            AccessorlessCompositionLocalsKt::class.java
-        )
+            AccessorlessCompositionLocalsKt::class.java,
+        ),
       )
 
     assertNull(provide(accessorless))

@@ -411,7 +411,7 @@ fun AlphaZeroRecordButton() {
           Modifier.testTag("input-field")
             .width(120.dp)
             .height(24.dp)
-            .background(Color(0xFF3A3A3A), RoundedCornerShape(12.dp))
+            .background(Color(0xFF3A3A3A), RoundedCornerShape(12.dp)),
       )
       Box(modifier = Modifier.width(8.dp).height(1.dp))
       Box(contentAlignment = Alignment.Center) {
@@ -424,7 +424,7 @@ fun AlphaZeroRecordButton() {
                 scaleX = 0.8f
                 scaleY = 0.8f
               }
-              .background(Color(0xFF2962FF), RoundedCornerShape(20.dp))
+              .background(Color(0xFF2962FF), RoundedCornerShape(20.dp)),
         )
         Icon(
           imageVector = mic,
@@ -480,7 +480,7 @@ fun VectorIconInAnimatedLayout() {
         Modifier.testTag("fab-content").graphicsLayer {
           scaleX = 1.5f
           scaleY = 1.5f
-        }
+        },
     ) {
       Icon(
         imageVector = create,
@@ -626,7 +626,7 @@ fun ClickToggleSquare() {
           awaitFirstDown()
           clicked = true
         }
-      }
+      },
   )
 }
 
@@ -653,7 +653,7 @@ fun TaggedClickTargetSquare() {
             awaitFirstDown()
             clicked = true
           }
-        }
+        },
     )
   }
 }
@@ -675,7 +675,7 @@ fun HighDensityClickTargetSquare() {
             awaitFirstDown()
             clicked = true
           }
-        }
+        },
     )
   }
 }
@@ -763,7 +763,7 @@ fun FrameTickLocaleProbeSquare() {
   Box(
     modifier =
       Modifier.fillMaxSize()
-        .background(if (tick % 2L == 0L) Color(0xFFEF5350) else Color(0xFF66BB6A))
+        .background(if (tick % 2L == 0L) Color(0xFFEF5350) else Color(0xFF66BB6A)),
   )
 }
 
@@ -787,7 +787,7 @@ fun PressLocaleProbeSquare() {
             awaitFirstDown()
             pressed = true
           }
-        }
+        },
   )
 }
 
@@ -837,7 +837,7 @@ fun ClickRecomposingSquare() {
             clicks += 1
           }
         }
-      }
+      },
   ) {
     // Read `clicks` inside an inner scope so this scope (not the outer Box's) recomposes on
     // every click. Intentionally trivial body — what we care about is that the read of
@@ -876,7 +876,7 @@ fun BadCounterRecompositionFixture() {
             clicks += 1
           }
         }
-      }
+      },
   ) {
     // Reading `clicks` here subscribes the *parent* scope. The argument-passing reads (`clicks`
     // inside each child call expression below) happen during the parent's composition, so the
@@ -931,7 +931,7 @@ fun BetterCounterRecompositionFixture() {
             counter.value += 1
           }
         }
-      }
+      },
   ) {
     BetterCounterHeader()
     BetterCounterValue(counter)
@@ -988,7 +988,7 @@ fun TristateClickSquare() {
             state += 1
           }
         }
-      }
+      },
   )
 }
 
@@ -1042,7 +1042,7 @@ fun ExpandingClickBlock() {
             expanded = true
           }
         }
-      }
+      },
   ) {
     Box(modifier = Modifier.size(width = 60.dp, height = 30.dp).background(Color(0xFFEF5350)))
     if (expanded) {
@@ -1076,7 +1076,7 @@ fun ClickSwapsTargetSquare() {
               clicked = true
             }
           }
-        }
+        },
   )
 }
 
@@ -1102,7 +1102,7 @@ fun ClickToBoomSquare() {
           awaitFirstDown()
           boom = true
         }
-      }
+      },
   )
 }
 
@@ -1357,7 +1357,7 @@ fun LazyColumnListPreview() {
                 Box(
                   modifier =
                     Modifier.size(24.dp)
-                      .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp))
+                      .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp)),
                 )
                 Text(text = label, style = MaterialTheme.typography.labelSmall)
               }
@@ -1372,7 +1372,7 @@ fun LazyColumnListPreview() {
             modifier =
               Modifier.fillMaxWidth()
                 .background(if (index % 2 == 0) Color(0xFFEEEEEE) else Color.White)
-                .padding(12.dp)
+                .padding(12.dp),
           ) {
             Text(text = "Row $index", style = MaterialTheme.typography.titleMedium)
           }
@@ -1399,7 +1399,7 @@ fun KeyPressColorSquare() {
             pressed = true
             true
           } else false
-        }
+        },
   )
 }
 
@@ -1484,7 +1484,7 @@ private class FixtureAnimatedMorphShape(
         lineTo(size.width, size.height)
         lineTo(0f, size.height)
         close()
-      }
+      },
     )
 }
 
@@ -1503,7 +1503,7 @@ fun AnimatedMorphShapeButton() {
           .background(
             Color(0xFF04409F),
             FixtureAnimatedMorphShape(shape = CircleShape, pressedShape = RoundedCornerShape(8.dp)),
-          )
+          ),
     )
   }
 }
@@ -1522,7 +1522,7 @@ private object TriangleShape : Shape {
         lineTo(size.width, size.height)
         lineTo(0f, size.height)
         close()
-      }
+      },
     )
 }
 
@@ -1784,7 +1784,7 @@ fun InteractionStateSquare() {
           state = rememberDraggableState {},
           orientation = Orientation.Horizontal,
           interactionSource = interactionSource,
-        )
+        ),
   )
 }
 
@@ -1889,7 +1889,7 @@ fun CustomIndicationInteractionState() {
           Modifier.size(width = 32.dp, height = 24.dp).clickable(
             interactionSource = remember { MutableInteractionSource() },
             indication = ripple(bounded = false, radius = 20.dp),
-          ) {}
+          ) {},
       ) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Green))
       }
@@ -1919,7 +1919,7 @@ fun ForegroundIndicationInteractionState() {
               drawContent()
               drawRect(Color.Blue.copy(alpha = 0.01f))
             }
-            .clickable {}
+            .clickable {},
       ) {
         drawRect(Color.Green)
       }
@@ -1939,7 +1939,7 @@ fun InnerForegroundIndicationInteractionState() {
             .drawWithContent {
               drawContent()
               drawRect(Color.Blue.copy(alpha = 0.01f))
-            }
+            },
       ) {
         drawRect(Color.Green)
       }
@@ -1963,7 +1963,7 @@ fun ScaledIndicationInteractionState() {
               interactionSource = remember { MutableInteractionSource() },
               indication = ripple(bounded = false, radius = 20.dp),
             ) {}
-            .background(Color.Green)
+            .background(Color.Green),
       )
     }
   }

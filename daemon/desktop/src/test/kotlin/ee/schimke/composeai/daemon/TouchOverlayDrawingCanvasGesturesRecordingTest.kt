@@ -145,7 +145,7 @@ class TouchOverlayDrawingCanvasGesturesRecordingTest {
         // active-pointer ring.
         val midFrame =
           TouchOverlayTestSupport.readPng(
-            File(result.framesDir, "frame-${"%05d".format(result.frameCount / 3)}.png")
+            File(result.framesDir, "frame-${"%05d".format(result.frameCount / 3)}.png"),
           )
         val cyanMatch =
           TouchOverlayTestSupport.pixelMatchPctApprox(
@@ -169,7 +169,7 @@ class TouchOverlayDrawingCanvasGesturesRecordingTest {
             File(
               result.framesDir,
               "frame-${"%05d".format((DRAG_START_MS / STEP_MS - 1).toInt())}.png",
-            )
+            ),
           )
         val pinkMatch =
           TouchOverlayTestSupport.pixelMatchPctApprox(
@@ -188,7 +188,7 @@ class TouchOverlayDrawingCanvasGesturesRecordingTest {
         // (0x1F1F1F) plus a wide channel band so the antialiased edges count.
         val finalFrame =
           TouchOverlayTestSupport.readPng(
-            File(result.framesDir, "frame-${"%05d".format(result.frameCount - 1)}.png")
+            File(result.framesDir, "frame-${"%05d".format(result.frameCount - 1)}.png"),
           )
         val postTapStroke =
           TouchOverlayTestSupport.pixelMatchPctApprox(
@@ -439,7 +439,7 @@ fun MultiGestureCanvasFixture() {
           }
           inProgress = emptyList()
         }
-      }
+      },
   ) {
     val pivot = Offset(size.width / 2f, size.height / 2f)
     scale(scaleX = scale, scaleY = scale, pivot = pivot) {

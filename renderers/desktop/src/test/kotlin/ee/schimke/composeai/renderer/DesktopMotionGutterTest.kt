@@ -126,7 +126,7 @@ class DesktopMotionGutterTest {
           wrapHeight = false,
           widthPx = 120,
           heightPx = 90,
-        )
+        ),
       )
     // A fixed axis measures the component in exactly the frame it declared, and the gutter is
     // canvas around it — the same rule the still path applies, and the reason `motionCropSize`

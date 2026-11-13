@@ -145,7 +145,7 @@ fun diffOrCaptureBaseline(
     baseline.parentFile.mkdirs()
     fileSystem.write(baseline.path.toPath()) { write(actualBytes) }
     System.err.println(
-      "$scenario: regenerate=true — overwrote baseline at ${baseline.absolutePath}"
+      "$scenario: regenerate=true — overwrote baseline at ${baseline.absolutePath}",
     )
     return
   }
@@ -154,7 +154,7 @@ fun diffOrCaptureBaseline(
     fileSystem.write(baseline.path.toPath()) { write(actualBytes) }
     System.err.println(
       "$scenario: captured baseline at ${baseline.absolutePath} (first run; subsequent runs " +
-        "will pixel-diff against it)"
+        "will pixel-diff against it)",
     )
     return
   }
@@ -170,7 +170,7 @@ fun diffOrCaptureBaseline(
       "$scenario real-mode pixel diff failed: ${diff.message} " +
         "(maxDelta=${diff.maxDelta}, offending=${diff.offendingPixelCount}). " +
         "Baseline=${baseline.absolutePath}. Artefacts under ${reportsDir.absolutePath}. " +
-        "Stderr=\n${stderrSupplier()}"
+        "Stderr=\n${stderrSupplier()}",
     )
   }
 }
@@ -263,7 +263,7 @@ fun realAndroidModeScenario(
         "realAndroidModeScenario requires `composeai.harness.androidDaemonClasspath` to be set " +
           "by the harness Gradle build (writeAndroidDaemonClasspath task). The system property " +
           "carries the file listing :daemon:android's runtime + testFixtures classpath; " +
-          "without it the spawned daemon can't load Robolectric / Compose / RedFixturePreviews."
+          "without it the spawned daemon can't load Robolectric / Compose / RedFixturePreviews.",
       )
   val launcher =
     RealAndroidHarnessLauncher(

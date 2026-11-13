@@ -139,6 +139,6 @@ private fun Box(label: String, color: Color) {
     modifier =
       Modifier.size(72.dp).background(color).semantics(mergeDescendants = true) {
         contentDescription = label
-      }
+      },
   )
 }

@@ -155,7 +155,7 @@ class S3_5RecompileSaveLoopRealModeTest {
     manifestFile.writeText(
       """{"previews":[{"id":"mutable-square","className":"$mutableFqn",""" +
         """"functionName":"MutableSquare","widthPx":64,"heightPx":64,"density":1.0,""" +
-        """"showBackground":true,"outputBaseName":"mutable-square"}]}"""
+        """"showBackground":true,"outputBaseName":"mutable-square"}]}""",
     )
 
     // Build a launcher with the user-class-dirs sysprop pointing at our temp dir. The daemon's
@@ -240,7 +240,7 @@ class S3_5RecompileSaveLoopRealModeTest {
             throw AssertionError(
               "S3.5 [$target]: iteration $index ($label) produced different bytes than " +
                 "iteration $priorIndex ($priorLabel) — same bytecode should render identical PNGs. " +
-                "${diff.message}. Stderr=\n${client.dumpStderr()}"
+                "${diff.message}. Stderr=\n${client.dumpStderr()}",
             )
           }
           if (!sameLabel && diff.ok) {
@@ -254,7 +254,7 @@ class S3_5RecompileSaveLoopRealModeTest {
                 "iteration $priorIndex ($priorLabel) — daemon served stale user-classloader " +
                 "bytecode after a recompile-and-fileChanged. " +
                 "${if (priorIndex == 0) "B2.0's disposable child loader is not swapping at all." else "Disposable child loader works for the first edit but not subsequent edits — the failure mode this multi-iteration cycle was added to expose."} " +
-                "Stderr=\n${client.dumpStderr()}"
+                "Stderr=\n${client.dumpStderr()}",
             )
           }
         }
@@ -276,7 +276,7 @@ class S3_5RecompileSaveLoopRealModeTest {
       assertEquals("Daemon must exit cleanly. Stderr=\n${client.dumpStderr()}", 0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "S3_5RecompileSaveLoopRealModeTest [$target] failed; daemon stderr:\n${client.dumpStderr()}"
+        "S3_5RecompileSaveLoopRealModeTest [$target] failed; daemon stderr:\n${client.dumpStderr()}",
       )
       throw t
     } finally {
@@ -300,7 +300,7 @@ class S3_5RecompileSaveLoopRealModeTest {
       ?: javaClass.classLoader.getResourceAsStream(resourceName)?.use { it.readBytes() }
       ?: error(
         "S3.5: $resourceName not found on the harness test classpath; " +
-          "the testFixtures dependency must expose it"
+          "the testFixtures dependency must expose it",
       )
 
   /**
@@ -338,7 +338,7 @@ class S3_5RecompileSaveLoopRealModeTest {
     }
     error(
       "S3.5: $resourceName not found on the spawned daemon's classpath " +
-        "(${classpath.size} entries); the target's testFixtures must be on it"
+        "(${classpath.size} entries); the target's testFixtures must be on it",
     )
   }
 

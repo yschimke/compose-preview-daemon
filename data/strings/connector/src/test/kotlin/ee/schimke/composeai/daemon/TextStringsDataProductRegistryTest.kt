@@ -73,7 +73,7 @@ class TextStringsDataProductRegistryTest {
                     id = previewId,
                     className = "com.example.TrialKt",
                     methodName = "TrialMeasurePreview",
-                  )
+                  ),
               ),
           ),
       )
@@ -139,7 +139,7 @@ class TextStringsDataProductRegistryTest {
                     className = "com.example.TextKt",
                     methodName = "TextPreview",
                     params = PreviewParamsDto(locale = "fr-FR", fontScale = 1.3f),
-                  )
+                  ),
               ),
           ),
       )
@@ -260,7 +260,7 @@ class TextStringsDataProductRegistryTest {
                     className = "com.example.TextKt",
                     methodName = "TextPreview",
                     params = PreviewParamsDto(locale = "en-US", fontScale = 1.0f),
-                  )
+                  ),
               ),
           ),
       )
@@ -328,7 +328,7 @@ class TextStringsDataProductRegistryTest {
       ),
     )
     assertTrue(
-      registry.attachmentsFor("missing", setOf(TextStringsDataProductRegistry.KIND)).isEmpty()
+      registry.attachmentsFor("missing", setOf(TextStringsDataProductRegistry.KIND)).isEmpty(),
     )
   }
 

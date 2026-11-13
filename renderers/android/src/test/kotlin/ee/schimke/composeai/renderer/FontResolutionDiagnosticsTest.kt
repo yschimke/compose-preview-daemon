@@ -95,7 +95,7 @@ class FontResolutionDiagnosticsTest {
 
     System.setProperty("composeai.fonts.offline", "false")
     assertTrue(
-      FontResolutionDiagnostics.currentFailureReason().contains("download from Google Fonts")
+      FontResolutionDiagnostics.currentFailureReason().contains("download from Google Fonts"),
     )
   }
 
@@ -103,7 +103,7 @@ class FontResolutionDiagnosticsTest {
   fun `describe names the face weight italic and reason`() {
     val msg =
       FontResolutionDiagnostics.describe(
-        FontResolutionDiagnostics.FontFallback("Orbitron", 500, italic = false, reason = "offline")
+        FontResolutionDiagnostics.FontFallback("Orbitron", 500, italic = false, reason = "offline"),
       )
     assertTrue(msg.contains("\"Orbitron\""))
     assertTrue(msg.contains("weight=500"))
@@ -143,7 +143,7 @@ class FontResolutionDiagnosticsTest {
   fun `FontFallbackException message lists the unresolved faces and the opt-out`() {
     val e =
       FontFallbackException(
-        listOf(FontResolutionDiagnostics.FontFallback("Orbitron", 500, false, "offline"))
+        listOf(FontResolutionDiagnostics.FontFallback("Orbitron", 500, false, "offline")),
       )
     assertTrue(e.message!!.contains("Orbitron"))
     assertTrue(e.message!!.contains("failOnFallback=false"))
@@ -159,8 +159,8 @@ class FontResolutionDiagnosticsTest {
             500,
             italic = false,
             reason = "offline",
-          )
-        )
+          ),
+        ),
       )
     assertTrue(json.contains("\"schema\":\"compose-preview-warnings/v1\""))
     assertTrue(json.contains("\"family\":\"Orbitron\""))

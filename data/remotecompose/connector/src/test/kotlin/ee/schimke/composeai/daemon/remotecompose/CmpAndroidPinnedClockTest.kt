@@ -79,7 +79,7 @@ class CmpAndroidPinnedClockTest {
 
   private fun fixture(): ByteArray =
     checkNotNull(
-        javaClass.getResourceAsStream("/rc-fixtures/circularprogress-indeterminate-192dp.rc")
+        javaClass.getResourceAsStream("/rc-fixtures/circularprogress-indeterminate-192dp.rc"),
       ) {
         "missing fixture"
       }

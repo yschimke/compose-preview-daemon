@@ -60,7 +60,7 @@ fun ConsumerWearM2Screen(onTimeText: (String) -> Unit, onLabel: (String) -> Unit
     Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
       val source =
         androidx.wear.compose.material.TimeTextDefaults.timeSource(
-          androidx.wear.compose.material.TimeTextDefaults.timeFormat()
+          androidx.wear.compose.material.TimeTextDefaults.timeFormat(),
         )
       onTimeText(source.currentTime)
       androidx.wear.compose.material.TimeText(timeSource = source)

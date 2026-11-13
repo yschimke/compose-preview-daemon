@@ -111,7 +111,7 @@ class S4VisibilityFilterRealModeTest {
       // 5. Order: documented as non-deterministic. Log + record; do not assert.
       System.err.println(
         "S4VisibilityFilterRealModeTest observed renderFinished arrival order " +
-          "(v1 daemon, focus-not-honoured): $arrivalOrder"
+          "(v1 daemon, focus-not-honoured): $arrivalOrder",
       )
 
       val recorder = LatencyRecorder(csvFile = HarnessTestSupport.LATENCY_CSV)
@@ -128,7 +128,7 @@ class S4VisibilityFilterRealModeTest {
       assertEquals("Daemon must exit cleanly. Stderr=\n${client.dumpStderr()}", 0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "S4VisibilityFilterRealModeTest failed; daemon stderr:\n${client.dumpStderr()}"
+        "S4VisibilityFilterRealModeTest failed; daemon stderr:\n${client.dumpStderr()}",
       )
       throw t
     } finally {

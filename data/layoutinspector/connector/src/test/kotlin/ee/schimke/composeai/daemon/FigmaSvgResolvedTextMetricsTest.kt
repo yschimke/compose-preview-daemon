@@ -61,9 +61,9 @@ class FigmaSvgResolvedTextMetricsTest {
               component = "Text",
               bounds = LayoutInspectorBounds(8, 8, 392, 120),
               size = LayoutInspectorSize(384, 112),
-            )
+            ),
           ),
-      )
+      ),
     )
 
   /**
@@ -116,9 +116,9 @@ class FigmaSvgResolvedTextMetricsTest {
                       ),
                     ),
                 ),
-            )
+            ),
           ),
-      )
+      ),
     )
 
   private fun render(resolved: Boolean, lineWidth: Int? = null): String {
@@ -208,9 +208,9 @@ class FigmaSvgResolvedTextMetricsTest {
                   nodeId = "Text",
                   boundsInRoot = "8,8,392,120",
                   text = "Hello widget",
-                )
+                ),
               ),
-          )
+          ),
         ),
       density = 2f,
       fontScale = 1.5f,

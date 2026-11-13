@@ -14,7 +14,7 @@ class ComposeLayoutInspectorTest {
 
     val node =
       ComposeLayoutInspector.inspect(
-        LayoutInspectorCaptureContext(rootSemanticsNode = semanticsRoot)
+        LayoutInspectorCaptureContext(rootSemanticsNode = semanticsRoot),
       )
 
     requireNotNull(node)
@@ -34,7 +34,7 @@ class ComposeLayoutInspectorTest {
 
     val node =
       ComposeLayoutInspector.inspect(
-        LayoutInspectorCaptureContext(rootSemanticsNode = semanticsRoot)
+        LayoutInspectorCaptureContext(rootSemanticsNode = semanticsRoot),
       )
 
     assertEquals("9", node?.nodeId)

@@ -112,7 +112,7 @@ class FigmaSvgSharedBoundsScrollClipTest {
                     .heightIn(max = VIEWPORT_DP.dp)
                     .verticalScroll(rememberScrollState())
                     .background(Color(0xFFFFFBFE))
-                    .skipToLookaheadSize()
+                    .skipToLookaheadSize(),
                 ) {
                   ROWS.forEach { label ->
                     Box(Modifier.fillMaxWidth().height(80.dp).background(Color(0xFFE7E0EC))) {
@@ -182,7 +182,7 @@ class FigmaSvgSharedBoundsScrollClipTest {
                     ) {}
                     .background(Color(0xFFF6F6F6))
                     .padding(horizontal = 24.dp, vertical = 16.dp)
-                    .skipToLookaheadSize()
+                    .skipToLookaheadSize(),
                 ) {
                   ROWS.forEach { label ->
                     Box(Modifier.fillMaxWidth().height(90.dp).background(Color(0xFFE7E0EC))) {

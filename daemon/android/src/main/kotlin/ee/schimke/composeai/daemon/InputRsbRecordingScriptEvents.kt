@@ -35,7 +35,7 @@ object InputRsbRecordingScriptEvents {
                 "Compose view. `scrollDeltaY` payload carries the wheel delta (positive = " +
                 "wheel-down). Wear-only — desktop daemons don't advertise this descriptor.",
             supported = true,
-          )
+          ),
         ),
     )
 

@@ -120,7 +120,7 @@ public class GitRefHistorySource(
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: GitRefHistorySource.write($ref, ${entry.id}) failed " +
-          "(${t.javaClass.simpleName}: ${t.message}); skipping the reporting-branch commit"
+          "(${t.javaClass.simpleName}: ${t.message}); skipping the reporting-branch commit",
       )
       WriteResult.SKIPPED_DUPLICATE
     }
@@ -291,7 +291,7 @@ public class GitRefHistorySource(
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: GitRefHistorySource.flushPending($ref) failed " +
-          "(${t.javaClass.simpleName}: ${t.message}); next window retries"
+          "(${t.javaClass.simpleName}: ${t.message}); next window retries",
       )
     }
   }
@@ -363,7 +363,7 @@ public class GitRefHistorySource(
       warnEmitter(
         "GitRefHistorySource: could not push '$ref' to remote '$remote'.\n" +
           "  History is still recorded locally on the ref; only the push to the remote failed.\n" +
-          "  Hint: ensure the remote exists and credentials (credential helper / SSH key) are set up."
+          "  Hint: ensure the remote exists and credentials (credential helper / SSH key) are set up.",
       )
     }
   }
@@ -687,7 +687,7 @@ public class GitRefHistorySource(
           "GitRefHistorySource: ref '$ref' is not present locally.\n" +
             "  Hint: populate it by fetching from a remote (e.g. `git fetch origin $ref:$ref`)\n" +
             "  or enable WRITE_LOCAL so the daemon records render history on $branch.\n" +
-            "  Until then, main-history comparison will not be available."
+            "  Until then, main-history comparison will not be available.",
         )
       }
       return null
@@ -743,7 +743,7 @@ public class GitRefHistorySource(
         } catch (t: Throwable) {
           System.err.println(
             "compose-ai-daemon: GitRefHistorySource.walk($ref): malformed $path@${c.take(7)} " +
-              "(${t.javaClass.simpleName}: ${t.message})"
+              "(${t.javaClass.simpleName}: ${t.message})",
           )
           null
         }
@@ -983,13 +983,13 @@ public class GitRefHistorySource(
     }
 
     public fun parseRefsSysprop(
-      propValue: String? = System.getProperty(GIT_REF_HISTORY_PROP)
+      propValue: String? = System.getProperty(GIT_REF_HISTORY_PROP),
     ): List<String> =
       propValue?.split(',', ';')?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
 
     /** Parses [SYNC_MODE_PROP]; unknown / unset → [SyncMode.READ_ONLY]. */
     public fun parseSyncModeSysprop(
-      propValue: String? = System.getProperty(SYNC_MODE_PROP)
+      propValue: String? = System.getProperty(SYNC_MODE_PROP),
     ): SyncMode =
       when (propValue?.trim()?.uppercase()) {
         "WRITE_LOCAL" -> SyncMode.WRITE_LOCAL
@@ -1024,7 +1024,7 @@ public class GitRefHistorySource(
      * [PublishPolicy.CLEAN_ON_BRANCH].
      */
     public fun parsePublishPolicySysprop(
-      propValue: String? = System.getProperty(PUBLISH_POLICY_PROP)
+      propValue: String? = System.getProperty(PUBLISH_POLICY_PROP),
     ): PublishPolicy =
       when (propValue?.trim()?.lowercase()) {
         "all" -> PublishPolicy.ALL

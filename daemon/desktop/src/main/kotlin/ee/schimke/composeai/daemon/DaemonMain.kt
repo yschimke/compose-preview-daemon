@@ -125,7 +125,7 @@ fun runDaemon(
     if (userClassUrls.isNotEmpty()) {
       System.err.println(
         "compose-ai-tools desktop daemon: UserClassLoaderHolder active " +
-          "(urls=${userClassUrls.size}, dirs=${userClassUrls.map { it.path }})"
+          "(urls=${userClassUrls.size}, dirs=${userClassUrls.map { it.path }})",
       )
       UserClassLoaderHolder(urls = userClassUrls)
     } else null
@@ -142,7 +142,7 @@ fun runDaemon(
       val loaded = PreviewIndex.loadFromFile(Path.of(previewsJsonPath))
       System.err.println(
         "compose-ai-tools desktop daemon: PreviewIndex loaded " +
-          "(path=${loaded.path}, previewCount=${loaded.size})"
+          "(path=${loaded.path}, previewCount=${loaded.size})",
       )
       loaded
     } else {
@@ -173,7 +173,7 @@ fun runDaemon(
             .map { File(it) }
         System.err.println(
           "compose-ai-tools desktop daemon: ClasspathFingerprint active " +
-            "(cheap=${cheap.size}, classpath=${classpath.size})"
+            "(cheap=${cheap.size}, classpath=${classpath.size})",
         )
         ClasspathFingerprint(cheapSignalFiles = cheap, classpathEntries = classpath)
       }
@@ -192,7 +192,7 @@ fun runDaemon(
           .map { Path.of(it) }
       System.err.println(
         "compose-ai-tools desktop daemon: IncrementalDiscovery active " +
-          "(classpath=${classpath.size}, previewCount=${previewIndex.size})"
+          "(classpath=${classpath.size}, previewCount=${previewIndex.size})",
       )
       IncrementalDiscovery(classpath = classpath)
     } else null
@@ -216,7 +216,7 @@ fun runDaemon(
       historyDirProp?.let { dir ->
         System.err.println(
           "compose-ai-tools desktop daemon: HistoryManager active (dir=$dir, " +
-            "gitRefs=${gitRefHistoryRefs}, gitRefSyncMode=$gitRefSyncMode, pruneConfig=$pruneConfig)"
+            "gitRefs=${gitRefHistoryRefs}, gitRefSyncMode=$gitRefSyncMode, pruneConfig=$pruneConfig)",
         )
         HistoryManager.forLocalFsAndGitRefs(
           historyDir = Path.of(dir),
@@ -301,7 +301,7 @@ fun runDaemon(
     System.err.println(
       "compose-ai-tools desktop daemon: composeai.harness.previewsManifest set to " +
         "'$manifestPath' but file does not exist; falling back to PreviewIndex-backed " +
-        "DesktopHost until composePreviewDiscover writes the manifest"
+        "DesktopHost until composePreviewDiscover writes the manifest",
     )
   }
   val host: RenderHost =
@@ -309,7 +309,7 @@ fun runDaemon(
       val manifest = PreviewManifestRouter.loadManifest(manifestFile)
       System.err.println(
         "compose-ai-tools desktop daemon: PreviewManifestRouter active " +
-          "(manifest=$manifestPath, previews=${manifest.previews.map { it.id }})"
+          "(manifest=$manifestPath, previews=${manifest.previews.map { it.id }})",
       )
       PreviewManifestRouter(
         manifest = manifest,
@@ -354,12 +354,12 @@ fun runDaemon(
     System.err.println(
       "compose-ai-tools desktop daemon: in-process compile available (Kotlin Build Tools API " +
         "loaded) — engaged only when the editor sets composePreview.daemon.compileInProcess=true; " +
-        "otherwise compiles run via Gradle"
+        "otherwise compiles run via Gradle",
     )
   } else {
     System.err.println(
       "compose-ai-tools desktop daemon: in-process compile unavailable (Build Tools API not " +
-        "configured for this module) — compiles run via Gradle"
+        "configured for this module) — compiles run via Gradle",
     )
   }
 
@@ -659,7 +659,7 @@ private fun installSigtermShutdownHook(host: RenderHost, originalStdin: java.io.
         {
           System.err.println(
             "compose-ai-tools desktop daemon: SIGTERM received, draining in-flight renders " +
-              "(timeoutMs=$timeoutMs)"
+              "(timeoutMs=$timeoutMs)",
           )
           // Close stdin to break the read loop out of its blocking read() — same effect as the
           // client closing the wire, which JsonRpcServer.readLoop already handles. Best-effort:
@@ -673,13 +673,13 @@ private fun installSigtermShutdownHook(host: RenderHost, originalStdin: java.io.
             host.shutdown(timeoutMs = timeoutMs)
           } catch (t: Throwable) {
             System.err.println(
-              "compose-ai-tools desktop daemon: SIGTERM hook host.shutdown failed: ${t.message}"
+              "compose-ai-tools desktop daemon: SIGTERM hook host.shutdown failed: ${t.message}",
             )
           }
           System.err.println("compose-ai-tools desktop daemon: drain complete, JVM exiting")
         },
         "compose-ai-daemon-sigterm-hook",
-      )
+      ),
     )
 }
 
@@ -809,7 +809,7 @@ internal fun buildDesktopExtensions(
           DataExtensionDescriptor(
             id = KeyboardOverrideExtension.ID,
             displayName = "Soft keyboard overlay",
-          )
+          ),
         ),
     )
   }
@@ -876,7 +876,7 @@ internal fun buildDesktopExtensions(
           DataExtensionDescriptor(
             id = TouchOverlayExtension.ID,
             displayName = "Touch event overlay",
-          )
+          ),
         ),
     )
   }
@@ -896,7 +896,7 @@ internal fun buildDesktopExtensions(
           DataExtensionDescriptor(
             id = LauncherWidgetExtension.ID,
             displayName = "Launcher widget container size",
-          )
+          ),
         ),
     )
   }
@@ -1085,7 +1085,7 @@ private inline fun MutableList<Extension>.tryAdd(label: String, build: () -> Ext
   } catch (e: LinkageError) {
     System.err.println(
       "compose-ai-tools daemon: extension '$label' unavailable on this classpath — " +
-        "${e.javaClass.simpleName}: ${e.message}"
+        "${e.javaClass.simpleName}: ${e.message}",
     )
   }
 }

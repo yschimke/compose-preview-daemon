@@ -93,12 +93,12 @@ class Material3ThemeOverrideExtension(private val overrides: Material3ThemeOverr
  */
 class Material3ThemePreviewOverrideExtension :
   ee.schimke.composeai.data.render.extensions.DataExtension<
-    ee.schimke.composeai.daemon.protocol.PreviewOverrides
+    ee.schimke.composeai.daemon.protocol.PreviewOverrides,
   > {
   override val id: DataExtensionId = Material3ThemeOverrideExtension.ID
 
   override fun plan(
-    request: ee.schimke.composeai.daemon.protocol.PreviewOverrides
+    request: ee.schimke.composeai.daemon.protocol.PreviewOverrides,
   ): ee.schimke.composeai.data.render.extensions.PlannedDataExtension? =
     request.material3Theme?.let(::Material3ThemeOverrideExtension)
 }
@@ -127,7 +127,7 @@ class ThemeDataProductRegistry : DataProductRegistry {
         attachable = true,
         fetchable = true,
         requiresRerender = true,
-      )
+      ),
     )
 
   fun shouldCapture(previewId: String?, renderMode: String?): Boolean =
@@ -155,7 +155,7 @@ class ThemeDataProductRegistry : DataProductRegistry {
           kind = KIND,
           schemaVersion = SCHEMA_VERSION,
           payload = json.encodeToJsonElement(ThemePayload.serializer(), payload),
-        )
+        ),
       )
     }
   }
@@ -168,7 +168,7 @@ class ThemeDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(ThemePayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -604,7 +604,7 @@ private fun ColorScheme.withOverrides(overrides: Map<String, String>): ColorSche
 }
 
 private fun Typography.withOverrides(
-  overrides: Map<String, Material3TypographyOverride>
+  overrides: Map<String, Material3TypographyOverride>,
 ): Typography {
   if (overrides.isEmpty()) return this
   fun TextStyle.override(name: String): TextStyle =

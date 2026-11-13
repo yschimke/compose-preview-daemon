@@ -110,7 +110,7 @@ class WallpaperDataProductTest {
             seedColor = "#FF3366FF",
             paletteStyle = WallpaperPaletteStyle.TONAL_SPOT,
             contrastLevel = 0.0,
-          )
+          ),
       ),
       previewContext = null,
     )
@@ -133,7 +133,7 @@ class WallpaperDataProductTest {
             seedColor = "#FF3366FF",
             paletteStyle = WallpaperPaletteStyle.VIBRANT,
             contrastLevel = 1.0,
-          )
+          ),
       ),
       previewContext = null,
     )
@@ -163,7 +163,8 @@ class WallpaperDataProductTest {
       previewContext = null,
     )
     assertTrue(
-      registry.fetch("preview-1", "compose/wallpaper", null, true) is DataProductRegistry.Outcome.Ok
+      registry.fetch("preview-1", "compose/wallpaper", null, true)
+        is DataProductRegistry.Outcome.Ok,
     )
 
     registry.onRender("preview-1", result, overrides = null, previewContext = null)

@@ -135,7 +135,7 @@ class RcGoogleFontTypefaceResolverTest {
 
           override fun loadVariable(family: String, italic: Boolean): File =
             throw IllegalStateException("cache directory vanished")
-        }
+        },
       )
 
     assertNull(files.fileFor(GoogleFontKey("Roboto Flex", 400, false)))

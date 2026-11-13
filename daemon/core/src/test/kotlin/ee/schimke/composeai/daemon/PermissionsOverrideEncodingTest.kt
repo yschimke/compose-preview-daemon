@@ -48,7 +48,7 @@ class PermissionsOverrideEncodingTest {
           """{"permissions":{"grants":{
                   "android.permission.CAMERA":"granted",
                   "android.permission.RECORD_AUDIO":"denied"
-                }}}"""
+                }}}""",
       )
     val bag = requireNotNull(captured.overrides)
     assertNotNull("permissions bag must be present in the encoded payload", bag.permissions)
@@ -67,7 +67,7 @@ class PermissionsOverrideEncodingTest {
                 "material3Theme":{"sourceColor":"#FF3366FF"},
                 "wallpaper":{"seedColor":"#FF884422"},
                 "permissions":{"grants":{"android.permission.CAMERA":"granted"}}
-              }"""
+              }""",
       )
     val bag = requireNotNull(captured.overrides)
     assertNotNull("material3Theme must round-trip", bag.material3Theme)
@@ -227,7 +227,7 @@ private class PayloadCapturingPermissionsHost : RenderHost {
                     id = req.id,
                     classLoaderHashCode = 0,
                     classLoaderName = "permissions-override-encoding-test",
-                  )
+                  ),
                 )
               }
               // Never enqueued here: `submit` only accepts a Render. Present so the `when` stays

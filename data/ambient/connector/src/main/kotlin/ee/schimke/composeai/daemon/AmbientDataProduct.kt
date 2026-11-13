@@ -120,7 +120,7 @@ class AmbientDataProductRegistry : DataProductRegistry {
         attachable = true,
         fetchable = true,
         requiresRerender = false,
-      )
+      ),
     )
 
   fun capture(previewId: String?, payload: AmbientPayload) {
@@ -146,7 +146,7 @@ class AmbientDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(AmbientPayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -158,7 +158,7 @@ class AmbientDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(AmbientPayload.serializer(), payload),
-      )
+      ),
     )
   }
 

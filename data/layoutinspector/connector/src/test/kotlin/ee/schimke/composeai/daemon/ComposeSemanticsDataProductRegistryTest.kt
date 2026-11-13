@@ -67,7 +67,7 @@ class ComposeSemanticsDataProductRegistryTest {
     val file =
       rootDir.resolve(previewId).also { it.mkdirs() }.resolve(ComposeSemanticsDataProducer.FILE)
     file.writeText(
-      """{"root":{"nodeId":"1","boundsInRoot":"0,0,64,64","label":"Submit","role":"Button","clickable":true}}"""
+      """{"root":{"nodeId":"1","boundsInRoot":"0,0,64,64","label":"Submit","role":"Button","clickable":true}}""",
     )
     val registry = ComposeSemanticsDataProductRegistry(rootDir)
 
@@ -135,7 +135,7 @@ class ComposeSemanticsDataProductRegistryTest {
     val file =
       rootDir.resolve(previewId).also { it.mkdirs() }.resolve(LayoutInspectorDataProducer.FILE)
     file.writeText(
-      """{"root":{"nodeId":"1","component":"SettingsRow","bounds":{"left":0,"top":80,"right":360,"bottom":136},"size":{"width":360,"height":56},"modifiers":[{"name":"padding","properties":{"top":"2.dp"}}]}}"""
+      """{"root":{"nodeId":"1","component":"SettingsRow","bounds":{"left":0,"top":80,"right":360,"bottom":136},"size":{"width":360,"height":56},"modifiers":[{"name":"padding","properties":{"top":"2.dp"}}]}}""",
     )
     val registry = LayoutInspectorDataProductRegistry(rootDir)
 
@@ -172,7 +172,7 @@ class ComposeSemanticsDataProductRegistryTest {
     val file =
       rootDir.resolve(previewId).also { it.mkdirs() }.resolve(LayoutInspectorDataProducer.FILE)
     file.writeText(
-      """{"root":{"nodeId":"1","component":"Box","bounds":{"left":0,"top":0,"right":1,"bottom":1},"size":{"width":1,"height":1}}}"""
+      """{"root":{"nodeId":"1","component":"Box","bounds":{"left":0,"top":0,"right":1,"bottom":1},"size":{"width":1,"height":1}}}""",
     )
 
     val attachment = registry.attachmentsFor(previewId, setOf("layout/inspector")).single()

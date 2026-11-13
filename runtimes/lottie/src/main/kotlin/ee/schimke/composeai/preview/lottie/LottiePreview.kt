@@ -175,7 +175,7 @@ internal fun loadLottieAsset(asset: String): String {
   }
   throw IllegalArgumentException(
     "Lottie asset '$asset' not found on the classpath. Put it under src/main/resources " +
-      "(e.g. src/main/resources/$normalized) so the preview plugin links and bundles it."
+      "(e.g. src/main/resources/$normalized) so the preview plugin links and bundles it.",
   )
 }
 

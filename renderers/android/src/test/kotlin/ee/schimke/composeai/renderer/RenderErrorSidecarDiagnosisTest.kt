@@ -30,8 +30,8 @@ class RenderErrorSidecarDiagnosisTest {
     val json =
       writeSidecar(
         GlanceComposerUnavailableException(
-          "No usable Glance app-widget composer on the render classpath. Upgrade to 1.2.0."
-        )
+          "No usable Glance app-widget composer on the render classpath. Upgrade to 1.2.0.",
+        ),
       )
 
     assertTrue(json, json.contains("\"diagnosis\":\"No usable Glance app-widget composer"))
@@ -48,7 +48,7 @@ class RenderErrorSidecarDiagnosisTest {
         RuntimeException(
           "Failed to render GlanceWidget",
           GlanceComposerUnavailableException("Upgrade glance-appwidget to 1.2.0 or newer."),
-        )
+        ),
       )
 
     assertTrue(json, json.contains("\"diagnosis\":\"Upgrade glance-appwidget to 1.2.0 or newer.\""))

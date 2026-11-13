@@ -57,7 +57,7 @@ fun runDisplayFilterPostCapturePipeline(
     )
   if (!plan.isValid) {
     System.err.println(
-      "DisplayFilterPostCapturePipeline: planning failed for $previewId — ${plan.errors}"
+      "DisplayFilterPostCapturePipeline: planning failed for $previewId — ${plan.errors}",
     )
     return store
   }
@@ -72,12 +72,12 @@ fun runDisplayFilterPostCapturePipeline(
           renderMode = null,
           products = store.scopedFor(ext),
           data = contextData,
-        )
+        ),
       )
     } catch (t: Throwable) {
       System.err.println(
         "DisplayFilterPostCapturePipeline: extension '${ext.id}' failed for " +
-          "$previewId: ${t.javaClass.simpleName}: ${t.message}"
+          "$previewId: ${t.javaClass.simpleName}: ${t.message}",
       )
     }
   }

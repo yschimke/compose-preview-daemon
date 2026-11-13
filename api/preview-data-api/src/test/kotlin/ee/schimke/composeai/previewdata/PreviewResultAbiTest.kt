@@ -23,7 +23,7 @@ class PreviewResultAbiTest {
             java.lang.Boolean::class.java,
             Map::class.java,
           )
-      }
+      },
     )
   }
 
@@ -52,7 +52,7 @@ class PreviewResultAbiTest {
             java.lang.Boolean.TYPE,
             String::class.java,
           )
-      }
+      },
     )
   }
 
@@ -74,7 +74,7 @@ class PreviewResultAbiTest {
             kotlinx.serialization.json.JsonElement::class.java,
             kotlinx.serialization.json.JsonElement::class.java,
           )
-      }
+      },
     )
   }
 }

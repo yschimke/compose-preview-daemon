@@ -231,7 +231,7 @@ class AndroidAnimatedFrameTimingTest {
       Box(
         Modifier.offset { IntOffset((LINEAR_TRAVEL_PX * fraction).roundToInt(), 0) }
           .size(BAR_PX.dp, 4.dp)
-          .background(Color.White)
+          .background(Color.White),
       )
     }
   }

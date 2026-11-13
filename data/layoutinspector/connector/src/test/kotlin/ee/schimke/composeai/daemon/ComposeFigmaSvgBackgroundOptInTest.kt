@@ -54,7 +54,7 @@ class ComposeFigmaSvgBackgroundOptInTest {
         bounds = LayoutInspectorBounds(0, 0, 200, 200),
         size = LayoutInspectorSize(200, 200),
         children = emptyList(),
-      )
+      ),
     )
 
   private fun export(
@@ -192,7 +192,7 @@ class ComposeFigmaSvgBackgroundOptInTest {
     assertTrue(
       "the injected fill must take the button's own bounds and radius:\n$svg",
       svg.contains(
-        """<rect x="20" y="60" width="160" height="80" rx="40" ry="40" fill="#000000""""
+        """<rect x="20" y="60" width="160" height="80" rx="40" ry="40" fill="#000000"""",
       ),
     )
     assertFalse(
@@ -217,8 +217,8 @@ class ComposeFigmaSvgBackgroundOptInTest {
               bounds = LayoutInspectorBounds(20, 60, 180, 140),
               size = LayoutInspectorSize(160, 80),
               tokens = ComposeSemanticsTokens(cornerRadiusPx = "40.0px"),
-            )
+            ),
           ),
-      )
+      ),
     )
 }

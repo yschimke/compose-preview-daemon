@@ -41,9 +41,9 @@ data class GoogleFontKey(val name: String, val weight: Int, val italic: Boolean)
       }
     }
       .trim('-')
-      // A name with no alphanumerics at all would otherwise slug to "", giving every such family
-      // the same `-400.ttf` cache filename.
-      .ifEmpty { "font" }
+    // A name with no alphanumerics at all would otherwise slug to "", giving every such family
+    // the same `-400.ttf` cache filename.
+    .ifEmpty { "font" }
   }
 }
 
@@ -157,7 +157,7 @@ class GoogleFontCache(
         Regex.escape(GoogleFontKey.slugify(family)) +
           "-(\\d+)" +
           (if (italic) "-italic" else "") +
-          "\\.ttf"
+          "\\.ttf",
       )
     return cacheDir
       .listFiles()
@@ -212,7 +212,7 @@ class GoogleFontCache(
  */
 internal fun nearestWeight(requested: Int, available: Collection<Int>): Int? =
   available.minWithOrNull(
-    compareBy<Int> { kotlin.math.abs(it - requested) }.thenBy { if (requested < 400) it else -it }
+    compareBy<Int> { kotlin.math.abs(it - requested) }.thenBy { if (requested < 400) it else -it },
   )
 
 /**

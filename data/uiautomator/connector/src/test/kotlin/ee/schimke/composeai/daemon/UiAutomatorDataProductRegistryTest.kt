@@ -91,8 +91,8 @@ class UiAutomatorDataProductRegistryTest {
               testTag = "submit-button",
               actions = listOf(UiAutomatorDataProducts.ACTION_CLICK),
               boundsInScreen = "10,20,110,80",
-            )
-          )
+            ),
+          ),
       )
     UiAutomatorDataProducer.writeArtifacts(rootDir, previewId = "p", payload = payload)
     val registry = UiAutomatorDataProductRegistry(rootDir)
@@ -162,8 +162,8 @@ class UiAutomatorDataProductRegistryTest {
               text = "Initial",
               actions = listOf(UiAutomatorDataProducts.ACTION_CLICK),
               boundsInScreen = "0,0,100,100",
-            )
-          )
+            ),
+          ),
       )
     UiAutomatorDataProducer.writeArtifacts(rootDir, previewId = "p", payload = first)
 
@@ -175,8 +175,8 @@ class UiAutomatorDataProductRegistryTest {
               text = "Updated",
               actions = listOf(UiAutomatorDataProducts.ACTION_CLICK),
               boundsInScreen = "0,0,100,100",
-            )
-          )
+            ),
+          ),
       )
     UiAutomatorDataProducer.writeArtifacts(rootDir, previewId = "p", payload = second)
 

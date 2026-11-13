@@ -137,19 +137,19 @@ class MaterialFocusRingTest {
     assertEquals(
       config,
       ComposeLayoutInspector.LayoutTreeAccess.rippleNodeConfiguration(
-        CachedConfigNode(_rippleNodeConfiguration = config)
+        CachedConfigNode(_rippleNodeConfiguration = config),
       ),
     )
     assertEquals(
       config,
       ComposeLayoutInspector.LayoutTreeAccess.rippleNodeConfiguration(
-        AndroidXConfigNode(rippleNodeConfiguration = { config })
+        AndroidXConfigNode(rippleNodeConfiguration = { config }),
       ),
     )
     assertEquals(
       config,
       ComposeLayoutInspector.LayoutTreeAccess.rippleNodeConfiguration(
-        MultiplatformConfigNode(rippleNodeConfig = { config })
+        MultiplatformConfigNode(rippleNodeConfig = { config }),
       ),
     )
     assertNull(ComposeLayoutInspector.LayoutTreeAccess.rippleNodeConfiguration(Any()))

@@ -135,7 +135,7 @@ class TouchOverlayDrawingRecordingTest {
         // 1. Overlay-painted assertion — mid-swirl frame must carry cyan ring pixels.
         val midFrame =
           TouchOverlayTestSupport.readPng(
-            File(result.framesDir, "frame-${"%05d".format(result.frameCount / 2)}.png")
+            File(result.framesDir, "frame-${"%05d".format(result.frameCount / 2)}.png"),
           )
         val cyanMatch =
           TouchOverlayTestSupport.pixelMatchPctApprox(
@@ -156,7 +156,7 @@ class TouchOverlayDrawingRecordingTest {
         //    pressed pointer's dots would survive.
         val lastFrame =
           TouchOverlayTestSupport.readPng(
-            File(result.framesDir, "frame-${"%05d".format(result.frameCount - 1)}.png")
+            File(result.framesDir, "frame-${"%05d".format(result.frameCount - 1)}.png"),
           )
         val coverages = STROKE_PALETTE.map { rgb ->
           rgb to
@@ -217,7 +217,7 @@ class TouchOverlayDrawingRecordingTest {
             pixelX = x,
             pixelY = y,
             pointerId = pointerIds[i],
-          )
+          ),
         )
       }
       // Frame-aligned moves — every STEP_MS the three fingers advance along their circles.
@@ -232,7 +232,7 @@ class TouchOverlayDrawingRecordingTest {
               pixelX = x,
               pixelY = y,
               pointerId = pointerIds[i],
-            )
+            ),
           )
         }
       }
@@ -246,7 +246,7 @@ class TouchOverlayDrawingRecordingTest {
             pixelX = x,
             pixelY = y,
             pointerId = pointerIds[i],
-          )
+          ),
         )
       }
     }
@@ -305,7 +305,7 @@ fun DrawingCanvasFixture() {
             }
           }
         }
-      }
+      },
   ) {
     points.forEach { pt ->
       val color = FIXTURE_PALETTE[(pt.pointerId.toInt() % FIXTURE_PALETTE.size).coerceAtLeast(0)]

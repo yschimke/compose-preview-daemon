@@ -45,7 +45,7 @@ import ee.schimke.composeai.data.remotecompose.RemoteComposeKnobDeclaration
 fun rememberOverridableRemoteString(name: String, default: String): RemoteString {
   SideEffect {
     RemoteComposeController.recordDeclaration(
-      RemoteComposeKnobDeclaration(name, RemoteNamedValue.StringValue(default))
+      RemoteComposeKnobDeclaration(name, RemoteNamedValue.StringValue(default)),
     )
   }
   return rememberNamedRemoteString(name, default)
@@ -56,7 +56,7 @@ fun rememberOverridableRemoteString(name: String, default: String): RemoteString
 fun rememberOverridableRemoteColor(name: String, default: Color): RemoteColor {
   SideEffect {
     RemoteComposeController.recordDeclaration(
-      RemoteComposeKnobDeclaration(name, RemoteNamedValue.ColorValue(default.toArgbHex()))
+      RemoteComposeKnobDeclaration(name, RemoteNamedValue.ColorValue(default.toArgbHex())),
     )
   }
   return rememberNamedRemoteColor(name, default)
@@ -70,7 +70,7 @@ fun rememberOverridableRemoteColor(name: String, default: Color): RemoteColor {
 fun rememberOverridableRemoteFloat(name: String, default: Float): RemoteFloat {
   SideEffect {
     RemoteComposeController.recordDeclaration(
-      RemoteComposeKnobDeclaration(name, RemoteNamedValue.FloatValue(default))
+      RemoteComposeKnobDeclaration(name, RemoteNamedValue.FloatValue(default)),
     )
   }
   // The alpha `rememberNamedRemoteFloat` has no plain-default overload — it takes a lambda that
@@ -86,7 +86,7 @@ fun rememberOverridableRemoteFloat(name: String, default: Float): RemoteFloat {
 fun rememberOverridableRemoteDp(name: String, default: Dp): RemoteDp {
   SideEffect {
     RemoteComposeController.recordDeclaration(
-      RemoteComposeKnobDeclaration(name, RemoteNamedValue.DpValue(default.value))
+      RemoteComposeKnobDeclaration(name, RemoteNamedValue.DpValue(default.value)),
     )
   }
   // Like the float wrapper, the alpha `rememberNamedRemoteDp` takes a lambda producing the default.

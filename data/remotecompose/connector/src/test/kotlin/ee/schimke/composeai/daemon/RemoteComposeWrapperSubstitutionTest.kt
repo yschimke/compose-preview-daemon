@@ -74,7 +74,7 @@ class RemoteComposeWrapperSubstitutionTest {
   fun `remote compose wrappers are structural`() {
     val provider = RemoteComposeWrapperSubstitution()
     assertTrue(
-      provider.isStructural("androidx.compose.remote.tooling.preview.RemotePreviewWrapper")
+      provider.isStructural("androidx.compose.remote.tooling.preview.RemotePreviewWrapper"),
     )
     assertTrue(provider.isStructural(RemoteOverridablePreviewWrapper::class.java.name))
     assertTrue(provider.isStructural(RemoteEmbeddedPreviewWrapper::class.java.name))

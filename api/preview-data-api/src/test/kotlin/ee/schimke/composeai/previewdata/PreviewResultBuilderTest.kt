@@ -73,7 +73,7 @@ class PreviewResultBuilderTest {
               functionName = "HomeScreen",
               className = "com.app.HomeScreenKt",
               captures = listOf(Capture(renderOutput = "renders/HomeScreen.png")),
-            )
+            ),
           ),
       ),
     )
@@ -114,7 +114,7 @@ class PreviewResultBuilderTest {
               params =
                 PreviewParams(previewParameterProviderClassName = "com.params.SampleProvider"),
               captures = listOf(Capture(renderOutput = "ParamShow.png")),
-            )
+            ),
           ),
       ),
     )
@@ -210,7 +210,7 @@ class PreviewResultBuilderTest {
               functionName = "Plain",
               className = "com.app.PlainKt",
               captures = listOf(Capture(renderOutput = "renders/Plain.png")),
-            )
+            ),
           ),
       ),
     )
@@ -283,7 +283,7 @@ class PreviewResultBuilderTest {
               functionName = "NeverRendered",
               className = "com.app.NeverRenderedKt",
               captures = listOf(Capture(renderOutput = "renders/NeverRendered.png")),
-            )
+            ),
           ),
       ),
     )

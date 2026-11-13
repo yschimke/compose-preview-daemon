@@ -165,7 +165,7 @@ class GlanceComposeForPreviewTest {
     assertEquals(
       listOf(
         "composeForPreview(widget=TestWidget, " +
-          "widgetCategory=${AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN}, info=300x200)"
+          "widgetCategory=${AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN}, info=300x200)",
       ),
       GlanceComposerCalls.recorded,
     )
@@ -192,7 +192,7 @@ class GlanceComposeForPreviewTest {
     assertEquals(
       listOf(
         "compose(id=fake-widget-id, options=null, " +
-          "size=${DpSize(300.dp, 200.dp)}, state=library-default-state)"
+          "size=${DpSize(300.dp, 200.dp)}, state=library-default-state)",
       ),
       GlanceComposerCalls.recorded,
     )

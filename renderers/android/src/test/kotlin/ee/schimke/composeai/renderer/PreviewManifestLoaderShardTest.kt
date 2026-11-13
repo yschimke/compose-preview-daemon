@@ -45,7 +45,7 @@ class PreviewManifestLoaderShardTest {
               kind = "render/scroll/long",
               output = "data/render-scroll-long/$id.png",
               cost = cost,
-            )
+            ),
           ),
       )
     return PreviewRow(entry, emptyList())

@@ -53,7 +53,7 @@ internal fun ImageComposeScene.composeSemanticsRoot(): ComposeSemanticsNode? {
  * [RenderEngine.layOutForSemantics] for why this doesn't move the frame clock.
  */
 internal fun RenderEngine.laidOutSemanticsRoot(
-  state: RenderEngine.SceneState
+  state: RenderEngine.SceneState,
 ): ComposeSemanticsNode? {
   layOutForSemantics(state)
   return state.scene.composeSemanticsRoot()

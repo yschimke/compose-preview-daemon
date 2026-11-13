@@ -44,7 +44,7 @@ class AmbientDataProductTest {
     val planner = AmbientPreviewOverrideExtension()
     val planned =
       planner.plan(
-        PreviewOverrides(ambient = AmbientOverride(state = AmbientStateOverride.AMBIENT))
+        PreviewOverrides(ambient = AmbientOverride(state = AmbientStateOverride.AMBIENT)),
       )
     assertTrue("expected planner to produce a hook", planned is AroundComposableHook)
     assertEquals(DataExtensionId(Material3AmbientProduct.KIND), planned!!.id)
@@ -151,7 +151,7 @@ class AmbientDataProductTest {
             state = AmbientStateOverride.INTERACTIVE,
             burnInProtectionRequired = true,
             deviceHasLowBitAmbient = true,
-          )
+          ),
       )
     // Use a stub RenderResult — we only care that onRender captures something the fetch surfaces.
     val stubResult = RenderResult(id = 1L, classLoaderHashCode = 0, classLoaderName = "test")

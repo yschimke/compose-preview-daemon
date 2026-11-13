@@ -120,10 +120,10 @@ class FigmaSvgWearTlcAlphaTest {
                   ButtonGroup(
                     Modifier.fillMaxWidth()
                       .minimumVerticalContentPadding(
-                        ButtonDefaults.minimumVerticalListContentPadding
+                        ButtonDefaults.minimumVerticalListContentPadding,
                       )
                       .transformedHeight(this, spec)
-                      .padding(bottom = 16.dp)
+                      .padding(bottom = 16.dp),
                   ) {
                     FilledIconButton(
                       onClick = {},

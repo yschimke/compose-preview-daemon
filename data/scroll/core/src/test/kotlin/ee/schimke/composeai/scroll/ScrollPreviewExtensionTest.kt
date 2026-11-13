@@ -26,7 +26,7 @@ class ScrollPreviewExtensionTest {
           viewportPx = 400f,
           density = 1f,
           frameIntervalMs = 80,
-        )
+        ),
       )
     val hook: FrameDriverHook = extension
     val states = RecordingExtensionStateRegistry()
@@ -104,7 +104,7 @@ class ScrollPreviewExtensionTest {
           extensionId = extension.id,
           previewId = "preview",
           renderMode = "scroll-long",
-        )
+        ),
       )
 
     assertEquals(1, sequence.frames.size)
@@ -126,7 +126,7 @@ class ScrollPreviewExtensionTest {
           extensionId = extension.id,
           previewId = "preview",
           renderMode = "scroll-long",
-        )
+        ),
       )
 
     val deltas = sequence.frames.map { it.scrollDeltaPx }
@@ -143,18 +143,22 @@ class ScrollPreviewExtensionTest {
           viewportPx = 400f,
           density = 1f,
           frameIntervalMs = 0,
-        )
+        ),
       )
 
     val sequence =
       extension.scrollFrames(
-        ExtensionFrameContext(extensionId = extension.id, previewId = "preview", renderMode = "gif")
+        ExtensionFrameContext(
+          extensionId = extension.id,
+          previewId = "preview",
+          renderMode = "gif",
+        ),
       )
 
     assertEquals(DEFAULT_SCROLL_GIF_FRAME_INTERVAL_MS, sequence.frames[1].frame.delayMillis)
     assertEquals(HOLD_START_MS.toLong(), sequence.frames[1].frame.timeMillis)
     assertTrue(
-      sequence.frames.zipWithNext().all { (a, b) -> b.frame.timeMillis > a.frame.timeMillis }
+      sequence.frames.zipWithNext().all { (a, b) -> b.frame.timeMillis > a.frame.timeMillis },
     )
   }
 
@@ -166,7 +170,7 @@ class ScrollPreviewExtensionTest {
           ScrollPreviewExtension.gifScrollScenario,
           RenderPreviewExtension.deviceClipProcessor,
           ScrollPreviewExtension.gifScrollEncoder,
-        )
+        ),
       )
 
     assertTrue(PreviewPipelineValidator.validate(plan).isEmpty())
@@ -191,7 +195,7 @@ class ScrollPreviewExtensionTest {
           ScrollPreviewExtension.gifScrollScenario,
           RenderPreviewExtension.composeTraceProfiler,
           ScrollPreviewExtension.gifScrollEncoder,
-        )
+        ),
       )
 
     assertTrue(PreviewPipelineValidator.validate(plan).isEmpty())
@@ -212,7 +216,7 @@ class ScrollPreviewExtensionTest {
           ScrollPreviewExtension.longScrollScenario,
           RenderPreviewExtension.deviceClipProcessor,
           ScrollPreviewExtension.longScrollEncoder,
-        )
+        ),
       )
 
     assertTrue(PreviewPipelineValidator.validate(plan).isEmpty())

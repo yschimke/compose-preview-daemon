@@ -237,7 +237,7 @@ class JsonRpcServerIntegrationTest {
     val host = FakeRenderHost(failureToThrow = IllegalStateException("deliberate test failure"))
     val extensions =
       ExtensionRegistry(
-        listOf(Extension(id = "test/failure-recording", dataProductRegistry = registry))
+        listOf(Extension(id = "test/failure-recording", dataProductRegistry = registry)),
       )
     extensions.enable(listOf("test/failure-recording"))
     val server =

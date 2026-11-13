@@ -50,7 +50,7 @@ class GestureDataProductTest {
     val planner = GesturePreviewOverrideExtension()
     val planned =
       planner.plan(
-        PreviewOverrides(gestures = GestureOverride.Builder().also { it.showHints = true }.build())
+        PreviewOverrides(gestures = GestureOverride.Builder().also { it.showHints = true }.build()),
       )
     assertTrue("expected planner to produce a hook", planned is AroundComposableHook)
     assertEquals(DataExtensionId(Material3GestureProduct.KIND), planned!!.id)

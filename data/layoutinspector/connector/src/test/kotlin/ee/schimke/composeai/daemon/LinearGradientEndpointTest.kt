@@ -47,7 +47,7 @@ class LinearGradientEndpointTest {
       elements =
         mapOf(
           "brush" to
-            LinearGradient(colors = listOf(Color.Red, Color.Blue), stops = null, start, end)
+            LinearGradient(colors = listOf(Color.Red, Color.Blue), stops = null, start, end),
         ),
       widthPx = 100,
       heightPx = 40,

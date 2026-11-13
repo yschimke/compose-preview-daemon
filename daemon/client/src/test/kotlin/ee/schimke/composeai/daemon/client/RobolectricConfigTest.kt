@@ -35,7 +35,7 @@ class RobolectricConfigTest {
           .composableLaneBody()
           .lines()
           .filterNot { it.startsWith("application=") }
-          .joinToString("\n")
+          .joinToString("\n"),
       )
   }
 
@@ -102,7 +102,7 @@ class RobolectricConfigTest {
       assertThat(body.lines())
         .contains(
           "shadows=ee.schimke.composeai.renderer.ShadowFontsContractCompat," +
-            "ee.schimke.composeai.renderer.ShadowConsumerClock"
+            "ee.schimke.composeai.renderer.ShadowConsumerClock",
         )
     }
     assertThat(config.systemProperties())
@@ -117,7 +117,7 @@ class RobolectricConfigTest {
     val config =
       RobolectricConfig(sdkLevel = 35)
         .withClockPackages(
-          listOf("java.", "android.", "org.robolectric.", "ee.schimke.composeai.", "com.example.")
+          listOf("java.", "android.", "org.robolectric.", "ee.schimke.composeai.", "com.example."),
         )
     assertThat(config.clockPackages).containsExactly("com.example.")
   }

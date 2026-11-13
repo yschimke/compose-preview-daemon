@@ -105,7 +105,7 @@ fun editSource(
     } catch (e: Throwable) {
       System.err.println(
         "editSource: failed to revert ${target.absolutePath}: ${e.message} " +
-          "(test cleanup will not block on this; investigate manually)"
+          "(test cleanup will not block on this; investigate manually)",
       )
     }
   }

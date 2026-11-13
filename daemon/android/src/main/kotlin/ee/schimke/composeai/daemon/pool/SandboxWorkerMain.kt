@@ -64,7 +64,7 @@ object SandboxWorkerMain {
       error(
         "${SandboxProcessPool.WORKER_PORT_PROP} is unset — SandboxWorkerMain is spawned by " +
           "SandboxProcessPool (or as a spare, with ${DaemonProperties.Names.SANDBOX_WORKER_SPARE}=true), " +
-          "not run directly"
+          "not run directly",
       )
     }
     val slot = System.getProperty(SandboxProcessPool.WORKER_SLOT_PROP)?.toIntOrNull() ?: 0
@@ -166,7 +166,7 @@ object SandboxWorkerMain {
           // Announced on the REAL stdout, unlike a daemon: a worker's stdout is diagnostics, and
           // this is the one line of it the spare pool parses (again, after a release).
           System.out.println(
-            "$SPARE_HANDSHAKE_PREFIX pid=${ProcessHandle.current().pid()} port=${server.localPort}"
+            "$SPARE_HANDSHAKE_PREFIX pid=${ProcessHandle.current().pid()} port=${server.localPort}",
           )
           System.out.flush()
           // No accept timeout: a spare waits as long as the pool keeps it. The pool kills spares
@@ -258,12 +258,12 @@ object SandboxWorkerMain {
     val dirs =
       DaemonProperties.userClassDirs.parse(
         props[DaemonProperties.Names.USER_CLASS_DIRS]
-          ?: System.getProperty(DaemonProperties.Names.USER_CLASS_DIRS)
+          ?: System.getProperty(DaemonProperties.Names.USER_CLASS_DIRS),
       )
     val mode =
       DaemonProperties.appCompose.parse(
         props[DaemonProperties.Names.APP_COMPOSE]
-          ?: System.getProperty(DaemonProperties.Names.APP_COMPOSE)
+          ?: System.getProperty(DaemonProperties.Names.APP_COMPOSE),
       ) ?: AppComposeSelection.MODE_AUTO
     val wanted =
       AppComposeSelection.decide(
@@ -319,7 +319,7 @@ object SandboxWorkerMain {
     }
     System.err.println(
       "sandbox worker: configured by pid=${request.parentPid} " +
-        "(${request.systemProperties.size} properties, ${userClassUrls.get().size} user class dirs)"
+        "(${request.systemProperties.size} properties, ${userClassUrls.get().size} user class dirs)",
     )
   }
 

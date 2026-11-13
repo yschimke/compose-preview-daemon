@@ -41,11 +41,11 @@ class DesktopHeldOverrideCarryTest {
                 mapOf(
                   "split" to PreviewOverrideValue.BooleanValue(true),
                   "label" to PreviewOverrideValue.StringValue("Primary"),
-                )
-            )
+                ),
+            ),
           ),
           PreviewOverrides(
-            namedOverrides = mapOf("label" to PreviewOverrideValue.StringValue("edited"))
+            namedOverrides = mapOf("label" to PreviewOverrideValue.StringValue("edited")),
           ),
         )
 
@@ -69,7 +69,7 @@ class DesktopHeldOverrideCarryTest {
             PreviewOverrides(
               ambient = AmbientOverride(state = AmbientStateOverride.AMBIENT),
               touchOverlay = true,
-            )
+            ),
           ),
           PreviewOverrides(),
         )

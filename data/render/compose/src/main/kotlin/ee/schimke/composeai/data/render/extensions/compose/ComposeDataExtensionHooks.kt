@@ -464,7 +464,7 @@ object ComposeDataExtensionPipeline {
           extraction = extraction,
           states = states,
           products = products.scopedFor(hook),
-        )
+        ),
     ) {
       Around(
         hooks = hooks,

@@ -17,7 +17,7 @@ class ThemeDataProductTest {
   fun `material theme override extension declares around composable hook`() {
     val extension =
       Material3ThemeOverrideExtension(
-        Material3ThemeOverrides(colorScheme = mapOf("primary" to "#FF336699"))
+        Material3ThemeOverrides(colorScheme = mapOf("primary" to "#FF336699")),
       )
     val hook: AroundComposableHook = extension
 

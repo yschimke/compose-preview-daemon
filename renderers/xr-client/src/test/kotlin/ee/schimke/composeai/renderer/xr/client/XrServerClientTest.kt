@@ -165,7 +165,7 @@ class XrServerClientTest {
                   )
                 },
               )
-            }
+            },
           )
         },
       )
@@ -282,7 +282,7 @@ class XrServerClientTest {
           put("streamFrame", true)
           put("multiSession", false)
           put("spatialSceneVersion", 1)
-        }
+        },
       )
     client.initialize()
     client.render("s1", scene(), sceneDir = ".")
@@ -300,7 +300,7 @@ class XrServerClientTest {
           put("streamFrame", true)
           put("multiSession", false)
           put("spatialSceneVersion", 1)
-        }
+        },
       )
     client.initialize()
     client.render("s1", scene(), sceneDir = ".")
@@ -318,7 +318,7 @@ class XrServerClientTest {
           put("streamFrame", true)
           put("multiSession", false)
           put("spatialSceneVersion", 1)
-        }
+        },
       )
     client.initialize()
     client.render("s1", scene(), sceneDir = ".")
@@ -347,7 +347,7 @@ class XrServerClientTest {
           put("streamFrame", true)
           put("multiSession", true)
           put("spatialSceneVersion", 1)
-        }
+        },
       )
     client.initialize()
     client.render("s1", scene(), sceneDir = ".")

@@ -144,7 +144,7 @@ class S5RenderFailedRealModeTest {
       assertEquals("Daemon must exit cleanly. Stderr=\n${client.dumpStderr()}", 0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "S5RenderFailedRealModeTest failed; daemon stderr:\n${client.dumpStderr()}"
+        "S5RenderFailedRealModeTest failed; daemon stderr:\n${client.dumpStderr()}",
       )
       throw t
     } finally {

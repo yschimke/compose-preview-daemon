@@ -98,7 +98,7 @@ class TalkBackOverlayRecordingTest {
           listOf(
             RecordingScriptEvent(tMs = 0L, kind = "input.click", pixelX = 4, pixelY = 4),
             RecordingScriptEvent(tMs = WALK_MS, kind = "input.click", pixelX = 4, pixelY = 4),
-          )
+          ),
         )
 
         val result = session.stop()

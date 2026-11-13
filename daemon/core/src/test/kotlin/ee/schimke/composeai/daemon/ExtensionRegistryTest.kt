@@ -37,7 +37,7 @@ class ExtensionRegistryTest {
           attachable = true,
           fetchable = true,
           requiresRerender = false,
-        )
+        ),
       )
 
     override fun fetch(
@@ -109,7 +109,7 @@ class ExtensionRegistryTest {
     )
     assertTrue(
       registry.publicDataProducts().fetch("p", "compose/semantics", null, false)
-        is DataProductRegistry.Outcome.Ok
+        is DataProductRegistry.Outcome.Ok,
     )
 
     registry.disable(listOf("compose/semantics"))
@@ -134,7 +134,7 @@ class ExtensionRegistryTest {
   fun `enable unknown id is reported and skipped`() {
     val registry =
       ExtensionRegistry(
-        listOf(Extension(id = "ext/a", dataProductRegistry = RecordingRegistry("a/kind")))
+        listOf(Extension(id = "ext/a", dataProductRegistry = RecordingRegistry("a/kind"))),
       )
     val out = registry.enable(listOf("ext/a", "nope"))
     assertEquals(listOf("ext/a"), out.newlyEnabled)
@@ -151,7 +151,7 @@ class ExtensionRegistryTest {
         listOf(
           Extension(id = "ext/b", dataProductRegistry = b),
           Extension(id = "ext/a", dataProductRegistry = a, dependencies = listOf("ext/b")),
-        )
+        ),
       )
 
     val out = registry.enable(listOf("ext/a"))
@@ -217,7 +217,7 @@ class ExtensionRegistryTest {
         listOf(
           Extension(id = "ext/a11y", dataProductRegistry = a11yProducer),
           Extension(id = "ext/theming", dataProductRegistry = theming),
-        )
+        ),
       )
     registry.enable(listOf("ext/a11y", "ext/theming"))
 
@@ -243,7 +243,7 @@ class ExtensionRegistryTest {
         listOf(
           Extension(id = "ext/b", dataProductRegistry = b),
           Extension(id = "ext/a", dataProductRegistry = a, dependencies = listOf("ext/b")),
-        )
+        ),
       )
     registry.enable(listOf("ext/a", "ext/b"))
 
@@ -264,7 +264,7 @@ class ExtensionRegistryTest {
         listOf(
           Extension(id = "ext/b", dataProductRegistry = b),
           Extension(id = "ext/a", dataProductRegistry = a, dependencies = listOf("ext/b")),
-        )
+        ),
       )
     registry.enable(listOf("ext/a"))
 
@@ -284,7 +284,7 @@ class ExtensionRegistryTest {
         listOf(
           Extension(id = "ext/b", dataProductRegistry = b),
           Extension(id = "ext/a", dataProductRegistry = a, dependencies = listOf("ext/b")),
-        )
+        ),
       )
     registry.enable(listOf("ext/a"))
 
@@ -309,7 +309,7 @@ class ExtensionRegistryTest {
       listOf(
         Extension(id = "a", dependencies = listOf("b")),
         Extension(id = "b", dependencies = listOf("a")),
-      )
+      ),
     )
   }
 

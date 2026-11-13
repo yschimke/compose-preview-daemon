@@ -50,7 +50,7 @@ class S8CostModelMetricsAndroidRealModeTest {
               id = previewId,
               className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
               functionName = "RedSquare",
-            )
+            ),
           ),
       )
 
@@ -138,7 +138,7 @@ class S8CostModelMetricsAndroidRealModeTest {
       assertEquals("Daemon must exit cleanly. Stderr=\n${client.dumpStderr()}", 0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "S8CostModelMetricsAndroidRealModeTest failed; daemon stderr:\n${client.dumpStderr()}"
+        "S8CostModelMetricsAndroidRealModeTest failed; daemon stderr:\n${client.dumpStderr()}",
       )
       throw t
     } finally {

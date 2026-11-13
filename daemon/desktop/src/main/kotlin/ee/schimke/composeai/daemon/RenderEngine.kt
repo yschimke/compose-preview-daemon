@@ -119,7 +119,7 @@ class RenderEngine(
   private val outputDir: File =
     File(
       System.getProperty(OUTPUT_DIR_PROP)
-        ?: composeAiCacheDir("history").resolve("daemon-renders").absolutePath
+        ?: composeAiCacheDir("history").resolve("daemon-renders").absolutePath,
     ),
   private val dataDir: File = (outputDir.parentFile ?: outputDir).resolve("data"),
   private val previewContextCapture: PreviewContextCapture? = null,
@@ -404,12 +404,12 @@ class RenderEngine(
     if (carried != null) {
       System.err.println(
         "compose-ai-daemon: [setUp] carried Remote Compose document (${carried.bytes.size} bytes) " +
-          "player=${carried.player.id} previewId=${spec.previewId} inspectionMode=$inspectionMode"
+          "player=${carried.player.id} previewId=${spec.previewId} inspectionMode=$inspectionMode",
       )
     } else if (isLottie) {
       System.err.println(
         "compose-ai-daemon: [setUp] lottie asset '${spec.assetPath}' " +
-          "loaderId=${System.identityHashCode(classLoader).toString(16)}"
+          "loaderId=${System.identityHashCode(classLoader).toString(16)}",
       )
     } else {
       val fingerprint =
@@ -418,7 +418,7 @@ class RenderEngine(
       System.err.println(
         "compose-ai-daemon: [setUp] ${spec.className}#${spec.functionName} " +
           "loaderId=${System.identityHashCode(classLoader).toString(16)} classFile=$fingerprint " +
-          "inspectionMode=$inspectionMode"
+          "inspectionMode=$inspectionMode",
       )
     }
 
@@ -467,7 +467,7 @@ class RenderEngine(
       mutableStateOf(
         spec.overrides?.lottie?.progress?.also { p ->
           spec.previewId?.let { LottieProgressController.remember(it, p) }
-        } ?: spec.previewId?.let { LottieProgressController.progressFor(it) }
+        } ?: spec.previewId?.let { LottieProgressController.progressFor(it) },
       )
     // Content-size bounds (the Max / Min / Within size modes) apply on a wrapped axis, where
     // widthPx/heightPx are a sandbox bound rather than a fixed frame. A min bound larger than the
@@ -566,7 +566,7 @@ class RenderEngine(
       } catch (t: Throwable) {
         System.err.println(
           "RenderEngine: scene lifecycle listener failed for $lifecyclePreviewId: " +
-            "${t.javaClass.simpleName}: ${t.message}"
+            "${t.javaClass.simpleName}: ${t.message}",
         )
       }
     }
@@ -659,7 +659,7 @@ class RenderEngine(
                     // installed on any daemon lane (#4371). See the helper's KDoc.
                     extensions =
                       previewOverrideExtensions.plan(
-                        spec.overrides.withPseudolocaleFrom(spec.localeTag)
+                        spec.overrides.withPseudolocaleFrom(spec.localeTag),
                       ),
                     previewId = spec.previewId,
                     renderMode = spec.renderMode,
@@ -694,7 +694,7 @@ class RenderEngine(
                       // provide
                       // still targets user `@Preview`s that call `LottiePreview` themselves.
                       CompositionLocalProvider(
-                        ee.schimke.composeai.preview.lottie.LocalLottieProgress provides null
+                        ee.schimke.composeai.preview.lottie.LocalLottieProgress provides null,
                       ) {
                         LottiePreview(
                           asset = spec.assetPath.orEmpty(),
@@ -753,7 +753,7 @@ class RenderEngine(
                     // night-YES bit alone, so 0x10 and 0 are the same to it — but leaving a second
                     // hand-rolled mapping around is what made the scroll dispatch copy the wrong
                     // one.
-                    uiMode = RenderSpec.uiModeBits(spec.uiMode)
+                    uiMode = RenderSpec.uiModeBits(spec.uiMode),
                   ) {
                     content()
                   }
@@ -966,7 +966,7 @@ class RenderEngine(
       trace.section("render:encodePng") {
         image.encodePngData()
           ?: error(
-            "Failed to encode image to PNG for ${state.spec.className}.${state.spec.functionName}"
+            "Failed to encode image to PNG for ${state.spec.className}.${state.spec.functionName}",
           )
       }
     // `overrides.talkBack` composites the TalkBack focus overlay onto the captured frame. Applied
@@ -1026,7 +1026,7 @@ class RenderEngine(
       } catch (t: Throwable) {
         System.err.println(
           "RenderEngine: displayfilter write failed for ${state.spec.outputBaseName}: " +
-            "${t.javaClass.simpleName}: ${t.message}"
+            "${t.javaClass.simpleName}: ${t.message}",
         )
       }
     }
@@ -1052,7 +1052,7 @@ class RenderEngine(
             *buildList {
               add(
                 RenderArtifactContextKeys.SemanticsSnapshot provides
-                  ComposeSemanticsSnapshot(semanticsRoot)
+                  ComposeSemanticsSnapshot(semanticsRoot),
               )
               add(
                 RenderArtifactContextKeys.LayoutSnapshot provides
@@ -1061,7 +1061,7 @@ class RenderEngine(
                     artifactSlotTables,
                     state.spec.density,
                     state.spec.fontScale ?: 1.0f,
-                  )
+                  ),
               )
               add(RenderArtifactContextKeys.RootDir provides dataDir)
               add(RenderArtifactContextKeys.OutputBaseName provides state.spec.outputBaseName)
@@ -1088,7 +1088,7 @@ class RenderEngine(
                 add(RenderArtifactContextKeys.SvgBackgroundMode provides it)
               }
             }
-              .toTypedArray()
+              .toTypedArray(),
           )
         val productStore = RecordingDataProductStore()
         // The on-demand kinds (the seconds-per-render `compose/figma-svg` export) run only when
@@ -1118,13 +1118,13 @@ class RenderEngine(
                   renderMode = state.spec.renderMode,
                   products = productStore.scopedFor(ext),
                   data = contextData,
-                )
+                ),
               )
             }
           } catch (t: Throwable) {
             System.err.println(
               "RenderEngine: ${ext.id} data write failed for ${state.spec.outputBaseName}: " +
-                "${t.javaClass.simpleName}: ${t.message}"
+                "${t.javaClass.simpleName}: ${t.message}",
             )
           } finally {
             // Recorded whether or not it threw: the trace reports what the render paid for.
@@ -1141,7 +1141,7 @@ class RenderEngine(
         if (
           FigmaSvgFidelity.enabled() &&
             workTraceMetrics.containsKey(
-              PostCaptureGate.ranMetricKey(ComposeFigmaSvgDataProducer.KIND)
+              PostCaptureGate.ranMetricKey(ComposeFigmaSvgDataProducer.KIND),
             )
         ) {
           try {
@@ -1154,7 +1154,7 @@ class RenderEngine(
           } catch (t: Throwable) {
             System.err.println(
               "RenderEngine: figma-svg fidelity failed for ${state.spec.outputBaseName}: " +
-                "${t.javaClass.simpleName}: ${t.message}"
+                "${t.javaClass.simpleName}: ${t.message}",
             )
           }
         }
@@ -1191,7 +1191,7 @@ class RenderEngine(
       } catch (t: Throwable) {
         System.err.println(
           "RenderEngine: a11y overlay write failed for ${state.spec.outputBaseName}: " +
-            "${t.javaClass.simpleName}: ${t.message}"
+            "${t.javaClass.simpleName}: ${t.message}",
         )
       }
     }
@@ -1292,7 +1292,7 @@ class RenderEngine(
     } catch (t: Throwable) {
       System.err.println(
         "RenderEngine: talkBack overlay failed for ${state.spec.outputBaseName}: " +
-          "${t.javaClass.simpleName}: ${t.message}"
+          "${t.javaClass.simpleName}: ${t.message}",
       )
       pngBytes
     }
@@ -1590,7 +1590,7 @@ class RenderEngine(
       spec.previewId
         ?: error(
           "RenderEngine: scroll mode '${spec.renderMode}' requires a previewId on the RenderSpec " +
-            "so the scroll metadata can be resolved from the previews.json index"
+            "so the scroll metadata can be resolved from the previews.json index",
         )
     val previewIndex = loadPreviewIndexLazily()
     val scroll =
@@ -1598,7 +1598,7 @@ class RenderEngine(
         ?: error(
           "RenderEngine: scroll mode '${spec.renderMode}' requested for previewId '$previewId' " +
             "but the preview has no matching dataProducts[].scroll entry in previews.json — " +
-            "the host should fall back to the Gradle composePreviewRenderAll path"
+            "the host should fall back to the Gradle composePreviewRenderAll path",
         )
     val (subdir, ext) =
       when (spec.renderMode) {
@@ -1656,7 +1656,7 @@ class RenderEngine(
     if (!handled) {
       error(
         "RenderEngine: scroll mode '${spec.renderMode}' returned false (no scrollable on " +
-          "scroll.axis=${scroll.axis} for previewId '$previewId')"
+          "scroll.axis=${scroll.axis} for previewId '$previewId')",
       )
     }
     val tookMs = (System.nanoTime() - startNs) / 1_000_000L
@@ -1699,7 +1699,7 @@ class RenderEngine(
     val previewId =
       spec.previewId
         ?: error(
-          "RenderEngine: render mode '${spec.renderMode}' requires a previewId on the RenderSpec"
+          "RenderEngine: render mode '${spec.renderMode}' requires a previewId on the RenderSpec",
         )
     val startNs = System.nanoTime()
     val tmpBase = "$previewId$SCROLL_SVG_TMP_SUFFIX"
@@ -1786,7 +1786,7 @@ class RenderEngine(
     if (!producedSvg.exists()) {
       error(
         "RenderEngine: render mode '${spec.renderMode}' produced no layered SVG for previewId " +
-          "'$previewId' (no layout tree captured?)"
+          "'$previewId' (no layout tree captured?)",
       )
     }
     // The long export lives in its own subdir (SVG + its own figma-raster/ crops). A hybrid export
@@ -1875,7 +1875,7 @@ class RenderEngine(
     state.lastRenderedFrameNanos = settledAtNanos
     System.err.println(
       "@SettledPreview on ${state.spec.outputBaseName}: settled at ${settledAtMs}ms " +
-        "(${if (state.settleIsExact) "exact" else "auto"}, window ${state.settleWindowMs}ms)."
+        "(${if (state.settleIsExact) "exact" else "auto"}, window ${state.settleWindowMs}ms).",
     )
   }
 
@@ -1976,7 +1976,7 @@ class RenderEngine(
     if (initial == null) {
       System.err.println(
         "@ScrollingPreview(END) on ${state.spec.outputBaseName}: nothing scrollable on axis " +
-          "${intent.axis} — capturing the initial frame."
+          "${intent.axis} — capturing the initial frame.",
       )
       return
     }
@@ -2016,7 +2016,7 @@ class RenderEngine(
     // above.
     System.err.println(
       "@ScrollingPreview(END) on ${state.spec.outputBaseName}: drove the scrollable " +
-        "${scrolledPx.toInt()} unit(s) to the content end."
+        "${scrolledPx.toInt()} unit(s) to the content end.",
     )
   }
 
@@ -2109,7 +2109,7 @@ class RenderEngine(
       if (target == null) {
         System.err.println(
           "@OverrideVariant hover on ${state.spec.outputBaseName}: no interactive node at index " +
-            "$hoverIndex — capturing the undriven state."
+            "$hoverIndex — capturing the undriven state.",
         )
         return
       }
@@ -2127,7 +2127,7 @@ class RenderEngine(
       if (target == null) {
         throw IllegalStateException(
           "@OverrideVariant drag on ${state.spec.outputBaseName}: no interactive node at index " +
-            "$dragIndex — interaction unavailable."
+            "$dragIndex — interaction unavailable.",
         )
       }
       val before = state.scene.render(nanoTime = state.nextVirtualFrameNanos())
@@ -2156,7 +2156,7 @@ class RenderEngine(
       if (beforeBytes == null || afterBytes == null || beforeBytes.contentEquals(afterBytes)) {
         throw IllegalStateException(
           "@OverrideVariant drag on ${state.spec.outputBaseName}: target at index $dragIndex did " +
-            "not produce a dragged frame; interaction unavailable."
+            "not produce a dragged frame; interaction unavailable.",
         )
       }
       return
@@ -2167,7 +2167,7 @@ class RenderEngine(
     if (target == null) {
       System.err.println(
         "@OverrideVariant $label on ${state.spec.outputBaseName}: no focusable node at index " +
-          "$focusIndex — capturing the undriven state."
+          "$focusIndex — capturing the undriven state.",
       )
       return
     }
@@ -2181,7 +2181,7 @@ class RenderEngine(
     if (focused == null) {
       System.err.println(
         "@OverrideVariant $label on ${state.spec.outputBaseName}: nothing took focus — " +
-          "capturing the undriven state."
+          "capturing the undriven state.",
       )
       return
     }
@@ -2349,7 +2349,7 @@ class RenderEngine(
       spec.assetPath?.takeIf { it.isNotBlank() }
         ?: error(
           "RenderEngine: kind=LOTTIE renderMode='$LOTTIE_GIF_RENDER_MODE' requires an assetPath on " +
-            "the RenderSpec so the Lottie document can be inflated"
+            "the RenderSpec so the Lottie document can be inflated",
         )
     val outputFile = File(outputDir, "${spec.outputBaseName}_animated.png")
     outputFile.parentFile?.mkdirs()
@@ -2369,7 +2369,7 @@ class RenderEngine(
       )
         ?: error(
           "RenderEngine: Lottie GIF encode produced no output for asset '$asset' (GIF writer " +
-            "plugin unavailable?)"
+            "plugin unavailable?)",
         )
     } finally {
       Thread.currentThread().contextClassLoader = previousContext
@@ -2954,14 +2954,14 @@ private fun loadWrapperByFqnOrNull(wrapperFqn: String): Pair<ComposableMethod, A
   .onFailure { t ->
     System.err.println(
       "compose-ai-daemon: [render] wrapper resolution failed for $wrapperFqn " +
-        "(${t.javaClass.simpleName}: ${t.message}); rendering without wrapper"
+        "(${t.javaClass.simpleName}: ${t.message}); rendering without wrapper",
     )
   }
   .getOrNull()
 
 @Composable
 private fun CaptureMaterialTheme(
-  onCaptured: (ColorScheme, Typography, Shapes, ThemePayload) -> Unit
+  onCaptured: (ColorScheme, Typography, Shapes, ThemePayload) -> Unit,
 ) {
   val colorScheme = MaterialTheme.colorScheme
   val typography = MaterialTheme.typography

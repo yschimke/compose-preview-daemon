@@ -150,7 +150,7 @@ object LocaleCompositionLocals {
     if (!reportedFailures.add(classLoader)) return
     System.err.println(
       "Locale composition locals unavailable — previews render in the default locale ($what): " +
-        "${e::class.java.simpleName}: ${e.message}"
+        "${e::class.java.simpleName}: ${e.message}",
     )
   }
 

@@ -160,7 +160,7 @@ class AndroidInteractiveIrReplayTest {
         ]
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
     System.setProperty(BundleIrReplayStore.BUNDLE_MANIFEST_PATH_PROP, manifest.absolutePath)
     System.setProperty(BundleIrReplayStore.IR_DIR_PROP, irDir.absolutePath)
@@ -261,14 +261,14 @@ class FakeRemoteComposeIrReplay {
           modifier =
             Modifier.fillMaxSize()
               .background(if (tapped) Color(0xFF1565C0) else Color(0xFFC62828))
-              .clickable { tapped = !tapped }
+              .clickable { tapped = !tapped },
         )
       }
       bytes.contentEquals(FakeReplayDocuments.THEMED) ->
         Box(
           modifier =
             Modifier.fillMaxSize()
-              .background(if (isSystemInDarkTheme()) Color(0xFF000080) else Color(0xFFFFFF00))
+              .background(if (isSystemInDarkTheme()) Color(0xFF000080) else Color(0xFFFFFF00)),
         )
       else -> Box(modifier = Modifier.fillMaxSize().background(Color(0xFF2E7D32)))
     }

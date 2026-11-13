@@ -190,7 +190,7 @@ for (line in lines) {
             "-Dwarm.test.composeRuntime=${runtimeFiles.asPath}",
             "-Dwarm.test.expectRefused=$refused",
           )
-        }
+        },
       )
       maxHeapSize = "2g"
     }

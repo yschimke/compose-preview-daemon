@@ -115,8 +115,8 @@ public object SpatialSemanticsTrees {
               poseInRoot = identityPose(),
               sizeDp = sizeDp,
               panelContent = content,
-            )
-          )
+            ),
+          ),
         ),
     )
 }

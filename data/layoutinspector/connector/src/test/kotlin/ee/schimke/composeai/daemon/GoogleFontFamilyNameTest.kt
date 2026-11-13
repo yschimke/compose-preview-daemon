@@ -88,13 +88,13 @@ class GoogleFontFamilyNameTest {
     assertEquals(
       "Orbitron",
       googleFontNameFromIdentity(
-        "Font(GoogleFont(\"Orbitron\", bestEffort=true), weight=400, style=Normal)"
+        "Font(GoogleFont(\"Orbitron\", bestEffort=true), weight=400, style=Normal)",
       ),
     )
     assertEquals(
       "Space Grotesk",
       googleFontNameFromIdentity(
-        "Font(GoogleFont(\"Space Grotesk\", bestEffort=true), weight=700, style=Normal)"
+        "Font(GoogleFont(\"Space Grotesk\", bestEffort=true), weight=700, style=Normal)",
       ),
     )
   }

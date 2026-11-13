@@ -26,7 +26,7 @@ object DisplayFilterConfig {
         System.err.println(
           "DisplayFilterConfig: ignoring unknown filter id '$token' (known: ${
             DisplayFilter.entries.joinToString { it.id }
-          })"
+          })",
         )
         continue
       }

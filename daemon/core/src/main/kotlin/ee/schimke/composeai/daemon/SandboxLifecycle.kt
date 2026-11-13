@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong
  */
 public class SandboxLifecycleStats(
   /** Host-construction time in nanoseconds. Defaults to [System.nanoTime] at instantiation. */
-  startNs: Long = System.nanoTime()
+  startNs: Long = System.nanoTime(),
 ) {
   @Volatile private var startNs: Long = startNs
 
@@ -115,7 +115,7 @@ public object SandboxMeasurement {
             System.err.println(
               "compose-ai-daemon: SandboxMeasurement: OperatingSystemMXBean is not " +
                 "com.sun.management.OperatingSystemMXBean (got ${osBean.javaClass.name}); " +
-                "reporting nativeHeapMb=0 for the rest of this JVM"
+                "reporting nativeHeapMb=0 for the rest of this JVM",
             )
           }
           0L
@@ -125,7 +125,7 @@ public object SandboxMeasurement {
           System.err.println(
             "compose-ai-daemon: SandboxMeasurement: failed to read committedVirtualMemorySize " +
               "(${t.javaClass.simpleName}: ${t.message}); reporting nativeHeapMb=0 for the rest " +
-              "of this JVM"
+              "of this JVM",
           )
         }
         0L

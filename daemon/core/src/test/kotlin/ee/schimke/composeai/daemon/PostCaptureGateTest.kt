@@ -62,7 +62,7 @@ class PostCaptureGateTest {
         requested = setOf("compose/spatial-semantics"),
         onDemandKinds = emptySet(),
         allowlist = setOf("compose/semantics"),
-      )
+      ),
     )
   }
 

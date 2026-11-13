@@ -74,7 +74,7 @@ class AndroidInteractiveCarriedRealPlayerTest {
               // test
               // presses it.
               pixelY = (SIZE_PX * 0.12f).toInt(),
-            )
+            ),
           )
           val tapped = frame(session)
           keepFrame("stepper-$playerId-1-tapped", tapped)
@@ -170,7 +170,7 @@ class AndroidInteractiveCarriedRealPlayerTest {
           pixelX = at.first,
           pixelY = at.second,
           pointerType = pointerType,
-        )
+        ),
       )
     when (gesture) {
       TapGesture.TOUCH_CLICK -> input(InteractiveInputKind.CLICK, "touch")
@@ -202,7 +202,7 @@ class AndroidInteractiveCarriedRealPlayerTest {
       session
         .render(requestId = RenderHost.nextRequestId(), advanceTimeMs = FRAME_ADVANCE_MS)
         .artifact
-        .pathOrNull()!!
+        .pathOrNull()!!,
     )
   }
 
@@ -267,7 +267,7 @@ class AndroidInteractiveCarriedRealPlayerTest {
       checkNotNull(
           AndroidInteractiveCarriedRealPlayerTest::class
             .java
-            .getResourceAsStream("/rc-fixtures/Stepper-ideal-default-compact.rc")
+            .getResourceAsStream("/rc-fixtures/Stepper-ideal-default-compact.rc"),
         ) {
           "missing Stepper fixture"
         }
@@ -287,7 +287,7 @@ class AndroidInteractiveCarriedRealPlayerTest {
       checkNotNull(
           AndroidInteractiveCarriedRealPlayerTest::class
             .java
-            .getResourceAsStream("/rc-fixtures/material-toggle-button.rc")
+            .getResourceAsStream("/rc-fixtures/material-toggle-button.rc"),
         ) {
           "missing toggle-button fixture"
         }

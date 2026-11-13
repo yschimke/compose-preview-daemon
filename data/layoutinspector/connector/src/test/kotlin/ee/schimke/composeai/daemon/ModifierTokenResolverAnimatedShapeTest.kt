@@ -148,7 +148,7 @@ class ModifierTokenResolverAnimatedShapeTest {
             androidx.compose.ui.geometry.RoundRect(
               Rect(0f, 0f, size.width, size.height),
               androidx.compose.ui.geometry.CornerRadius(12f, 12f),
-            )
+            ),
           )
       }
     with(ModifierTokenResolver) {

@@ -60,7 +60,7 @@ class PreviewManifestLoaderProviderTest {
               name = "empty",
               seeds = listOf(OverrideSeed(key = "count", kind = OverrideSeedKind.INT, raw = "0")),
             ),
-        )
+        ),
       )
 
     // One row, as for any preview without a provider — but now carrying arguments. The unseeded
@@ -79,7 +79,7 @@ class PreviewManifestLoaderProviderTest {
           className = "com.example.PreviewsKt",
           captures = listOf(RenderPreviewCapture(renderOutput = "renders/ShoppingCard.png")),
           knobs = listOf(RenderPreviewKnob("title", 0, "STRING", "Shopping list")),
-        )
+        ),
       )
 
     assertEquals(1, rows.size)
@@ -90,7 +90,7 @@ class PreviewManifestLoaderProviderTest {
   fun `private provider is enumerated instead of throwing IllegalAccessException`() {
     val rows =
       PreviewManifestLoader.expandParameterProvider(
-        entry("FooPreview", "com.example.testproviders.PrivateStringProvider")
+        entry("FooPreview", "com.example.testproviders.PrivateStringProvider"),
       )
 
     // One row per provided value ("alpha", "beta", "gamma"), each carrying its own value.
@@ -109,7 +109,7 @@ class PreviewManifestLoaderProviderTest {
 
     val rows =
       PreviewManifestLoader.expandParameterProvider(
-        entry("FooPreview", "com.example.testproviders.DoesNotExist")
+        entry("FooPreview", "com.example.testproviders.DoesNotExist"),
       )
 
     // No rows for the broken preview — but crucially no throw, so sibling previews still load.
@@ -124,7 +124,7 @@ class PreviewManifestLoaderProviderTest {
 
     val rows =
       PreviewManifestLoader.expandParameterProvider(
-        entry("FooPreview", "com.example.testproviders.ThrowingProvider")
+        entry("FooPreview", "com.example.testproviders.ThrowingProvider"),
       )
 
     assertTrue(rows.isEmpty())
@@ -140,7 +140,7 @@ class PreviewManifestLoaderProviderTest {
 
     val rows =
       PreviewManifestLoader.expandParameterProvider(
-        entry("FooPreview", "com.example.testproviders.PrivateStringProvider")
+        entry("FooPreview", "com.example.testproviders.PrivateStringProvider"),
       )
 
     assertEquals(3, rows.size)

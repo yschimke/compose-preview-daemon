@@ -157,7 +157,7 @@ open class RecompositionDataProductRegistry : DataProductRegistry {
         // Snapshot mode triggers a re-render-on-fetch (mode=recomposition); see DATA-PRODUCTS.md
         // § "Recomposition + interactive mode" and the Outcome.RequiresRerender path on fetch.
         requiresRerender = true,
-      )
+      ),
     )
 
   override fun fetch(
@@ -180,7 +180,7 @@ open class RecompositionDataProductRegistry : DataProductRegistry {
         val state = subscriptions[previewId]
         if (globallyUnavailable || state?.instrumentationUnavailable == true) {
           return DataProductRegistry.Outcome.FetchFailed(
-            message = "compose/recomposition: instrumentation unavailable for this Compose runtime"
+            message = "compose/recomposition: instrumentation unavailable for this Compose runtime",
           )
         }
         val payload =
@@ -204,7 +204,7 @@ open class RecompositionDataProductRegistry : DataProductRegistry {
             kind = KIND,
             schemaVersion = SCHEMA_VERSION,
             payload = json.encodeToJsonElement(RecompositionPayload.serializer(), payload),
-          )
+          ),
         )
       }
       MODE_SNAPSHOT -> {
@@ -218,7 +218,7 @@ open class RecompositionDataProductRegistry : DataProductRegistry {
       }
       else ->
         DataProductRegistry.Outcome.FetchFailed(
-          message = "compose/recomposition: unknown mode '$mode' (expected 'delta' or 'snapshot')"
+          message = "compose/recomposition: unknown mode '$mode' (expected 'delta' or 'snapshot')",
         )
     }
   }
@@ -257,7 +257,7 @@ open class RecompositionDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(RecompositionPayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -275,7 +275,7 @@ open class RecompositionDataProductRegistry : DataProductRegistry {
         // by another subscribe attaches an observer.
         System.err.println(
           "compose-ai-daemon: RecompositionDataProductRegistry: subscribe mode='delta' for " +
-            "previewId='$previewId' but no live interactive session; treating as 'snapshot'"
+            "previewId='$previewId' but no live interactive session; treating as 'snapshot'",
         )
         MODE_SNAPSHOT
       } else rawMode
@@ -401,7 +401,7 @@ open class RecompositionDataProductRegistry : DataProductRegistry {
         System.err.println(
           "compose-ai-daemon: RecompositionDataProductRegistry: observer install failed for " +
             "previewId='?' frameStreamId='${state.frameStreamId}' " +
-            "(${t.javaClass.simpleName}: ${t.message}); marking instrumentation unavailable"
+            "(${t.javaClass.simpleName}: ${t.message}); marking instrumentation unavailable",
         )
         state.instrumentationUnavailable = true
         globallyUnavailable = true
@@ -549,7 +549,7 @@ open class RecompositionDataProductRegistry : DataProductRegistry {
           nodeId = Integer.toHexString(k),
           count = v,
           reason = reasonFor(count = v, invalidations = inv),
-        )
+        ),
       )
     }
     // Drop invalidation signals for scopes that were invalidated this window but never recomposed
@@ -580,7 +580,7 @@ open class RecompositionDataProductRegistry : DataProductRegistry {
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: RecompositionDataProductRegistry: observer dispose failed " +
-          "(${t.javaClass.simpleName}: ${t.message}); ignoring"
+          "(${t.javaClass.simpleName}: ${t.message}); ignoring",
       )
     }
   }

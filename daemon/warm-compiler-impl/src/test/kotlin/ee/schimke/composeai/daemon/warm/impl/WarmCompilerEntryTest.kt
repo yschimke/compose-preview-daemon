@@ -66,7 +66,7 @@ class WarmCompilerEntryTest {
           "stagingDir" to File(root, "staging").path,
           "pluginClasspath" to composePlugin,
           "pluginOptions" to listOf(pluginOption),
-        )
+        ),
       ) as AutoCloseable
 
   @After
@@ -250,7 +250,7 @@ class WarmCompilerEntryTest {
           import androidx.compose.runtime.Composable
           @Composable private fun WarmUp(items: List<String>) { items.forEach { println(it) } }
           """
-            .trimIndent()
+            .trimIndent(),
         )
       }
     @Suppress("UNCHECKED_CAST")

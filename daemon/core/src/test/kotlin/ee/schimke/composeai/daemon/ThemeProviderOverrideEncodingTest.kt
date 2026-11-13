@@ -42,7 +42,7 @@ class ThemeProviderOverrideEncodingTest {
   fun themeProviderOverrideIsEncodedIntoTheExtensionBag() {
     val captured =
       renderAndCaptureTarget(
-        overrides = """{"themeProvider":"com.example.designcatalogwearm3.WearTealThemeCatalog"}"""
+        overrides = """{"themeProvider":"com.example.designcatalogwearm3.WearTealThemeCatalog"}""",
       )
     val bag = requireNotNull(captured.overrides)
     assertEquals("com.example.designcatalogwearm3.WearTealThemeCatalog", bag.themeProvider)
@@ -58,7 +58,7 @@ class ThemeProviderOverrideEncodingTest {
           """{
                 "themeProvider":"com.example.ThemeCatalog",
                 "material3Theme":{"sourceColor":"#FF3366FF"}
-              }"""
+              }""",
       )
     val bag = requireNotNull(captured.overrides)
     assertEquals("com.example.ThemeCatalog", bag.themeProvider)
@@ -218,7 +218,7 @@ private class PayloadCapturingThemeProviderHost : RenderHost {
                     id = req.id,
                     classLoaderHashCode = 0,
                     classLoaderName = "theme-provider-override-encoding-test",
-                  )
+                  ),
                 )
               }
               // Never enqueued here: `submit` only accepts a Render. Present so the `when` stays

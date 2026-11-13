@@ -25,10 +25,10 @@ class HistoryFiltersTest {
       )
 
     assertTrue(
-      HistoryFilters.matches(local, shared.copy(sourceKind = "fs", sourceId = "fs:/history"))
+      HistoryFilters.matches(local, shared.copy(sourceKind = "fs", sourceId = "fs:/history")),
     )
     assertTrue(
-      HistoryFilters.matches(git, shared.copy(sourceKind = "git", sourceId = "git:preview/main"))
+      HistoryFilters.matches(git, shared.copy(sourceKind = "git", sourceId = "git:preview/main")),
     )
     assertFalse(HistoryFilters.matches(local, shared.copy(sourceKind = "git")))
   }

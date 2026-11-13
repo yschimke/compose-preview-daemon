@@ -231,7 +231,7 @@ class DesktopRecordingSession(
           System.err.println(
             "compose-ai-daemon: DesktopRecordingSession($recordingId) tick-thread uncaught " +
               "exception (likely Compose recomposition error): ${t.javaClass.simpleName}: " +
-              "${t.message}"
+              "${t.message}",
           )
         }
         start()
@@ -350,7 +350,7 @@ class DesktopRecordingSession(
     System.err.println(
       "compose-ai-daemon: DesktopRecordingSession.stop($recordingId, scripted): " +
         "rendered $totalFrames frame(s) covering ${durationMs}ms virtual time in ${tookMs}ms wall " +
-        "(scale=$scale, fps=$fps, ${frameWidthPx}x${frameHeightPx}px)"
+        "(scale=$scale, fps=$fps, ${frameWidthPx}x${frameHeightPx}px)",
     )
     return RecordingResult(
       frameCount = totalFrames,
@@ -406,7 +406,7 @@ class DesktopRecordingSession(
           } catch (t: Throwable) {
             System.err.println(
               "compose-ai-daemon: assert.pixels diff-artefact write failed at t=${event.tMs}ms: " +
-                "${t.javaClass.simpleName}: ${t.message}"
+                "${t.javaClass.simpleName}: ${t.message}",
             )
           }
         }
@@ -431,7 +431,7 @@ class DesktopRecordingSession(
       if (thread.isAlive) {
         System.err.println(
           "compose-ai-daemon: DesktopRecordingSession.stop($recordingId, live): " +
-            "tick thread did not exit within 5s after liveStopRequested; continuing anyway"
+            "tick thread did not exit within 5s after liveStopRequested; continuing anyway",
         )
       }
     }
@@ -465,7 +465,7 @@ class DesktopRecordingSession(
         // the frames do not have.
         System.err.println(
           "compose-ai-daemon: DesktopRecordingSession.stop($recordingId, live): tick thread " +
-            "still running, so frames are published at the scene's size without reframing"
+            "still running, so frames are published at the scene's size without reframing",
         )
         val sceneWidth = if (renderedSceneWidthPx > 0) renderedSceneWidthPx else sceneWidthPx
         val sceneHeight = if (renderedSceneHeightPx > 0) renderedSceneHeightPx else sceneHeightPx
@@ -474,7 +474,7 @@ class DesktopRecordingSession(
     System.err.println(
       "compose-ai-daemon: DesktopRecordingSession.stop($recordingId, live): " +
         "captured $frameCount frame(s) over ~${durationMs}ms wall time " +
-        "(scale=$scale, fps=$fps, ${frameWidthPx}x${frameHeightPx}px)"
+        "(scale=$scale, fps=$fps, ${frameWidthPx}x${frameHeightPx}px)",
     )
     return RecordingResult(
       frameCount = frameCount,
@@ -542,7 +542,7 @@ class DesktopRecordingSession(
             appliedEvidence(e, "probe marker reached", probeSemantics = probeNodes)
           },
         )
-      }
+      },
     )
 
   /**
@@ -606,7 +606,7 @@ class DesktopRecordingSession(
       .onFailure {
         System.err.println(
           "compose-ai-daemon: DesktopRecordingSession($recordingId): could not read semantics " +
-            "owner bounds (${it.javaClass.simpleName}); popup content may be cropped"
+            "owner bounds (${it.javaClass.simpleName}); popup content may be cropped",
         )
       }
     renderedSceneWidthPx = image.width
@@ -654,7 +654,7 @@ class DesktopRecordingSession(
     val target =
       wireTarget?.toSemanticsTarget()
         ?: return ResolvedPixels.Unresolved(
-          "${event.kind} requires pixelX/pixelY or a resolvable target"
+          "${event.kind} requires pixelX/pixelY or a resolvable target",
         )
     val root =
       engine.laidOutSemanticsRoot(state)
@@ -1080,7 +1080,7 @@ class DesktopRecordingSession(
       liveFailure = t
       System.err.println(
         "compose-ai-daemon: DesktopRecordingSession.runLiveTickLoop($recordingId) failed at " +
-          "frame $liveFrameCount: ${t.javaClass.simpleName}: ${t.message}"
+          "frame $liveFrameCount: ${t.javaClass.simpleName}: ${t.message}",
       )
     }
   }
@@ -1090,7 +1090,7 @@ class DesktopRecordingSession(
       result
         ?: error(
           "DesktopRecordingSession.encode($format): stop() must be called before encode() " +
-            "(recordingId='$recordingId')"
+            "(recordingId='$recordingId')",
         )
     encodedDir.mkdirs()
     return when (format) {
@@ -1174,7 +1174,7 @@ class DesktopRecordingSession(
           if (thread.isAlive) {
             System.err.println(
               "compose-ai-daemon: DesktopRecordingSession.close($recordingId, live): " +
-                "tick thread did not exit within 5s; tearing down anyway"
+                "tick thread did not exit within 5s; tearing down anyway",
             )
           }
         }

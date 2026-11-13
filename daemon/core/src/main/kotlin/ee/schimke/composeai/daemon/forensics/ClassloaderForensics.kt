@@ -283,7 +283,7 @@ public object ClassloaderForensics {
                 put("classloaderIdentityChanged", it.classloaderIdentityChanged)
                 put("codeSourceChanged", it.codeSourceChanged)
                 put("moduleHashChanged", it.moduleHashChanged)
-              }
+              },
             )
           }
         },
@@ -299,7 +299,7 @@ public object ClassloaderForensics {
                 put("bInstrumented", it.bInstrumented)
                 put("aLoader", it.aLoader)
                 put("bLoader", it.bLoader)
-              }
+              },
             )
           }
         },
@@ -315,7 +315,7 @@ public object ClassloaderForensics {
                 put("key", k)
                 put("a", av)
                 put("b", bv)
-              }
+              },
             )
           }
         },
@@ -332,7 +332,7 @@ public object ClassloaderForensics {
                 put("packageVersionChanged", it.packageVersionChanged)
                 put("aLoader", it.aLoader)
                 put("bLoader", it.bLoader)
-              }
+              },
             )
           }
         },
@@ -346,7 +346,7 @@ public object ClassloaderForensics {
                 put("fqn", it.fqn)
                 put("aLoader", it.aLoader)
                 put("bLoader", it.bLoader)
-              }
+              },
             )
           }
         },
@@ -373,11 +373,11 @@ public object ClassloaderForensics {
         append(
           "_None._ A and B agree on loader type, code source, and bytecode for every shared class. " +
             "(Identity-hash-only differences within the same loader type are routed to § 7 as " +
-            "expected per-JVM-fork noise, not flagged here.)\n\n"
+            "expected per-JVM-fork noise, not flagged here.)\n\n",
         )
       } else {
         append(
-          "| FQN | A loader | B loader | A location | B location | type ≠ | codeSource ≠ | moduleHash ≠ |\n"
+          "| FQN | A loader | B loader | A location | B location | type ≠ | codeSource ≠ | moduleHash ≠ |\n",
         )
         append("|---|---|---|---|---|---|---|---|\n")
         for (d in smokingGuns) {
@@ -385,7 +385,7 @@ public object ClassloaderForensics {
           val csFlag = if (d.codeSourceChanged) "⚠️ yes" else "no"
           val mhFlag = if (d.moduleHashChanged) "⚠️ yes" else "no"
           append(
-            "| `${d.fqn}` | `${d.aLoader}` | `${d.bLoader}` | ${shortLoc(d.aLocation)} | ${shortLoc(d.bLocation)} | $typeFlag | $csFlag | $mhFlag |\n"
+            "| `${d.fqn}` | `${d.aLoader}` | `${d.bLoader}` | ${shortLoc(d.aLocation)} | ${shortLoc(d.bLocation)} | $typeFlag | $csFlag | $mhFlag |\n",
           )
         }
         append("\n")
@@ -394,14 +394,14 @@ public object ClassloaderForensics {
       append("## 2. Robolectric instrumentation flag mismatches\n\n")
       if (instrumentationDiffs.isEmpty()) {
         append(
-          "_None._ Every shared class has the same `robolectricInstrumented` flag in A and B.\n\n"
+          "_None._ Every shared class has the same `robolectricInstrumented` flag in A and B.\n\n",
         )
       } else {
         append("| FQN | A instrumented? | B instrumented? | A loader | B loader |\n")
         append("|---|---|---|---|---|\n")
         for (d in instrumentationDiffs) {
           append(
-            "| `${d.fqn}` | ${d.aInstrumented} | ${d.bInstrumented} | `${d.aLoader}` | `${d.bLoader}` |\n"
+            "| `${d.fqn}` | ${d.aInstrumented} | ${d.bInstrumented} | `${d.aLoader}` | `${d.bLoader}` |\n",
           )
         }
         append("\n")
@@ -448,7 +448,7 @@ public object ClassloaderForensics {
       append("## 7. Identity-hash noise (expected per-JVM-fork variance)\n\n")
       if (identityNoise.isEmpty()) {
         append(
-          "_None._ Either both runs share a JVM (rare) or no shared classes had identity-hash differences.\n\n"
+          "_None._ Either both runs share a JVM (rare) or no shared classes had identity-hash differences.\n\n",
         )
       } else {
         append(
@@ -456,7 +456,7 @@ public object ClassloaderForensics {
             "configurations but with different `identityHashCode`s. Expected when A and B run " +
             "in separate Gradle test forks — each Robolectric `Sandbox` builds a fresh " +
             "`SandboxClassLoader` whose identity hash is per-JVM-run randomness. **Not a bug** " +
-            "unless A and B were supposed to share a JVM.\n\n"
+            "unless A and B were supposed to share a JVM.\n\n",
         )
       }
     }

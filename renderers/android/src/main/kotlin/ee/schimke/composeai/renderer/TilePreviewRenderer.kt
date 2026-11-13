@@ -273,7 +273,7 @@ private fun invokeTilePreviewFunction(
       else ->
         error(
           "TilePreview '$functionName' has unsupported signature; " +
-            "expected 0 or 1 (Context) parameters, found ${method.parameterTypes.size}"
+            "expected 0 or 1 (Context) parameters, found ${method.parameterTypes.size}",
         )
     }
   return result as? TilePreviewData
@@ -309,7 +309,7 @@ private fun findTilePreviewMethod(
     ?: candidates.firstOrNull { it.parameterTypes.isEmpty() }
     ?: error(
       "TilePreview '$functionName' on '$className' has no supported overload " +
-        "(expected no-arg or single Context parameter)"
+        "(expected no-arg or single Context parameter)",
     )
 }
 
@@ -321,7 +321,7 @@ private fun buildDeviceParameters(widthDp: Int, heightDp: Int, device: String?):
     .setScreenDensity(2.0f)
     .setScreenShape(
       if (isRound) DeviceParametersBuilders.SCREEN_SHAPE_ROUND
-      else DeviceParametersBuilders.SCREEN_SHAPE_RECT
+      else DeviceParametersBuilders.SCREEN_SHAPE_RECT,
     )
     .setDevicePlatform(DeviceParametersBuilders.DEVICE_PLATFORM_WEAR_OS)
     .build()

@@ -70,8 +70,8 @@ class WrappedPreviewRenderTest {
                   density = 1.0f,
                   wrapperClassName = "ee.schimke.composeai.daemon.GreenBorderWrapper",
                 ),
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -115,8 +115,8 @@ class WrappedPreviewRenderTest {
                   kind = "WEAR_THEME_CATALOG",
                   wrapperClassName = provider,
                 ),
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -165,7 +165,7 @@ class WrappedPreviewRenderTest {
             ]
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
       }
     System.setProperty(PreviewIndex.PREVIEWS_JSON_PATH_PROP, previewIndex.absolutePath)
@@ -184,8 +184,8 @@ class WrappedPreviewRenderTest {
                   density = 1.0f,
                   wrapperClassName = "ee.schimke.composeai.daemon.RequiredCompositionLocalWrapper",
                 ),
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -195,7 +195,7 @@ class WrappedPreviewRenderTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            target = RenderTarget.Preview(previewId = "wrapped-scroll", renderMode = "scroll-long")
+            target = RenderTarget.Preview(previewId = "wrapped-scroll", renderMode = "scroll-long"),
           ),
           timeoutMs = 120_000,
         )
@@ -254,8 +254,8 @@ class WrappedPreviewRenderTest {
                   density = 1.0f,
                   wrapperClassName = "ee.schimke.composeai.daemon.RequiredCompositionLocalWrapper",
                 ),
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()

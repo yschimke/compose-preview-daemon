@@ -82,7 +82,7 @@ open class SandboxHoldingRunner(testClass: Class<*>) :
   }
 
   override fun createClassLoaderConfig(
-    method: org.junit.runners.model.FrameworkMethod
+    method: org.junit.runners.model.FrameworkMethod,
   ): InstrumentationConfiguration {
     val builder =
       InstrumentationConfiguration.Builder(super.createClassLoaderConfig(method))

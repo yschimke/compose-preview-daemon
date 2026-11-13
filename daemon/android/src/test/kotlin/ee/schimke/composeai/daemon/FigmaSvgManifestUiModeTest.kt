@@ -59,11 +59,11 @@ class FigmaSvgManifestUiModeTest {
                       key = "fill",
                       kind = OverrideSeedKind.COLOR,
                       raw = "#FF42A5F5",
-                    )
+                    ),
                   ),
               ),
             ),
-          )
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -100,7 +100,7 @@ class FigmaSvgManifestUiModeTest {
             // Light first, matching discovery's annotation order for a Light/Dark multipreview.
             entry("square_Light", uiMode = 0x11), // UI_MODE_NIGHT_NO | TYPE_NORMAL
             entry("square_Dark", uiMode = 0x21), // UI_MODE_NIGHT_YES | TYPE_NORMAL
-          )
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()

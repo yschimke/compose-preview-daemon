@@ -30,13 +30,13 @@ class NativeLoadDiagnosisTest {
       UnsatisfiedLinkError(
         "/root/.skiko/skiko-linux-x64-434f7633/libskiko-linux-x64.so: " +
           "/lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_ABI_DT_X86_64_PLT' not found " +
-          "(required by /nix/store/qqiqd3ah10x8-glibc-2.42-67/lib/libpthread.so.0)"
+          "(required by /nix/store/qqiqd3ah10x8-glibc-2.42-67/lib/libpthread.so.0)",
       )
     // Stand-in for org.jetbrains.skiko.LibraryLoadException, which the renderer deliberately does
     // not link: same position in the chain, same uninformative message.
     val skikoWrapper =
       UnsatisfiedLinkError(
-          "Failed to loade library /root/.skiko/skiko-linux-x64-434f7633/libskiko-linux-x64.so"
+          "Failed to loade library /root/.skiko/skiko-linux-x64-434f7633/libskiko-linux-x64.so",
         )
         .apply { initCause(reason) }
     return ExceptionInInitializerError(skikoWrapper)
@@ -66,8 +66,8 @@ class NativeLoadDiagnosisTest {
       NativeLoadDiagnosis.diagnose(
         UnsatisfiedLinkError(
           "/root/.skiko/x/libskiko-linux-x64.so: libGL.so.1: cannot open shared object file: " +
-            "No such file or directory"
-        )
+            "No such file or directory",
+        ),
       )
 
     assertNotNull(diagnosis)
@@ -85,7 +85,7 @@ class NativeLoadDiagnosisTest {
     val ownLib =
       UnsatisfiedLinkError(
         "/opt/app/libtokenizer.so: libtokenizer.so: cannot open shared object file: " +
-          "No such file or directory"
+          "No such file or directory",
       )
 
     val diagnosis = NativeLoadDiagnosis.diagnose(ownLib)
@@ -109,7 +109,7 @@ class NativeLoadDiagnosisTest {
     // latch exists to prevent, arriving through a different door.
     fun failure() =
       UnsatisfiedLinkError(
-        "/opt/app/libtokenizer.so: libtokenizer.so: cannot open shared object file"
+        "/opt/app/libtokenizer.so: libtokenizer.so: cannot open shared object file",
       )
 
     assertFalse(NativeLoadDiagnosis.diagnose(failure())!!.cascade)
@@ -120,14 +120,14 @@ class NativeLoadDiagnosisTest {
     // bound that refuses new entries would hide it forever)...
     repeat(80) { i ->
       NativeLoadDiagnosis.diagnose(
-        UnsatisfiedLinkError("/opt/app/lib$i.so: lib$i.so: cannot open shared object file")
+        UnsatisfiedLinkError("/opt/app/lib$i.so: lib$i.so: cannot open shared object file"),
       )
     }
     val fresh =
       NativeLoadDiagnosis.diagnose(
         UnsatisfiedLinkError(
-          "/opt/app/libbrandnew.so: libbrandnew.so: cannot open shared object file"
-        )
+          "/opt/app/libbrandnew.so: libbrandnew.so: cannot open shared object file",
+        ),
       )
     assertFalse(fresh!!.cascade)
 
@@ -136,15 +136,15 @@ class NativeLoadDiagnosisTest {
     val repeatOfFresh =
       NativeLoadDiagnosis.diagnose(
         UnsatisfiedLinkError(
-          "/opt/app/libbrandnew.so: libbrandnew.so: cannot open shared object file"
-        )
+          "/opt/app/libbrandnew.so: libbrandnew.so: cannot open shared object file",
+        ),
       )
     assertTrue(repeatOfFresh!!.cascade)
 
     // A *different* library is news again, and still not a Skia cascade.
     val other =
       NativeLoadDiagnosis.diagnose(
-        UnsatisfiedLinkError("/opt/app/libcodec.so: libcodec.so: cannot open shared object file")
+        UnsatisfiedLinkError("/opt/app/libcodec.so: libcodec.so: cannot open shared object file"),
       )
     assertFalse(other!!.cascade)
     assertTrue(other.text.contains("libcodec.so"))
@@ -155,7 +155,7 @@ class NativeLoadDiagnosisTest {
     val first = NativeLoadDiagnosis.diagnose(glibcSkewFailure())
     val second =
       NativeLoadDiagnosis.diagnose(
-        NoClassDefFoundError("Could not initialize class org.jetbrains.skia.Surface")
+        NoClassDefFoundError("Could not initialize class org.jetbrains.skia.Surface"),
       )
 
     assertNotNull(second)
@@ -173,7 +173,7 @@ class NativeLoadDiagnosisTest {
     // the failing initialisation happened before this renderer's own bookkeeping.
     val diagnosis =
       NativeLoadDiagnosis.diagnose(
-        NoClassDefFoundError("Could not initialize class org.jetbrains.skiko.Library")
+        NoClassDefFoundError("Could not initialize class org.jetbrains.skiko.Library"),
       )
 
     assertNotNull(diagnosis)

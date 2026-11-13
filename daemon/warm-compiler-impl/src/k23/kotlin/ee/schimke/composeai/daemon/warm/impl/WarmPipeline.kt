@@ -102,7 +102,7 @@ internal class LoadedPlugins(
  */
 internal class InjectPluginsPhase(private val plugins: LoadedPlugins) :
   PipelinePhase<ConfigurationPipelineArtifact, ConfigurationPipelineArtifact>(
-    name = "WarmInjectPlugins"
+    name = "WarmInjectPlugins",
   ) {
   override fun executePhase(input: ConfigurationPipelineArtifact): ConfigurationPipelineArtifact {
     if (plugins.options.isNotEmpty()) {
@@ -263,7 +263,7 @@ internal class WarmFrontendPhase(
       @Suppress("UNCHECKED_CAST")
       val point =
         project.extensionArea.getExtensionPoint(
-          descriptor.extensionPointName as ExtensionPointName<Any>
+          descriptor.extensionPointName as ExtensionPointName<Any>,
         )
       for (extension in extensions) point.registerExtension(extension, owner)
     }
@@ -301,7 +301,7 @@ internal class WarmCliPipeline(
   override val defaultPerformanceManager: PerformanceManager = perf
 
   override fun createCompoundPhase(
-    arguments: K2JVMCompilerArguments
+    arguments: K2JVMCompilerArguments,
   ): CompilerPhase<PipelineContext, ArgumentsPipelineArtifact<K2JVMCompilerArguments>, *> =
     JvmConfigurationPipelinePhase then
       InjectPluginsPhase(plugins) then

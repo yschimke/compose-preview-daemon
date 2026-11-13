@@ -67,9 +67,9 @@ class DialogWindowRenderTest {
                   className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
                   functionName = "VisualOnlySurfaceWithPopup",
                   params = PreviewParamsEntry(widthDp = 96, heightDp = 96, density = 1.0f),
-                )
-              )
-          )
+                ),
+              ),
+          ),
       )
 
     host.start()
@@ -116,9 +116,9 @@ class DialogWindowRenderTest {
                   className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
                   functionName = "DialogWindowSurface",
                   params = params,
-                )
-              )
-          )
+                ),
+              ),
+          ),
       )
 
     host.start()

@@ -70,7 +70,7 @@ class DesktopKnobBakeSidecarTest {
   @Test
   fun `a seeded knob reaches the pixels and the declaration together`() {
     ee.schimke.composeai.overrides.PreviewOverrideController.set(
-      mapOf("sizeDp" to PreviewOverrideValue.IntValue(90))
+      mapOf("sizeDp" to PreviewOverrideValue.IntValue(90)),
     )
     val (png, sidecar) = bake("seeded")
 
@@ -116,7 +116,7 @@ class DesktopKnobBakeSidecarTest {
   @Test
   fun `an enum seed binds by constant name and reaches the pixels`() {
     ee.schimke.composeai.overrides.PreviewOverrideController.set(
-      mapOf("size" to PreviewOverrideValue.StringValue("Large"))
+      mapOf("size" to PreviewOverrideValue.StringValue("Large")),
     )
     val (png, sidecar) = bake("enum-seeded", knobs = enumKnobs, function = "EnumKnobSticker")
 
@@ -130,7 +130,7 @@ class DesktopKnobBakeSidecarTest {
   @Test
   fun `a seed naming no constant of the enum falls back to the author default`() {
     ee.schimke.composeai.overrides.PreviewOverrideController.set(
-      mapOf("size" to PreviewOverrideValue.StringValue("Enormous"))
+      mapOf("size" to PreviewOverrideValue.StringValue("Enormous")),
     )
     val (png, _) = bake("enum-bogus", knobs = enumKnobs, function = "EnumKnobSticker")
 
@@ -147,7 +147,7 @@ class DesktopKnobBakeSidecarTest {
     // its renders are compared against — and `extra-large` is not a legal Kotlin identifier, so the
     // constant cannot simply be renamed to it. Both halves have to speak the declared text.
     ee.schimke.composeai.overrides.PreviewOverrideController.set(
-      mapOf("size" to PreviewOverrideValue.StringValue("extra-large"))
+      mapOf("size" to PreviewOverrideValue.StringValue("extra-large")),
     )
     val (png, sidecar) = bake("aliased", knobs = aliasedKnobs, function = "AliasedKnobSticker")
 

@@ -56,9 +56,9 @@ class FigmaSvgTofuFallbackTest {
                   fontWeight = 500,
                   fontFamily = family,
                 ),
-            )
+            ),
           ),
-      )
+      ),
     )
 
   /** Mirrors `FigmaFontEmbedTest.textNode()` — a Screen wrapping one Text at the same bounds. */
@@ -76,9 +76,9 @@ class FigmaSvgTofuFallbackTest {
               component = "Text",
               bounds = LayoutInspectorBounds(8, 8, 192, 40),
               size = LayoutInspectorSize(184, 32),
-            )
+            ),
           ),
-      )
+      ),
     )
 
   private fun writeSvg(previewId: String): String {
@@ -136,7 +136,7 @@ class FigmaSvgTofuFallbackTest {
       layout = layout(),
       semantics =
         ComposeSemanticsPayload(
-          ComposeSemanticsNode(nodeId = "root", boundsInRoot = "0,0,200,100")
+          ComposeSemanticsNode(nodeId = "root", boundsInRoot = "0,0,200,100"),
         ),
     )
 
@@ -208,9 +208,9 @@ class FigmaSvgTofuFallbackTest {
                         ),
                       ),
                   ),
-              )
+              ),
             ),
-        )
+        ),
       )
 
     ComposeFigmaSvgDataProducer.writeSvg(
@@ -330,7 +330,7 @@ class FigmaSvgTofuFallbackTest {
     face.writeBytes(
       requireNotNull(javaClass.getResourceAsStream("/fonts/roboto-flex-latin.ttf")).use {
         it.readBytes()
-      }
+      },
     )
     FigmaSvgRenderedFonts.record("Roboto Flex")
     FigmaSvgRenderedFonts.record("Space Grotesk") // an offscreen section or invisible spacing Text
@@ -392,11 +392,11 @@ class FigmaSvgTofuFallbackTest {
                             end = 8,
                             fontFamily = "/missing/font.ttf",
                           ),
-                        )
-                    )
-                )
-              )
-          )
+                        ),
+                    ),
+                ),
+              ),
+          ),
       )
     ComposeFigmaSvgDataProducer.writeSvg(
       rootDir = dir,
@@ -424,12 +424,12 @@ class FigmaSvgTofuFallbackTest {
                     text.typography!!.copy(
                       spans =
                         listOf(
-                          ComposeSemanticsTextSpan(start = 0, end = 4, fontFamily = "Orbitron")
-                        )
-                    )
-                )
-              )
-          )
+                          ComposeSemanticsTextSpan(start = 0, end = 4, fontFamily = "Orbitron"),
+                        ),
+                    ),
+                ),
+              ),
+          ),
       )
     ComposeFigmaSvgDataProducer.writeSvg(
       rootDir = dir,

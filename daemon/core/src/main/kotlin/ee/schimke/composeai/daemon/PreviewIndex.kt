@@ -683,7 +683,7 @@ internal constructor(
       if (!Files.exists(absolute)) {
         System.err.println(
           "compose-ai-daemon: PreviewIndex.loadFromFile($absolute): file does not exist; " +
-            "starting with empty index"
+            "starting with empty index",
         )
         return empty()
       }
@@ -693,7 +693,7 @@ internal constructor(
         } catch (t: Throwable) {
           System.err.println(
             "compose-ai-daemon: PreviewIndex.loadFromFile($absolute): read failed " +
-              "(${t.javaClass.simpleName}: ${t.message}); starting with empty index"
+              "(${t.javaClass.simpleName}: ${t.message}); starting with empty index",
           )
           return empty()
         }
@@ -703,7 +703,7 @@ internal constructor(
         } catch (t: Throwable) {
           System.err.println(
             "compose-ai-daemon: PreviewIndex.loadFromFile($absolute): parse failed " +
-              "(${t.javaClass.simpleName}: ${t.message}); starting with empty index"
+              "(${t.javaClass.simpleName}: ${t.message}); starting with empty index",
           )
           return empty()
         }

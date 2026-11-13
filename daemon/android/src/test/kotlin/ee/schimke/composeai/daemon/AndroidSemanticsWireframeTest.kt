@@ -55,7 +55,7 @@ class AndroidSemanticsWireframeTest {
                   node("btn", "16,24,344,84", label = "Save", clickable = true),
                   node("lyrics", "16,100,344,300", mergeMode = "clearAndSet", label = "Lyrics"),
                 ),
-            )
+            ),
         )
       val dest = File(dir, "nested/out/wireframe.png")
       val written = AndroidSemanticsWireframe.generate(payload, dest, padding = 16)

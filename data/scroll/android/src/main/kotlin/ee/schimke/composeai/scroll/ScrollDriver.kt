@@ -185,7 +185,7 @@ fun driveScrollByViewport(
     var measured = ContentAnchors.displacement(anchorsBefore, settle.anchors)
     trace?.invoke(
       "step $iteration after: ${ContentAnchors.describe(settle.anchors)} measured=$measured " +
-        "deltas=${ContentAnchors.deltas(anchorsBefore, settle.anchors)}"
+        "deltas=${ContentAnchors.deltas(anchorsBefore, settle.anchors)}",
     )
     var corrections = 0
     var correctedPx = 0f
@@ -207,7 +207,7 @@ fun driveScrollByViewport(
       trace?.invoke(
         "step $iteration correction $corrections by $shortfall: " +
           "${ContentAnchors.describe(settle.anchors)} measured=$measured " +
-          "deltas=${ContentAnchors.deltas(anchorsBefore, settle.anchors)}"
+          "deltas=${ContentAnchors.deltas(anchorsBefore, settle.anchors)}",
       )
     }
 
@@ -229,7 +229,7 @@ fun driveScrollByViewport(
         settled = settle.settled,
         landed = landed,
         anchors = settle.anchors.size,
-      )
+      ),
     )
     scrolledPx += credited
     // Nothing moved ⇒ the content end, so don't emit another slice of the same frame.

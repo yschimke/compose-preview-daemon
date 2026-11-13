@@ -86,7 +86,7 @@ class RobolectricHostSpareAdoptionTest {
     // Diagnostics for the memory profile (Linux only; STARTUP.md § "The pool, before and after").
     System.err.println(
       "[measure] spare warm RSS: ${rssKb(pid)} kB; host JVM before start: " +
-        "${rssKb(ProcessHandle.current().pid())} kB"
+        "${rssKb(ProcessHandle.current().pid())} kB",
     )
     if (System.getenv("COMPOSEAI_TEST_SPARE_JVM_ARGS")?.contains("NativeMemoryTracking") == true) {
       Thread.sleep(5_000)
@@ -128,7 +128,10 @@ class RobolectricHostSpareAdoptionTest {
       first.start()
       assertEquals(listOf(spare.pid), first.workerPidsForTest())
       assertNotNull(
-        first.submit(RenderRequest.Render(target = RenderTarget.Stub("first")), timeoutMs = 120_000)
+        first.submit(
+          RenderRequest.Render(target = RenderTarget.Stub("first")),
+          timeoutMs = 120_000,
+        ),
       )
       first.shutdown()
       val released = spare.handshakes.poll(30, TimeUnit.SECONDS)
@@ -160,7 +163,7 @@ class RobolectricHostSpareAdoptionTest {
         )
         System.err.println(
           "[measure] re-adopted worker: start ${startMs}ms, first catalog render " +
-            "${(System.nanoTime() - renderStartedAt) / 1_000_000}ms"
+            "${(System.nanoTime() - renderStartedAt) / 1_000_000}ms",
         )
       } finally {
         System.clearProperty(UserClassLoaderHolder.USER_CLASS_DIRS_PROP)
@@ -232,7 +235,7 @@ class RobolectricHostSpareAdoptionTest {
       val iconsFirst = timedRender("IconButtonRowInputBar", "first-icons")
       System.err.println(
         "[measure] adopted worker first renders: RedSquare ${red}ms, M3 first ${m3First}ms, " +
-          "M3 second ${m3Second}ms, icons+M3 first ${iconsFirst}ms"
+          "M3 second ${m3Second}ms, icons+M3 first ${iconsFirst}ms",
       )
 
       // The in-process sandbox comes up behind it and the pool completes.
@@ -243,7 +246,7 @@ class RobolectricHostSpareAdoptionTest {
       assertEquals("slot 0 should boot in the background", 2, host.readySlotCountForTest())
       System.err.println(
         "[measure] host JVM after slot 0 booted: ${rssKb(ProcessHandle.current().pid())} kB; " +
-          "spare after a render: ${rssKb(spare.pid)} kB"
+          "spare after a render: ${rssKb(spare.pid)} kB",
       )
       val later =
         host.submit(
@@ -285,7 +288,7 @@ class RobolectricHostSpareAdoptionTest {
       host.start()
       assertEquals("only the adopted worker is ready", 1, host.readySlotCountForTest())
       assertNotNull(
-        host.submit(RenderRequest.Render(target = RenderTarget.Stub("one")), timeoutMs = 120_000)
+        host.submit(RenderRequest.Render(target = RenderTarget.Stub("one")), timeoutMs = 120_000),
       )
       Thread.sleep(2_000)
       assertFalse("one render must not boot a worker", host.workerBootRequestedForTest())
@@ -330,21 +333,21 @@ class RobolectricHostSpareAdoptionTest {
       Thread.sleep(8_000)
       assertEquals("slot 0 must stay deferred", 1, host.readySlotCountForTest())
       System.err.println(
-        "[measure] host JVM with slot 0 deferred: ${rssKb(ProcessHandle.current().pid())} kB"
+        "[measure] host JVM with slot 0 deferred: ${rssKb(ProcessHandle.current().pid())} kB",
       )
 
       val startedAt = System.nanoTime()
       host.ensureInProcessSandboxForTest()
       System.err.println(
         "[measure] on-demand slot 0 boot: ${(System.nanoTime() - startedAt) / 1_000_000}ms; " +
-          "host JVM after: ${rssKb(ProcessHandle.current().pid())} kB"
+          "host JVM after: ${rssKb(ProcessHandle.current().pid())} kB",
       )
       assertEquals("slot 0 boots on demand", 2, host.readySlotCountForTest())
       assertNotNull(
         host.submit(
           RenderRequest.Render(target = RenderTarget.Stub("render-2")),
           timeoutMs = 120_000,
-        )
+        ),
       )
     } finally {
       System.clearProperty(DaemonProperties.Names.LAZY_IN_PROCESS_SANDBOX)
@@ -368,7 +371,7 @@ class RobolectricHostSpareAdoptionTest {
         density = 2.0f,
         showBackground = true,
         outputBaseName = tag,
-      )
+      ),
     )
 
   /** The testFixtures classes, copied out so they can be a user-class dir of their own. */
@@ -377,7 +380,7 @@ class RobolectricHostSpareAdoptionTest {
     val resourceName = "ee/schimke/composeai/daemon/RedFixturePreviewsKt.class"
     val url =
       (Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()).getResource(
-        resourceName
+        resourceName,
       ) ?: error("Can't locate testFixtures class on the test classpath: $resourceName")
     val urlString = url.toString()
     if (urlString.startsWith("file:")) {

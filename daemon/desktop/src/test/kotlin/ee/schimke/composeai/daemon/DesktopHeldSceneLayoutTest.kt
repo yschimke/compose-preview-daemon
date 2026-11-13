@@ -186,7 +186,7 @@ class DesktopHeldSceneLayoutTest {
               kind = InteractiveInputKind.CLICK,
               pixelX = 60,
               pixelY = 30,
-            )
+            ),
           )
           Thread.sleep(200L)
           session.stop()

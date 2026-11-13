@@ -29,7 +29,7 @@ class CompositeDataProductRegistryTest {
           attachable = true,
           fetchable = true,
           requiresRerender = false,
-        )
+        ),
       )
 
     override fun isKnown(kind: String): Boolean = kind == this.kind
@@ -56,7 +56,7 @@ class CompositeDataProductRegistryTest {
         listOf(
           StubProducer("a11y/atf", renderMode = "a11y"),
           StubProducer("compose/recomposition", renderMode = null),
-        )
+        ),
       )
     assertEquals("a11y", composite.renderModeFor("a11y/atf"))
     assertNull(composite.renderModeFor("compose/recomposition"))
@@ -87,7 +87,7 @@ class CompositeDataProductRegistryTest {
         listOf(
           StubProducer("a11y/atf", renderMode = "a11y-override"),
           StubProducer("a11y/atf", renderMode = "a11y"),
-        )
+        ),
       )
     assertEquals("a11y-override", composite.renderModeFor("a11y/atf"))
   }

@@ -80,7 +80,7 @@ class TalkBackFocusOverlayTest {
     val bm =
       BitmapFactory.decodeFile(
         TalkBackFocusOverlay.generate(source, nodes, focusedStop = 1, destPng = dest())!!
-          .absolutePath
+          .absolutePath,
       )
     // The caption card is a near-opaque dark panel over the black source; its green accent bar on
     // the left edge is the easiest signal. Scan the left margin band in the bottom quarter.

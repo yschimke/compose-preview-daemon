@@ -83,7 +83,7 @@ internal fun LauncherHomeScreen(
           modifier =
             Modifier.size(width = widgetWidthDp.dp, height = widgetHeightDp.dp)
               .clip(RoundedCornerShape(20.dp))
-              .background(Color(0x33000000))
+              .background(Color(0x33000000)),
         ) {
           content()
         }
@@ -309,7 +309,7 @@ private fun PageIndicator(foreground: Color) {
           Modifier.padding(horizontal = 4.dp)
             .size(if (active) 7.dp else 6.dp)
             .clip(CircleShape)
-            .background(if (active) foreground else foreground.copy(alpha = 0.4f))
+            .background(if (active) foreground else foreground.copy(alpha = 0.4f)),
       )
     }
   }
@@ -340,7 +340,7 @@ private fun GestureHandle(foreground: Color) {
       modifier =
         Modifier.size(width = 120.dp, height = 5.dp)
           .clip(RoundedCornerShape(3.dp))
-          .background(foreground.copy(alpha = 0.85f))
+          .background(foreground.copy(alpha = 0.85f)),
     )
   }
 }

@@ -82,8 +82,8 @@ class RenderEngineTest {
               wrapHeight = wrap,
               showBackground = true,
               outputBaseName = base,
-            )
-          )
+            ),
+          ),
       ),
       timeoutMs = 120_000,
     )
@@ -128,7 +128,7 @@ class RenderEngineTest {
               .resolve("data")
               .resolve(base)
               .resolve(LayoutInspectorDataProducer.FILE)
-              .readText()
+              .readText(),
           )
           .jsonObject
 
@@ -188,8 +188,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "red-square",
-              )
-            )
+              ),
+            ),
         )
       // Robolectric sandbox bootstrap dominates the first render; allow generous timeout.
       val result = host.submit(request, timeoutMs = 120_000)
@@ -294,8 +294,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "figma-fonts",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )
@@ -352,8 +352,8 @@ class RenderEngineTest {
                   outputBaseName = base,
                   requestedDataKinds = kinds,
                   device = device,
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -455,8 +455,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "figma-novec",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )
@@ -501,8 +501,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "figma-raster",
-              )
-            )
+              ),
+            ),
         )
       host.submit(request, timeoutMs = 120_000)
 
@@ -571,8 +571,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "figma-gradient",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )
@@ -638,8 +638,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "figma-radial",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )
@@ -694,8 +694,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "figma-emoji",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )
@@ -746,8 +746,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "figma-transforms",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )
@@ -810,8 +810,8 @@ class RenderEngineTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "padded-icon",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -886,8 +886,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "record-button",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )
@@ -933,8 +933,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "animated-fab",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )
@@ -987,8 +987,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "scaffold-list",
-              )
-            )
+              ),
+            ),
         )
       host.submit(request, timeoutMs = 240_000)
 
@@ -1051,8 +1051,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "private-red-square",
-              )
-            )
+              ),
+            ),
         )
       val result = host.submit(request, timeoutMs = 120_000)
 
@@ -1107,8 +1107,8 @@ class RenderEngineTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "preview-parameter-square",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -1162,8 +1162,8 @@ class RenderEngineTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "preview-parameter-square_PARAM_1",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -1218,8 +1218,8 @@ class RenderEngineTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "preview-parameter-square_4280191205",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -1271,8 +1271,8 @@ class RenderEngineTest {
                   heightPx = 64,
                   density = 1.0f,
                   outputBaseName = "preview-parameter-square_PARAM_9",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -1316,8 +1316,8 @@ class RenderEngineTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "serif-text",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -1369,8 +1369,8 @@ class RenderEngineTest {
                   showBackground = true,
                   renderMode = "theme",
                   outputBaseName = "android-theme",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -1413,8 +1413,8 @@ class RenderEngineTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "android-theme-subscribed",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -1450,8 +1450,8 @@ class RenderEngineTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "warmup-$i",
-                )
-              )
+                ),
+              ),
           )
         val startNs = System.nanoTime()
         val result = host.submit(request, timeoutMs = 120_000)
@@ -1467,7 +1467,7 @@ class RenderEngineTest {
       // these — perf assertions live in D2.x / D-harness. We just want them in --info output.
       println(
         "RenderEngineTest 5-render warm-up: total=${totalMs}ms first=${firstMs}ms " +
-          "warm-median=${warmMedianMs}ms per-render=$perRenderMs"
+          "warm-median=${warmMedianMs}ms per-render=$perRenderMs",
       )
     } finally {
       host.shutdown()
@@ -1498,8 +1498,8 @@ class RenderEngineTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "resource-reading",
-              )
-            )
+              ),
+            ),
         )
       host.submit(request, timeoutMs = 120_000)
 
@@ -1529,7 +1529,7 @@ class RenderEngineTest {
         byName["compose_ai_resource_used_label"]!!["resolvedFile"]!!
           .jsonPrimitive
           .content
-          .endsWith("src/main/res/values/resources_used.xml")
+          .endsWith("src/main/res/values/resources_used.xml"),
       )
       assertEquals(
         "color",

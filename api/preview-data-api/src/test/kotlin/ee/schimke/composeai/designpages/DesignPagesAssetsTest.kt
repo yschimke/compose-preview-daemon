@@ -104,7 +104,7 @@ class DesignPagesAssetsTest {
           ]
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val page = manifest.pages.single()
@@ -140,7 +140,7 @@ class DesignPagesAssetsTest {
           ]
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
     val page = manifest.pages.single()

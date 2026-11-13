@@ -138,7 +138,7 @@ class DesktopCarriedRemoteComposeTest {
           pixelX = SIZE_PX / 2,
           // The increase button, where rc-players' own stepper click test presses it.
           pixelY = (SIZE_PX * 0.12f).toInt(),
-        )
+        ),
       )
       // Let the press settle and the value animate before comparing.
       Thread.sleep(400)
@@ -172,7 +172,7 @@ class DesktopCarriedRemoteComposeTest {
             pixelY = (SIZE_PX * 0.12f).toInt(),
           ),
           RecordingScriptEvent(tMs = 900L, kind = "recording.probe"),
-        )
+        ),
       )
       val result = recording.stop()
       assertEquals(SIZE_PX, result.frameWidthPx)
@@ -214,7 +214,7 @@ class DesktopCarriedRemoteComposeTest {
     val result =
       host.submit(
         RenderRequest.Render(
-          target = RenderTarget.Preview(previewId = previewId, overrides = overrides)
+          target = RenderTarget.Preview(previewId = previewId, overrides = overrides),
         ),
         timeoutMs = 60_000,
       )
@@ -260,7 +260,7 @@ class DesktopCarriedRemoteComposeTest {
       checkNotNull(
           DesktopCarriedRemoteComposeTest::class
             .java
-            .getResourceAsStream("/rc-fixtures/Stepper-ideal-default-compact.rc")
+            .getResourceAsStream("/rc-fixtures/Stepper-ideal-default-compact.rc"),
         ) {
           "missing Stepper fixture"
         }

@@ -81,7 +81,7 @@ class FigmaSvgGradientPaintGrowthRenderTest {
           Modifier.size(120.dp, 80.dp)
             .background(brush, RoundedCornerShape(12.dp))
             .clickable {}
-            .padding(16.dp)
+            .padding(16.dp),
         )
       }
     assertEquals("gradient rect geometry:\n$svg", Rect(0, 0, 120, 80), gradientRect(svg))
@@ -98,7 +98,7 @@ class FigmaSvgGradientPaintGrowthRenderTest {
           Modifier.size(120.dp, 80.dp)
             .clip(RoundedCornerShape(12.dp))
             .padding(16.dp)
-            .background(brush, RoundedCornerShape(12.dp))
+            .background(brush, RoundedCornerShape(12.dp)),
         )
       }
     assertEquals("gradient rect geometry:\n$svg", Rect(16, 16, 88, 48), gradientRect(svg))
@@ -118,7 +118,7 @@ class FigmaSvgGradientPaintGrowthRenderTest {
           Modifier.size(120.dp, 80.dp)
             .shadow(8.dp, RoundedCornerShape(12.dp))
             .padding(16.dp)
-            .background(brush, RoundedCornerShape(12.dp))
+            .background(brush, RoundedCornerShape(12.dp)),
         )
       }
     assertEquals("gradient rect geometry:\n$svg", Rect(16, 16, 88, 48), gradientRect(svg))
@@ -137,7 +137,7 @@ class FigmaSvgGradientPaintGrowthRenderTest {
           Modifier.size(120.dp)
             .wrapContentSize()
             .size(40.dp)
-            .background(brush, RoundedCornerShape(4.dp))
+            .background(brush, RoundedCornerShape(4.dp)),
         )
       }
     assertEquals("gradient rect geometry:\n$svg", Rect(40, 40, 40, 40), gradientRect(svg))
@@ -149,7 +149,7 @@ class FigmaSvgGradientPaintGrowthRenderTest {
   private fun gradientRect(svg: String): Rect {
     val m =
       Regex(
-          """<rect x="(-?[\d.]+)" y="(-?[\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*fill="url\(#"""
+          """<rect x="(-?[\d.]+)" y="(-?[\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*fill="url\(#""",
         )
         .find(svg) ?: error("no gradient-filled rect in:\n$svg")
     val (x, y, w, h) = m.destructured

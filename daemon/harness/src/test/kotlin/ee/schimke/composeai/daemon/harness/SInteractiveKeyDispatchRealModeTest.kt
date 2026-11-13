@@ -85,7 +85,7 @@ class SInteractiveKeyDispatchRealModeTest {
         ]
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val classpath =
@@ -172,7 +172,7 @@ class SInteractiveKeyDispatchRealModeTest {
       )
     } catch (t: Throwable) {
       System.err.println(
-        "SInteractiveKeyDispatchRealModeTest failed; stderr from daemon:\n" + client.dumpStderr()
+        "SInteractiveKeyDispatchRealModeTest failed; stderr from daemon:\n" + client.dumpStderr(),
       )
       throw t
     } finally {
