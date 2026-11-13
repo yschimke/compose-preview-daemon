@@ -363,7 +363,11 @@ class RenderEngine(
     // this daemon does not have, or a missing CMP player fail the render here rather than as a
     // confident frame of something else. See [CarriedRemoteCompose].
     val carried: CarriedRemoteComposeDocument? = CarriedRemoteCompose.resolve(spec.overrides)
-    val carriedClock: CarriedDocumentClock? = carried?.let { CarriedDocumentClock() }
+    val carriedClock: CarriedDocumentClock? = carried?.let {
+      CarriedDocumentClock(
+        baseEpochMillis = spec.overrides?.clockEpochMillis?.takeIf { ms -> ms >= 0L } ?: 0L,
+      )
+    }
     // Resolve the composable entrypoint plus any `@PreviewParameter` argument list. A parameterized
     // preview compiles to `foo(<T>, Composer, int)`, so the bare `getDeclaredComposableMethod`
     // lookup used to throw `NoSuchMethodException` here — no PNG, no semantics. The daemon now

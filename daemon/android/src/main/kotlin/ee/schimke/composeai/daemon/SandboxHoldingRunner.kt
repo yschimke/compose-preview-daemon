@@ -401,6 +401,18 @@ internal fun isRemoteComposeAvailable(loader: ClassLoader?): Boolean {
 }
 
 /**
+ * Returns `true` when rc-players' Compose Multiplatform player (`rc-player-compose`, `cmp-android`)
+ * is on [loader], even when the alpha `androidx.compose.remote.*` creation/view artifacts are not
+ * (e.g. a pure Declarative Watch Face module or player-only daemon). The connector's
+ * [RemoteComposeOverrideExtension], [RemoteComposeDataProductRegistry], and [RemoteComposeIrReplay]
+ * link without `androidx.compose.remote.*` and dispatch `"cmp-android"` to
+ * `CmpAndroidPlayerBackend`.
+ */
+internal fun isCmpRemoteComposePlayerAvailable(loader: ClassLoader?): Boolean {
+  return isClassVisible(CMP_REMOTE_COMPOSE_PLAYER, loader)
+}
+
+/**
  * Whether a sandbox built over [loader] can define [className]: [loader] links it, or serves its
  * bytecode. The second half is what the Bazel and bundle lanes need. There [loader] is the worker
  * thread's [AppComposeFirstLoader], which answers the consumer's `androidx/` resources from
@@ -424,6 +436,10 @@ internal fun isClassVisible(className: String, loader: ClassLoader?): Boolean {
 /** The class whose presence means "this classpath carries Remote Compose". */
 internal const val REMOTE_COMPOSE_HOST_ACTION: String =
   "androidx.compose.remote.creation.compose.action.HostAction"
+
+/** The class whose presence means "this classpath carries rc-players' CMP player". */
+internal const val CMP_REMOTE_COMPOSE_PLAYER: String =
+  "ee.schimke.composeai.rcplayer.compose.RcComposePlayerKt"
 
 /**
  * Whether `composeai.daemon.userClassDirs` carries [className]'s bytecode. For host-side decisions

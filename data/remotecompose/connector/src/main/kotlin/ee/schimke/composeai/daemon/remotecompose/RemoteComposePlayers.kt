@@ -27,7 +27,19 @@ class RemoteComposeDocumentSource(
    * advances the shadow clock gets the same frame cadence on every player.
    */
   val clock: RemoteComposeClock = RemoteComposeClock.SYSTEM,
-)
+  /**
+   * Starting UTC epoch milliseconds (`overrides.clockEpochMillis`) for deterministic document time
+   * (`TimeAttribute`, calendar variables). `0` starts at the Unix epoch, preserving existing
+   * captures.
+   */
+  val baseEpochMillis: Long = 0L,
+) {
+  /** Binary-compatible constructor retained for callers compiled before [baseEpochMillis]. */
+  constructor(
+    bytes: ByteArray,
+    clock: RemoteComposeClock = RemoteComposeClock.SYSTEM,
+  ) : this(bytes = bytes, clock = clock, baseEpochMillis = 0L)
+}
 
 enum class RemoteComposeClock {
   SYSTEM,

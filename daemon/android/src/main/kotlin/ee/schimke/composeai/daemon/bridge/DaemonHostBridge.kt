@@ -537,6 +537,12 @@ sealed interface InteractiveCommand {
     val wearWidgetSlotWidthDp: Float? = null,
     val wearWidgetSlotHeightDp: Float? = null,
     val wearWidgetSlotCornerRadiusDp: Float? = null,
+    /**
+     * `spec.overrides.clockEpochMillis` (`java.lang.Long?`, do-not-acquire): deterministic UTC
+     * epoch start for `FakeClockOverrideExtension` and Remote Compose / DWF document clocks in held
+     * sessions.
+     */
+    val clockEpochMillis: Long? = null,
   ) : InteractiveCommand
 
   /**

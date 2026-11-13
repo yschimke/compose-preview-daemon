@@ -53,9 +53,9 @@ private constructor(
       // `recording/start` on `<baseId>_Dark` hold that row's composition rather than failing as an
       // unknown previewId (which surfaces as MethodNotFound and drops the panel to v1).
       val byId = manifest.byId()
-      byId[previewId]?.renderSpec()
+      byId[previewId]?.renderSpec(manifestDir)
         ?: PreviewRowAddress.split(previewId, isParameterized(byId))?.let { split ->
-          byId.getValue(split.baseId).renderSpec().copy(previewParameterRow = split.row)
+          byId.getValue(split.baseId).renderSpec(manifestDir).copy(previewParameterRow = split.row)
         }
     },
     interactiveSessionListener = interactiveSessionListener,
@@ -121,7 +121,7 @@ private constructor(
     // An explicit inbound row wins over the one parsed out of the id, so a caller can render a row
     // of the bare base id without minting a row id for it.
     val row = preview.previewParameterRow?.takeIf { it.isNotBlank() } ?: addressed.row
-    val base = addressed.entry.renderSpec()
+    val base = addressed.entry.renderSpec(manifestDir)
     val merged = base.mergedWith(preview.overrides)
     val spec =
       merged.copy(
@@ -230,8 +230,8 @@ internal class RoutedManifest(manifest: PreviewManifest, file: File?) {
   fun byId(): Map<String, PreviewManifestEntry> = followed?.current() ?: fixed
 }
 
-internal fun PreviewManifestEntry.renderSpec(): RenderSpec {
-  val resolved = resolved()
+internal fun PreviewManifestEntry.renderSpec(manifestDir: File? = null): RenderSpec {
+  val resolved = resolved(manifestDir)
   return RenderSpec(
     previewId = id,
     className = className,
@@ -371,8 +371,10 @@ data class PreviewManifestEntry(
    * not a Wear widget rather than a manifest that fails to decode.
    */
   val widget: PreviewWidgetEntry? = null,
+  /** Flat-schema mirror of [PreviewParamsEntry.dwfAssetPath]. */
+  val dwfAssetPath: String? = null,
 ) {
-  fun resolved(): ResolvedRenderParams {
+  fun resolved(manifestDir: File? = null): ResolvedRenderParams {
     val p = params
     val device = device ?: p?.device
     val deviceDims = device?.takeIf { it.isNotBlank() }?.let { DeviceDimensions.resolve(it) }
@@ -441,8 +443,18 @@ data class PreviewManifestEntry(
     val showBackground = showBackground ?: p?.showBackground ?: true
     val backgroundColor = backgroundColor ?: p?.backgroundColor ?: 0L
     val wrapperClassName = p?.wrapperClassName
-    // Seeds AND the harness interaction, in one shared translation — see `toPreviewOverrides`.
-    val bakedOverrides = overrides?.toPreviewOverrides()
+    val effectiveDwfAssetPath = dwfAssetPath ?: p?.dwfAssetPath
+    // Seeds AND the harness interaction, in one shared translation — see `toPreviewOverrides` —
+    // layered over any DWF `.rc` document + clock seed.
+    val bakedOverrides =
+      DwfDocumentSeed.apply(
+        previewId = id,
+        dwfAssetPath = effectiveDwfAssetPath,
+        defaultPlayerId = "cmp-android",
+        bakedOverrides = overrides?.toPreviewOverrides(),
+        manifestDir = manifestDir,
+        declaredRenderOutput = DeclaredRenderOutput.stillOutput(captures),
+      )
     return ResolvedRenderParams(
       widthPx = resolvedWidthPx,
       heightPx = resolvedHeightPx,
@@ -466,6 +478,7 @@ data class PreviewManifestEntry(
           it.isNotBlank()
         },
       previewParameterLimit = previewParameterLimit ?: p?.previewParameterLimit ?: Int.MAX_VALUE,
+      dwfAssetPath = effectiveDwfAssetPath,
     )
   }
 
@@ -572,6 +585,8 @@ data class PreviewParamsEntry(
    * the same dp the batch lane does.
    */
   val captureGutter: CaptureGutterDto? = null,
+  /** Module-relative `watchface.xml` path for Declarative Watch Face previews. */
+  val dwfAssetPath: String? = null,
 )
 
 /**
@@ -630,4 +645,5 @@ data class ResolvedRenderParams(
   val previewParameterLimit: Int = Int.MAX_VALUE,
   /** `@CaptureGutter` edges in dp; all-zero (the default) is no gutter. See #4443. */
   val captureGutter: CaptureGutterDto = CaptureGutterDto(),
+  val dwfAssetPath: String? = null,
 )

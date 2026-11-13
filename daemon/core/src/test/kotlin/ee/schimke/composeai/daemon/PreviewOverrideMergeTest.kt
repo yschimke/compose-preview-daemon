@@ -433,6 +433,8 @@ class PreviewOverrideMergeTest {
 
     assertEquals(
       PreviewOverrides(
+        clockEpochMillis = carried.clockEpochMillis,
+        placeholderActive = carried.placeholderActive,
         material3Theme = carried.material3Theme,
         wallpaper = carried.wallpaper,
         ambient = carried.ambient,
@@ -452,6 +454,66 @@ class PreviewOverrideMergeTest {
       ),
       projected,
     )
+  }
+
+  @Test
+  fun `remoteCompose namedValues overlay preserves carried documentBase64, playerId, and clockEpochMillis`() {
+    val baseRemote =
+      RemoteComposeOverride.Builder()
+        .also { b ->
+          b.documentBase64 = "ZHdmLXJj"
+          b.playerId = "cmp-android"
+          b.namedValues =
+            mapOf(
+              "dwf.complication.1.text" to
+                ee.schimke.composeai.daemon.protocol.RemoteNamedValue.StringValue("72%"),
+              "dwf.config.theme" to
+                ee.schimke.composeai.daemon.protocol.RemoteNamedValue.IntValue(0),
+            )
+        }
+        .build()
+    val base =
+      spec(
+        widthPx = 450,
+        heightPx = 450,
+        density = 2.0f,
+        carried =
+          PreviewOverrides(
+            clockEpochMillis = DwfDocumentSeed.DEFAULT_CLOCK_EPOCH_MILLIS,
+            remoteCompose = baseRemote,
+          ),
+      )
+    val overlay =
+      PreviewOverrides(
+        remoteCompose =
+          RemoteComposeOverride.Builder()
+            .also { b ->
+              b.namedValues =
+                mapOf(
+                  "dwf.complication.1.text" to
+                    ee.schimke.composeai.daemon.protocol.RemoteNamedValue.StringValue("98%"),
+                )
+            }
+            .build(),
+      )
+
+    val mergedSpec = base.mergedWith(overlay)
+    val mergedRc = mergedSpec.overrides?.remoteCompose
+    assertEquals(DwfDocumentSeed.DEFAULT_CLOCK_EPOCH_MILLIS, mergedSpec.overrides?.clockEpochMillis)
+    assertEquals("ZHdmLXJj", mergedRc?.documentBase64)
+    assertEquals("cmp-android", mergedRc?.playerId)
+    assertEquals(
+      mapOf(
+        "dwf.complication.1.text" to
+          ee.schimke.composeai.daemon.protocol.RemoteNamedValue.StringValue("98%"),
+        "dwf.config.theme" to ee.schimke.composeai.daemon.protocol.RemoteNamedValue.IntValue(0),
+      ),
+      mergedRc?.namedValues,
+    )
+
+    val clockOnlySpec = base.mergedWith(PreviewOverrides(clockEpochMillis = 1_700_000_000_000L))
+    assertEquals(1_700_000_000_000L, clockOnlySpec.overrides?.clockEpochMillis)
+    assertEquals("ZHdmLXJj", clockOnlySpec.overrides?.remoteCompose?.documentBase64)
   }
 
   @Test

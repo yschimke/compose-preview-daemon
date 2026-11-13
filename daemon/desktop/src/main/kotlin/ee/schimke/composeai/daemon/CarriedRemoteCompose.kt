@@ -69,7 +69,7 @@ internal interface CarriedDocumentPlayer {
  * gets the clock it already runs on — the one-shot render's frozen frame zero (the epoch,
  * deterministic), a live session's wall-clock frames, a scripted recording's virtual timeline.
  */
-internal class CarriedDocumentClock {
+internal class CarriedDocumentClock(private val baseEpochMillis: Long = 0L) {
   @Volatile private var originNanos: Long = UNSET
 
   @Volatile private var latestNanos: Long = 0L
@@ -80,11 +80,15 @@ internal class CarriedDocumentClock {
     latestNanos = nanoTime
   }
 
-  /** Milliseconds of frame time since the first frame; `0` before it. */
+  /**
+   * UTC epoch milliseconds for the current frame: [baseEpochMillis] plus frame time elapsed since
+   * the first frame (`[baseEpochMillis]` before it).
+   */
   fun elapsedMillis(): Long {
+    val base = baseEpochMillis.coerceAtLeast(0L)
     val origin = originNanos
-    if (origin == UNSET) return 0L
-    return ((latestNanos - origin) / 1_000_000L).coerceAtLeast(0L)
+    if (origin == UNSET) return base
+    return base + ((latestNanos - origin) / 1_000_000L).coerceAtLeast(0L)
   }
 
   private companion object {

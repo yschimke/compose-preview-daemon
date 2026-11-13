@@ -500,9 +500,10 @@ private fun previewIndexBackedSpecResolver(previewIndex: PreviewIndex): ((String
   // `outputBaseName`, which `renderSpecFromInfo` takes from the BASE entry — leaving it would make
   // a row render overwrite `<base>.png` and the data products keyed off it, the same clobber the
   // router lane avoids by suffixing the stem.
+  val manifestDir = previewIndex.path?.parent?.toFile()
   return { previewId ->
     previewIndex.rowResolved(previewId)?.let {
-      val base = renderSpecFromInfo(it.info)
+      val base = renderSpecFromInfo(it.info, manifestDir)
       if (it.row == null) base
       else base.copy(previewParameterRow = it.row, outputBaseName = previewId)
     }
@@ -515,11 +516,23 @@ private fun previewIndexBackedSpecResolver(previewIndex: PreviewIndex): ((String
  * top-level helper (rather than inlined into [previewIndexBackedSpecResolver]) so unit tests can
  * exercise the conversion without standing up a [PreviewIndex] + lambda.
  */
-internal fun renderSpecFromInfo(info: PreviewInfoDto): RenderSpec {
+internal fun renderSpecFromInfo(
+  info: PreviewInfoDto,
+  manifestDir: java.io.File? = null,
+): RenderSpec {
   // `@OverrideVariant` baked seed for a synthetic variant preview → the base override layer. A live
   // per-render `renderNow.overrides` is layered OVER this by `DesktopHost.specFromPreviewIdPayload`
   // (`layeredOver`), so live wins per key and the baked seed applies even with zero live overrides.
-  val bakedOverrides = info.overrides?.toPreviewOverrides()
+  val bakedOverrides =
+    DwfDocumentSeed.apply(
+      previewId = info.id,
+      dwfAssetPath = info.params?.dwfAssetPath,
+      defaultPlayerId = CarriedRemoteCompose.CMP_JVM,
+      bakedOverrides = info.overrides?.toPreviewOverrides(),
+      manifestDir = manifestDir,
+      declaredRenderOutput =
+        info.captures.firstNotNullOfOrNull { it.renderOutput.ifBlank { null } },
+    )
   val defaults =
     RenderSpec(
       previewId = info.id,
