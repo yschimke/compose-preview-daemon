@@ -1,12 +1,14 @@
 package ee.schimke.composeai.daemon
 
+import ee.schimke.composeai.daemon.protocol.RemoteComposeChange
 import ee.schimke.composeai.daemon.protocol.RemoteComposeOverride
 import kotlinx.serialization.json.Json
 
 /**
  * Wire codec for a **carried** Remote Compose document (`overrides.remoteCompose.documentBase64`)
- * crossing into a held (interactive / live / recording) Android session — the whole
- * [RemoteComposeOverride] in, the same override out, with one `java.lang.String` in between.
+ * and live `interactive/setRemoteCompose` edits crossing into a held (interactive / live /
+ * recording) Android session — the whole [RemoteComposeOverride] or [RemoteComposeChange] in, the
+ * same object out, with one `java.lang.String` in between.
  *
  * **Why a string.** The bridge command
  * ([ee.schimke.composeai.daemon.bridge.InteractiveCommand.Start]) may reference only `java.*` types
@@ -38,4 +40,12 @@ internal object HeldRemoteCompose {
     if (encoded.isNullOrEmpty()) return null
     return JSON.decodeFromString(RemoteComposeOverride.serializer(), encoded)
   }
+
+  /** Host-side: serialise a live [RemoteComposeChange] to cross into the sandbox. */
+  fun encodeChange(change: RemoteComposeChange): String =
+    JSON.encodeToString(RemoteComposeChange.serializer(), change)
+
+  /** Sandbox-side: decode a bridged [RemoteComposeChange] in the sandbox classloader. */
+  fun decodeChange(encoded: String): RemoteComposeChange =
+    JSON.decodeFromString(RemoteComposeChange.serializer(), encoded)
 }

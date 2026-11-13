@@ -70,6 +70,12 @@ object RemoteComposeController {
    */
   private val playerIdState: MutableState<String?> = mutableStateOf(null)
 
+  /**
+   * Optional starting UTC epoch milliseconds (`overrides.clockEpochMillis`) for Remote Compose
+   * document playback ([RemoteComposeIrReplay]).
+   */
+  private val clockEpochMillisState: MutableState<Long?> = mutableStateOf(null)
+
   // Editable named-value knobs the current render declared, keyed by name for dedup with first-seen
   // order preserved (a re-declaration during recomposition replaces the entry in place). Mirrors
   // `PreviewOverrideController.declarationsState` — the auto-capture surface the viewer renders
@@ -89,6 +95,8 @@ object RemoteComposeController {
    * it from composition, and a plain field can't invalidate a pass that writes it.
    */
   @Volatile private var activeSeed: RemoteComposeOverride? = null
+
+  @Volatile private var activeClockEpochMillis: Long? = null
 
   /** Hooks notified whenever the named-value map or host-action buffer changes. */
   private val listeners: MutableList<() -> Unit> = CopyOnWriteArrayList()
@@ -119,6 +127,9 @@ object RemoteComposeController {
 
   val playerId: State<String?>
     get() = playerIdState
+
+  val clockEpochMillis: State<Long?>
+    get() = clockEpochMillisState
 
   /**
    * The `rcPlayer` wire id of the player that actually drew the current capture, or null when
@@ -343,10 +354,13 @@ object RemoteComposeController {
    * pushing a new seed mid-session keeps the audit trail of what fired before. Use
    * [resetForNewSession] to drop both state and buffer.
    */
-  fun set(override: RemoteComposeOverride?) {
+  fun set(override: RemoteComposeOverride?): Unit = set(override, clockEpochMillis = null)
+
+  fun set(override: RemoteComposeOverride?, clockEpochMillis: Long?) {
     // Remember the identity even when nothing changed: [clearSeed] compares against it to decide
     // whether a disposing render still owns the state it is about to clear.
     activeSeed = override
+    activeClockEpochMillis = clockEpochMillis
     val namedValues = override?.namedValues ?: emptyMap()
     val profile = override?.profile
     val player = override?.player
@@ -357,12 +371,14 @@ object RemoteComposeController {
         profileState.value != profile ||
         playerState.value != player ||
         playerIdState.value != playerId ||
+        clockEpochMillisState.value != clockEpochMillis ||
         acceptedActionPayloads != accepted
     if (!changed) return
     namedValuesState.value = namedValues
     profileState.value = profile
     playerState.value = player
     playerIdState.value = playerId
+    clockEpochMillisState.value = clockEpochMillis
     acceptedActionPayloads = accepted
     listeners.toList().forEach { it() }
   }
@@ -380,9 +396,11 @@ object RemoteComposeController {
    * A render disposing while it still owns the state clears it as before, so a preview leaving the
    * tree doesn't leak its named values into the next one.
    */
-  fun clearSeed(seed: RemoteComposeOverride?) {
-    if (activeSeed != seed) return
-    set(null)
+  fun clearSeed(seed: RemoteComposeOverride?): Unit = clearSeed(seed, clockEpochMillis = null)
+
+  fun clearSeed(seed: RemoteComposeOverride?, clockEpochMillis: Long?) {
+    if (activeSeed != seed || activeClockEpochMillis != clockEpochMillis) return
+    set(null, null)
   }
 
   /**
@@ -478,10 +496,12 @@ object RemoteComposeController {
     profileState.value = null
     playerState.value = null
     playerIdState.value = null
+    clockEpochMillisState.value = null
     declarationsState.value = emptyMap()
     activePreviewId = null
     acceptedActionPayloads = null
     activeSeed = null
+    activeClockEpochMillis = null
     // The recorded capture player is per-session state like everything above it: leaving it would
     // let a fresh session's sidecar claim a player the new session never composed through.
     capturePlayerWires = emptySet()

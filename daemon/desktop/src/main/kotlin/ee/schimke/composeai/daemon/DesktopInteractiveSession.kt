@@ -119,6 +119,20 @@ class DesktopInteractiveSession(
     return !closed
   }
 
+  override fun dispatchRemoteComposeChange(
+    change: ee.schimke.composeai.daemon.protocol.RemoteComposeChange,
+  ): Boolean {
+    if (closed || !state.playsCarriedDocument) return false
+    val named =
+      change as? ee.schimke.composeai.daemon.protocol.RemoteComposeChange.NamedValue ?: return false
+    runOnSceneThread {
+      if (closed) return@runOnSceneThread
+      state.carriedNamedValuesState.value =
+        state.carriedNamedValuesState.value + (named.name to named.value)
+    }
+    return !closed
+  }
+
   override fun render(requestId: Long, advanceTimeMs: Long?): RenderResult {
     check(!closed) { "DesktopInteractiveSession.render() called after close()" }
     return runOnSceneThreadForResult {

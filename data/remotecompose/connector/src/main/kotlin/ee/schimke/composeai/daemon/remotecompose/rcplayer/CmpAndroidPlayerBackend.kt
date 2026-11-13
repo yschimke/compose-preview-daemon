@@ -82,7 +82,8 @@ internal class CmpAndroidPlayerBackend : RemoteComposePlayerBackend {
       // derives from `CONTINUOUS_SEC` and its siblings — remote-m3's indeterminate progress sweep
       // — was captured at an arbitrary phase and never matched the AndroidX lanes.
       RemoteComposeClock.ROBOLECTRIC_UPTIME -> {
-        val clock = remember(document) { RobolectricRcTimeSource() }
+        val clock =
+          remember(document) { RobolectricRcTimeSource(baseEpochMillis = document.baseEpochMillis) }
         CompositionLocalProvider(LocalRcTimeSource provides clock) { player() }
       }
     }
@@ -95,13 +96,16 @@ internal class CmpAndroidPlayerBackend : RemoteComposePlayerBackend {
 
 /**
  * [RcTimeSource] counterpart of the AndroidX backends' `RobolectricRemoteClock`: epoch milliseconds
- * are the Robolectric uptime elapsed since construction, and calendar fields are read in UTC.
+ * start at [baseEpochMillis] and advance with Robolectric uptime elapsed since construction, and
+ * calendar fields are read in UTC.
  */
 internal class RobolectricRcTimeSource(
+  private val baseEpochMillis: Long = 0L,
   private val startUptimeMillis: Long = android.os.SystemClock.uptimeMillis(),
   private val uptimeMillis: () -> Long = android.os.SystemClock::uptimeMillis,
 ) : RcTimeSource {
-  override fun currentTimeMillis(): Long = (uptimeMillis() - startUptimeMillis).coerceAtLeast(0L)
+  override fun currentTimeMillis(): Long =
+    baseEpochMillis.coerceAtLeast(0L) + (uptimeMillis() - startUptimeMillis).coerceAtLeast(0L)
 
   override fun snapshot(epochMillis: Long): RcTimeSnapshot {
     val time = Instant.ofEpochMilli(epochMillis).atZone(ZoneOffset.UTC)

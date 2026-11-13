@@ -1923,6 +1923,7 @@ open class RobolectricHost(
         wearWidgetSlotWidthDp = wearWidgetSlot?.widthDp,
         wearWidgetSlotHeightDp = wearWidgetSlot?.heightDp,
         wearWidgetSlotCornerRadiusDp = wearWidgetSlot?.cornerRadiusDp,
+        clockEpochMillis = spec.overrides?.clockEpochMillis,
       ),
     )
     if (!replyLatch.await(INTERACTIVE_START_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
@@ -2513,7 +2514,10 @@ open class RobolectricHost(
       // registration on non-Remote-Compose consumers so the lazy init never tries to resolve
       // those alpha-API types. Mirrors the Wear-AAR gate above.
       val remoteComposeOverrides =
-        if (isRemoteComposeAvailable(javaClass.classLoader)) {
+        if (
+          isRemoteComposeAvailable(javaClass.classLoader) ||
+            isCmpRemoteComposePlayerAvailable(javaClass.classLoader)
+        ) {
           listOf(RemoteComposePreviewOverrideExtension())
         } else {
           emptyList()
@@ -3441,6 +3445,7 @@ open class RobolectricHost(
                               // `InteractiveCommand.Start.carriedRemoteComposeJson`); null keeps
                               // the planner's unseeded extension, as before.
                               remoteCompose = carriedRemoteCompose,
+                              clockEpochMillis = start.clockEpochMillis,
                             )
                             .withPseudolocaleFrom(start.localeTag)
                         ComposeDataExtensionPipeline.Apply(
@@ -3998,6 +4003,25 @@ open class RobolectricHost(
                       cmd.previewId,
                       cmd.streamId,
                     )
+                  } catch (t: Throwable) {
+                    cmd.replyError.set(t)
+                  } finally {
+                    cmd.replyLatch.countDown()
+                  }
+                }
+                is InteractiveCommand.DispatchRemoteComposeChange -> {
+                  try {
+                    val decoded = HeldRemoteCompose.decodeChange(cmd.changeJson)
+                    rule.runOnUiThread {
+                      when (decoded) {
+                        is ee.schimke.composeai.daemon.protocol.RemoteComposeChange.Profile ->
+                          RemoteComposeController.setProfile(decoded.value)
+                        is ee.schimke.composeai.daemon.protocol.RemoteComposeChange.NamedValue ->
+                          RemoteComposeController.setNamedValue(decoded.name, decoded.value)
+                      }
+                    }
+                    advanceHeldClocks(rule, HELD_CAPTURE_ADVANCE_MS)
+                    rule.waitForIdle()
                   } catch (t: Throwable) {
                     cmd.replyError.set(t)
                   } finally {

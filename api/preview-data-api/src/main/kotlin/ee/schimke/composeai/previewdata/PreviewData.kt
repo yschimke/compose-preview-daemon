@@ -85,7 +85,66 @@ public data class PreviewParams(
    * rather than staying anonymous transparent pixels (m3-catalog#179).
    */
   val captureGutter: CaptureGutterDp? = null,
-)
+  /**
+   * Module-relative path of the Declarative Watch Face `watchface.xml` asset discovered for a DWF
+   * preview (`src/main/res/raw/watchface.xml`), or `null` for ordinary `@Preview` functions.
+   */
+  val dwfAssetPath: String? = null,
+) {
+  /**
+   * Binary-compatible constructor retained for consumers compiled before [dwfAssetPath] was added.
+   */
+  public constructor(
+    name: String? = null,
+    device: String? = null,
+    widthDp: Int? = null,
+    heightDp: Int? = null,
+    minWidthPx: Int? = null,
+    minHeightPx: Int? = null,
+    maxWidthPx: Int? = null,
+    maxHeightPx: Int? = null,
+    wrapSandboxWidthDp: Int? = null,
+    wrapSandboxHeightDp: Int? = null,
+    density: Float? = null,
+    fontScale: Float = 1.0f,
+    showSystemUi: Boolean = false,
+    showBackground: Boolean = false,
+    backgroundColor: Long = 0,
+    uiMode: Int = 0,
+    locale: String? = null,
+    group: String? = null,
+    wrapperClassName: String? = null,
+    previewParameterProviderClassName: String? = null,
+    previewParameterLimit: Int = Int.MAX_VALUE,
+    kind: String = "COMPOSE",
+    captureGutter: CaptureGutterDp? = null,
+  ) : this(
+    name = name,
+    device = device,
+    widthDp = widthDp,
+    heightDp = heightDp,
+    minWidthPx = minWidthPx,
+    minHeightPx = minHeightPx,
+    maxWidthPx = maxWidthPx,
+    maxHeightPx = maxHeightPx,
+    wrapSandboxWidthDp = wrapSandboxWidthDp,
+    wrapSandboxHeightDp = wrapSandboxHeightDp,
+    density = density,
+    fontScale = fontScale,
+    showSystemUi = showSystemUi,
+    showBackground = showBackground,
+    backgroundColor = backgroundColor,
+    uiMode = uiMode,
+    locale = locale,
+    group = group,
+    wrapperClassName = wrapperClassName,
+    previewParameterProviderClassName = previewParameterProviderClassName,
+    previewParameterLimit = previewParameterLimit,
+    kind = kind,
+    captureGutter = captureGutter,
+    dwfAssetPath = null,
+  )
+}
 
 /**
  * Per-edge capture gutter in **dp**. Mirrors `discovery.CaptureGutterDp`. Edges are start/end

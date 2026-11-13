@@ -363,7 +363,14 @@ class RenderEngine(
     // this daemon does not have, or a missing CMP player fail the render here rather than as a
     // confident frame of something else. See [CarriedRemoteCompose].
     val carried: CarriedRemoteComposeDocument? = CarriedRemoteCompose.resolve(spec.overrides)
-    val carriedClock: CarriedDocumentClock? = carried?.let { CarriedDocumentClock() }
+    val carriedClock: CarriedDocumentClock? = carried?.let {
+      CarriedDocumentClock(
+        baseEpochMillis = spec.overrides?.clockEpochMillis?.takeIf { ms -> ms >= 0L } ?: 0L,
+      )
+    }
+    val carriedNamedValuesState:
+      MutableState<Map<String, ee.schimke.composeai.daemon.protocol.RemoteNamedValue>> =
+      mutableStateOf(carried?.override?.namedValues.orEmpty())
     // Resolve the composable entrypoint plus any `@PreviewParameter` argument list. A parameterized
     // preview compiles to `foo(<T>, Composer, int)`, so the bare `getDeclaredComposableMethod`
     // lookup used to throw `NoSuchMethodException` here — no PNG, no semantics. The daemon now
@@ -678,7 +685,7 @@ class RenderEngine(
                       // and every post-capture product apply unchanged.
                       carried.player.Play(
                         bytes = carried.bytes,
-                        namedValues = carried.override.namedValues.orEmpty(),
+                        namedValues = carriedNamedValuesState.value,
                         clock = carriedClock!!,
                         modifier = Modifier,
                       )
@@ -799,6 +806,7 @@ class RenderEngine(
       settleWindowMs = settle?.windowMs ?: 0,
       settleIsExact = (settle?.afterMs ?: 0) > 0,
       carriedClock = carriedClock,
+      carriedNamedValuesState = carriedNamedValuesState,
     )
   }
 
@@ -1412,6 +1420,9 @@ class RenderEngine(
      * preview-index intents (END scroll, hover, drag) belong to another composable.
      */
     internal val carriedClock: CarriedDocumentClock? = null,
+    internal val carriedNamedValuesState:
+      MutableState<Map<String, ee.schimke.composeai.daemon.protocol.RemoteNamedValue>> =
+      mutableStateOf(emptyMap()),
   ) {
     /** Whether this scene plays a carried Remote Compose document rather than a preview. */
     internal val playsCarriedDocument: Boolean

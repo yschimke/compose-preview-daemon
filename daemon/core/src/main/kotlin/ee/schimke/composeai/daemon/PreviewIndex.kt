@@ -155,7 +155,20 @@ public data class PreviewCaptureDto(
   val scroll: ScrollCaptureDto? = null,
   val settle: SettleCaptureDto? = null,
   val drag: DragCaptureDto? = null,
-)
+  /**
+   * Manifest-relative output path (`renders/<id>.png`, `dwf-renders/<id>.png`), carried so
+   * [DwfDocumentSeed] can locate a DWF preview's sibling `.rc` document when resolving through
+   * [PreviewIndex].
+   */
+  val renderOutput: String = "",
+) {
+  /** Binary-compatible constructor retained for consumers compiled before [renderOutput]. */
+  public constructor(
+    scroll: ScrollCaptureDto? = null,
+    settle: SettleCaptureDto? = null,
+    drag: DragCaptureDto? = null,
+  ) : this(scroll = scroll, settle = settle, drag = drag, renderOutput = "")
+}
 
 /** Held drag target mirrored from discovery's `DragCapture`. */
 @Serializable public data class DragCaptureDto(val targetIndex: Int = 0)
@@ -318,7 +331,52 @@ public data class PreviewParamsDto(
    * — the PNG↔Live divergence RENDER_LANE_PARITY.md exists to keep out.
    */
   val captureGutter: CaptureGutterDto? = null,
-)
+  /**
+   * Module-relative path of the Declarative Watch Face `watchface.xml` asset discovered for a DWF
+   * preview, mirrored from the plugin's `PreviewParams.dwfAssetPath`. See [DwfDocumentSeed].
+   */
+  val dwfAssetPath: String? = null,
+) {
+  /** Binary-compatible constructor retained for consumers compiled before [dwfAssetPath]. */
+  public constructor(
+    widthDp: Int? = null,
+    heightDp: Int? = null,
+    wrapSandboxWidthDp: Int? = null,
+    wrapSandboxHeightDp: Int? = null,
+    density: Float? = null,
+    fontScale: Float? = null,
+    locale: String? = null,
+    uiMode: Int? = null,
+    device: String? = null,
+    showBackground: Boolean? = null,
+    backgroundColor: Long? = null,
+    kind: String? = null,
+    assetPath: String? = null,
+    wrapperClassName: String? = null,
+    previewParameterProviderClassName: String? = null,
+    previewParameterLimit: Int? = null,
+    captureGutter: CaptureGutterDto? = null,
+  ) : this(
+    widthDp = widthDp,
+    heightDp = heightDp,
+    wrapSandboxWidthDp = wrapSandboxWidthDp,
+    wrapSandboxHeightDp = wrapSandboxHeightDp,
+    density = density,
+    fontScale = fontScale,
+    locale = locale,
+    uiMode = uiMode,
+    device = device,
+    showBackground = showBackground,
+    backgroundColor = backgroundColor,
+    kind = kind,
+    assetPath = assetPath,
+    wrapperClassName = wrapperClassName,
+    previewParameterProviderClassName = previewParameterProviderClassName,
+    previewParameterLimit = previewParameterLimit,
+    captureGutter = captureGutter,
+    dwfAssetPath = null,
+  )
+}
 
 /**
  * Per-edge `@CaptureGutter` in **dp** — the daemon-side mirror of the plugin's

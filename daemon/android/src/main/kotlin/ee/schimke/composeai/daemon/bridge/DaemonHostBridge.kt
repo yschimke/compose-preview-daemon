@@ -537,6 +537,12 @@ sealed interface InteractiveCommand {
     val wearWidgetSlotWidthDp: Float? = null,
     val wearWidgetSlotHeightDp: Float? = null,
     val wearWidgetSlotCornerRadiusDp: Float? = null,
+    /**
+     * `spec.overrides.clockEpochMillis` (`java.lang.Long?`, do-not-acquire): deterministic UTC
+     * epoch start for `FakeClockOverrideExtension` and Remote Compose / DWF document clocks in held
+     * sessions.
+     */
+    val clockEpochMillis: Long? = null,
   ) : InteractiveCommand
 
   /**
@@ -926,6 +932,18 @@ sealed interface InteractiveCommand {
   data class StopObserveRecomposition(
     override val streamId: String,
     val previewId: String,
+    val replyLatch: CountDownLatch,
+    val replyError: AtomicReference<Throwable?>,
+  ) : InteractiveCommand
+
+  /**
+   * Apply a live `interactive/setRemoteCompose` edit (`profile` or `namedValue`) inside the
+   * sandbox's own `RemoteComposeController` so the held composition recomposes with the updated
+   * value. Travels as JSON (`java.lang.String`) for the do-not-acquire bridge invariant.
+   */
+  data class DispatchRemoteComposeChange(
+    override val streamId: String,
+    val changeJson: String,
     val replyLatch: CountDownLatch,
     val replyError: AtomicReference<Throwable?>,
   ) : InteractiveCommand

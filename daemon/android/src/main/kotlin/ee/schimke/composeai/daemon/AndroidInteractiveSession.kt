@@ -338,6 +338,23 @@ internal constructor(
       is RemoteComposeChange.NamedValue ->
         RemoteComposeController.setNamedValue(change.name, change.value)
     }
+    val replyLatch = CountDownLatch(1)
+    val replyError = AtomicReference<Throwable?>(null)
+    slot.interactiveCommands.put(
+      InteractiveCommand.DispatchRemoteComposeChange(
+        streamId = streamId,
+        changeJson = HeldRemoteCompose.encodeChange(change),
+        replyLatch = replyLatch,
+        replyError = replyError,
+      ),
+    )
+    if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
+      error(
+        "AndroidInteractiveSession.dispatchRemoteComposeChange timed out after " +
+          "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId'. Held-rule loop may be stuck.",
+      )
+    }
+    replyError.get()?.let { throw it }
     return true
   }
 

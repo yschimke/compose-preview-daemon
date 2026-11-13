@@ -32,7 +32,15 @@ class RemoteComposeIrReplay {
   fun Replay(bytes: ByteArray) {
     // Same clock as the live path: under Robolectric the document follows the held session's shadow
     // clock, not System.nanoTime(), so what a replayed frame shows does not depend on host speed.
-    val document = remember(bytes) { RemoteComposeDocumentSource(bytes, hostRemoteComposeClock()) }
+    val baseEpochMillis = RemoteComposeController.clockEpochMillis.value?.takeIf { it >= 0L } ?: 0L
+    val document =
+      remember(bytes, baseEpochMillis) {
+        RemoteComposeDocumentSource(
+          bytes = bytes,
+          clock = hostRemoteComposeClock(),
+          baseEpochMillis = baseEpochMillis,
+        )
+      }
     // The seeded named values reach the player below; see RemoteComposeController
     // .markNamedValuesConsumed (#401).
     SideEffect { RemoteComposeController.markNamedValuesConsumed() }

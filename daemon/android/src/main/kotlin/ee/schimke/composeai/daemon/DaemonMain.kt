@@ -421,7 +421,9 @@ fun main(args: Array<String>) {
         // not (compose-preview-daemon#341).
         if (
           isRemoteComposeAvailable(javaClass.classLoader) ||
-            isOnUserClasspath(REMOTE_COMPOSE_HOST_ACTION)
+            isCmpRemoteComposePlayerAvailable(javaClass.classLoader) ||
+            isOnUserClasspath(REMOTE_COMPOSE_HOST_ACTION) ||
+            isOnUserClasspath(CMP_REMOTE_COMPOSE_PLAYER)
         ) {
           tryAdd("data/remotecompose") {
             // Remote Compose data product. Registry serves the `compose/remotecompose` payload
@@ -810,9 +812,10 @@ private fun previewIndexBackedSpecResolver(previewIndex: PreviewIndex): ((String
   // `outputBaseName`, which `renderSpecFromInfo` takes from the BASE entry — leaving it would make
   // a row render overwrite `<base>.png` and the data products keyed off it, the same clobber the
   // router lane avoids by suffixing the stem.
+  val manifestDir = previewIndex.path?.parent?.toFile()
   return { previewId ->
     previewIndex.rowResolved(previewId)?.let {
-      val base = renderSpecFromInfo(it.info)
+      val base = renderSpecFromInfo(it.info, manifestDir)
       if (it.row == null) base
       else base.copy(previewParameterRow = it.row, outputBaseName = previewId)
     }
@@ -824,12 +827,24 @@ private fun previewIndexBackedSpecResolver(previewIndex: PreviewIndex): ((String
  * Mirrors the desktop daemon's resolver, with Android-specific fields such as device, locale and
  * resource uiMode threaded through so a live Wear preview matches the one-shot render.
  */
-internal fun renderSpecFromInfo(info: PreviewInfoDto): RenderSpec {
+internal fun renderSpecFromInfo(
+  info: PreviewInfoDto,
+  manifestDir: java.io.File? = null,
+): RenderSpec {
   // `@OverrideVariant` baked seed for a synthetic variant preview → the base override layer. The
   // inbound live `renderNow.overrides` is layered OVER this in
   // `RobolectricHost.reshapeRenderTarget`
   // so live wins per key; the baked seed applies even with zero live overrides.
-  val bakedOverrides = info.overrides?.toPreviewOverrides()
+  val bakedOverrides =
+    DwfDocumentSeed.apply(
+      previewId = info.id,
+      dwfAssetPath = info.params?.dwfAssetPath,
+      defaultPlayerId = "cmp-android",
+      bakedOverrides = info.overrides?.toPreviewOverrides(),
+      manifestDir = manifestDir,
+      declaredRenderOutput =
+        info.captures.firstNotNullOfOrNull { it.renderOutput.ifBlank { null } },
+    )
   val defaults =
     RenderSpec(
       previewId = info.id,

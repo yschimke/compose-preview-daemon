@@ -311,8 +311,13 @@ fun RemoteHostAction.toHostAction(): RemoteAction = hostAction(payload.rs, handl
  * user-environment phase reaches preview content — `RemotePreview` blocks composed by user code see
  * the host.
  */
-class RemoteComposeOverrideExtension(private val seed: RemoteComposeOverride? = null) :
-  AroundComposableHook {
+class RemoteComposeOverrideExtension(
+  private val seed: RemoteComposeOverride? = null,
+  private val clockEpochMillis: Long? = null,
+) : AroundComposableHook {
+
+  /** Binary-compatible constructor retained for callers compiled before [clockEpochMillis]. */
+  constructor(seed: RemoteComposeOverride? = null) : this(seed = seed, clockEpochMillis = null)
 
   override val id: DataExtensionId = ID
 
@@ -340,13 +345,13 @@ class RemoteComposeOverrideExtension(private val seed: RemoteComposeOverride? = 
     // because this controller's named-value map is also written back by user code's
     // `setNamedValue` during composition — re-applying the seed every pass would clobber those.
     // See the class KDoc.
-    remember(seed) {
-      RemoteComposeController.set(seed)
+    remember(seed, clockEpochMillis) {
+      RemoteComposeController.set(seed, clockEpochMillis)
       // A remember calculation must return a value. Returning the key preserves the required
       // composition-time seed application without introducing any additional state.
-      seed
+      seed to clockEpochMillis
     }
-    DisposableEffect(seed) {
+    DisposableEffect(seed, clockEpochMillis) {
       // Clear declarations at render start (mirrors PreviewOverridesOverrideExtension): a held
       // session re-rendering with a shrunk knob set must not carry stale controls. A
       // DisposableEffect
@@ -358,7 +363,7 @@ class RemoteComposeOverrideExtension(private val seed: RemoteComposeOverride? = 
       // onRender snapshot still sees this render's knobs (see the lifecycle KDoc above). Mirrors
       // PreviewOverridesOverrideExtension's `onDispose { set(null) }`, but identity-guarded: the
       // next render's seed is already applied by the time this runs when the override changed.
-      onDispose { RemoteComposeController.clearSeed(seed) }
+      onDispose { RemoteComposeController.clearSeed(seed, clockEpochMillis) }
     }
     CompositionLocalProvider(LocalRemoteComposeHost provides ControllerRemoteComposeHost) {
       content()
@@ -381,7 +386,10 @@ class RemoteComposePreviewOverrideExtension : DataExtension<PreviewOverrides> {
   override val id: DataExtensionId = RemoteComposeOverrideExtension.ID
 
   override fun plan(request: PreviewOverrides): PlannedDataExtension =
-    RemoteComposeOverrideExtension(seed = request.remoteCompose)
+    RemoteComposeOverrideExtension(
+      seed = request.remoteCompose,
+      clockEpochMillis = request.clockEpochMillis,
+    )
 }
 
 /**

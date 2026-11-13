@@ -43,7 +43,9 @@ private constructor(
     engine = engine,
     userClassloaderHolder = userClassloaderHolder,
     // Without a resolver DesktopHost advertises no interactive/recording support.
-    previewSpecResolver = { previewId -> manifestPreviewSpecResolver(manifest.byId())(previewId) },
+    previewSpecResolver = { previewId ->
+      manifestPreviewSpecResolver(manifest.byId(), manifestDir)(previewId)
+    },
   ) {
 
   constructor(
@@ -105,7 +107,10 @@ private constructor(
     // re-read between the two lookups, and the entry addressed may be gone from the newer one or
     // differ in it. The row is applied below.
     val base =
-      manifestPreviewSpecResolver(mapOf(addressed.entry.id to addressed.entry))(addressed.entry.id)
+      manifestPreviewSpecResolver(
+        mapOf(addressed.entry.id to addressed.entry),
+        manifestDir,
+      )(addressed.entry.id)
         ?: error("PreviewManifestRouter: entry '${addressed.entry.id}' resolved to no spec")
     val spec =
       base
@@ -190,6 +195,7 @@ private constructor(
      */
     internal fun manifestPreviewSpecResolver(
       byId: Map<String, PreviewManifestEntry>,
+      manifestDir: File? = null,
     ): (String) -> RenderSpec? = { previewId ->
       // Row-addressed ids (issue #3749) resolve here too, so a held session — `interactive/start`,
       // `recording/start`, `stream/start` — on `<baseId>_Dark` composes that row rather than
@@ -199,7 +205,7 @@ private constructor(
         if (byId.containsKey(previewId)) null
         else PreviewRowAddress.split(previewId, isParameterized(byId))
       byId[split?.baseId ?: previewId]?.let { entry ->
-        val resolved = entry.resolved()
+        val resolved = entry.resolved(manifestDir)
         RenderSpec(
           className = entry.className,
           functionName = entry.functionName,
@@ -335,8 +341,10 @@ data class PreviewManifestEntry(
    * the raw keys is what lets a capture field this daemon does not know yet fall back safely.
    */
   val captures: List<JsonObject> = emptyList(),
+  /** Flat-schema mirror of [PreviewParamsEntry.dwfAssetPath]. */
+  val dwfAssetPath: String? = null,
 ) {
-  fun resolved(): ResolvedRenderParams {
+  fun resolved(manifestDir: File? = null): ResolvedRenderParams {
     val p = params
     val device = device ?: p?.device
     val deviceDims = device?.takeIf { it.isNotBlank() }?.let { DeviceDimensions.resolve(it) }
@@ -391,10 +399,20 @@ data class PreviewManifestEntry(
     val previewParameterProviderClassName =
       previewParameterProviderClassName ?: p?.previewParameterProviderClassName
     val previewParameterLimit = previewParameterLimit ?: p?.previewParameterLimit ?: Int.MAX_VALUE
+    val effectiveDwfAssetPath = dwfAssetPath ?: p?.dwfAssetPath
     // Seeds AND the harness interaction, in one shared translation — see `toPreviewOverrides`
-    // for why that function has exactly one home. Null when the variant asks for nothing this bag
-    // can carry, so the router forwards the inbound token untouched.
-    val bakedOverrides = overrides?.toPreviewOverrides()
+    // for why that function has exactly one home — layered over any DWF `.rc` document + clock
+    // seed. Null when the variant asks for nothing this bag can carry, so the router forwards the
+    // inbound token untouched.
+    val bakedOverrides =
+      DwfDocumentSeed.apply(
+        previewId = id,
+        dwfAssetPath = effectiveDwfAssetPath,
+        defaultPlayerId = CarriedRemoteCompose.CMP_JVM,
+        bakedOverrides = overrides?.toPreviewOverrides(),
+        manifestDir = manifestDir,
+        declaredRenderOutput = DeclaredRenderOutput.stillOutput(captures),
+      )
     return ResolvedRenderParams(
       widthPx = widthPx,
       heightPx = heightPx,
@@ -414,6 +432,7 @@ data class PreviewManifestEntry(
       previewParameterProviderClassName = previewParameterProviderClassName,
       previewParameterLimit = previewParameterLimit,
       captureGutter = p?.captureGutter ?: CaptureGutterDto(),
+      dwfAssetPath = effectiveDwfAssetPath,
     )
   }
 
@@ -493,6 +512,8 @@ data class PreviewParamsEntry(
   val previewParameterProviderClassName: String? = null,
   /** Mirrors `@PreviewParameter.limit`. `Int.MAX_VALUE` is the annotation default. */
   val previewParameterLimit: Int = Int.MAX_VALUE,
+  /** Module-relative `watchface.xml` path for Declarative Watch Face previews. */
+  val dwfAssetPath: String? = null,
 )
 
 /**
@@ -526,4 +547,5 @@ data class ResolvedRenderParams(
   val previewParameterLimit: Int = Int.MAX_VALUE,
   /** `@CaptureGutter` edges in dp; all-zero (the default) is no gutter. See #4443. */
   val captureGutter: CaptureGutterDto = CaptureGutterDto(),
+  val dwfAssetPath: String? = null,
 )

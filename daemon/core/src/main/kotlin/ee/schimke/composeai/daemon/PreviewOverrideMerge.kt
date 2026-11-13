@@ -52,7 +52,65 @@ public data class MergedPreviewOverrides(
    * review). Anything holding only whole-frame state can ignore this.
    */
   val rotated: Boolean = false,
+  val clockEpochMillis: Long? = null,
+  val placeholderActive: Boolean? = null,
 ) {
+  /**
+   * Binary-compatible constructor retained for consumers compiled before [clockEpochMillis] and
+   * [placeholderActive] were added.
+   */
+  public constructor(
+    widthPx: Int,
+    heightPx: Int,
+    density: Float,
+    device: String?,
+    localeTag: String?,
+    fontScale: Float?,
+    uiMode: UiMode?,
+    orientation: Orientation?,
+    inspectionMode: Boolean?,
+    material3Theme: Material3ThemeOverrides?,
+    wallpaper: WallpaperOverride?,
+    ambient: AmbientOverride?,
+    gestures: GestureOverride?,
+    focus: FocusOverride?,
+    touchOverlay: Boolean?,
+    talkBack: Boolean?,
+    keyboard: KeyboardOverride?,
+    permissions: PermissionsOverride?,
+    remoteCompose: RemoteComposeOverride?,
+    launcherWidget: LauncherWidgetOverride?,
+    lottie: LottieOverride?,
+    namedOverrides: Map<String, PreviewOverrideValue>?,
+    rotated: Boolean = false,
+  ) : this(
+    widthPx = widthPx,
+    heightPx = heightPx,
+    density = density,
+    device = device,
+    localeTag = localeTag,
+    fontScale = fontScale,
+    uiMode = uiMode,
+    orientation = orientation,
+    inspectionMode = inspectionMode,
+    material3Theme = material3Theme,
+    wallpaper = wallpaper,
+    ambient = ambient,
+    gestures = gestures,
+    focus = focus,
+    touchOverlay = touchOverlay,
+    talkBack = talkBack,
+    keyboard = keyboard,
+    permissions = permissions,
+    remoteCompose = remoteCompose,
+    launcherWidget = launcherWidget,
+    lottie = lottie,
+    namedOverrides = namedOverrides,
+    rotated = rotated,
+    clockEpochMillis = null,
+    placeholderActive = null,
+  )
+
   /**
    * Project the merged overrides down to a [PreviewOverrides] bag that only carries fields
    * extensions consume. Returns `null` when no extension-driven override is set so the renderer can
@@ -69,7 +127,9 @@ public data class MergedPreviewOverrides(
   public fun toExtensionOverrides(): PreviewOverrides? {
     val isPseudolocale = isPseudolocaleTag(localeTag)
     if (
-      material3Theme == null &&
+      clockEpochMillis == null &&
+        placeholderActive == null &&
+        material3Theme == null &&
         wallpaper == null &&
         ambient == null &&
         gestures == null &&
@@ -87,6 +147,8 @@ public data class MergedPreviewOverrides(
       return null
     }
     return PreviewOverrides(
+      clockEpochMillis = clockEpochMillis,
+      placeholderActive = placeholderActive,
       material3Theme = material3Theme,
       wallpaper = wallpaper,
       ambient = ambient,
@@ -185,6 +247,41 @@ private fun isPseudolocaleTag(tag: String?): Boolean {
 }
 
 /**
+ * Merge an overlay [RemoteComposeOverride] over a base [RemoteComposeOverride] field by field so a
+ * per-render `namedValues` / `playerId` / `profile` edit preserves any base `documentBase64` and
+ * seeded defaults (such as a DWF preview's `.rc` document and default player).
+ */
+internal fun mergeRemoteComposeOverride(
+  base: RemoteComposeOverride?,
+  over: RemoteComposeOverride?,
+): RemoteComposeOverride? {
+  if (base == null) return over
+  if (over == null) return base
+  val overPlayerId = over.playerId?.takeIf { it.isNotBlank() }
+  val mergedPlayerId =
+    when {
+      overPlayerId != null -> overPlayerId
+      // An explicit built-in player enum override (`?rcPlayer=java`) clears an inherited playerId
+      // so `playerId` (which outranks `player`) does not shadow the caller's request.
+      over.player != null -> null
+      else -> base.playerId
+    }
+  val mergedNamedValues =
+    if (base.namedValues.isNullOrEmpty() && over.namedValues.isNullOrEmpty()) emptyMap()
+    else (base.namedValues ?: emptyMap()) + (over.namedValues ?: emptyMap())
+  return RemoteComposeOverride.Builder()
+    .also { b ->
+      b.namedValues = mergedNamedValues
+      b.profile = over.profile ?: base.profile
+      b.acceptedHostActions = over.acceptedHostActions ?: base.acceptedHostActions
+      b.player = over.player ?: base.player
+      b.playerId = mergedPlayerId
+      b.documentBase64 = over.documentBase64 ?: base.documentBase64
+    }
+    .build()
+}
+
+/**
  * Layer a sparse per-call [PreviewOverrides] bag ([this], the winner) over a discovery-time base
  * bag ([base]), field by field: the per-call value wins where set, [base] fills every unset field,
  * and `namedOverrides` merges **per-key** (not whole-map replace) — the same rule
@@ -236,7 +333,7 @@ public fun PreviewOverrides?.layeredOver(base: PreviewOverrides?): PreviewOverri
     talkBack = over.talkBack ?: base.talkBack,
     keyboard = over.keyboard ?: base.keyboard,
     permissions = over.permissions ?: base.permissions,
-    remoteCompose = over.remoteCompose ?: base.remoteCompose,
+    remoteCompose = mergeRemoteComposeOverride(base.remoteCompose, over.remoteCompose),
     launcherWidget = over.launcherWidget ?: base.launcherWidget,
     lottie = over.lottie ?: base.lottie,
     // Per-key merge (not whole-map replace): a follow-up edit of one knob keeps the base's other
@@ -314,6 +411,8 @@ public fun mergePreviewOverrides(
       launcherWidget = carried?.launcherWidget,
       lottie = carried?.lottie,
       namedOverrides = carried?.namedOverrides,
+      clockEpochMillis = carried?.clockEpochMillis,
+      placeholderActive = carried?.placeholderActive,
     )
   }
   val deviceOverride = overrides.device?.takeIf { it.isNotBlank() }
@@ -359,7 +458,7 @@ public fun mergePreviewOverrides(
     talkBack = overrides.talkBack ?: carried?.talkBack,
     keyboard = overrides.keyboard ?: carried?.keyboard,
     permissions = overrides.permissions ?: carried?.permissions,
-    remoteCompose = overrides.remoteCompose ?: carried?.remoteCompose,
+    remoteCompose = mergeRemoteComposeOverride(carried?.remoteCompose, overrides.remoteCompose),
     launcherWidget = overrides.launcherWidget ?: carried?.launcherWidget,
     lottie = overrides.lottie ?: carried?.lottie,
     // Per-key merge (not whole-map replace): editing one knob in a follow-up render must not drop
@@ -368,5 +467,7 @@ public fun mergePreviewOverrides(
     namedOverrides =
       if (carried?.namedOverrides == null && overrides.namedOverrides == null) null
       else (carried?.namedOverrides ?: emptyMap()) + (overrides.namedOverrides ?: emptyMap()),
+    clockEpochMillis = overrides.clockEpochMillis ?: carried?.clockEpochMillis,
+    placeholderActive = overrides.placeholderActive ?: carried?.placeholderActive,
   )
 }
