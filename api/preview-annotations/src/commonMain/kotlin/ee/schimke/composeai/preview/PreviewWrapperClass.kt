@@ -63,5 +63,5 @@ annotation class PreviewWrapperClass(
    * e.g. `"com.example.app.FontPreviewWrapper"`. The class must have a public no-arg constructor
    * and be on the render classpath; an unresolvable name degrades to rendering without a wrapper.
    */
-  val wrapperClassName: String
+  val wrapperClassName: String,
 )

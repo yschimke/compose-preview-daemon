@@ -89,7 +89,7 @@ class FigmaSvgClippedLazyItemTextTest {
           LazyColumn(state = state, modifier = Modifier.fillMaxSize()) {
             items(ROWS) { label ->
               Box(
-                Modifier.fillMaxWidth().height(120.dp).padding(8.dp).background(Color(0xFFE7E0EC))
+                Modifier.fillMaxWidth().height(120.dp).padding(8.dp).background(Color(0xFFE7E0EC)),
               ) {
                 Text(label, Modifier.padding(12.dp))
               }

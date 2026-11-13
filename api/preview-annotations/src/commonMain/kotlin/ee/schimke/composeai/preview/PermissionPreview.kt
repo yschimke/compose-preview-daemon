@@ -101,5 +101,5 @@ annotation class PermissionPreview(
    * An empty array (the default) leaves the preview with no grant override at all — identical to
    * omitting the annotation.
    */
-  val grants: Array<String> = []
+  val grants: Array<String> = [],
 )

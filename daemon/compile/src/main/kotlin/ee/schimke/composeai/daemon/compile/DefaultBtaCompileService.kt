@@ -84,7 +84,7 @@ public class DefaultBtaCompileService(
       // Unrecoverable runtime error (BTA bootstrap fault, missing JAR, file system error).
       // Fall back to stage 1 / 0; the editor retries through `gradleService.compileOnly`.
       BtaCompileService.Outcome.Fallback(
-        "BTA compile threw: ${t.message ?: t.javaClass.simpleName}"
+        "BTA compile threw: ${t.message ?: t.javaClass.simpleName}",
       )
     }
   }
@@ -169,7 +169,7 @@ public class DefaultBtaCompileService(
      * state.
      */
     public fun fromSysprops(
-      sysprops: (String) -> String? = System::getProperty
+      sysprops: (String) -> String? = System::getProperty,
     ): DefaultBtaCompileService? {
       val implClasspath = sysprops(SYSPROP_IMPL_CLASSPATH).toPathList()
       val moduleName = sysprops(SYSPROP_MODULE_NAME)?.takeIf { it.isNotEmpty() }
@@ -222,7 +222,7 @@ public class DefaultBtaCompileService(
             pluginJars,
             listOf(CompilerPluginOption("sourceInformation", "true")),
             emptySet(),
-          )
+          ),
         )
 
     private fun String?.toPathList(): List<Path> =

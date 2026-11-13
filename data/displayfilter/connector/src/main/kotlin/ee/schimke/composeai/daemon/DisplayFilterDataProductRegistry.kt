@@ -39,8 +39,8 @@ class DisplayFilterDataProductRegistry(private val rootDir: File) :
           facets = listOf(DataProductFacet.STRUCTURED, DataProductFacet.IMAGE),
           mediaTypes = listOf("application/json"),
           sampling = SamplingPolicy.End,
-        )
-      )
+        ),
+      ),
   ) {
   override fun fileFor(previewId: String, kind: String): File? =
     if (kind == DisplayFilterDataProducer.KIND_VARIANTS)

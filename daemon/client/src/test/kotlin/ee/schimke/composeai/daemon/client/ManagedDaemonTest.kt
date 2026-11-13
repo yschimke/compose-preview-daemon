@@ -447,7 +447,7 @@ class ManagedDaemonTest {
                     CompileSourcesResult(result = CompileResultKind.OK, durationMs = 42L),
                   ),
                 )
-              }
+              },
             )
             continue
           }
@@ -459,7 +459,7 @@ class ManagedDaemonTest {
                 put("jsonrpc", "2.0")
                 put("method", "discoveryUpdated")
                 put("params", buildJsonObject { put("added", 0) })
-              }
+              },
             )
           }
           if (!answerInitialize) continue
@@ -482,7 +482,7 @@ class ManagedDaemonTest {
                   ),
                 ),
               )
-            }
+            },
           )
         }
       } catch (_: Exception) {

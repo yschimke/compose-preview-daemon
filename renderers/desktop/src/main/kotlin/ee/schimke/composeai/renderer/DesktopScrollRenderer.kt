@@ -197,7 +197,7 @@ fun renderScrollPreview(
             showBackground = showBackground,
             backgroundColor = backgroundColor,
             uiMode = uiMode,
-          )
+          ),
         )
       val baseProviders: @Composable (@Composable () -> Unit) -> Unit = { inner ->
         if (rtl) {
@@ -359,7 +359,7 @@ private fun captureLong(
   try {
     if (!axisHasScrollable(host, axis)) {
       System.err.println(
-        "@ScrollingPreview(LONG) on $outputFile: no scrollable composable — skipping."
+        "@ScrollingPreview(LONG) on $outputFile: no scrollable composable — skipping.",
       )
       return false
     }
@@ -492,7 +492,7 @@ private fun captureEnd(
       ?: run {
         System.err.println(
           "@ScrollingPreview(END) on $outputFile: no scrollable composable on axis ${axis.name} — " +
-            "capturing the initial frame."
+            "capturing the initial frame.",
         )
         return false
       }
@@ -504,7 +504,7 @@ private fun captureEnd(
   // has no pixels.
   applyRoundClipInPlace(outputFile, device, fileSystem)
   System.err.println(
-    "@ScrollingPreview(END) on $outputFile: scrolled ${scrolledPx.toInt()}px to the content end."
+    "@ScrollingPreview(END) on $outputFile: scrolled ${scrolledPx.toInt()}px to the content end.",
   )
   return true
 }
@@ -556,7 +556,7 @@ private fun captureGif(
   try {
     if (!axisHasScrollable(host, axis)) {
       System.err.println(
-        "@ScrollingPreview(GIF) on $outputFile: no scrollable composable — skipping."
+        "@ScrollingPreview(GIF) on $outputFile: no scrollable composable — skipping.",
       )
       return false
     }
@@ -660,7 +660,7 @@ private fun captureGif(
         frameDelaysMs = frameDelays.toIntArray(),
       ) ?: return false
     System.err.println(
-      "@ScrollingPreview(GIF) on $outputFile: encoded ${frames.size} frames → ${written.name}."
+      "@ScrollingPreview(GIF) on $outputFile: encoded ${frames.size} frames → ${written.name}.",
     )
     return true
   } finally {
@@ -936,7 +936,7 @@ private fun findComposableMethodForScroll(
   val candidate =
     clazz.declaredMethods.firstOrNull { m -> m.name == name && m.parameterCount >= argCount + 2 }
       ?: throw NoSuchMethodException(
-        "Couldn't find composable method $name on ${clazz.name} taking $argCount parameter(s)"
+        "Couldn't find composable method $name on ${clazz.name} taking $argCount parameter(s)",
       )
   val declaredTypes = candidate.parameterTypes.take(argCount).toTypedArray()
   return clazz.getDeclaredComposableMethod(name, *declaredTypes)

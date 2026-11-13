@@ -138,7 +138,7 @@ class S3RenderAfterEditRealModeTest {
       )
     } catch (t: Throwable) {
       System.err.println(
-        "S3RenderAfterEditRealModeTest failed; daemon stderr:\n${client.dumpStderr()}"
+        "S3RenderAfterEditRealModeTest failed; daemon stderr:\n${client.dumpStderr()}",
       )
       throw t
     } finally {

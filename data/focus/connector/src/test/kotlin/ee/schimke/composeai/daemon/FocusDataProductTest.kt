@@ -44,8 +44,8 @@ class FocusDataProductTest {
     val planned =
       planner.plan(
         PreviewOverrides(
-          focus = FocusOverride.Builder().also { it.direction = FocusDirection.Next }.build()
-        )
+          focus = FocusOverride.Builder().also { it.direction = FocusDirection.Next }.build(),
+        ),
       )
     assertTrue("expected planner to produce a hook", planned is AroundComposableHook)
     assertEquals(DataExtensionId(Material3FocusProduct.KIND), planned!!.id)
@@ -59,8 +59,8 @@ class FocusDataProductTest {
     // Sibling overrides (e.g. ambient) shouldn't trigger the focus planner.
     assertNull(
       planner.plan(
-        PreviewOverrides(ambient = AmbientOverride(state = AmbientStateOverride.AMBIENT))
-      )
+        PreviewOverrides(ambient = AmbientOverride(state = AmbientStateOverride.AMBIENT)),
+      ),
     )
   }
 
@@ -78,7 +78,7 @@ class FocusDataProductTest {
           it.tabIndex = 2
           it.overlay = true
         }
-        .build()
+        .build(),
     )
     assertEquals(
       FocusOverride.Builder()

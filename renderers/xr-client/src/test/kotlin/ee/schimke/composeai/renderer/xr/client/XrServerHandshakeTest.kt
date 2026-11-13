@@ -66,7 +66,7 @@ class XrServerHandshakeTest {
     val e =
       assertFailsWith<XrServerException> {
         XrServerHandshake.parse(
-          result(version = XrRenderService.MIN_SUPPORTED_XR_RENDER_SERVICE_VERSION - 1)
+          result(version = XrRenderService.MIN_SUPPORTED_XR_RENDER_SERVICE_VERSION - 1),
         )
       }
     assertTrue(e.message!!, e.message!!.contains("version mismatch"))
@@ -128,7 +128,7 @@ class XrServerHandshakeTest {
             },
             "serverInfo": { "name": "xr-composite", "version": 1 }
           }
-          """
+          """,
         )
         .jsonObject
     val h = XrServerHandshake.parse(real)
@@ -151,8 +151,8 @@ class XrServerHandshakeTest {
               put("render", true)
               put("multiSession", false)
               put("spatialSceneVersion", 1)
-            }
-        )
+            },
+        ),
       )
     assertTrue(h.has(XrRenderService.Capability.RENDER))
     assertFalse(h.has(XrRenderService.Capability.MULTI_SESSION))

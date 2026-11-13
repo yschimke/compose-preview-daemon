@@ -69,7 +69,7 @@ class CacheDrawCaptureTest {
               style = stroke,
             )
           }
-        }
+        },
       )
 
     assertNotNull("a cached draw must capture as vector, not fall back to a raster", g)
@@ -97,15 +97,15 @@ class CacheDrawCaptureTest {
       capture(
         Modifier.drawWithCache {
           onDrawWithContent { drawCircle(Color.Red, radius = 10f, blendMode = BlendMode.Clear) }
-        }
-      )
+        },
+      ),
     )
     assertNull(
       capture(
         Modifier.drawBehind {
           drawRect(Color.Red, size = Size(10f, 10f), colorFilter = ColorFilter.tint(Color.Blue))
-        }
-      )
+        },
+      ),
     )
   }
 
@@ -161,8 +161,8 @@ class CacheDrawCaptureTest {
         Modifier.drawWithContent {
           drawCircle(Color.Red, radius = 10f)
           drawContent()
-        }
-      )
+        },
+      ),
     )
     assertNull(capture(Modifier.drawWithCache { onDrawBehind { drawCircle(Color.Red) } }))
   }

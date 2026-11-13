@@ -207,7 +207,7 @@ class FigmaSvgDrawRasterRenderTest {
         Box(
           Modifier.size(width = 44.dp, height = 120.dp).graphicsLayer(scaleY = -1f).drawBehind {
             drawRect(Color(0xFF6750A4))
-          }
+          },
         )
       }
 
@@ -224,7 +224,7 @@ class FigmaSvgDrawRasterRenderTest {
         Box(
           Modifier.size(80.dp).drawWithContent {
             clipRect(right = size.width / 2f) { this@drawWithContent.drawContent() }
-          }
+          },
         ) {
           Text("Hi")
         }

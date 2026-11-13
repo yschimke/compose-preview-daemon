@@ -150,7 +150,7 @@ class ClasspathFingerprintTest {
     repeat(10) { fp.cheapHash() }
     val tookMsTotal = (System.nanoTime() - start) / 1_000_000
     System.err.println(
-      "ClasspathFingerprintTest.cheap_hash_microbenchmark_bounded: 50 files × 2KB × 10 iters = ${tookMsTotal}ms"
+      "ClasspathFingerprintTest.cheap_hash_microbenchmark_bounded: 50 files × 2KB × 10 iters = ${tookMsTotal}ms",
     )
     assertTrue(
       "cheap hash should recompute fast — 50 files × 2KB × 10 iters in ${tookMsTotal}ms",

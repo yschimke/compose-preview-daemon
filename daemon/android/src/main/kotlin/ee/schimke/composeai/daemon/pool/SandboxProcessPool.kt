@@ -180,13 +180,13 @@ class SandboxProcessPool(
         } catch (t: Throwable) {
           System.err.println(
             "compose-ai-daemon: spare sandbox worker on port $port could not be adopted for slot " +
-              "$index (${t.javaClass.simpleName}: ${t.message}); trying the next spare, else a cold boot"
+              "$index (${t.javaClass.simpleName}: ${t.message}); trying the next spare, else a cold boot",
           )
           continue
         }
       workers[index] = adopted
       System.err.println(
-        "compose-ai-daemon: sandbox worker $index adopted a warm spare (pid=${adopted.pid}, port=$port)"
+        "compose-ai-daemon: sandbox worker $index adopted a warm spare (pid=${adopted.pid}, port=$port)",
       )
       return true
     }
@@ -270,7 +270,7 @@ class SandboxProcessPool(
             it.swappedGeneration = swapGeneration.get()
           }
         System.err.println(
-          "compose-ai-daemon: sandbox worker $index ready (pid=${hello.pid}, port=${server.localPort})"
+          "compose-ai-daemon: sandbox worker $index ready (pid=${hello.pid}, port=${server.localPort})",
         )
       }
       is WorkerResponse.BootFailed -> {
@@ -379,7 +379,7 @@ class SandboxProcessPool(
           worker.dead = true
           System.err.println(
             "compose-ai-daemon: sandbox worker ${worker.index} (pid=${worker.pid}) released back " +
-              "to its spare pool"
+              "to its spare pool",
           )
           continue
         }
@@ -393,7 +393,7 @@ class SandboxProcessPool(
       if (!worker.waitFor(timeoutMs)) {
         System.err.println(
           "compose-ai-daemon: sandbox worker ${worker.index} (pid=${worker.pid}) did not exit " +
-            "within ${timeoutMs}ms; killing"
+            "within ${timeoutMs}ms; killing",
         )
         worker.destroyForcibly()
       }
@@ -408,7 +408,7 @@ class SandboxProcessPool(
     worker.dead = true
     System.err.println(
       "compose-ai-daemon: sandbox worker ${worker.index} (pid=${worker.pid}) $what " +
-        "(${cause.javaClass.simpleName}: ${cause.message}); dropping it from the pool"
+        "(${cause.javaClass.simpleName}: ${cause.message}); dropping it from the pool",
     )
     runCatching { worker.socket.close() }
     runCatching { worker.destroyForcibly() }
@@ -449,7 +449,7 @@ class SandboxProcessPool(
           inheritedJvmArgs(),
           index,
           classpathHasNonEmptyDirectory = hasNonEmptyDirectory(classpath),
-        )
+        ),
       )
       // The forwarded set includes composeai.daemon.userClassDirs, ~290 KiB on a large Bazel
       // target: past MAX_ARG_STRLEN it must travel in an argfile, as the daemon's own launch does.
@@ -646,7 +646,7 @@ class SandboxProcessPool(
             !arg.startsWith("-javaagent:") &&
             !arg.startsWith("-Xrunjdwp") &&
             !arg.startsWith("-D")
-        }
+        },
       )
       val props = forwardedSysprops()
       props[SANDBOX_COUNT_PROP] = "1"

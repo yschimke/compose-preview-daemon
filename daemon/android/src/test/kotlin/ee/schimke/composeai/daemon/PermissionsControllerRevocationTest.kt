@@ -42,8 +42,8 @@ class PermissionsControllerRevocationTest {
   private fun grant(vararg permissions: String) =
     PermissionsController.set(
       PermissionsOverride(
-        grants = permissions.associateWith { PermissionGrantStateOverride.GRANTED }
-      )
+        grants = permissions.associateWith { PermissionGrantStateOverride.GRANTED },
+      ),
     )
 
   @Test
@@ -73,7 +73,7 @@ class PermissionsControllerRevocationTest {
   fun `an explicit denial still revokes a previously granted permission`() {
     grant(camera)
     PermissionsController.set(
-      PermissionsOverride(grants = mapOf(camera to PermissionGrantStateOverride.DENIED))
+      PermissionsOverride(grants = mapOf(camera to PermissionGrantStateOverride.DENIED)),
     )
     assertEquals(PackageManager.PERMISSION_DENIED, platformCheck(camera))
   }

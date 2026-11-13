@@ -88,8 +88,8 @@ class UiAutomatorDataProductRegistry(private val rootDir: File) :
           facets = listOf(DataProductFacet.STRUCTURED),
           mediaTypes = listOf("application/json"),
           sampling = SamplingPolicy.End,
-        )
-      )
+        ),
+      ),
   ) {
   override fun fileFor(previewId: String, kind: String): File? =
     if (kind == UiAutomatorDataProducer.KIND_HIERARCHY)

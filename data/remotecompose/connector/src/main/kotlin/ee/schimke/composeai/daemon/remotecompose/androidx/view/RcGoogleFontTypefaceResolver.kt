@@ -332,7 +332,7 @@ internal fun installGoogleFontTypefaceResolver(
       delegate = DefaultTypefaceResolver(remoteContext),
       fonts = source,
       textForId = { id -> runCatching { remoteContext.getText(id) }.getOrNull() },
-    )
+    ),
   )
 }
 

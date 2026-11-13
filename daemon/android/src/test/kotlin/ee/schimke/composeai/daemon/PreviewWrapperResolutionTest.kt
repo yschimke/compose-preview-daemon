@@ -37,7 +37,7 @@ class PreviewWrapperResolutionTest {
   @Test
   fun `upstream Remote Compose wrapper is structural without connector discovery`() {
     assertTrue(
-      isStructuralWrapperFqn("androidx.compose.remote.tooling.preview.RemotePreviewWrapper")
+      isStructuralWrapperFqn("androidx.compose.remote.tooling.preview.RemotePreviewWrapper"),
     )
   }
 

@@ -84,7 +84,7 @@ class ComposeFigmaSvgRasterTest {
           200,
           tokens = ComposeSemanticsTokens(backgroundColor = "#FFFFFBFE"),
           children = listOf(node("Image", 20, 20, 180, 120)),
-        )
+        ),
       )
     val frame = writeFrame(gl = 20, gt = 20, gr = 180, gb = 120)
 
@@ -173,7 +173,7 @@ class ComposeFigmaSvgRasterTest {
           200,
           tokens = ComposeSemanticsTokens(backgroundColor = "#FFFFFBFE", clipsContent = true),
           children = listOf(node("Image", 120, 40, 340, 160)),
-        )
+        ),
       )
     val frame = writeFrame(gl = 120, gt = 40, gr = 200, gb = 160)
 

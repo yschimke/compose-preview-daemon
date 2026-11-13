@@ -296,7 +296,7 @@ class AndroidInteractionCaptureTest {
           modifier =
             Modifier.size(CELL_DP.dp)
               .background(if (on) Color(ON_ARGB) else Color(OFF_ARGB))
-              .clickable { on = !on }
+              .clickable { on = !on },
         )
       }
     }
@@ -309,7 +309,7 @@ class AndroidInteractionCaptureTest {
       modifier =
         Modifier.size(width = if (grown) (CELL_DP * 2).dp else CELL_DP.dp, height = CELL_DP.dp)
           .background(Color(ON_ARGB))
-          .clickable { grown = !grown }
+          .clickable { grown = !grown },
     )
   }
 

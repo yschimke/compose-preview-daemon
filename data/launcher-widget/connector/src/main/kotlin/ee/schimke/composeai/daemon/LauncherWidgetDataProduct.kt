@@ -221,7 +221,7 @@ class LauncherWidgetDataProductRegistry : DataProductRegistry {
         attachable = true,
         fetchable = true,
         requiresRerender = false,
-      )
+      ),
     )
 
   fun capture(previewId: String?, payload: LauncherWidgetPayload) {
@@ -247,7 +247,7 @@ class LauncherWidgetDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(LauncherWidgetPayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -259,7 +259,7 @@ class LauncherWidgetDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(LauncherWidgetPayload.serializer(), payload),
-      )
+      ),
     )
   }
 

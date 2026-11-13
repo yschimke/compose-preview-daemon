@@ -41,7 +41,7 @@ object PerfettoTraceDataProducer {
         previewId = previewId,
         backend = backend,
         enabled = enabled,
-      )
+      ),
     )
 
   fun writeArtifacts(rootDir: File, previewId: String, trace: TracePayload) {
@@ -53,7 +53,7 @@ object PerfettoTraceDataProducer {
   }
 
   class Recorder(
-    private val delegate: ee.schimke.composeai.data.render.PerfettoTraceDataProducer.Recorder
+    private val delegate: ee.schimke.composeai.data.render.PerfettoTraceDataProducer.Recorder,
   ) {
     fun <T> section(name: String, category: String = "compose-preview", block: () -> T): T =
       delegate.section(name = name, category = category, block = block)
@@ -115,7 +115,7 @@ class PerfettoTraceDataProductRegistry(
         facets = listOf(DataProductFacet.ARTIFACT, DataProductFacet.PROFILE),
         mediaTypes = listOf("application/json"),
         sampling = SamplingPolicy.Aggregate,
-      )
+      ),
     )
 
   override fun fetch(
@@ -135,7 +135,7 @@ class PerfettoTraceDataProductRegistry(
           path = file.absolutePath,
           payload = metadataPayload(file),
           extras = listOf(traceExtra(file)),
-        )
+        ),
       )
     }
     val payload: JsonObject =
@@ -143,7 +143,7 @@ class PerfettoTraceDataProductRegistry(
         json.parseToJsonElement(fileSystem.read(file.path.toPath()) { readUtf8() }) as JsonObject
       } catch (t: Throwable) {
         return DataProductRegistry.Outcome.FetchFailed(
-          message = "could not parse $kind for $previewId: ${t.message}"
+          message = "could not parse $kind for $previewId: ${t.message}",
         )
       }
     return DataProductRegistry.Outcome.Ok(
@@ -152,7 +152,7 @@ class PerfettoTraceDataProductRegistry(
         schemaVersion = PerfettoTraceDataProducer.SCHEMA_VERSION,
         payload = payload,
         extras = listOf(traceExtra(file)),
-      )
+      ),
     )
   }
 
@@ -166,7 +166,7 @@ class PerfettoTraceDataProductRegistry(
         schemaVersion = PerfettoTraceDataProducer.SCHEMA_VERSION,
         path = file.absolutePath,
         extras = listOf(traceExtra(file)),
-      )
+      ),
     )
   }
 

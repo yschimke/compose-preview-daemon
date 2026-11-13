@@ -28,7 +28,7 @@ class ShadowWearSdkTest {
   fun `shadows target optional Wear SDK APIs by class name`() {
     val haptics =
       requireNotNull(
-        ShadowWearHapticFeedbackConstants::class.java.getAnnotation(Implements::class.java)
+        ShadowWearHapticFeedbackConstants::class.java.getAnnotation(Implements::class.java),
       )
     val sdk = requireNotNull(ShadowWearSdk::class.java.getAnnotation(Implements::class.java))
     val tiles = requireNotNull(ShadowTilesManager::class.java.getAnnotation(Implements::class.java))

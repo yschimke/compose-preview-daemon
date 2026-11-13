@@ -544,7 +544,7 @@ open class RobolectricHost(
       bootSlotWithRetries(0, DaemonProperties.sandboxBootTimeoutMs.read())
       markSlotReady(0)
       StartupTimings.mark(
-        "sandbox 0 ready ($reason; ${(System.nanoTime() - startedAt) / 1_000_000}ms)"
+        "sandbox 0 ready ($reason; ${(System.nanoTime() - startedAt) / 1_000_000}ms)",
       )
     }
   }
@@ -691,7 +691,7 @@ open class RobolectricHost(
           "sandbox-ready latch fired ($adopted adopted spare(s); " +
             (if (lazySlot0) "slot 0 deferred until needed" else "slot 0") +
             " and $unfilled more " +
-            (if (onDemandWorkers) "deferred until needed)" else "booting in background)")
+            (if (onDemandWorkers) "deferred until needed)" else "booting in background)"),
         )
         val bootWorkersNow = !onDemandWorkers && unfilled > 0
         if (lazySlot0 && !bootWorkersNow) return
@@ -743,7 +743,7 @@ open class RobolectricHost(
         backgroundBoot ->
           "sandbox-ready latch fired (slot 0; ${sandboxCount - 1} more booting in background)"
         else -> "all sandbox-ready latches fired"
-      }
+      },
     )
     if (backgroundBoot && DaemonProperties.onDemandWorkerBoot.read()) {
       // `onDemandWorkerBoot`: the workers wait for demand ([requestWorkerBoot]) instead of booting
@@ -835,7 +835,7 @@ open class RobolectricHost(
         System.err.println(
           "RobolectricHost: background boot of sandbox worker $i failed permanently " +
             "(${t.javaClass.simpleName}: ${t.message}); continuing with ${readySlotCount.get()} " +
-            "ready sandbox(es) — renders stay up on the booted slots."
+            "ready sandbox(es) — renders stay up on the booted slots.",
         )
         return
       }
@@ -843,7 +843,7 @@ open class RobolectricHost(
       // Both steps below are CPU-heavy: let a running compile (or warm-up) finish first.
       if (background && (!adopted || k + 1 < pending.size)) {
         yieldToCompiles(
-          if (k + 1 < pending.size) "sandbox ${pending[k + 1]} boot" else "sandbox $i warm render"
+          if (k + 1 < pending.size) "sandbox ${pending[k + 1]} boot" else "sandbox $i warm render",
         )
         if (DaemonHostBridge.shutdown.get()) return
       }
@@ -858,7 +858,7 @@ open class RobolectricHost(
           adopted -> "sandbox $i ready (adopted spare)"
           background -> "sandbox $i ready (background boot)"
           else -> "sandbox $i ready"
-        }
+        },
       )
     }
   }
@@ -915,7 +915,7 @@ open class RobolectricHost(
       System.err.println(
         "RobolectricHost: background boot of the in-process sandbox (slot 0) failed permanently " +
           "(${t.javaClass.simpleName}: ${t.message}); renders stay up on the ${readySlotCount.get()} " +
-          "adopted worker(s), but interactive sessions and parameter-row enumeration need slot 0."
+          "adopted worker(s), but interactive sessions and parameter-row enumeration need slot 0.",
       )
     }
     if (DaemonHostBridge.shutdown.get() || !bootWorkers) return
@@ -970,7 +970,7 @@ open class RobolectricHost(
             density = 1.0f,
             showBackground = true,
             outputBaseName = "__warmup-slot-$slotIdx",
-          )
+          ),
         )
       // Worker slots: the warm render is a plain remote submit — the worker owns its own child
       // classloader, so there's nothing to publish across first.
@@ -982,7 +982,7 @@ open class RobolectricHost(
           WARM_RENDER_TIMEOUT_MS,
         )
         StartupTimings.mark(
-          "sandbox $slotIdx warm render done (${(System.nanoTime() - startedAt) / 1_000_000}ms)"
+          "sandbox $slotIdx warm render done (${(System.nanoTime() - startedAt) / 1_000_000}ms)",
         )
         return
       }
@@ -994,19 +994,19 @@ open class RobolectricHost(
       when {
         raw == null ->
           System.err.println(
-            "compose-ai-daemon: warm render on slot $slotIdx timed out after ${tookMs}ms"
+            "compose-ai-daemon: warm render on slot $slotIdx timed out after ${tookMs}ms",
           )
         raw is Throwable ->
           System.err.println(
             "compose-ai-daemon: warm render on slot $slotIdx failed after ${tookMs}ms " +
-              "(${raw.javaClass.simpleName}: ${raw.message})"
+              "(${raw.javaClass.simpleName}: ${raw.message})",
           )
         else -> StartupTimings.mark("sandbox $slotIdx warm render done (${tookMs}ms)")
       }
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: warm render on slot $slotIdx threw " +
-          "(${t.javaClass.simpleName}: ${t.message}); continuing"
+          "(${t.javaClass.simpleName}: ${t.message}); continuing",
       )
     } finally {
       DaemonHostBridge.results.remove(id)
@@ -1039,7 +1039,7 @@ open class RobolectricHost(
       workerThreads[i].start()
       StartupTimings.mark(
         if (sandboxCount == 1) "worker thread launched (Robolectric init begins)"
-        else "worker $i launched (Robolectric init begins)"
+        else "worker $i launched (Robolectric init begins)",
       )
       val slot = DaemonHostBridge.slot(i)
       val ready = slot.awaitSandboxReady(timeoutMs)
@@ -1074,7 +1074,7 @@ open class RobolectricHost(
           "Robolectric sandbox slot $i failed to bootstrap within ${timeoutMs}ms — holdSandboxOpen " +
             "never registered. On a cold cache the instrumented android-all jar download can " +
             "dominate; raise the timeout via -D$SANDBOX_BOOT_TIMEOUT_PROP=<ms>. Otherwise check the " +
-            "SandboxHoldingRunner / Robolectric sandbox bootstrap logs."
+            "SandboxHoldingRunner / Robolectric sandbox bootstrap logs.",
         )
       }
       attempt++
@@ -1082,7 +1082,7 @@ open class RobolectricHost(
       System.err.println(
         "RobolectricHost: sandbox slot $i failed to boot with a recorded error " +
           "(attempt ${attempt}/${MAX_SANDBOX_BOOT_RETRIES + 1}: ${bootErr.message}); " +
-          "retrying with a fresh worker."
+          "retrying with a fresh worker.",
       )
       // The failed worker has exited (its `SandboxRunner` JUnit run returned with the failure);
       // join briefly to be sure, then reset the slot's boot state and install a fresh worker. A
@@ -1126,7 +1126,7 @@ open class RobolectricHost(
   private fun dumpAllThreadsToStderr(slot: Int, timeoutMs: Long) {
     val sb = StringBuilder()
     sb.append(
-      "===== sandbox-pool stall diagnostic — slot $slot did not boot within ${timeoutMs}ms =====\n"
+      "===== sandbox-pool stall diagnostic — slot $slot did not boot within ${timeoutMs}ms =====\n",
     )
     val all = Thread.getAllStackTraces()
     for ((thread, stack) in all.entries.sortedBy { it.key.name }) {
@@ -1156,7 +1156,7 @@ open class RobolectricHost(
         ?: error(
           "RobolectricHost.ensureHolderForSlot($slotIdx): slot's sandbox classloader is null — " +
             "submit() should only be called after start() returns, by which point every slot has " +
-            "registered its loader."
+            "registered its loader.",
         )
     val candidate = factory(sandboxLoader)
     return if (perSlotHolders.compareAndSet(slotIdx, null, candidate)) candidate
@@ -1214,14 +1214,14 @@ open class RobolectricHost(
     if (!activeInteractiveSession.compareAndSet(session, null)) return
     System.err.println(
       "compose-ai-daemon: RobolectricHost: force-closing held session " +
-        "'${session.streamId}' (previewId='${session.previewId}'): $reason"
+        "'${session.streamId}' (previewId='${session.previewId}'): $reason",
     )
     try {
       session.close()
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: RobolectricHost.forceCloseActiveInteractiveSession threw: " +
-          "${t.javaClass.simpleName}: ${t.message}"
+          "${t.javaClass.simpleName}: ${t.message}",
       )
     }
   }
@@ -1287,7 +1287,7 @@ open class RobolectricHost(
         val fallback = chooseSlotIndex(typed)
         System.err.println(
           "compose-ai-daemon: sandbox worker $slotIdx died holding render ${typed.id}; " +
-            "re-dispatching to slot $fallback (${t.javaClass.simpleName}: ${t.message})"
+            "re-dispatching to slot $fallback (${t.javaClass.simpleName}: ${t.message})",
         )
         if (fallback > 0) return pool.submit(fallback - 1, typed, timeoutMs)
         ensureInProcessSandbox("render with no routable worker")
@@ -1317,7 +1317,7 @@ open class RobolectricHost(
         throw UnsupportedOperationException(
           "RobolectricHost: no sandbox worker process became routable within ${timeoutMs}ms " +
             "(${readySlotCount.get()}/$sandboxCount sandboxes ready) — a held session would leave " +
-            "no sandbox for normal renders. Retry once the pool has finished booting."
+            "no sandbox for normal renders. Retry once the pool has finished booting.",
         )
       }
       Thread.sleep(INTERACTIVE_WORKER_POLL_MS)
@@ -1384,7 +1384,7 @@ open class RobolectricHost(
         // when the held session releases the slot.
         pollParameterRows(resultQueue, previewId)
           ?: error(
-            "previewParameterRows('$previewId') timed out after ${PARAMETER_ROWS_TIMEOUT_MS}ms"
+            "previewParameterRows('$previewId') timed out after ${PARAMETER_ROWS_TIMEOUT_MS}ms",
           )
       } finally {
         DaemonHostBridge.results.remove(request.id)
@@ -1409,7 +1409,7 @@ open class RobolectricHost(
       "RobolectricHost: cannot enumerate @PreviewParameter rows for previewId='$previewId' while " +
         "interactive session '$held' holds sandbox slot $INTERACTIVE_SLOT_INDEX — enumeration " +
         "runs inside that sandbox and the held-session loop does not serve it. Call " +
-        "interactive/stop first, or enumerate before starting the session."
+        "interactive/stop first, or enumerate before starting the session.",
     )
   }
 
@@ -1728,14 +1728,14 @@ open class RobolectricHost(
         "RobolectricHost: interactive sessions require sandboxCount >= 2 " +
           "(have $sandboxCount); a held session pins the in-process sandbox for its lifetime, so " +
           "the pool needs at least one worker process left to serve normal renders. See " +
-          "docs/daemon/INTERACTIVE-ANDROID.md § 2 and docs/daemon/SANDBOX-POOL.md."
+          "docs/daemon/INTERACTIVE-ANDROID.md § 2 and docs/daemon/SANDBOX-POOL.md.",
       )
     }
     val resolver =
       previewSpecResolver
         ?: throw UnsupportedOperationException(
           "RobolectricHost has no previewSpecResolver; pass one at construction time to enable " +
-            "v3 interactive sessions"
+            "v3 interactive sessions",
         )
     val baseSpec =
       resolver(previewId)
@@ -1746,7 +1746,7 @@ open class RobolectricHost(
         ?: carriedDocumentSpec(previewId, overrides)
         ?: throw UnsupportedOperationException(
           "RobolectricHost.previewSpecResolver returned null for previewId='$previewId'; " +
-            "interactive session not allocated"
+            "interactive session not allocated",
         )
     // Apply the same override-merge pass recording uses (PR #1304 lit the symmetric path on
     // desktop, #1313 brought the data/touch-overlay planner to Robolectric, this completes the
@@ -1806,7 +1806,7 @@ open class RobolectricHost(
     if (interactiveSlot.sandboxClassLoaderRef.get() == null) {
       throw UnsupportedOperationException(
         "RobolectricHost: interactive slot $INTERACTIVE_SLOT_INDEX is not booted " +
-          "(ready ${readySlotCount.get()}/$sandboxCount sandboxes). Retry shortly."
+          "(ready ${readySlotCount.get()}/$sandboxCount sandboxes). Retry shortly.",
       )
     }
     // Background boot (see [start]) brings the worker processes up after slot 0, so with the
@@ -1824,7 +1824,7 @@ open class RobolectricHost(
       val held = activeInteractiveStreamId.get() ?: "<concurrent close>"
       throw UnsupportedOperationException(
         "RobolectricHost: interactive session already held for stream '$held'; " +
-          "v3 supports one held session at a time per host (INTERACTIVE-ANDROID.md § 2.1)"
+          "v3 supports one held session at a time per host (INTERACTIVE-ANDROID.md § 2.1)",
       )
     }
     // Publish the slot's child classloader before the sandbox-side held-rule loop reads it. The
@@ -1923,14 +1923,14 @@ open class RobolectricHost(
         wearWidgetSlotWidthDp = wearWidgetSlot?.widthDp,
         wearWidgetSlotHeightDp = wearWidgetSlot?.heightDp,
         wearWidgetSlotCornerRadiusDp = wearWidgetSlot?.cornerRadiusDp,
-      )
+      ),
     )
     if (!replyLatch.await(INTERACTIVE_START_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
       activeInteractiveStreamId.compareAndSet(streamId, null)
       throw UnsupportedOperationException(
         "RobolectricHost.acquireInteractiveSession timed out after " +
           "${INTERACTIVE_START_TIMEOUT_MS}ms for previewId='$previewId' — the held-rule loop on " +
-          "slot $INTERACTIVE_SLOT_INDEX did not register setContent in time"
+          "slot $INTERACTIVE_SLOT_INDEX did not register setContent in time",
       )
     }
     val startError = replyError.get()
@@ -1961,12 +1961,12 @@ open class RobolectricHost(
           interactiveSessionListener?.let { listener ->
             try {
               listener.onSessionLifecycle(
-                InteractiveSessionLifecycle.Released(previewId = previewId, streamId = streamId)
+                InteractiveSessionLifecycle.Released(previewId = previewId, streamId = streamId),
               )
             } catch (t: Throwable) {
               System.err.println(
                 "compose-ai-daemon: RobolectricHost: interactiveSessionListener.onReleased threw " +
-                  "(${t.javaClass.simpleName}: ${t.message}); continuing"
+                  "(${t.javaClass.simpleName}: ${t.message}); continuing",
               )
             }
           }
@@ -1980,7 +1980,7 @@ open class RobolectricHost(
             } catch (t: Throwable) {
               System.err.println(
                 "compose-ai-daemon: RobolectricHost: onSessionClosed threw " +
-                  "(${t.javaClass.simpleName}: ${t.message}); continuing"
+                  "(${t.javaClass.simpleName}: ${t.message}); continuing",
               )
             }
           }
@@ -1999,12 +1999,12 @@ open class RobolectricHost(
             previewId = previewId,
             streamId = streamId,
             slot = slot,
-          )
+          ),
         )
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: RobolectricHost: interactiveSessionListener.onAcquired threw " +
-            "(${t.javaClass.simpleName}: ${t.message}); continuing"
+            "(${t.javaClass.simpleName}: ${t.message}); continuing",
         )
       }
     }
@@ -2036,14 +2036,14 @@ open class RobolectricHost(
       throw UnsupportedOperationException(
         "RobolectricHost: recording sessions require sandboxCount >= 2 " +
           "(have $sandboxCount); Android recording pins one sandbox slot per held session and " +
-          "slot 0 must stay available for normal renders."
+          "slot 0 must stay available for normal renders.",
       )
     }
     val resolver =
       previewSpecResolver
         ?: throw UnsupportedOperationException(
           "RobolectricHost has no previewSpecResolver; pass one at construction time to enable " +
-            "recording sessions"
+            "recording sessions",
         )
     val baseSpec =
       resolver(previewId)
@@ -2052,7 +2052,7 @@ open class RobolectricHost(
         ?: carriedDocumentSpec(previewId, overrides)
         ?: throw UnsupportedOperationException(
           "RobolectricHost.previewSpecResolver returned null for previewId='$previewId'; " +
-            "recording session not allocated"
+            "recording session not allocated",
         )
     val effectiveSpec = applyOverrides(baseSpec, overrides, recordingId)
     val interactive =
@@ -2363,7 +2363,7 @@ open class RobolectricHost(
     if (stuck.isNotEmpty()) {
       error(
         "RobolectricHost worker(s) did not exit within ${timeoutMs}ms after shutdown: " +
-          stuck.joinToString(", ") { it.name }
+          stuck.joinToString(", ") { it.name },
       )
     }
   }
@@ -2602,7 +2602,7 @@ open class RobolectricHost(
                 // the standard Robolectric qualifier path untouched. The qualifier emission side
                 // (rewrite to base locale + ldrtl for bidi) is in `applyPreviewQualifiers` below.
                 PseudolocalePreviewOverrideExtension(),
-              )
+              ),
           ),
         dataArtifactExtensions =
           RenderDataArtifactExtensions(
@@ -2642,7 +2642,7 @@ open class RobolectricHost(
               },
               I18nTranslationsExtension.factory,
               NavigationExtension.factory,
-            )
+            ),
           ),
       )
     }
@@ -2699,7 +2699,7 @@ open class RobolectricHost(
           System.err.println(
             "compose-ai-daemon: orphan interactive command on slot $slotIndex: " +
               "${interactive.javaClass.simpleName} streamId=${interactive.streamId} " +
-              "(no session held; dropping)"
+              "(no session held; dropping)",
           )
           continue
         }
@@ -2731,7 +2731,7 @@ open class RobolectricHost(
                     providerFqn = provider,
                     limit =
                       limit.coerceAtMost(
-                        ee.schimke.composeai.renderer.PreviewParameterSupport.MAX_ROW_SCAN
+                        ee.schimke.composeai.renderer.PreviewParameterSupport.MAX_ROW_SCAN,
                       ),
                     classLoader =
                       slot.childLoaderRef.get()
@@ -2835,7 +2835,7 @@ open class RobolectricHost(
       // capture one parent slice per render, named by preview. No-op unless
       // `-Dcomposeai.daemon.atrace=true` (see [AndroidxTraceSections]).
       return AndroidxTraceSections.traced(
-        "composeai:render:${spec.previewId ?: spec.outputBaseName}"
+        "composeai:render:${spec.previewId ?: spec.outputBaseName}",
       ) {
         engine.render(
           spec,
@@ -3094,8 +3094,8 @@ open class RobolectricHost(
         start.replyError.set(
           IllegalStateException(
             "overrides.remoteCompose.documentBase64 needs the Remote Compose IR replay connector " +
-              "(data-remotecompose-connector) on the render classpath"
-          )
+              "(data-remotecompose-connector) on the render classpath",
+          ),
         )
         start.replyLatch.countDown()
         return
@@ -3141,7 +3141,7 @@ open class RobolectricHost(
           android.content.ComponentName(
             appContext.packageName,
             androidx.activity.ComponentActivity::class.java.name,
-          )
+          ),
         )
 
       // INTERACTIVE-ANDROID.md § 10.3 / PR C — full v1 RenderSpec qualifier set. Mirrors
@@ -3192,7 +3192,7 @@ open class RobolectricHost(
       val outputDir =
         java.io.File(
           System.getProperty(RenderEngine.OUTPUT_DIR_PROP)
-            ?: composeAiCacheDir("history").resolve("daemon-renders").absolutePath
+            ?: composeAiCacheDir("history").resolve("daemon-renders").absolutePath,
         )
       outputDir.mkdirs()
       val outputFile = java.io.File(outputDir, "${start.outputBaseName}.png")
@@ -3200,7 +3200,9 @@ open class RobolectricHost(
       val roborazziOptions =
         com.github.takahirom.roborazzi.RoborazziOptions(
           recordOptions =
-            com.github.takahirom.roborazzi.RoborazziOptions.RecordOptions(applyDeviceCrop = isRound)
+            com.github.takahirom.roborazzi.RoborazziOptions.RecordOptions(
+              applyDeviceCrop = isRound,
+            ),
         )
 
       val backgroundArgb =
@@ -3215,7 +3217,7 @@ open class RobolectricHost(
       @Suppress("DEPRECATION")
       val rule =
         androidx.compose.ui.test.junit4.createAndroidComposeRule<
-          androidx.activity.ComponentActivity
+          androidx.activity.ComponentActivity,
         >()
       val description =
         org.junit.runner.Description.createTestDescription(
@@ -3262,9 +3264,9 @@ open class RobolectricHost(
               androidx.compose.runtime.mutableStateOf<Map<String, List<Any?>>>(emptyMap())
             val recreateRegistryRef =
               java.util.concurrent.atomic.AtomicReference<
-                androidx.compose.runtime.saveable.SaveableStateRegistry?
+                androidx.compose.runtime.saveable.SaveableStateRegistry?,
               >(
-                null
+                null,
               )
             // `state.save` / `state.restore` named-checkpoint store. One bundle per
             // agent-supplied `checkpointId`; same lifetime as the held composition. `state.save`
@@ -3305,7 +3307,7 @@ open class RobolectricHost(
                     androidx.compose.ui.input.InputMode.Keyboard
                   } else {
                     androidx.compose.ui.input.InputMode.Touch
-                  }
+                  },
               )
             // A click following pointer movement is the viewer's eye-tracking "select focused
             // element" gesture, so it must retain focus while gaze remains on that element. A
@@ -3354,12 +3356,12 @@ open class RobolectricHost(
                     val heldProviders = buildList {
                       if (heldPlaceholderContext != null) {
                         add(
-                          androidx.compose.ui.platform.LocalContext provides heldPlaceholderContext
+                          androidx.compose.ui.platform.LocalContext provides heldPlaceholderContext,
                         )
                       }
                       add(
                         androidx.compose.ui.platform.LocalInspectionMode provides
-                          (start.inspectionMode ?: false)
+                          (start.inspectionMode ?: false),
                       )
                       ee.schimke.composeai.renderer.LocaleCompositionLocals.providedValue(
                           androidx.compose.ui.platform.LocalConfiguration.current,
@@ -3368,16 +3370,16 @@ open class RobolectricHost(
                         ?.let(::add)
                       add(
                         ee.schimke.composeai.preview.slots.LocalPreviewBackgroundCleared provides
-                          start.clearBackground
+                          start.clearBackground,
                       )
                       add(
                         androidx.compose.runtime.saveable.LocalSaveableStateRegistry provides
-                          recreateRegistry
+                          recreateRegistry,
                       )
                       if (glimmerInputProfile) {
                         add(
                           androidx.compose.ui.platform.LocalInputModeManager provides
-                            glimmerInputModeManager
+                            glimmerInputModeManager,
                         )
                       }
                     }
@@ -3388,7 +3390,7 @@ open class RobolectricHost(
                         clearFocusGeneration = glimmerClearFocusGeneration,
                       )
                       androidx.compose.foundation.layout.Box(
-                        modifier = androidx.compose.ui.Modifier.fillMaxSize()
+                        modifier = androidx.compose.ui.Modifier.fillMaxSize(),
                       ) {
                         // Wrap with the same `previewOverrideExtensions` chain the non-held
                         // render path uses (see `RenderEngine.kt:302-309`) so interactive
@@ -3640,7 +3642,7 @@ open class RobolectricHost(
                               glimmerGazeActive.set(true)
                               rule.runOnUiThread {
                                 glimmerInputModeManager.requestInputMode(
-                                  androidx.compose.ui.input.InputMode.Keyboard
+                                  androidx.compose.ui.input.InputMode.Keyboard,
                                 )
                                 androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
                               }
@@ -3650,7 +3652,7 @@ open class RobolectricHost(
                               glimmerGazeActive.set(false)
                               rule.runOnUiThread {
                                 glimmerInputModeManager.requestInputMode(
-                                  androidx.compose.ui.input.InputMode.Touch
+                                  androidx.compose.ui.input.InputMode.Touch,
                                 )
                                 glimmerClearFocusGeneration.intValue++
                                 androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
@@ -3660,7 +3662,7 @@ open class RobolectricHost(
                               if (!glimmerGazeActive.get()) {
                                 rule.runOnUiThread {
                                   glimmerInputModeManager.requestInputMode(
-                                    androidx.compose.ui.input.InputMode.Touch
+                                    androidx.compose.ui.input.InputMode.Touch,
                                   )
                                   glimmerClearFocusGeneration.intValue++
                                   androidx.compose.runtime.snapshots.Snapshot
@@ -3683,7 +3685,7 @@ open class RobolectricHost(
                     cmd.replyError.set(t)
                   } finally {
                     cmd.replyClockAdvancedMs?.set(
-                      rule.mainClock.currentTime - clockBeforeDispatch - alignJumpMs
+                      rule.mainClock.currentTime - clockBeforeDispatch - alignJumpMs,
                     )
                     cmd.replyLatch.countDown()
                   }
@@ -3780,7 +3782,7 @@ open class RobolectricHost(
                         actionKind = cmd.actionKind,
                         selectorJson = cmd.selectorJson,
                         useUnmergedTree = cmd.useUnmergedTree,
-                      )
+                      ),
                     )
                   } catch (t: Throwable) {
                     cmd.replyError.set(t)
@@ -3799,7 +3801,7 @@ open class RobolectricHost(
                     }
                       .getOrNull()
                     cmd.replyNodesJson.set(
-                      root?.let { ComposeSemanticsDataProducer.probeNodesJson(it) }
+                      root?.let { ComposeSemanticsDataProducer.probeNodesJson(it) },
                     )
                   } catch (t: Throwable) {
                     cmd.replyError.set(t)
@@ -3824,7 +3826,7 @@ open class RobolectricHost(
                       Json.encodeToString(
                         ee.schimke.composeai.renderer.AccessibilityFindingsPayload.serializer(),
                         ee.schimke.composeai.renderer.AccessibilityFindingsPayload(findings),
-                      )
+                      ),
                     )
                   } catch (t: Throwable) {
                     cmd.replyError.set(t)
@@ -3893,7 +3895,7 @@ open class RobolectricHost(
                     // saves to the same id overwrite the prior bundle.
                     val saved =
                       java.util.concurrent.atomic.AtomicReference<Map<String, List<Any?>>>(
-                        emptyMap()
+                        emptyMap(),
                       )
                     rule.runOnUiThread {
                       val current = recreateRegistryRef.get()
@@ -3971,7 +3973,7 @@ open class RobolectricHost(
                         System.err.println(
                           "compose-ai-daemon: held-rule for stream ${start.streamId}: " +
                             "recomposition observer install failed " +
-                            "(${t.javaClass.simpleName}: ${t.message}); marking unavailable"
+                            "(${t.javaClass.simpleName}: ${t.message}); marking unavailable",
                         )
                         cmd.replyUnavailable.set(true)
                         ee.schimke.composeai.daemon.bridge.SandboxRecompositionBridge.close(
@@ -4037,8 +4039,8 @@ open class RobolectricHost(
                   cmd.replyError.set(
                     IllegalStateException(
                       "nested interactive/start for stream '${cmd.streamId}' while " +
-                        "stream '${start.streamId}' is still held"
-                    )
+                        "stream '${start.streamId}' is still held",
+                    ),
                   )
                   cmd.replyLatch.countDown()
                 }
@@ -4066,7 +4068,7 @@ open class RobolectricHost(
         } else {
           System.err.println(
             "compose-ai-daemon: held-rule for stream ${start.streamId} threw after " +
-              "interactive/start succeeded: ${t.javaClass.simpleName}: ${t.message}"
+              "interactive/start succeeded: ${t.javaClass.simpleName}: ${t.message}",
           )
         }
       } finally {
@@ -4112,16 +4114,16 @@ open class RobolectricHost(
         }
           ?: error(
             "RobolectricHost.installRecompositionObserver: no Recomposer found for stream " +
-              "'$streamId' — the held rule must run setContent before observer install"
+              "'$streamId' — the held rule must run setContent before observer install",
           )
       val perCompositionHandles =
         java.util.Collections.synchronizedList(
-          mutableListOf<androidx.compose.runtime.tooling.CompositionObserverHandle>()
+          mutableListOf<androidx.compose.runtime.tooling.CompositionObserverHandle>(),
         )
       val perCompositionObserver =
         object : androidx.compose.runtime.tooling.CompositionObserver {
           override fun onBeginComposition(
-            composition: androidx.compose.runtime.tooling.ObservableComposition
+            composition: androidx.compose.runtime.tooling.ObservableComposition,
           ) {}
 
           override fun onScopeEnter(scope: androidx.compose.runtime.RecomposeScope) {}
@@ -4137,7 +4139,7 @@ open class RobolectricHost(
           }
 
           override fun onEndComposition(
-            composition: androidx.compose.runtime.tooling.ObservableComposition
+            composition: androidx.compose.runtime.tooling.ObservableComposition,
           ) {}
 
           override fun onScopeInvalidated(
@@ -4168,14 +4170,14 @@ open class RobolectricHost(
       val registrationObserver =
         object : androidx.compose.runtime.tooling.CompositionRegistrationObserver {
           override fun onCompositionRegistered(
-            composition: androidx.compose.runtime.tooling.ObservableComposition
+            composition: androidx.compose.runtime.tooling.ObservableComposition,
           ) {
             val handle = composition.setObserver(perCompositionObserver)
             perCompositionHandles.add(handle)
           }
 
           override fun onCompositionUnregistered(
-            composition: androidx.compose.runtime.tooling.ObservableComposition
+            composition: androidx.compose.runtime.tooling.ObservableComposition,
           ) {}
         }
       val recomposerHandle = recomposer.observe(registrationObserver)
@@ -4200,7 +4202,7 @@ open class RobolectricHost(
      * observe.
      */
     private fun findFirstAbstractComposeView(
-      root: android.view.View
+      root: android.view.View,
     ): androidx.compose.ui.platform.AbstractComposeView? {
       if (root is androidx.compose.ui.platform.AbstractComposeView) return root
       if (root is android.view.ViewGroup) {
@@ -4221,7 +4223,7 @@ open class RobolectricHost(
      * the caller surfaces as instrumentation-unavailable).
      */
     private fun reflectParentRecomposer(
-      composeView: androidx.compose.ui.platform.AbstractComposeView
+      composeView: androidx.compose.ui.platform.AbstractComposeView,
     ): androidx.compose.runtime.Recomposer? {
       var cls: Class<*>? = composeView.javaClass
       while (cls != null) {
@@ -4276,7 +4278,7 @@ open class RobolectricHost(
             SemanticsTargetUnresolvedCode.NO_SEMANTICS_ROOT,
             0,
             emptyList(),
-          )
+          ),
         )
         return null
       }
@@ -4303,7 +4305,7 @@ open class RobolectricHost(
               SemanticsTargetUnresolvedCode.NO_MATCH,
               0,
               SemanticsTargets.targetableNodes(payload.root),
-            )
+            ),
           )
           null
         }
@@ -4315,7 +4317,7 @@ open class RobolectricHost(
               SemanticsTargetUnresolvedCode.AMBIGUOUS,
               res.candidates.size,
               res.candidates,
-            )
+            ),
           )
           null
         }
@@ -4473,7 +4475,7 @@ open class RobolectricHost(
         androidx.compose.ui.test.junit4.AndroidComposeTestRule<
           *,
           androidx.activity.ComponentActivity,
-        >
+        >,
     ): Long {
       val lag = android.os.SystemClock.uptimeMillis() - rule.mainClock.currentTime
       if (lag > 0L) rule.mainClock.advanceTimeBy(lag, ignoreFrameDuration = true)
@@ -4715,7 +4717,7 @@ open class RobolectricHost(
         androidx.compose.ui.test.junit4.AndroidComposeTestRule<
           *,
           androidx.activity.ComponentActivity,
-        >
+        >,
     ): SemanticsNode? =
       rule
         .onAllNodes(isFocused(), useUnmergedTree = true)
@@ -4820,7 +4822,7 @@ open class RobolectricHost(
      * [actionKind], or `null` for a kind it does not handle.
      */
     private fun semanticsActionKeyFor(
-      actionKind: String
+      actionKind: String,
     ): androidx.compose.ui.semantics.SemanticsPropertyKey<*>? =
       when (actionKind) {
         "click",
@@ -4889,7 +4891,7 @@ open class RobolectricHost(
       target: androidx.compose.ui.semantics.SemanticsNode,
       key:
         androidx.compose.ui.semantics.SemanticsPropertyKey<
-          androidx.compose.ui.semantics.AccessibilityAction<() -> Boolean>
+          androidx.compose.ui.semantics.AccessibilityAction<() -> Boolean>,
         >,
     ): Boolean {
       val accessibilityAction = target.config.getOrNull(key) ?: return false
@@ -5043,7 +5045,7 @@ open class RobolectricHost(
      * to `EDGE_LEFT` (the dominant on-device shape) when the agent leaves it unset.
      */
     private fun synthesizeBackEvent(
-      cmd: InteractiveCommand.DispatchNavigation
+      cmd: InteractiveCommand.DispatchNavigation,
     ): androidx.activity.BackEventCompat {
       val edge =
         when (cmd.backEdge?.lowercase()) {
@@ -5131,14 +5133,14 @@ open class RobolectricHost(
             android.view.MotionEvent.PointerProperties().apply {
               id = 0
               toolType = android.view.MotionEvent.TOOL_TYPE_UNKNOWN
-            }
+            },
           ),
           arrayOf(
             android.view.MotionEvent.PointerCoords().apply {
               x = position.x
               y = position.y
               setAxisValue(android.view.MotionEvent.AXIS_SCROLL, axisScroll)
-            }
+            },
           ),
           /* metaState = */ 0,
           /* buttonState = */ 0,
@@ -5163,7 +5165,7 @@ open class RobolectricHost(
         androidx.compose.ui.test.junit4.AndroidComposeTestRule<
           *,
           androidx.activity.ComponentActivity,
-        >
+        >,
     ): android.view.View {
       val content = rule.activity.findViewById<android.view.ViewGroup>(android.R.id.content)
       return content?.getChildAt(0) ?: rule.activity.window.decorView
@@ -5299,7 +5301,7 @@ private fun ClearGlimmerFocusEffect(
  */
 private fun heldSurfaceRoot(
   rule:
-    androidx.compose.ui.test.junit4.AndroidComposeTestRule<*, androidx.activity.ComponentActivity>
+    androidx.compose.ui.test.junit4.AndroidComposeTestRule<*, androidx.activity.ComponentActivity>,
 ): androidx.compose.ui.test.SemanticsNodeInteraction {
   val rootInteractions = rule.onAllNodes(isRoot(), useUnmergedTree = true)
   val roots = runCatching {

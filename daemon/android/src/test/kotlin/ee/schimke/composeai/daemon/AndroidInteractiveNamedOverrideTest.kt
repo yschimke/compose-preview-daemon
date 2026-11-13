@@ -46,7 +46,7 @@ class AndroidInteractiveNamedOverrideTest {
           classLoader = AndroidInteractiveNamedOverrideTest::class.java.classLoader!!,
           overrides =
             PreviewOverrides(
-              namedOverrides = mapOf("fill" to PreviewOverrideValue.ColorValue(SEEDED_FILL_HEX))
+              namedOverrides = mapOf("fill" to PreviewOverrideValue.ColorValue(SEEDED_FILL_HEX)),
             ),
         )
       try {

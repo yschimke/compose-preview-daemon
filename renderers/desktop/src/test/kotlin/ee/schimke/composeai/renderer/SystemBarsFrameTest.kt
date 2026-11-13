@@ -112,18 +112,22 @@ class SystemBarsFrameTest {
     assertTrue(shouldApplySystemBars(showSystemUi = true, device = null, kind = null))
     // No showSystemUi → chrome-less default.
     assertFalse(
-      shouldApplySystemBars(showSystemUi = false, device = "id:pixel_8", kind = "COMPOSE")
+      shouldApplySystemBars(showSystemUi = false, device = "id:pixel_8", kind = "COMPOSE"),
     )
     // Round / Wear surfaces keep their own framing.
     assertFalse(
-      shouldApplySystemBars(showSystemUi = true, device = "id:wearos_large_round", kind = "COMPOSE")
+      shouldApplySystemBars(
+        showSystemUi = true,
+        device = "id:wearos_large_round",
+        kind = "COMPOSE",
+      ),
     )
     assertFalse(
       shouldApplySystemBars(
         showSystemUi = true,
         device = "spec:width=200dp,height=200dp,isRound=true",
         kind = "COMPOSE",
-      )
+      ),
     )
     // Tiles fill the whole watch face — bars don't apply.
     assertFalse(shouldApplySystemBars(showSystemUi = true, device = "id:pixel_8", kind = "TILE"))

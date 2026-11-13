@@ -42,7 +42,7 @@ public object PixelDiff {
     if (actualImg.width != expectedImg.width || actualImg.height != expectedImg.height) {
       return PixelDiffResult.failure(
         "dimension mismatch: actual=${actualImg.width}x${actualImg.height}, " +
-          "expected=${expectedImg.width}x${expectedImg.height}"
+          "expected=${expectedImg.width}x${expectedImg.height}",
       )
     }
     val w = actualImg.width
@@ -77,7 +77,7 @@ public object PixelDiff {
             append(
               " offending=$offendingCount/$totalPixels " +
                 "(${"%.4f".format(aggregateFraction * 100)}% > " +
-                "${"%.4f".format(tolerance.aggregateFraction * 100)}%)"
+                "${"%.4f".format(tolerance.aggregateFraction * 100)}%)",
             )
           }
           if (!capOk) append(" maxDelta=$maxDelta exceeds cap=${tolerance.absoluteCap}")

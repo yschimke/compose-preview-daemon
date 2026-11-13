@@ -156,7 +156,7 @@ class JsonRpcDesktopIntegrationTest {
       val renderResponse = pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 2 }
       assertNotNull("renderNow response should arrive", renderResponse)
       assertTrue(
-        renderResponse!!["result"]!!.jsonObject["queued"].toString().contains("red-square")
+        renderResponse!!["result"]!!.jsonObject["queued"].toString().contains("red-square"),
       )
 
       // 4. renderStarted + renderFinished notifications.
@@ -230,7 +230,7 @@ class JsonRpcDesktopIntegrationTest {
                 heightPx = 64,
                 density = 1.0f,
                 outputBaseName = "click-toggle-square",
-              )
+              ),
           ),
       )
 
@@ -530,7 +530,7 @@ private class SpecRoutingHost(
           density = 1.0f,
           showBackground = true,
           outputBaseName = "red-square",
-        )
+        ),
     ),
 ) : DesktopHost(engine = engine, previewSpecResolver = { previewId -> specs[previewId] }) {
 

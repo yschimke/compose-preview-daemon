@@ -151,9 +151,9 @@ class MergedSemanticsTargetingTest {
               role = "Button",
               clickable = true,
               children = listOf(node("3", "30,20,130,40", text = "Example Button")),
-            )
+            ),
           ),
-      )
+      ),
     )
 
   /** The same button in the merged tree: the text folded into the button, the child gone. */
@@ -170,9 +170,9 @@ class MergedSemanticsTargetingTest {
               role = "Button",
               text = "Example Button",
               clickable = true,
-            )
+            ),
           ),
-      )
+      ),
     )
 
   private fun twoButtons(merged: Boolean): ComposeSemanticsPayload {

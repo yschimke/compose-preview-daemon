@@ -51,7 +51,11 @@ class AroundComposableExtensionTest {
     val hook: FrameDriverHook = extension
     val sequence =
       hook.frames(
-        ExtensionFrameContext(extensionId = extension.id, previewId = "preview", renderMode = "gif")
+        ExtensionFrameContext(
+          extensionId = extension.id,
+          previewId = "preview",
+          renderMode = "gif",
+        ),
       )
 
     assertEquals(DataExtensionId("scroll-gif"), extension.id)
@@ -74,7 +78,7 @@ class AroundComposableExtensionTest {
           frame = ExtensionFrame(index = 2, fraction = 0.5f, timeMillis = 160L, delayMillis = 80),
           sequence =
             ExtensionFrameSequence(frames = emptyList(), extras = mapOf("curve" to "ease-in")),
-        )
+        ),
       )
 
     assertEquals(DataExtensionId("animation-curve-overlay"), extension.id)
@@ -126,7 +130,7 @@ class AroundComposableExtensionTest {
     assertEquals("planned", context.state(framesKey)?.value)
     assertEquals("planned", registry.requireValue(framesKey))
     assertNull(
-      context.state(ExtensionStateKey(owner = owner, name = "missing", String::class.java))
+      context.state(ExtensionStateKey(owner = owner, name = "missing", String::class.java)),
     )
   }
 

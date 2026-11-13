@@ -120,7 +120,7 @@ private constructor(
       if (compositionData == null) {
         System.err.println(
           "@AnimatedPreview(showCurves=true): composition didn't populate the slot " +
-            "table holder — did InspectablePreviewContent run? Falling back to GIF only."
+            "table holder — did InspectablePreviewContent run? Falling back to GIF only.",
         )
         return null
       }
@@ -139,7 +139,7 @@ private constructor(
         pickFunction0Constructor(clockClass)
           ?: error(
             "PreviewAnimationClock has no Function0-only constructor — Compose UI " +
-              "Tooling version is incompatible with @AnimatedPreview(showCurves=true)."
+              "Tooling version is incompatible with @AnimatedPreview(showCurves=true).",
           )
       val clock = clockCtor.newInstance(*noOpCallbacks(clockCtor.parameterTypes.size))
 
@@ -154,7 +154,7 @@ private constructor(
         pickFunction0Constructor(searchClass)
           ?: error(
             "AnimationSearch has no Function0-only constructor — Compose UI Tooling " +
-              "version is incompatible with @AnimatedPreview(showCurves=true)."
+              "version is incompatible with @AnimatedPreview(showCurves=true).",
           )
       val searchArgs =
         Array<Any>(searchCtor.parameterTypes.size) { i ->
@@ -172,7 +172,7 @@ private constructor(
           ?.also { it.isAccessible = true }
           ?: error(
             "AnimationSearch.searchAny(Collection) not found — Compose UI Tooling " +
-              "version is incompatible with @AnimatedPreview(showCurves=true)."
+              "version is incompatible with @AnimatedPreview(showCurves=true).",
           )
       val attachAllAnimations =
         searchClass.declaredMethods
@@ -186,7 +186,7 @@ private constructor(
       val anyFound = (searchAny.invoke(search, slotTrees) as? Boolean) ?: false
       if (!anyFound) {
         System.err.println(
-          "@AnimatedPreview(showCurves=true): no animations discovered in composition."
+          "@AnimatedPreview(showCurves=true): no animations discovered in composition.",
         )
         return null
       }
@@ -265,7 +265,7 @@ private constructor(
           "    testImplementation(\"androidx.compose.animation:animation-tooling-internal\")\n" +
           "  (Both are required — ui-tooling exposes PreviewAnimationClock; " +
           "animation-tooling-internal exposes ComposeAnimation / ComposeAnimatedProperty " +
-          "which the clock returns. The compose-bom pins matching versions.)"
+          "which the clock returns. The compose-bom pins matching versions.)",
       )
     }
 
@@ -282,7 +282,7 @@ private constructor(
           ?.also { it.isAccessible = true }
           ?: error(
             "PreviewAnimationClock has no setClockTime(Long) — Compose UI Tooling " +
-              "version is incompatible with @AnimatedPreview(showCurves=true)."
+              "version is incompatible with @AnimatedPreview(showCurves=true).",
           )
       }
 
@@ -292,7 +292,7 @@ private constructor(
         ?.also { it.isAccessible = true }
         ?: error(
           "PreviewAnimationClock has no getAnimatedProperties(...) — Compose UI Tooling " +
-            "version is incompatible with @AnimatedPreview(showCurves=true)."
+            "version is incompatible with @AnimatedPreview(showCurves=true).",
         )
 
     private fun readAnimationLabel(anim: Any): String {

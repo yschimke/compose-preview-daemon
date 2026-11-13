@@ -61,7 +61,7 @@ class PreviewParameterAndroidRealModeTest {
               className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
               functionName = "ThemedTintedSquare",
               previewParameterProvider = "ee.schimke.composeai.daemon.SquareTintProvider",
-            )
+            ),
           ),
       )
 
@@ -108,7 +108,7 @@ class PreviewParameterAndroidRealModeTest {
       )
     } catch (t: Throwable) {
       System.err.println(
-        "PreviewParameterAndroidRealModeTest failed; stderr from daemon:\n" + client.dumpStderr()
+        "PreviewParameterAndroidRealModeTest failed; stderr from daemon:\n" + client.dumpStderr(),
       )
       throw t
     } finally {
@@ -210,7 +210,7 @@ class PreviewParameterAndroidRealModeTest {
       )
     } catch (t: Throwable) {
       System.err.println(
-        "PreviewParameterAndroidRealModeTest failed; stderr from daemon:\n" + client.dumpStderr()
+        "PreviewParameterAndroidRealModeTest failed; stderr from daemon:\n" + client.dumpStderr(),
       )
       throw t
     } finally {

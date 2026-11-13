@@ -114,7 +114,7 @@ class GestureDataProductRegistry : DataProductRegistry {
         attachable = true,
         fetchable = true,
         requiresRerender = false,
-      )
+      ),
     )
 
   fun capture(previewId: String?, payload: GesturePayload) {
@@ -140,7 +140,7 @@ class GestureDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(GesturePayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -152,7 +152,7 @@ class GestureDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(GesturePayload.serializer(), payload),
-      )
+      ),
     )
   }
 

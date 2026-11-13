@@ -92,8 +92,8 @@ class RenderEngineScrollUiModeTest {
                 previewId = previewId,
                 outputBaseName = previewId,
                 renderMode = "scroll-long",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 240_000,
       )
@@ -106,7 +106,7 @@ class RenderEngineScrollUiModeTest {
   }
 
   private fun java.awt.image.BufferedImage.countWhere(
-    predicate: (r: Int, g: Int, b: Int) -> Boolean
+    predicate: (r: Int, g: Int, b: Int) -> Boolean,
   ): Int {
     var n = 0
     for (y in 0 until height) {

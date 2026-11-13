@@ -152,7 +152,7 @@ class HistoryDataDiffTest {
 
   private fun semanticsPayload(testTag: String, text: String): JsonElement =
     parse(
-      """{"root":{"nodeId":"1","boundsInRoot":"0,0,100,50","testTag":"$testTag","text":"$text"}}"""
+      """{"root":{"nodeId":"1","boundsInRoot":"0,0,100,50","testTag":"$testTag","text":"$text"}}""",
     )
 
   private fun findingsPayload(
@@ -162,7 +162,7 @@ class HistoryDataDiffTest {
     bounds: String,
   ): JsonElement =
     parse(
-      """{"findings":[{"level":"$level","type":"$type","message":"$message","boundsInScreen":"$bounds"}]}"""
+      """{"findings":[{"level":"$level","type":"$type","message":"$message","boundsInScreen":"$bounds"}]}""",
     )
 
   private fun hierarchyPayload(ref: String, bounds: String): JsonElement =
@@ -170,6 +170,6 @@ class HistoryDataDiffTest {
 
   private fun themePayload(primary: String): JsonElement =
     parse(
-      """{"resolvedTokens":{"colorScheme":{"primary":"$primary"},"typography":{},"shapes":{}},"consumers":[]}"""
+      """{"resolvedTokens":{"colorScheme":{"primary":"$primary"},"typography":{},"shapes":{}},"consumers":[]}""",
     )
 }

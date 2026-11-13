@@ -27,7 +27,7 @@ class SharedNativeRuntimeLoaderTest {
     val cache = SharedNativeRuntimeLoader.cacheRoot().resolve(SharedNativeRuntimeLoader.cacheKey())
     assertTrue(Files.isRegularFile(cache.resolve(".complete")))
     assertTrue(
-      Files.isRegularFile(cache.resolve(System.mapLibraryName("robolectric-nativeruntime")))
+      Files.isRegularFile(cache.resolve(System.mapLibraryName("robolectric-nativeruntime"))),
     )
   }
 

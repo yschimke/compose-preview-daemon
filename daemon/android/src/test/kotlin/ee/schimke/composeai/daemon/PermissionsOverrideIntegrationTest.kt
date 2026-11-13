@@ -71,8 +71,8 @@ class PermissionsOverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "permission-gated",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -98,8 +98,8 @@ class PermissionsOverrideIntegrationTest {
           PreviewOverrides(
             permissions =
               PermissionsOverride(
-                grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
-              )
+                grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED),
+              ),
           ),
         )
       val granted = renderAndDecode(host, grantedTarget, "granted")
@@ -121,8 +121,8 @@ class PermissionsOverrideIntegrationTest {
           PreviewOverrides(
             permissions =
               PermissionsOverride(
-                grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.DENIED)
-              )
+                grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.DENIED),
+              ),
           ),
         )
       val deniedAgain = renderAndDecode(host, deniedTarget, "denied-after-grant")

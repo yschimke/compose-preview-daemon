@@ -30,7 +30,7 @@ class CoilPlaceholderFallbackTest {
 
     val result =
       coil2ResultWithPlaceholderFallback(
-        ErrorResult(drawable = null, request = request, throwable = IllegalStateException("boom"))
+        ErrorResult(drawable = null, request = request, throwable = IllegalStateException("boom")),
       )
 
     assertSame(placeholder, (result as ErrorResult).drawable)

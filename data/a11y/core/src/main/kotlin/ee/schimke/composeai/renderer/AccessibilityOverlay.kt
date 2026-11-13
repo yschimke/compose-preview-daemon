@@ -131,7 +131,7 @@ object AccessibilityOverlay {
       // missing source means the wiring shifted — surface it rather
       // than silently dropping the overlay.
       System.err.println(
-        "[compose-a11y] overlay skipped: source PNG missing at ${sourcePng.absolutePath}"
+        "[compose-a11y] overlay skipped: source PNG missing at ${sourcePng.absolutePath}",
       )
       return null
     }
@@ -144,7 +144,7 @@ object AccessibilityOverlay {
       // data". Logging the stack here keeps the report intact.
       System.err.println(
         "[compose-a11y] overlay failed for ${sourcePng.name}: " +
-          "${t.javaClass.simpleName}: ${t.message}"
+          "${t.javaClass.simpleName}: ${t.message}",
       )
       t.printStackTrace(System.err)
       null
@@ -162,7 +162,7 @@ object AccessibilityOverlay {
     if (source == null) {
       System.err.println(
         "[compose-a11y] overlay skipped: BitmapFactory could not decode " +
-          "${sourcePng.absolutePath} (size=${sourcePng.length()} bytes)"
+          "${sourcePng.absolutePath} (size=${sourcePng.length()} bytes)",
       )
       return null
     }

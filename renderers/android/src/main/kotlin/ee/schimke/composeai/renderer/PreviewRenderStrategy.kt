@@ -238,7 +238,7 @@ internal fun resolveNoArgComposableMethod(clazz: Class<*>, functionName: String)
         "the @Preview. Give the preview a distinct name, or annotate a zero-parameter wrapper."
     } else {
       "${clazz.name}.$functionName"
-    }
+    },
   )
 }
 
@@ -329,7 +329,7 @@ internal fun findComposableMethodWithArgs(
     }
       ?: throw NoSuchMethodException(
         "Couldn't find composable method $name on ${clazz.name} taking ${previewArgs.size} parameter(s); " +
-          "check that the @PreviewParameter provider's value type matches the preview's parameter type."
+          "check that the @PreviewParameter provider's value type matches the preview's parameter type.",
       )
   val declaredTypes = candidate.parameterTypes.take(argCount).toTypedArray()
   return clazz.getDeclaredComposableMethod(name, *declaredTypes)
@@ -788,21 +788,21 @@ private fun catalogRowsFor(token: CatalogToken): List<CatalogRow> =
         CatalogRow.Swatch(
           token.label,
           CatalogValueReflection.reflectColor(token.className, token.member),
-        )
+        ),
       )
     CatalogTokenKind.TEXT_STYLE ->
       listOf(
         CatalogRow.Type(
           token.label,
           CatalogValueReflection.reflectTextStyle(token.className, token.member),
-        )
+        ),
       )
     CatalogTokenKind.SHAPE ->
       listOf(
         CatalogRow.ShapeSpec(
           token.label,
           CatalogValueReflection.reflectAs(token.className, token.member),
-        )
+        ),
       )
     CatalogTokenKind.COLOR_SCHEME -> {
       val scheme = CatalogValueReflection.reflectAs<Any>(token.className, token.member)
@@ -996,7 +996,7 @@ internal object RemoteCatalogValues {
         requireNotNull(
           provider.javaClass.declaredFields
             .filter { it.type == Long::class.javaPrimitiveType }
-            .minByOrNull { it.name }
+            .minByOrNull { it.name },
         )
       bitsField.isAccessible = true
       Color(bitsField.getLong(provider).toULong())
@@ -1139,7 +1139,7 @@ private fun CatalogSwatchRow(label: String, color: Color) {
         Modifier.size(40.dp)
           .clip(RoundedCornerShape(6.dp))
           .background(color)
-          .border(1.dp, CATALOG_SWATCH_BORDER, RoundedCornerShape(6.dp))
+          .border(1.dp, CATALOG_SWATCH_BORDER, RoundedCornerShape(6.dp)),
     )
     Column(modifier = Modifier.padding(start = 12.dp)) {
       BasicText(text = label, style = CATALOG_LABEL_STYLE)
@@ -1185,7 +1185,7 @@ private fun CatalogShapeRow(label: String, shape: Shape) {
         Modifier.size(40.dp)
           .clip(shape)
           .background(CATALOG_SHAPE_FILL)
-          .border(1.dp, CATALOG_SWATCH_BORDER, shape)
+          .border(1.dp, CATALOG_SWATCH_BORDER, shape),
     )
     Box(modifier = Modifier.padding(start = 12.dp)) {
       BasicText(text = label, style = CATALOG_LABEL_STYLE)
@@ -1231,7 +1231,7 @@ private fun CatalogSpecimenSheet(
   shapes: List<Pair<String, Shape>>,
 ) {
   BoxWithConstraints(
-    Modifier.fillMaxSize().background(CATALOG_SHEET_BACKGROUND).padding(CATALOG_SHEET_PADDING)
+    Modifier.fillMaxSize().background(CATALOG_SHEET_BACKGROUND).padding(CATALOG_SHEET_PADDING),
   ) {
     // The block layout is the *designed* sheet, but it is only reachable when the content fits the
     // canvas — a theme is free to declare type roles tall enough that colour + type + shape exceeds
@@ -1419,7 +1419,7 @@ private fun CatalogShapeChip(label: String, shape: Shape) {
         Modifier.size(40.dp)
           .clip(shape)
           .background(CATALOG_SHAPE_FILL)
-          .border(1.dp, CATALOG_SWATCH_BORDER, shape)
+          .border(1.dp, CATALOG_SWATCH_BORDER, shape),
     )
     Box(modifier = Modifier.padding(start = 8.dp)) {
       BasicText(text = label, style = CATALOG_LABEL_STYLE)
@@ -1473,7 +1473,7 @@ private fun CatalogChipRow(chips: List<ColourChip>) {
             .clip(RoundedCornerShape(6.dp))
             .background(chip.base)
             .border(1.dp, CATALOG_SWATCH_BORDER, RoundedCornerShape(6.dp))
-            .padding(horizontal = 8.dp, vertical = 6.dp)
+            .padding(horizontal = 8.dp, vertical = 6.dp),
       ) {
         BasicText(text = chip.label, style = CATALOG_CHIP_LABEL_STYLE.copy(color = ink))
         BasicText(

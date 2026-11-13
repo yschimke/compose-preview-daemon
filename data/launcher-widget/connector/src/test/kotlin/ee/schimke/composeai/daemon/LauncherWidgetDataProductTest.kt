@@ -41,7 +41,7 @@ class LauncherWidgetDataProductTest {
     val planner = LauncherWidgetPreviewOverrideExtension()
     val planned =
       planner.plan(
-        PreviewOverrides(launcherWidget = LauncherWidgetOverride(cells = LauncherWidgetSize(4, 2)))
+        PreviewOverrides(launcherWidget = LauncherWidgetOverride(cells = LauncherWidgetSize(4, 2))),
       )
     assertTrue("expected planner to produce a hook", planned is AroundComposableHook)
     assertEquals(DataExtensionId("compose/launcher-widget"), planned!!.id)
@@ -297,7 +297,7 @@ class LauncherWidgetDataProductTest {
       stubRenderResult(),
       PreviewOverrides(
         launcherWidget =
-          LauncherWidgetOverride(cells = LauncherWidgetSize(4, 2), launcherMode = true)
+          LauncherWidgetOverride(cells = LauncherWidgetSize(4, 2), launcherMode = true),
       ),
       previewContext = null,
     )
@@ -335,7 +335,7 @@ class LauncherWidgetDataProductTest {
             cells = LauncherWidgetSize(7, 7),
             minCells = LauncherWidgetSize(1, 3),
             maxCells = LauncherWidgetSize(4, 5),
-          )
+          ),
       )
 
     registry.onRender("preview-1", stubRenderResult(), overrides, previewContext = null)
@@ -361,7 +361,7 @@ class LauncherWidgetDataProductTest {
     )
     assertTrue(
       registry.fetch("preview-1", "compose/launcher-widget", null, true)
-        is DataProductRegistry.Outcome.Ok
+        is DataProductRegistry.Outcome.Ok,
     )
 
     registry.onRender("preview-1", result, overrides = null, previewContext = null)
@@ -414,7 +414,7 @@ class LauncherWidgetDataProductTest {
     LauncherWidgetMetadataChannel.setCurrentPreviewId(null)
     // Should silently no-op — no id to key on.
     LauncherWidgetMetadataChannel.offer(
-      LauncherWidgetMetadata(resizeAxes = LauncherResizeAxes.NONE)
+      LauncherWidgetMetadata(resizeAxes = LauncherResizeAxes.NONE),
     )
     registry.onRender("preview-x", stubRenderResult(), overrides = null, previewContext = null)
     assertEquals(
@@ -455,7 +455,7 @@ class LauncherWidgetDataProductTest {
     LauncherWidgetMetadataChannel.setCurrentPreviewId("preview-1")
     try {
       LauncherWidgetMetadataChannel.offer(
-        LauncherWidgetMetadata(supportedCells = emptyList(), resizeAxes = LauncherResizeAxes.NONE)
+        LauncherWidgetMetadata(supportedCells = emptyList(), resizeAxes = LauncherResizeAxes.NONE),
       )
     } finally {
       LauncherWidgetMetadataChannel.setCurrentPreviewId(null)

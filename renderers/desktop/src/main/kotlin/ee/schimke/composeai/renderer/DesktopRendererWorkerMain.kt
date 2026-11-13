@@ -154,7 +154,7 @@ fun desktopRendererWorkerMain() {
 
     fatal?.let {
       System.err.println(
-        "compose-preview renderer worker: fatal ${it::class.java.simpleName}; exiting"
+        "compose-preview renderer worker: fatal ${it::class.java.simpleName}; exiting",
       )
       exitProcess(5)
     }

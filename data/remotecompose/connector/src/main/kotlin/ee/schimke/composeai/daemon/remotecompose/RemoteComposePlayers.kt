@@ -103,7 +103,7 @@ class RemoteComposeLinkageException(what: String, val report: RemoteComposeLinka
       report.missing.take(MAX_LISTED).joinToString() +
       (if (report.missing.size > MAX_LISTED) ", …" else "") +
       ". Align the consumer's androidx.compose.remote / third-party-rc-embedded-player versions " +
-      "with the ones this connector was built against."
+      "with the ones this connector was built against.",
   ) {
   private companion object {
     const val MAX_LISTED = 8
@@ -115,7 +115,7 @@ class RemoteComposeUnknownPlayerException(val playerId: String, val knownNames: 
   IllegalArgumentException(
     "No Remote Compose player answers to '$playerId'. Known: ${knownNames.joinToString()}. A " +
       "player beyond the built-ins must be on the classpath and registered under " +
-      "META-INF/services/${RemoteComposePlayerBackend::class.java.name}."
+      "META-INF/services/${RemoteComposePlayerBackend::class.java.name}.",
   )
 
 /** The players this connector can draw with, each linkage-checked once per class loader. */
@@ -206,7 +206,7 @@ object RemoteComposePlayers {
         System.err.println(
           "compose-preview: the default Remote Compose player ($kind) is unavailable on this " +
             "classpath, drawing with $fallback instead. Pin one with " +
-            "-D${RemoteComposePlayerSelection.PROPERTY}=. Cause: ${cause.message}"
+            "-D${RemoteComposePlayerSelection.PROPERTY}=. Cause: ${cause.message}",
         )
       }
     }

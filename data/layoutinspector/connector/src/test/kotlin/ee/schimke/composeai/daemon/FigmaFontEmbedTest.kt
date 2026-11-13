@@ -38,10 +38,11 @@ class FigmaFontEmbedTest {
   @Test
   fun cssUrlEncodesFamilyAndAxis() {
     assertTrue(
-      GoogleFontsWoff2Resolver.cssUrl("Roboto", 700, false).contains("family=Roboto:wght@700")
+      GoogleFontsWoff2Resolver.cssUrl("Roboto", 700, false).contains("family=Roboto:wght@700"),
     )
     assertTrue(
-      GoogleFontsWoff2Resolver.cssUrl("Roboto", 400, true).contains("family=Roboto:ital,wght@1,400")
+      GoogleFontsWoff2Resolver.cssUrl("Roboto", 400, true)
+        .contains("family=Roboto:ital,wght@1,400"),
     )
     assertTrue(GoogleFontsWoff2Resolver.cssUrl("Noto Sans", 400, false).contains("Noto%20Sans"))
   }
@@ -49,10 +50,11 @@ class FigmaFontEmbedTest {
   @Test
   fun cssUrlRoundsComposeIntermediateWeightsToAFontInstance() {
     assertTrue(
-      GoogleFontsWoff2Resolver.cssUrl("Roboto", 599, false).contains("family=Roboto:wght@600")
+      GoogleFontsWoff2Resolver.cssUrl("Roboto", 599, false).contains("family=Roboto:wght@600"),
     )
     assertTrue(
-      GoogleFontsWoff2Resolver.cssUrl("Roboto", 550, true).contains("family=Roboto:ital,wght@1,600")
+      GoogleFontsWoff2Resolver.cssUrl("Roboto", 550, true)
+        .contains("family=Roboto:ital,wght@1,600"),
     )
   }
 
@@ -173,7 +175,7 @@ class FigmaFontEmbedTest {
             component = "Text",
             bounds = LayoutInspectorBounds(8, 8, 192, 40),
             size = LayoutInspectorSize(184, 32),
-          )
+          ),
         ),
     )
 
@@ -191,9 +193,9 @@ class FigmaFontEmbedTest {
                 boundsInRoot = "8,8,192,40",
                 text = "Hi",
                 typography = ComposeSemanticsTypography(fontSize = "16.0sp", fontWeight = 400),
-              )
+              ),
             ),
-        )
+        ),
       )
     val resolver = FigmaFontResolver { family, weight, italic ->
       if (family == "Roboto" && weight == 400 && !italic) byteArrayOf(9, 9, 9) else null
@@ -243,7 +245,7 @@ class FigmaFontEmbedTest {
               fontSizePx = 15.0,
               fontWeight = 600,
               fontFamily = "Roboto Flex",
-            )
+            ),
           ),
       )
     val resolver = FigmaFontResolver { family, weight, italic ->
@@ -293,9 +295,9 @@ class FigmaFontEmbedTest {
                     fontWeight = 500,
                     fontFamily = "Orbitron",
                   ),
-              )
+              ),
             ),
-        )
+        ),
       )
     val resolver = FigmaFontResolver { family, weight, italic ->
       if (family == "Orbitron" && weight == 500 && !italic) byteArrayOf(4, 2) else null
@@ -337,9 +339,9 @@ class FigmaFontEmbedTest {
                     fontWeight = 400,
                     fontFamily = "serif",
                   ),
-              )
+              ),
             ),
-        )
+        ),
       )
     val resolver = FigmaFontResolver { family, weight, italic ->
       if (family == "Noto Serif" && weight == 400 && !italic) byteArrayOf(7, 7, 7) else null
@@ -375,9 +377,9 @@ class FigmaFontEmbedTest {
                 boundsInRoot = "8,8,192,40",
                 text = "Hi",
                 typography = ComposeSemanticsTypography(fontSize = "16.0sp", fontFamily = "serif"),
-              )
+              ),
             ),
-        )
+        ),
       )
     ComposeFigmaSvgDataProducer.writeSvg(
       rootDir = dir,
@@ -415,9 +417,9 @@ class FigmaFontEmbedTest {
                     fontWeight = 400,
                     fontFamily = "FontFamily.Default",
                   ),
-              )
+              ),
             ),
-        )
+        ),
       )
     val resolver = FigmaFontResolver { family, weight, italic ->
       requested += family
@@ -459,9 +461,9 @@ class FigmaFontEmbedTest {
                     fontSize = "16.0sp",
                     fontFamily = "FontFamily.Default",
                   ),
-              )
+              ),
             ),
-        )
+        ),
       )
     ComposeFigmaSvgDataProducer.writeSvg(
       rootDir = dir,
@@ -496,9 +498,9 @@ class FigmaFontEmbedTest {
                     fontSize = "16.0sp",
                     fontFamily = fontFile.absolutePath,
                   ),
-              )
+              ),
             ),
-        )
+        ),
       )
     // Resolver returns nothing — the file path must NOT go through the Google fetch.
     val resolver = FigmaFontResolver { _, _, _ -> null }
@@ -544,9 +546,9 @@ class FigmaFontEmbedTest {
                 boundsInRoot = "8,8,192,40",
                 text = "Hi",
                 typography = ComposeSemanticsTypography(fontSize = "16.0sp", fontFamily = identity),
-              )
+              ),
             ),
-        )
+        ),
       )
     // The resolver returns nothing: a recovered resource face must never take the Google fetch.
     val resolver = FigmaFontResolver { _, _, _ -> null }
@@ -597,9 +599,9 @@ class FigmaFontEmbedTest {
                     fontWeight = 600,
                     fontFamily = "Lato",
                   ),
-              )
+              ),
             ),
-        )
+        ),
       )
     // The resolver must never be consulted for a face the render already resolved.
     val resolver = FigmaFontResolver { _, _, _ -> error("must not re-fetch a resolved face") }
@@ -653,9 +655,9 @@ class FigmaFontEmbedTest {
                 text = "Hi",
                 typography =
                   ComposeSemanticsTypography(fontSize = "16.0sp", fontFamily = ttc.absolutePath),
-              )
+              ),
             ),
-        )
+        ),
       )
     ComposeFigmaSvgDataProducer.writeSvg(
       rootDir = dir,

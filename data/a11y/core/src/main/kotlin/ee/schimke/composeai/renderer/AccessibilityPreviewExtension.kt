@@ -66,7 +66,7 @@ object AccessibilitySemanticsPreviewExtension {
               ),
             agentRecommended = true,
             productKinds = listOf(KIND_HIERARCHY),
-          )
+          ),
         ),
       steps = listOf(finalSampleExtractor, eachFrameExtractor),
     )
@@ -219,7 +219,7 @@ object AccessibilityAnnotatedPreviewExtension {
           AtfChecksPreviewExtension.finalSampleChecker,
           AccessibilityOverlayPreviewExtension.annotationProcessor,
           RenderPreviewExtension.overlayLegendProcessor.copy(
-            productKinds = listOf(AccessibilityOverlayPreviewExtension.KIND_OVERLAY)
+            productKinds = listOf(AccessibilityOverlayPreviewExtension.KIND_OVERLAY),
           ),
         ),
     )

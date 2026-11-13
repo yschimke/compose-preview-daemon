@@ -144,7 +144,7 @@ class ScrollEndFramingTest {
   }
 
   private fun java.awt.image.BufferedImage.countWhere(
-    predicate: (r: Int, g: Int, b: Int, a: Int) -> Boolean
+    predicate: (r: Int, g: Int, b: Int, a: Int) -> Boolean,
   ): Int {
     var n = 0
     for (y in 0 until height) {

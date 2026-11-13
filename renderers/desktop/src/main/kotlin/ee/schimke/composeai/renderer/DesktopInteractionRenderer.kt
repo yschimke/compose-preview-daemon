@@ -196,7 +196,7 @@ fun renderInteractionPreview(
       "${frameInterval}ms at ${result.crop.width}×${result.crop.height} " +
       "(${spec.format.name.lowercase()}" +
       (if (result.reRecorded) ", re-recorded for growth" else "") +
-      ")."
+      ").",
   )
 }
 

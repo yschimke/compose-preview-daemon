@@ -123,12 +123,12 @@ object CoilPreviewSupport {
         installed = true
         System.err.println(
           "ComposeAiCoil: installed a synchronous preview ImageLoader (${target.description}) so " +
-            "coil-backed images resolve before capture"
+            "coil-backed images resolve before capture",
         )
       } catch (failure: Throwable) {
         System.err.println(
           "ComposeAiCoil: could not install the preview ImageLoader (${target.description}): " +
-            "${failure.message}; coil-backed images may capture blank"
+            "${failure.message}; coil-backed images may capture blank",
         )
       }
     }

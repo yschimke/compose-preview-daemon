@@ -91,7 +91,7 @@ class GitProvenanceTest {
       // so:
       assertTrue(
         worktree == null ||
-          (worktree.path == null && worktree.id == null && worktree.agentId == null)
+          (worktree.path == null && worktree.id == null && worktree.agentId == null),
       )
       assertNull(git)
     } finally {

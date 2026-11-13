@@ -67,7 +67,7 @@ fun Sync.stageFrom(configuration: Configuration) {
       resolved
         .filterNot { it.file.name.startsWith("skiko-awt-runtime-") }
         .map(ResolvedArtifactResult::getFile)
-    }
+    },
   )
   val nameByPath = artifactsProvider.map { resolved ->
     val staged = resolved.filterNot { it.file.name.startsWith("skiko-awt-runtime-") }

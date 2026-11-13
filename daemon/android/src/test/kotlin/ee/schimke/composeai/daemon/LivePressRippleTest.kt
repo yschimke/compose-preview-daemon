@@ -65,7 +65,7 @@ class LivePressRippleTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = RIPPLE_WIDTH_PX / 2,
             pixelY = RIPPLE_HEIGHT_PX / 2,
-          )
+          ),
         )
 
         // The frames a burst would put on the wire. Rendering them back to back here is what the

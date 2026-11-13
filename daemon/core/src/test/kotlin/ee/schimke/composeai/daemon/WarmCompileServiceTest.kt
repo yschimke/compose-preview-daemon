@@ -118,9 +118,9 @@ class WarmCompileServiceTest {
                 "line" to 3,
                 "column" to 5,
                 "message" to "Unresolved reference",
-              )
+              ),
             ),
-        )
+        ),
       )
     val outcome =
       service(fallback) { warm }.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt")))
@@ -592,7 +592,7 @@ class WarmCompileServiceTest {
           mapOf(
             "status" to "failed",
             "reason" to "compiler exited INTERNAL_ERROR: java.lang.$error",
-          )
+          ),
         )
       val service = service(fallback) { warm }
       repeat(3) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }
@@ -609,7 +609,7 @@ class WarmCompileServiceTest {
         mapOf(
           "status" to "failed",
           "reason" to "compiler exited INTERNAL_ERROR: java.lang.IllegalStateException: boom",
-        )
+        ),
       )
     val service = service(fallback) { warm }
     repeat(2) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }

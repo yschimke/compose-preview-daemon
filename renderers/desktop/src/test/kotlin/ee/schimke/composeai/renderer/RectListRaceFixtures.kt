@@ -75,7 +75,7 @@ private fun ChurningLeaves(frame: Int) {
           Box(Modifier.size(1.dp))
         }
       }
-    }
+    },
   ) { measurables, _ ->
     val placeables = measurables.map { it.measure(Constraints.fixed(1, 1)) }
     layout(256, 256) {

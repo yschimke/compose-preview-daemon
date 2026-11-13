@@ -39,7 +39,7 @@ class LocalVariableDedupingInstrumentorTest {
   @Test
   fun `the daemon's instrumentor writes a class the JVM defines`() {
     define(
-      LocalVariableDedupingInstrumentor().instrument(ClassDetails(shapes()), CONFIG, NO_CLASSES)
+      LocalVariableDedupingInstrumentor().instrument(ClassDetails(shapes()), CONFIG, NO_CLASSES),
     )
   }
 

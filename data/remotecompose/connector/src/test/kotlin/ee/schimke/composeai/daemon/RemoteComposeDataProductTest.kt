@@ -139,7 +139,7 @@ class RemoteComposeDataProductTest {
               "label" to RemoteNamedValue.StringValue("hello"),
             )
         }
-        .build()
+        .build(),
     )
     assertEquals(RemoteComposeProfile.ANDROIDX, controller.profile.value)
     assertEquals(RemoteNamedValue.FloatValue(0.5f), controller.valueOf("score"))
@@ -148,7 +148,7 @@ class RemoteComposeDataProductTest {
     controller.set(
       RemoteComposeOverride.Builder()
         .also { it.namedValues = mapOf("score" to RemoteNamedValue.FloatValue(0.9f)) }
-        .build()
+        .build(),
     )
     assertNull("profile must clear when new override drops it", controller.profile.value)
     assertEquals(RemoteNamedValue.FloatValue(0.9f), controller.valueOf("score"))
@@ -183,7 +183,7 @@ class RemoteComposeDataProductTest {
         override
           .newBuilder()
           .also { it.namedValues = mapOf("score" to RemoteNamedValue.FloatValue(1f)) }
-          .build()
+          .build(),
       )
       assertEquals("a changed override must still notify", 1, notifications)
     } finally {
@@ -234,7 +234,7 @@ class RemoteComposeDataProductTest {
           it.namedValues =
             mapOf("a" to RemoteNamedValue.IntValue(1), "b" to RemoteNamedValue.IntValue(2))
         }
-        .build()
+        .build(),
     )
     controller.setNamedValue("a", RemoteNamedValue.IntValue(42))
     controller.setNamedValue("c", RemoteNamedValue.BooleanValue(true))
@@ -247,7 +247,7 @@ class RemoteComposeDataProductTest {
   fun controller_recordHostAction_respects_accepted_list_filter() {
     val controller = RemoteComposeController
     controller.set(
-      RemoteComposeOverride.Builder().also { it.acceptedHostActions = listOf("allowed") }.build()
+      RemoteComposeOverride.Builder().also { it.acceptedHostActions = listOf("allowed") }.build(),
     )
     controller.recordHostAction(RemoteHostAction(payload = "allowed", handlerId = 1f))
     controller.recordHostAction(RemoteHostAction(payload = "rejected", handlerId = 2f))
@@ -313,14 +313,14 @@ class RemoteComposeDataProductTest {
   fun controller_recordDeclaration_dedupes_by_name_and_preserves_order() {
     val controller = RemoteComposeController
     controller.recordDeclaration(
-      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Tap me"))
+      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Tap me")),
     )
     controller.recordDeclaration(
-      RemoteComposeKnobDeclaration("score", RemoteNamedValue.FloatValue(0f))
+      RemoteComposeKnobDeclaration("score", RemoteNamedValue.FloatValue(0f)),
     )
     // Re-declaring "label" (recomposition) replaces its value but keeps first-seen position.
     controller.recordDeclaration(
-      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Filled"))
+      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Filled")),
     )
     val decls = controller.declarations()
     assertEquals(2, decls.size)
@@ -333,7 +333,7 @@ class RemoteComposeDataProductTest {
   fun controller_declarations_clear_on_reset() {
     val controller = RemoteComposeController
     controller.recordDeclaration(
-      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Tap me"))
+      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Tap me")),
     )
     controller.resetForNewSession()
     assertTrue(controller.declarations().isEmpty())
@@ -348,10 +348,10 @@ class RemoteComposeDataProductTest {
           it.profile = RemoteComposeProfile.ANDROIDX
           it.namedValues = mapOf("a" to RemoteNamedValue.IntValue(1))
         }
-        .build()
+        .build(),
     )
     controller.recordDeclaration(
-      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("x"))
+      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("x")),
     )
     controller.clearDeclarations()
     assertTrue("declarations must clear", controller.declarations().isEmpty())
@@ -370,12 +370,12 @@ class RemoteComposeDataProductTest {
     // before `declarationsFor` reads them. Regression guard for the P1 on the bridge PR.
     val controller = RemoteComposeController
     controller.recordDeclaration(
-      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Filled"))
+      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Filled")),
     )
     controller.set(
       RemoteComposeOverride.Builder()
         .also { it.namedValues = mapOf("label" to RemoteNamedValue.StringValue("seed")) }
-        .build()
+        .build(),
     )
     controller.set(null) // simulates the around-composable's onDispose
     assertEquals(
@@ -389,10 +389,10 @@ class RemoteComposeDataProductTest {
   fun on_render_captures_declared_knobs_in_payload() {
     val registry = RemoteComposeDataProductRegistry()
     RemoteComposeController.recordDeclaration(
-      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Filled"))
+      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Filled")),
     )
     RemoteComposeController.recordDeclaration(
-      RemoteComposeKnobDeclaration("shaderColor", RemoteNamedValue.ColorValue("#FF7DE2FF"))
+      RemoteComposeKnobDeclaration("shaderColor", RemoteNamedValue.ColorValue("#FF7DE2FF")),
     )
 
     registry.onRender(
@@ -421,10 +421,10 @@ class RemoteComposeDataProductTest {
     assertNull("no declarations → no sidecar", controller.declarationsJson())
 
     controller.recordDeclaration(
-      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Filled"))
+      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("Filled")),
     )
     controller.recordDeclaration(
-      RemoteComposeKnobDeclaration("stopColor", RemoteNamedValue.ColorValue("#FF7DE2FF"))
+      RemoteComposeKnobDeclaration("stopColor", RemoteNamedValue.ColorValue("#FF7DE2FF")),
     )
     val jsonStr = controller.declarationsJson()
     assertNotNull(jsonStr)
@@ -484,7 +484,7 @@ class RemoteComposeDataProductTest {
     controller.recordCapturePlayer("cmp-android")
     controller.recordCapturePlayer("java")
     controller.recordDeclaration(
-      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("x"))
+      RemoteComposeKnobDeclaration("label", RemoteNamedValue.StringValue("x")),
     )
     val payload =
       Json.decodeFromString(
@@ -634,7 +634,7 @@ class RemoteComposeDataProductTest {
           .also {
             it.namedValues = mapOf("WearM3.primary" to RemoteNamedValue.ColorValue("#FF00D775"))
           }
-          .build()
+          .build(),
     )
 
   private fun fetchPayload(registry: RemoteComposeDataProductRegistry): RemoteComposePayload {

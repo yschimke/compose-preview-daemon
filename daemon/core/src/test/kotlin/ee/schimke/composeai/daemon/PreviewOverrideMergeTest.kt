@@ -123,7 +123,7 @@ class PreviewOverrideMergeTest {
                 it.direction = FocusDirection.Next
                 it.step = 1
               }
-              .build()
+              .build(),
         ),
       )
 
@@ -168,7 +168,7 @@ class PreviewOverrideMergeTest {
 
     val override =
       PermissionsOverride(
-        grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
+        grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED),
       )
     val merged = mergePreviewOverrides(base, PreviewOverrides(permissions = override))
 
@@ -349,7 +349,7 @@ class PreviewOverrideMergeTest {
               mapOf(
                 "rowCount" to PreviewOverrideValue.IntValue(3),
                 "label" to PreviewOverrideValue.StringValue("base"),
-              )
+              ),
           ),
       )
 
@@ -358,7 +358,7 @@ class PreviewOverrideMergeTest {
       mergePreviewOverrides(
         base,
         PreviewOverrides(
-          namedOverrides = mapOf("label" to PreviewOverrideValue.StringValue("edited"))
+          namedOverrides = mapOf("label" to PreviewOverrideValue.StringValue("edited")),
         ),
       )
 
@@ -469,7 +469,7 @@ class PreviewOverrideMergeTest {
               mapOf(
                 "split" to PreviewOverrideValue.BooleanValue(true),
                 "label" to PreviewOverrideValue.StringValue("Primary"),
-              )
+              ),
           ),
       )
 
@@ -477,7 +477,7 @@ class PreviewOverrideMergeTest {
       mergePreviewOverrides(
         base,
         PreviewOverrides(
-          namedOverrides = mapOf("label" to PreviewOverrideValue.StringValue("edited"))
+          namedOverrides = mapOf("label" to PreviewOverrideValue.StringValue("edited")),
         ),
       )
 
@@ -581,7 +581,7 @@ class PreviewOverrideMergeTest {
       keyboard = KeyboardOverride(visible = true),
       permissions =
         PermissionsOverride(
-          grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
+          grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED),
         ),
       remoteCompose =
         RemoteComposeOverride.Builder().also { it.profile = RemoteComposeProfile.ANDROIDX }.build(),

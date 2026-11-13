@@ -54,7 +54,7 @@ object AndroidSemanticsWireframe {
       // A bake failure must not strand the render — the SVG is still written, and a missing PNG
       // degrades to "SVG only" rather than failing the whole data product.
       System.err.println(
-        "[compose-wireframe] android bake failed: ${t.javaClass.simpleName}: ${t.message}"
+        "[compose-wireframe] android bake failed: ${t.javaClass.simpleName}: ${t.message}",
       )
       null
     }

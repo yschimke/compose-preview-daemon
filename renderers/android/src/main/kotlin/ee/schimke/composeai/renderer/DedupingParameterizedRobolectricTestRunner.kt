@@ -68,7 +68,7 @@ public class DedupingParameterizedRobolectricTestRunner(klass: Class<*>) :
       if (index >= list.size) {
         throw Exception(
           "Re-computing the parameter list returned a different number of parameters values. " +
-            "Is the data() method of your test non-deterministic?"
+            "Is the data() method of your test non-deterministic?",
         )
       }
       return asArray(list[index])
@@ -129,7 +129,7 @@ public class DedupingParameterizedRobolectricTestRunner(klass: Class<*>) :
           errors +=
             Exception(
               "Invalid @Parameter value: $i. @Parameter fields counted: ${fields.size}. " +
-                "Please use an index between 0 and ${fields.size - 1}."
+                "Please use an index between 0 and ${fields.size - 1}.",
             )
         } else {
           used[i]++

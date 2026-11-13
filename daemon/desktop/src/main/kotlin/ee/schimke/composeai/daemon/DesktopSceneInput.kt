@@ -118,7 +118,7 @@ internal class ScenePointerDispatch(
             position = pointer.offset,
             pressed = true,
             type = pointer.type,
-          )
+          ),
         )
       }
       if (releasedPointer != null) {
@@ -129,7 +129,7 @@ internal class ScenePointerDispatch(
             position = pointer.offset,
             pressed = false,
             type = pointer.type,
-          )
+          ),
         )
       }
     }

@@ -207,7 +207,7 @@ private class GateStubHost : RenderHost {
             when (req) {
               is RenderRequest.Render ->
                 results.put(
-                  RenderResult(id = req.id, classLoaderHashCode = 0, classLoaderName = "fake")
+                  RenderResult(id = req.id, classLoaderHashCode = 0, classLoaderName = "fake"),
                 )
               // Never enqueued here: `submit` only accepts a Render. Present so the `when` stays
               // exhaustive over `RenderRequest` (issue #3749 added ParameterRows).

@@ -147,7 +147,7 @@ class IncrementalDiscoveryTest {
                 className = "com.example.FooKt",
                 methodName = "Foo",
                 sourceFile = file.toString(),
-              )
+              ),
           ),
       )
     try {

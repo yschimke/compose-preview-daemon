@@ -57,7 +57,7 @@ class PreviewParameterDesktopRealModeTest {
               className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
               functionName = "ThemedTintedSquare",
               previewParameterProvider = "ee.schimke.composeai.daemon.SquareTintProvider",
-            )
+            ),
           ),
       )
 
@@ -105,7 +105,7 @@ class PreviewParameterDesktopRealModeTest {
       )
     } catch (t: Throwable) {
       System.err.println(
-        "PreviewParameterDesktopRealModeTest failed; stderr from daemon:\n" + client.dumpStderr()
+        "PreviewParameterDesktopRealModeTest failed; stderr from daemon:\n" + client.dumpStderr(),
       )
       throw t
     } finally {
@@ -145,7 +145,7 @@ class PreviewParameterDesktopRealModeTest {
               className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
               functionName = "ThemedTintedSquare",
               previewParameterProvider = "ee.schimke.composeai.daemon.SquareTintProvider",
-            )
+            ),
           ),
       )
 
@@ -186,7 +186,7 @@ class PreviewParameterDesktopRealModeTest {
       )
     } catch (t: Throwable) {
       System.err.println(
-        "PreviewParameterDesktopRealModeTest failed; stderr from daemon:\n" + client.dumpStderr()
+        "PreviewParameterDesktopRealModeTest failed; stderr from daemon:\n" + client.dumpStderr(),
       )
       throw t
     } finally {
@@ -285,7 +285,7 @@ class PreviewParameterDesktopRealModeTest {
       )
     } catch (t: Throwable) {
       System.err.println(
-        "PreviewParameterDesktopRealModeTest failed; stderr from daemon:\n" + client.dumpStderr()
+        "PreviewParameterDesktopRealModeTest failed; stderr from daemon:\n" + client.dumpStderr(),
       )
       throw t
     } finally {

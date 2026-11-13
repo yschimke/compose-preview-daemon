@@ -227,7 +227,7 @@ public class LocalFsHistorySource(private val historyDir: Path) : HistorySource 
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: LocalFsHistorySource.read($entryId): malformed sidecar at $sidecar " +
-            "(${t.javaClass.simpleName}: ${t.message})"
+            "(${t.javaClass.simpleName}: ${t.message})",
         )
         return null
       }
@@ -235,7 +235,7 @@ public class LocalFsHistorySource(private val historyDir: Path) : HistorySource 
     if (!pngPath.exists()) {
       System.err.println(
         "compose-ai-daemon: LocalFsHistorySource.read($entryId): sidecar references missing PNG " +
-          "$pngPath"
+          "$pngPath",
       )
       return null
     }
@@ -387,7 +387,7 @@ public class LocalFsHistorySource(private val historyDir: Path) : HistorySource 
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: LocalFsHistorySource.prune: .diffs scan failed for " +
-            "$diffsDir (${t.javaClass.simpleName}: ${t.message})"
+            "$diffsDir (${t.javaClass.simpleName}: ${t.message})",
         )
       }
     }
@@ -447,7 +447,7 @@ public class LocalFsHistorySource(private val historyDir: Path) : HistorySource 
       }
       System.err.println(
         "compose-ai-daemon: LocalFsHistorySource.prune: index rewrite failed " +
-          "(${t.javaClass.simpleName}: ${t.message}); leaving archive untouched"
+          "(${t.javaClass.simpleName}: ${t.message}); leaving archive untouched",
       )
       return PruneResult.EMPTY
     }
@@ -461,7 +461,7 @@ public class LocalFsHistorySource(private val historyDir: Path) : HistorySource 
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: LocalFsHistorySource.prune: sidecar delete failed for " +
-            "$sidecar (${t.javaClass.simpleName}: ${t.message})"
+            "$sidecar (${t.javaClass.simpleName}: ${t.message})",
         )
       }
     }
@@ -477,7 +477,7 @@ public class LocalFsHistorySource(private val historyDir: Path) : HistorySource 
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: LocalFsHistorySource.prune: PNG delete failed for " +
-            "$pngFile (${t.javaClass.simpleName}: ${t.message})"
+            "$pngFile (${t.javaClass.simpleName}: ${t.message})",
         )
       }
     }
@@ -489,7 +489,7 @@ public class LocalFsHistorySource(private val historyDir: Path) : HistorySource 
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: LocalFsHistorySource.prune: diff artefact delete failed for " +
-            "$diffFile (${t.javaClass.simpleName}: ${t.message})"
+            "$diffFile (${t.javaClass.simpleName}: ${t.message})",
         )
       }
     }
@@ -570,7 +570,7 @@ public class LocalFsHistorySource(private val historyDir: Path) : HistorySource 
         } catch (t: Throwable) {
           System.err.println(
             "compose-ai-daemon: LocalFsHistorySource.list: skipping malformed index line " +
-              "(${t.javaClass.simpleName}: ${t.message})"
+              "(${t.javaClass.simpleName}: ${t.message})",
           )
           continue
         }
@@ -582,7 +582,7 @@ public class LocalFsHistorySource(private val historyDir: Path) : HistorySource 
       if (!Files.exists(sidecar)) {
         System.err.println(
           "compose-ai-daemon: LocalFsHistorySource.list: dropping index entry ${entry.id} " +
-            "(sidecar missing at $sidecar)"
+            "(sidecar missing at $sidecar)",
         )
         continue
       }

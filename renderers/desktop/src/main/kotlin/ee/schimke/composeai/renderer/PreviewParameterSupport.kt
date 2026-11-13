@@ -323,7 +323,7 @@ object PreviewParameterSupport {
       }
         ?: throw NoSuchMethodException(
           "Couldn't find composable method $name on ${clazz.name} taking $argCount parameter(s); " +
-            "check that the @PreviewParameter provider's value type matches the preview's parameter type."
+            "check that the @PreviewParameter provider's value type matches the preview's parameter type.",
         )
     val declaredTypes = candidate.parameterTypes.take(argCount).toTypedArray()
     return clazz.getDeclaredComposableMethod(name, *declaredTypes)

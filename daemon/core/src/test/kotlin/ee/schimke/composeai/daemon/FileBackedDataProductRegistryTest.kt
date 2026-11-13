@@ -30,8 +30,8 @@ class FileBackedDataProductRegistryTest {
             attachable = true,
             fetchable = true,
             requiresRerender = false,
-          )
-        )
+          ),
+        ),
     ) {
     private val root = rootDir
 
@@ -50,8 +50,8 @@ class FileBackedDataProductRegistryTest {
             attachable = true,
             fetchable = true,
             requiresRerender = false,
-          )
-        )
+          ),
+        ),
     ) {
     private val root = rootDir
 
@@ -70,8 +70,8 @@ class FileBackedDataProductRegistryTest {
             attachable = true,
             fetchable = true,
             requiresRerender = true,
-          )
-        )
+          ),
+        ),
     ) {
     private val root = rootDir
 
@@ -93,8 +93,8 @@ class FileBackedDataProductRegistryTest {
             attachable = true,
             fetchable = true,
             requiresRerender = false,
-          )
-        )
+          ),
+        ),
     ) {
     private val root = rootDir
 
@@ -272,8 +272,8 @@ class FileBackedDataProductRegistryTest {
             attachable = true,
             fetchable = true,
             requiresRerender = false,
-          )
-        )
+          ),
+        ),
     ) {
     private val root = rootDir
 

@@ -48,7 +48,7 @@ class S2DrainSemanticsAndroidRealModeTest {
               id = previewId,
               className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
               functionName = "SlowSquare",
-            )
+            ),
           ),
       )
 
@@ -102,7 +102,7 @@ class S2DrainSemanticsAndroidRealModeTest {
 
       val tookMs = finishedReceivedAtMs - renderNowStartMs
       System.err.println(
-        "S2DrainSemanticsAndroidRealModeTest: renderNow → renderFinished in ${tookMs}ms"
+        "S2DrainSemanticsAndroidRealModeTest: renderNow → renderFinished in ${tookMs}ms",
       )
       val recorder = LatencyRecorder(csvFile = HarnessTestSupport.LATENCY_CSV)
       recorder.record(
@@ -113,7 +113,7 @@ class S2DrainSemanticsAndroidRealModeTest {
       )
     } catch (t: Throwable) {
       System.err.println(
-        "S2DrainSemanticsAndroidRealModeTest failed; daemon stderr:\n${client.dumpStderr()}"
+        "S2DrainSemanticsAndroidRealModeTest failed; daemon stderr:\n${client.dumpStderr()}",
       )
       throw t
     } finally {

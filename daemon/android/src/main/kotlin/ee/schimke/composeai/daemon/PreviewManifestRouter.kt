@@ -116,7 +116,7 @@ private constructor(
       rowAddressed(previewId)
         ?: error(
           "PreviewManifestRouter: no manifest entry for previewId='$previewId'. " +
-            "Manifest knows: ${manifest.byId().keys}"
+            "Manifest knows: ${manifest.byId().keys}",
         )
     // An explicit inbound row wins over the one parsed out of the id, so a caller can render a row
     // of the bare base id without minting a row id for it.
@@ -221,7 +221,7 @@ internal class RoutedManifest(manifest: PreviewManifest, file: File?) {
       onReadFailed = { e ->
         System.err.println(
           "compose-ai-tools daemon: PreviewManifestRouter kept the previous manifest; " +
-            "'$it' did not load (${e.message})"
+            "'$it' did not load (${e.message})",
         )
       },
     )

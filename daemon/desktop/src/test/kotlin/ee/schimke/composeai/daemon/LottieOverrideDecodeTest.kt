@@ -53,7 +53,7 @@ class LottieOverrideDecodeTest {
           functionName = "spin.json",
           kind = "LOTTIE",
           assetPath = "lottie/spin.json",
-        )
+        ),
       )
     assertNull(spec.overrides?.lottie)
   }

@@ -69,7 +69,7 @@ class ComposeSemanticsWireframeDataProductRegistry(
               ComposeSemanticsWireframeProduct.MEDIA_TYPE_PNG,
             ),
           sampling = SamplingPolicy.End,
-        )
+        ),
       ),
     fileSystem = fileSystem,
   ) {
@@ -95,7 +95,7 @@ class ComposeSemanticsWireframeDataProductRegistry(
         path = png.absolutePath,
         mediaType = ComposeSemanticsWireframeProduct.MEDIA_TYPE_PNG,
         sizeBytes = png.length().takeIf { it > 0 },
-      )
+      ),
     )
   }
 }

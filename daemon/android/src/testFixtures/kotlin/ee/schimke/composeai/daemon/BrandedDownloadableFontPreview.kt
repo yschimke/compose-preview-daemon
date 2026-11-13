@@ -68,7 +68,7 @@ private val ProductionBrandedFamily: FontFamily =
       brandedFont("Orbitron", FontWeight.Medium),
       brandedFont("Orbitron", FontWeight.SemiBold),
       brandedFont("Orbitron", FontWeight.Bold),
-    ) + NotoFallback
+    ) + NotoFallback,
   )
 
 @Composable
@@ -121,7 +121,7 @@ fun BrandedThemeTypographyText() {
           fontFamily = ProductionBrandedFamily,
           fontWeight = FontWeight.Medium,
           fontSize = 16.sp,
-        )
+        ),
     )
   MaterialTheme(typography = branded) {
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {

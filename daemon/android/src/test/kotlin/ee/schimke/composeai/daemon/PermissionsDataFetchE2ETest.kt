@@ -82,8 +82,8 @@ class PermissionsDataFetchE2ETest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = previewId,
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     val registry = PermissionsDataProductRegistry()
@@ -98,8 +98,8 @@ class PermissionsDataFetchE2ETest {
         PreviewOverrides(
           permissions =
             PermissionsOverride(
-              grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED)
-            )
+              grants = mapOf("android.permission.CAMERA" to PermissionGrantStateOverride.GRANTED),
+            ),
         )
       SandboxPermissionsBridge.resetAll()
       val result =

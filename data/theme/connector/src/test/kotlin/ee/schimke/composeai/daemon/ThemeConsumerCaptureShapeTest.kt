@@ -69,8 +69,8 @@ class ThemeConsumerCaptureShapeTest {
     class OtherPainter(@JvmField val shape: Shape)
     assertNull(
       ThemeConsumerCapture.shapeStringOf(
-        listOf(PaintModifier(OtherPainter(RoundedCornerShape(20.dp))))
-      )
+        listOf(PaintModifier(OtherPainter(RoundedCornerShape(20.dp)))),
+      ),
     )
   }
 }

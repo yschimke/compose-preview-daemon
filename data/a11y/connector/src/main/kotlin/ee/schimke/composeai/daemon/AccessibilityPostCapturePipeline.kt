@@ -87,7 +87,7 @@ fun runAccessibilityPostCapturePipeline(
 
   if (!plan.isValid) {
     System.err.println(
-      "AccessibilityPostCapturePipeline: planning failed for $previewId — ${plan.errors}"
+      "AccessibilityPostCapturePipeline: planning failed for $previewId — ${plan.errors}",
     )
     return store
   }
@@ -102,12 +102,12 @@ fun runAccessibilityPostCapturePipeline(
           renderMode = null,
           products = store.scopedFor(ext),
           data = contextData,
-        )
+        ),
       )
     } catch (t: Throwable) {
       System.err.println(
         "AccessibilityPostCapturePipeline: extension '${ext.id}' failed for " +
-          "$previewId: ${t.javaClass.simpleName}: ${t.message}"
+          "$previewId: ${t.javaClass.simpleName}: ${t.message}",
       )
     }
   }

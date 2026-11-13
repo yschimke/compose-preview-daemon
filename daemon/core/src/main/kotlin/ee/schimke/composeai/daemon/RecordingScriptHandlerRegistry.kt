@@ -87,7 +87,7 @@ public class RecordingScriptHandlerRegistry(
           System.err.println(
             "compose-ai-daemon: RecordingScriptDispatchObserver " +
               "${observer.javaClass.name} threw on '${event.kind}': " +
-              "${t.javaClass.simpleName}: ${t.message}"
+              "${t.javaClass.simpleName}: ${t.message}",
           )
         }
     }

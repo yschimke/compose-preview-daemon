@@ -22,7 +22,7 @@ class TalkBackUtteranceTest {
     assertEquals(
       "Buy now, button, double-tap to activate",
       TalkBackUtterance.compose(
-        node(label = "Buy now", role = "Button", states = listOf("clickable"))
+        node(label = "Buy now", role = "Button", states = listOf("clickable")),
       ),
     )
   }
@@ -34,7 +34,7 @@ class TalkBackUtteranceTest {
     assertEquals(
       "Remember me, checkbox, checked, double-tap to toggle",
       TalkBackUtterance.compose(
-        node(label = "Remember me", role = "CheckBox", states = listOf("checked", "clickable"))
+        node(label = "Remember me", role = "CheckBox", states = listOf("checked", "clickable")),
       ),
     )
   }
@@ -45,7 +45,7 @@ class TalkBackUtteranceTest {
     assertEquals(
       "Remember me, checkbox, not checked, double-tap to toggle",
       TalkBackUtterance.compose(
-        node(label = "Remember me", role = "CheckBox", states = listOf("unchecked", "clickable"))
+        node(label = "Remember me", role = "CheckBox", states = listOf("unchecked", "clickable")),
       ),
     )
   }
@@ -57,7 +57,7 @@ class TalkBackUtteranceTest {
     assertEquals(
       "Submit, button, disabled",
       TalkBackUtterance.compose(
-        node(label = "Submit", role = "Button", states = listOf("clickable", "disabled"))
+        node(label = "Submit", role = "Button", states = listOf("clickable", "disabled")),
       ),
     )
   }
@@ -102,7 +102,7 @@ class TalkBackUtteranceTest {
     assertEquals(
       "Open, button, double-tap to activate, double-tap and hold to long press",
       TalkBackUtterance.compose(
-        node(label = "Open", role = "Button", states = listOf("clickable", "long-clickable"))
+        node(label = "Open", role = "Button", states = listOf("clickable", "long-clickable")),
       ),
     )
   }
@@ -115,7 +115,7 @@ class TalkBackUtteranceTest {
         node(
           label = "Email",
           states = listOf("editable", "clickable", "hint: Enter your work address"),
-        )
+        ),
       ),
     )
   }

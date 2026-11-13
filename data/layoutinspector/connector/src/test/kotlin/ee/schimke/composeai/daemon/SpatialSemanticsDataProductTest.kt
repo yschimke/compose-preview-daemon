@@ -41,9 +41,9 @@ class SpatialSemanticsDataProductTest {
             label = "Card",
             children =
               listOf(
-                ComposeSemanticsNode(nodeId = "2", boundsInRoot = "16,16,200,48", text = "Hi")
+                ComposeSemanticsNode(nodeId = "2", boundsInRoot = "16,16,200,48", text = "Hi"),
               ),
-          )
+          ),
       )
 
     SpatialSemanticsDataProducer.writeSinglePanel(rootDir, previewId, payload)

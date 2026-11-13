@@ -32,7 +32,7 @@ class TalkBackTest {
     assertEquals(
       "Buy now, button, double-tap to activate",
       TalkBackUtterance.compose(
-        node(label = "Buy now", role = "Button", states = listOf("clickable"))
+        node(label = "Buy now", role = "Button", states = listOf("clickable")),
       ),
     )
   }
@@ -42,13 +42,13 @@ class TalkBackTest {
     assertEquals(
       "Remember me, checkbox, not checked, double-tap to toggle",
       TalkBackUtterance.compose(
-        node(label = "Remember me", role = "CheckBox", states = listOf("unchecked", "clickable"))
+        node(label = "Remember me", role = "CheckBox", states = listOf("unchecked", "clickable")),
       ),
     )
     assertEquals(
       "Submit, button, disabled",
       TalkBackUtterance.compose(
-        node(label = "Submit", role = "Button", states = listOf("clickable", "disabled"))
+        node(label = "Submit", role = "Button", states = listOf("clickable", "disabled")),
       ),
     )
     assertEquals(

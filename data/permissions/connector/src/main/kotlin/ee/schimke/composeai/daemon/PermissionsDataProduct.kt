@@ -151,7 +151,7 @@ class PermissionsDataProductRegistry : DataProductRegistry {
         // picks up the new value through the platform path — no need to ask the dispatcher to
         // queue an extra render.
         requiresRerender = false,
-      )
+      ),
     )
 
   fun capture(previewId: String?, payload: PermissionsPayload) {
@@ -177,7 +177,7 @@ class PermissionsDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(PermissionsPayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -189,7 +189,7 @@ class PermissionsDataProductRegistry : DataProductRegistry {
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(PermissionsPayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -251,7 +251,7 @@ class PermissionsDataProductRegistry : DataProductRegistry {
    * unit tests; non-daemon consumers) — the registry falls back to the in-CL controller state.
    */
   private class SandboxPermissionsBridgeReader(
-    private val snapshotMethod: java.lang.reflect.Method
+    private val snapshotMethod: java.lang.reflect.Method,
   ) {
     fun snapshot(scope: String): List<String> =
       try {
@@ -280,7 +280,7 @@ class PermissionsDataProductRegistry : DataProductRegistry {
                   PermissionsDataProductRegistry::class.java.classLoader,
                 )
               SandboxPermissionsBridgeReader(
-                snapshotMethod = cls.getMethod("snapshot", String::class.java)
+                snapshotMethod = cls.getMethod("snapshot", String::class.java),
               )
             } catch (_: ClassNotFoundException) {
               null

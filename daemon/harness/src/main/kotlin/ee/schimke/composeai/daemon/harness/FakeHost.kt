@@ -93,7 +93,7 @@ class FakeHost(
       manifest[previewId]
         ?: error(
           "FakeHost: no fixture registered for previewId='$previewId' " +
-            "(known=${manifest.keys.sorted()})"
+            "(known=${manifest.keys.sorted()})",
         )
     val sidecars = sidecarCache.computeIfAbsent(previewId) { loadSidecars(it) }
     sidecars.delayMs?.let { Thread.sleep(it.coerceAtLeast(0L)) }
@@ -155,7 +155,7 @@ class FakeHost(
     error(
       "FakeHost: cannot resolve previewId — RenderRequest.target was '${request.target}' " +
         "but manifest has ${manifest.size} entries (${manifest.keys.sorted()}); " +
-        "name the preview in the target or use a single-entry manifest"
+        "name the preview in the target or use a single-entry manifest",
     )
   }
 
@@ -221,7 +221,7 @@ class FakeHost(
       require(file.exists()) { "FakeHost.loadManifest: ${file.absolutePath} does not exist" }
       val list =
         JSON.decodeFromString<List<FakePreviewSpec>>(
-          fileSystem.read(file.path.toPath()) { readUtf8() }
+          fileSystem.read(file.path.toPath()) { readUtf8() },
         )
       return list.associateBy { it.id }
     }

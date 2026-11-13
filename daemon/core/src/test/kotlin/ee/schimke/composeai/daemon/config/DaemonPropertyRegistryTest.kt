@@ -58,7 +58,7 @@ class DaemonPropertyRegistryTest {
     if (undeclared.isNotEmpty()) {
       fail(
         "these $PREFIX* names are used in the tree but not declared in DaemonProperties:\n" +
-          undeclared.joinToString("\n") { (name, file) -> "  $name  ($file)" }
+          undeclared.joinToString("\n") { (name, file) -> "  $name  ($file)" },
       )
     }
   }
@@ -80,7 +80,7 @@ class DaemonPropertyRegistryTest {
       fail(
         "daemon/ must reach $PREFIX* knobs through DaemonProperties — a typed entry, or " +
           "DaemonProperties.Names.* in a const context — never a string literal:\n" +
-          offenders.joinToString("\n")
+          offenders.joinToString("\n"),
       )
     }
   }

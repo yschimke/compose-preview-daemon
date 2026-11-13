@@ -50,8 +50,8 @@ class AccessibilityPostCapturePipelineTest {
                   label = "Tiny",
                   states = listOf("clickable"),
                   boundsInScreen = "0,0,80,80",
-                )
-              )
+                ),
+              ),
           ),
         findings = AccessibilityFindingsPayload(emptyList()),
         density = 2f,
@@ -85,8 +85,8 @@ class AccessibilityPostCapturePipelineTest {
                   label = "Tiny",
                   states = listOf("clickable"),
                   boundsInScreen = "0,0,80,80",
-                )
-              )
+                ),
+              ),
           ),
         findings = AccessibilityFindingsPayload(emptyList()),
         density = 2f,
@@ -111,8 +111,8 @@ class AccessibilityPostCapturePipelineTest {
                   role = "Button",
                   states = listOf("clickable"),
                   boundsInScreen = "0,0,80,80",
-                )
-              )
+                ),
+              ),
           ),
         findings = AccessibilityFindingsPayload(emptyList()),
         density = 2f,
@@ -223,8 +223,8 @@ class AccessibilityPostCapturePipelineTest {
                   label = "Tiny",
                   states = listOf("clickable"),
                   boundsInScreen = "0,0,80,80",
-                )
-              )
+                ),
+              ),
           ),
         findings = AccessibilityFindingsPayload(emptyList()),
         density = 2f,
@@ -266,8 +266,8 @@ class AccessibilityPostCapturePipelineTest {
                   label = "Tiny",
                   states = listOf("clickable"),
                   boundsInScreen = "0,0,80,80",
-                )
-              )
+                ),
+              ),
           ),
         findings = AccessibilityFindingsPayload(emptyList()),
         density = 2f,

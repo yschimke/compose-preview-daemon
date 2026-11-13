@@ -42,7 +42,7 @@ class PreviewManifestRouterRowTest {
   ): RenderSpec {
     val routed =
       routeTarget(
-        RenderTarget.Preview(previewId = previewId, previewParameterRow = previewParameterRow)
+        RenderTarget.Preview(previewId = previewId, previewParameterRow = previewParameterRow),
       )
     return (routed as RenderTarget.Spec).spec
   }

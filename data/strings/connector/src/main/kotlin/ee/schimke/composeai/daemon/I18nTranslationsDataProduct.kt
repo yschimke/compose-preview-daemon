@@ -91,7 +91,7 @@ object I18nTranslationsDataProducer {
             nodeId = id.toString(),
             boundsInRoot = boundsInRoot.toWireBounds(),
             rendered = it,
-          )
+          ),
         )
       } ?: emptyList()
     return here + children.flatMap { it.visibleStrings() }
@@ -129,8 +129,8 @@ class I18nTranslationsDataProductRegistry(private val rootDir: File) :
           attachable = true,
           fetchable = true,
           requiresRerender = false,
-        )
-      )
+        ),
+      ),
   ) {
   override fun fileFor(previewId: String, kind: String): File? =
     if (kind == I18nTranslationsDataProducer.KIND)

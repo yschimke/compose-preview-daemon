@@ -84,7 +84,7 @@ class RenderSpecFromInfoTest {
           className = "com.example.FooKt",
           methodName = "Foo",
           params = PreviewParamsDto(),
-        )
+        ),
       )
 
     assertEquals("Foo", base.outputBaseName)
@@ -99,7 +99,7 @@ class RenderSpecFromInfoTest {
     // toggle visibly resizes it. Both axes must STILL wrap — the sandbox is a bound, not a frame.
     val spec =
       renderSpecFromInfo(
-        info(params = PreviewParamsDto(wrapSandboxWidthDp = 227, wrapSandboxHeightDp = 227))
+        info(params = PreviewParamsDto(wrapSandboxWidthDp = 227, wrapSandboxHeightDp = 227)),
       )
     assertEquals(true, spec.wrapWidth)
     assertEquals(true, spec.wrapHeight)
@@ -178,8 +178,8 @@ class RenderSpecFromInfoTest {
               widthDp = 100,
               heightDp = 100,
               density = 2.0f,
-            )
-        )
+            ),
+        ),
       )
     assertEquals(200, both.widthPx)
     assertEquals(200, both.heightPx)
@@ -187,8 +187,9 @@ class RenderSpecFromInfoTest {
     val single =
       renderSpecFromInfo(
         info(
-          params = PreviewParamsDto(device = "id:wearos_large_round", widthDp = 100, density = 2.0f)
-        )
+          params =
+            PreviewParamsDto(device = "id:wearos_large_round", widthDp = 100, density = 2.0f),
+        ),
       )
     assertEquals(454, single.widthPx)
     assertEquals(454, single.heightPx)
@@ -198,7 +199,7 @@ class RenderSpecFromInfoTest {
   fun `an explicit size on both axes disables wrap`() {
     val spec =
       renderSpecFromInfo(
-        info(params = PreviewParamsDto(widthDp = 200, heightDp = 600, density = 3.0f))
+        info(params = PreviewParamsDto(widthDp = 200, heightDp = 600, density = 3.0f)),
       )
     assertEquals(false, spec.wrapWidth)
     assertEquals(false, spec.wrapHeight)
@@ -210,7 +211,7 @@ class RenderSpecFromInfoTest {
   fun `widthDp heightDp density multiply through to pixel dimensions`() {
     val spec =
       renderSpecFromInfo(
-        info(params = PreviewParamsDto(widthDp = 200, heightDp = 600, density = 3.0f))
+        info(params = PreviewParamsDto(widthDp = 200, heightDp = 600, density = 3.0f)),
       )
     assertEquals(600, spec.widthPx)
     assertEquals(1800, spec.heightPx)
@@ -267,8 +268,8 @@ class RenderSpecFromInfoTest {
               device = "id:pixel_5",
               showBackground = true,
               backgroundColor = 0xFFEEEEEE,
-            )
-        )
+            ),
+        ),
       )
     assertEquals(1.3f, spec.fontScale!!, 0.0f)
     assertEquals("ja-JP", spec.localeTag)
@@ -290,8 +291,8 @@ class RenderSpecFromInfoTest {
             PreviewParamsDto(
               previewParameterProviderClassName = "com.example.SquareTintProvider",
               previewParameterLimit = 3,
-            )
-        )
+            ),
+        ),
       )
     assertEquals("com.example.SquareTintProvider", spec.previewParameterProviderClassName)
     assertEquals(3, spec.previewParameterLimit)

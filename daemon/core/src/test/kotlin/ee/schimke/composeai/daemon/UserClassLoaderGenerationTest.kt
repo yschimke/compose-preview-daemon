@@ -16,7 +16,7 @@ class UserClassLoaderGenerationTest {
       val source = root.resolve("Later.java")
       fun compile(value: String) {
         source.writeText(
-          "package sample; public class Later { public static String value() { return \"$value\"; } }"
+          "package sample; public class Later { public static String value() { return \"$value\"; } }",
         )
         assertEquals(
           0,

@@ -124,7 +124,7 @@ class DesktopSizeBoundsRendererTest {
           minHeightPx = 120,
           maxWidthPx = 400,
           maxHeightPx = 400,
-        )
+        ),
       )
     assertTrue("width stays within the range (got $w)", w in 120..400)
     assertTrue("height stays within the range (got $h)", h in 120..400)

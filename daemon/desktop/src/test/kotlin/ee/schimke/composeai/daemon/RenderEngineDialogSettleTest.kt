@@ -51,7 +51,7 @@ class RenderEngineDialogSettleTest {
     val manifest = tempFolder.newFile("$name-previews.json")
     val settleField = if (settle == null) "" else ",\"settle\":$settle"
     manifest.writeText(
-      """{"previews":[{"id":"Dialog","className":"ee.schimke.composeai.daemon.RenderEngineDialogSettleTestKt","functionName":"InitiallyOpenDialog","captures":[{"renderOutput":"Dialog.png"$settleField}]}]}"""
+      """{"previews":[{"id":"Dialog","className":"ee.schimke.composeai.daemon.RenderEngineDialogSettleTestKt","functionName":"InitiallyOpenDialog","captures":[{"renderOutput":"Dialog.png"$settleField}]}]}""",
     )
     System.setProperty(PreviewIndex.PREVIEWS_JSON_PATH_PROP, manifest.absolutePath)
     try {
@@ -73,7 +73,7 @@ class RenderEngineDialogSettleTest {
       val png = File(result.artifact.pathOrNull()!!)
       val keep =
         File(
-          "build/dialog-settle-evidence/${System.getProperty("composeai.dialog.evidenceLine", "production")}/$name.png"
+          "build/dialog-settle-evidence/${System.getProperty("composeai.dialog.evidenceLine", "production")}/$name.png",
         )
       keep.parentFile.mkdirs()
       png.copyTo(keep, overwrite = true)

@@ -88,7 +88,7 @@ class DesktopLayoutInspectorTest {
   }
 
   private fun LayoutInspectorNode.firstWhere(
-    predicate: (LayoutInspectorNode) -> Boolean
+    predicate: (LayoutInspectorNode) -> Boolean,
   ): LayoutInspectorNode? {
     if (predicate(this)) return this
     return children.firstNotNullOfOrNull { it.firstWhere(predicate) }
@@ -119,7 +119,7 @@ class DesktopLayoutInspectorTest {
             translationX = 7f
             translationY = 9f
           }
-          .background(Color.Red)
+          .background(Color.Red),
       )
     }
 
@@ -208,7 +208,7 @@ class DesktopLayoutInspectorTest {
       Box(
         Modifier.testTag("card")
           .background(Color(0xFF006A60), RoundedCornerShape(12.dp))
-          .padding(16.dp)
+          .padding(16.dp),
       ) {
         Text("Card body")
       }
@@ -259,7 +259,7 @@ class DesktopLayoutInspectorTest {
       Box(
         Modifier.testTag("faded")
           .size(40.dp, 40.dp)
-          .paint(ColorPainter(Color(0xFFFF0000)), alpha = 0.5f)
+          .paint(ColorPainter(Color(0xFFFF0000)), alpha = 0.5f),
       )
     }
 
@@ -274,7 +274,7 @@ class DesktopLayoutInspectorTest {
       Box(
         Modifier.testTag("gradient")
           .size(120.dp, 40.dp)
-          .background(Brush.horizontalGradient(listOf(Color.Red, Color.Blue)))
+          .background(Brush.horizontalGradient(listOf(Color.Red, Color.Blue))),
       )
     }
 
@@ -295,7 +295,10 @@ class DesktopLayoutInspectorTest {
       Box(
         Modifier.testTag("tinted")
           .size(40.dp, 40.dp)
-          .paint(ColorPainter(Color(0xFFFF0000)), colorFilter = ColorFilter.tint(Color(0xFF00FF00)))
+          .paint(
+            ColorPainter(Color(0xFFFF0000)),
+            colorFilter = ColorFilter.tint(Color(0xFF00FF00)),
+          ),
       )
     }
 
@@ -381,7 +384,7 @@ class DesktopLayoutInspectorTest {
   }
 
   private fun ee.schimke.composeai.data.layoutinspector.FigmaSvgLayer.firstLayerWhere(
-    predicate: (ee.schimke.composeai.data.layoutinspector.FigmaSvgLayer) -> Boolean
+    predicate: (ee.schimke.composeai.data.layoutinspector.FigmaSvgLayer) -> Boolean,
   ): ee.schimke.composeai.data.layoutinspector.FigmaSvgLayer? {
     if (predicate(this)) return this
     return children.firstNotNullOfOrNull { it.firstLayerWhere(predicate) }

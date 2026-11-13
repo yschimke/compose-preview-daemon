@@ -196,7 +196,7 @@ internal constructor(
       } catch (t: Throwable) {
         System.err.println(
           "compose-ai-daemon: AndroidInteractiveSession watchdog close threw: " +
-            "${t.javaClass.simpleName}: ${t.message}"
+            "${t.javaClass.simpleName}: ${t.message}",
         )
       }
     }
@@ -277,13 +277,13 @@ internal constructor(
         replyClockAdvancedMs = replyClockAdvancedMs,
         replyLatch = replyLatch,
         replyError = replyError,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.dispatch timed out after ${DISPATCH_TIMEOUT_SEC}s for stream " +
           "'$streamId' (kind=$kind, px=$px, py=$py, keyCode=${input.keyCode}). " +
-          "Held-rule loop may be stuck."
+          "Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -368,13 +368,13 @@ internal constructor(
         replyLatch = replyLatch,
         replyError = replyError,
         replyMatched = replyMatched,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.dispatchSemanticsAction timed out after " +
           "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId' (action=$actionKind, " +
-          "contentDescription='$nodeContentDescription'). Held-rule loop may be stuck."
+          "contentDescription='$nodeContentDescription'). Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -413,13 +413,13 @@ internal constructor(
         replyLatch = replyLatch,
         replyError = replyError,
         replyMatched = replyMatched,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.dispatchUiAutomator timed out after " +
           "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId' (action=$actionKind, " +
-          "selectorJson='$selectorJson'). Held-rule loop may be stuck."
+          "selectorJson='$selectorJson'). Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -454,13 +454,13 @@ internal constructor(
         replyLatch = replyLatch,
         replyError = replyError,
         replyReasonJson = replyReasonJson,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.findUiAutomatorEvidence timed out after " +
           "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId' (action=$actionKind, " +
-          "selectorJson='$selectorJson'). Held-rule loop may be stuck."
+          "selectorJson='$selectorJson'). Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -488,12 +488,12 @@ internal constructor(
         replyLatch = replyLatch,
         replyError = replyError,
         replyNodesJson = replyNodesJson,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.captureProbeSemantics timed out after " +
-          "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId'. Held-rule loop may be stuck."
+          "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId'. Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -524,12 +524,12 @@ internal constructor(
         replyLatch = replyLatch,
         replyError = replyError,
         replyFindingsJson = replyFindingsJson,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.captureA11yFindings timed out after " +
-          "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId'. Held-rule loop may be stuck."
+          "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId'. Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -571,13 +571,13 @@ internal constructor(
         replyLatch = replyLatch,
         replyError = replyError,
         replyApplied = replyApplied,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.dispatchLifecycle timed out after " +
           "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId' (lifecycleEvent=$lifecycleEvent). " +
-          "Held-rule loop may be stuck."
+          "Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -603,12 +603,12 @@ internal constructor(
         replyLatch = replyLatch,
         replyError = replyError,
         replyApplied = replyApplied,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.dispatchPreviewReload timed out after " +
-          "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId'. Held-rule loop may be stuck."
+          "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId'. Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -633,12 +633,12 @@ internal constructor(
         replyLatch = replyLatch,
         replyError = replyError,
         replyApplied = replyApplied,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.dispatchStateRecreate timed out after " +
-          "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId'. Held-rule loop may be stuck."
+          "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId'. Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -663,13 +663,13 @@ internal constructor(
         replyLatch = replyLatch,
         replyError = replyError,
         replyApplied = replyApplied,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.dispatchStateSave timed out after " +
           "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId' (checkpointId='$checkpointId'). " +
-          "Held-rule loop may be stuck."
+          "Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -695,13 +695,13 @@ internal constructor(
         replyLatch = replyLatch,
         replyError = replyError,
         replyApplied = replyApplied,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.dispatchStateRestore timed out after " +
           "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId' (checkpointId='$checkpointId'). " +
-          "Held-rule loop may be stuck."
+          "Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -739,13 +739,13 @@ internal constructor(
         replyLatch = replyLatch,
         replyError = replyError,
         replyApplied = replyApplied,
-      )
+      ),
     )
     if (!replyLatch.await(DISPATCH_TIMEOUT_SEC, TimeUnit.SECONDS)) {
       error(
         "AndroidInteractiveSession.dispatchNavigation timed out after " +
           "${DISPATCH_TIMEOUT_SEC}s for stream '$streamId' (actionKind=$actionKind). " +
-          "Held-rule loop may be stuck."
+          "Held-rule loop may be stuck.",
       )
     }
     replyError.get()?.let { throw it }
@@ -780,14 +780,14 @@ internal constructor(
         streamId = streamId,
         requestId = requestId,
         advanceTimeMs = resolvedAdvance,
-      )
+      ),
     )
     val resultQueue = DaemonHostBridge.results.computeIfAbsent(requestId) { LinkedBlockingQueue() }
     val raw =
       resultQueue.poll(RENDER_TIMEOUT_SEC, TimeUnit.SECONDS)
         ?: error(
           "AndroidInteractiveSession.render timed out after ${RENDER_TIMEOUT_SEC}s for stream " +
-            "'$streamId', request $requestId"
+            "'$streamId', request $requestId",
         )
     DaemonHostBridge.results.remove(requestId)
     if (raw is Throwable) throw raw
@@ -813,7 +813,7 @@ internal constructor(
     watchdog?.shutdown()
     val replyLatch = CountDownLatch(1)
     slot.interactiveCommands.put(
-      InteractiveCommand.Close(streamId = streamId, replyLatch = replyLatch)
+      InteractiveCommand.Close(streamId = streamId, replyLatch = replyLatch),
     )
     // Bounded wait — if the held-rule statement is wedged we don't want `interactive/stop` to
     // hang the JsonRpcServer thread forever. After this returns we always clear the active-stream
@@ -830,7 +830,7 @@ internal constructor(
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: AndroidInteractiveSession.onCloseHook for stream " +
-          "'$streamId' threw: ${t.javaClass.simpleName}: ${t.message}"
+          "'$streamId' threw: ${t.javaClass.simpleName}: ${t.message}",
       )
     }
   }

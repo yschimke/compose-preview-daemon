@@ -133,7 +133,7 @@ internal constructor(
         val reason = result["reason"].toString()
         if (!disableOnLinkageError(result)) {
           log(
-            "compose-ai-daemon: warm compile ${result["status"]} ($reason), using the Build Tools API"
+            "compose-ai-daemon: warm compile ${result["status"]} ($reason), using the Build Tools API",
           )
         }
         fallBack(sources, changes, null)
@@ -255,7 +255,7 @@ internal constructor(
     log(
       "compose-ai-daemon: warm compiler ready in ${ready.durationMs} ms " +
         "(${ready.passes} passes over ${ready.files} files; ${describePasses(passMs)}" +
-        (if (interrupted) "; stopped for an edit)" else ")")
+        (if (interrupted) "; stopped for an edit)" else ")"),
     )
     return ready
   }
@@ -322,7 +322,7 @@ internal constructor(
       // A Kotlin version this build was not compiled against, a missing jar: never retry.
       disabledReason = t.message ?: t.javaClass.name
       log(
-        "compose-ai-daemon: warm compile unavailable ($disabledReason); using the Build Tools API"
+        "compose-ai-daemon: warm compile unavailable ($disabledReason); using the Build Tools API",
       )
       null
     }
@@ -400,7 +400,7 @@ internal constructor(
           "(LinkageError|NoClassDefFoundError|IncompatibleClassChangeError|NoSuchMethodError|" +
           "NoSuchFieldError|AbstractMethodError|IllegalAccessError|InstantiationError|" +
           "VerifyError|ClassFormatError|UnsupportedClassVersionError|ClassCircularityError|" +
-          "BootstrapMethodError|ExceptionInInitializerError|UnsatisfiedLinkError)\\b"
+          "BootstrapMethodError|ExceptionInInitializerError|UnsatisfiedLinkError)\\b",
       )
 
     /**
@@ -451,7 +451,7 @@ internal constructor(
      * until the first `compileSources` or `compileWarmUp`.
      */
     public fun fromSysprops(
-      sysprops: (String) -> String? = BtaSysprops::lookup
+      sysprops: (String) -> String? = BtaSysprops::lookup,
     ): BtaCompileService? {
       fun paths(key: String) =
         sysprops(key).orEmpty().split(File.pathSeparator).filter { it.isNotEmpty() }
@@ -574,7 +574,7 @@ internal constructor(
             pluginJars.map { Path.of(it) },
             listOf(CompilerPluginOption("sourceInformation", "true")),
             emptySet(),
-          )
+          ),
         )
   }
 }
@@ -650,7 +650,7 @@ internal class ReflectiveWarmCompiler private constructor(private val entry: Any
       val bytes =
         WarmCompileService::class.java.getResourceAsStream(resource)?.use { it.readBytes() }
           ?: error(
-            "no warm compiler is bundled for Kotlin ${WarmCompileService.minorOf(version)} ($version)"
+            "no warm compiler is bundled for Kotlin ${WarmCompileService.minorOf(version)} ($version)",
           )
       workDir.mkdirs()
       val target = File(workDir, resource.substringAfterLast('/'))

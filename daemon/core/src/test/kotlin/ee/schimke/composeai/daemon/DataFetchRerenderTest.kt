@@ -58,7 +58,7 @@ class DataFetchRerenderTest {
           "previewId":"com.example.Foo_bar","kind":"a11y/hierarchy"
         }}
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
       // Renderer-side notifications fire as for a regular renderNow - UI panel updates the PNG.
@@ -127,7 +127,7 @@ class DataFetchRerenderTest {
           "params":{"force":true,"overrides":$overridesJson}
         }}
         """
-          .trimIndent()
+          .trimIndent(),
       )
 
       val response = rpc.pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 51 }
@@ -182,10 +182,10 @@ class DataFetchRerenderTest {
       rpc.initialize()
       rpc.send(
         """{"jsonrpc":"2.0","id":2,"method":"renderNow","params":{
-            "previews":["preview-D"],"tier":"fast","overrides":{"widthPx":321,"heightPx":123}}}"""
+            "previews":["preview-D"],"tier":"fast","overrides":{"widthPx":321,"heightPx":123}}}""",
       )
       assertNotNull(
-        rpc.pollUntil { it["method"]?.jsonPrimitive?.contentOrNull == "renderFinished" }
+        rpc.pollUntil { it["method"]?.jsonPrimitive?.contentOrNull == "renderFinished" },
       )
       assertFalse("the plain render skipped the on-demand kind", producer.renderObserved)
 
@@ -195,7 +195,7 @@ class DataFetchRerenderTest {
           "previewId":"preview-D","kind":"compose/figma-svg"
         }}
         """
-          .trimIndent()
+          .trimIndent(),
       )
       val response = rpc.pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 61 }
       assertNotNull("data/fetch should resolve once the re-render produces the payload", response)
@@ -231,14 +231,14 @@ class DataFetchRerenderTest {
       rpc.initialize()
       rpc.send(
         """{"jsonrpc":"2.0","id":2,"method":"renderNow","params":{
-            "previews":["preview-E"],"tier":"fast","overrides":{"widthPx":321}}}"""
+            "previews":["preview-E"],"tier":"fast","overrides":{"widthPx":321}}}""",
       )
       assertNotNull(
-        rpc.pollUntil { it["method"]?.jsonPrimitive?.contentOrNull == "renderFinished" }
+        rpc.pollUntil { it["method"]?.jsonPrimitive?.contentOrNull == "renderFinished" },
       )
       rpc.send(
         """{"jsonrpc":"2.0","id":62,"method":"data/fetch","params":{
-            "previewId":"preview-E","kind":"a11y/hierarchy"}}"""
+            "previewId":"preview-E","kind":"a11y/hierarchy"}}""",
       )
       assertNotNull(rpc.pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 62 })
       val target = producer.lastRenderTarget as? RenderTarget.Preview
@@ -269,7 +269,7 @@ class DataFetchRerenderTest {
           "previewId":"preview-X","kind":"a11y/hierarchy"
         }}
         """
-          .trimIndent()
+          .trimIndent(),
       )
       val response = rpc.pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 7 }
       assertNotNull("data/fetch should resolve via the budget-timeout branch", response)
@@ -315,7 +315,7 @@ class DataFetchRerenderTest {
           "previewId":"preview-Y","kind":"a11y/hierarchy"
         }}
         """
-          .trimIndent()
+          .trimIndent(),
       )
       val response = rpc.pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 11 }
       assertNotNull(response)
@@ -348,7 +348,7 @@ class DataFetchRerenderTest {
           "previewId":"preview-Z","kind":"a11y/hierarchy"
         }}
         """
-          .trimIndent()
+          .trimIndent(),
       )
       val response = rpc.pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 31 }
       assertNotNull(response)
@@ -384,7 +384,7 @@ class DataFetchRerenderTest {
           "previewId":"preview-Q","kind":"a11y/atf"
         }}
         """
-          .trimIndent()
+          .trimIndent(),
       )
       val response = rpc.pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 99 }
       assertNotNull(response)
@@ -455,7 +455,7 @@ class DataFetchRerenderTest {
                 attachable = false,
                 fetchable = true,
                 requiresRerender = false,
-              )
+              ),
             )
           } ?: emptyList()
         }
@@ -480,7 +480,7 @@ class DataFetchRerenderTest {
             kind = kind,
             schemaVersion = 1,
             payload = buildJsonObject { /* deterministic empty payload */ },
-          )
+          ),
         )
     }
 
@@ -683,7 +683,7 @@ class DataFetchRerenderTest {
     fun send(text: String) {
       val payload = text.toByteArray(Charsets.UTF_8)
       clientToServerOut.write(
-        "Content-Length: ${payload.size}\r\n\r\n".toByteArray(Charsets.US_ASCII)
+        "Content-Length: ${payload.size}\r\n\r\n".toByteArray(Charsets.US_ASCII),
       )
       clientToServerOut.write(payload)
       clientToServerOut.flush()
@@ -701,7 +701,7 @@ class DataFetchRerenderTest {
           "capabilities":{"visibility":true,"metrics":false}
         }}
         """
-          .trimIndent()
+          .trimIndent(),
       )
       pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 1 }
         ?: error("initialize response should arrive")

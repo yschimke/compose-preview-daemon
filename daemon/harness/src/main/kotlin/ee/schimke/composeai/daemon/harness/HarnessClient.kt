@@ -555,7 +555,7 @@ private constructor(
         if (!process.isAlive) {
           error(
             "pollNotification($method): subprocess exited (code=${process.exitValue()}) " +
-              "before the expected notification arrived. Stderr=\n${dumpStderr()}"
+              "before the expected notification arrived. Stderr=\n${dumpStderr()}",
           )
         }
         continue
@@ -587,7 +587,7 @@ private constructor(
           error(
             "pollRenderFinishedFor($previewId): subprocess exited " +
               "(code=${process.exitValue()}) before the expected notification arrived. " +
-              "Stderr=\n${dumpStderr()}"
+              "Stderr=\n${dumpStderr()}",
           )
         }
         continue
@@ -599,7 +599,7 @@ private constructor(
       if (seenMethod == "renderFailed") {
         error(
           "pollRenderFinishedFor($previewId): daemon reported renderFailed instead — " +
-            "${msg["params"]?.jsonObject?.get("error")}. Stderr=\n${dumpStderr()}"
+            "${msg["params"]?.jsonObject?.get("error")}. Stderr=\n${dumpStderr()}",
         )
       }
     }
@@ -635,7 +635,7 @@ private constructor(
       val alive = process.isAlive
       val exitDetail = if (alive) "still alive" else "exited code=${process.exitValue()}"
       error(
-        "awaitResponse(id=$id) timed out after $timeout (subprocess $exitDetail). Stderr=\n${dumpStderr()}"
+        "awaitResponse(id=$id) timed out after $timeout (subprocess $exitDetail). Stderr=\n${dumpStderr()}",
       )
     }
     return response
@@ -722,7 +722,7 @@ private constructor(
       val exitDetail = if (alive) "still alive" else "exited code=${process.exitValue()}"
       error(
         "sendAndPoll(id=$id, method=${request.method}) timed out after $timeout " +
-          "(subprocess $exitDetail). Stderr=\n${dumpStderr()}"
+          "(subprocess $exitDetail). Stderr=\n${dumpStderr()}",
       )
     }
     return response
@@ -796,7 +796,7 @@ private constructor(
           classpath = classpath,
           mainClass = mainClass,
           extraJvmArgs = extraJvmArgs,
-        )
+        ),
       )
 
     private fun runStdoutReader(

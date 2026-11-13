@@ -146,13 +146,15 @@ class AndroidInteractiveSessionWallClockTest {
     val captured = AtomicReference<InteractiveCommand.Render?>(null)
     val workerError = AtomicReference<Throwable?>(null)
     val worker =
-      Thread({
-          try {
-            session.render(requestId = requestId, advanceTimeMs = advanceTimeMs)
-          } catch (t: Throwable) {
-            workerError.set(t)
-          }
-        })
+      Thread(
+          {
+            try {
+              session.render(requestId = requestId, advanceTimeMs = advanceTimeMs)
+            } catch (t: Throwable) {
+              workerError.set(t)
+            }
+          },
+        )
         .apply {
           isDaemon = true
           name = "AndroidInteractiveSessionWallClockTest-render-$requestId"
@@ -162,7 +164,7 @@ class AndroidInteractiveSessionWallClockTest {
       slot.interactiveCommands.poll(5, TimeUnit.SECONDS) as? InteractiveCommand.Render
         ?: error(
           "expected an InteractiveCommand.Render on the slot's queue within 5s; got nothing — " +
-            "session.render() may not have enqueued"
+            "session.render() may not have enqueued",
         )
     captured.set(cmd)
     DaemonHostBridge.results.computeIfAbsent(requestId) { LinkedBlockingQueue() }.put(FAKE_RESULT)

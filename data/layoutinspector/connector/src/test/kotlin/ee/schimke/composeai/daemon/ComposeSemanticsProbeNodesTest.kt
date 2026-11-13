@@ -85,7 +85,7 @@ class ComposeSemanticsProbeNodesTest {
               role = "Button",
               clickable = true,
               children = listOf(node("label", text = "Add", label = "Add")),
-            )
+            ),
           ),
       )
 
@@ -120,7 +120,7 @@ class ComposeSemanticsProbeNodesTest {
               role = "Button",
               clickable = true,
               children = listOf(node("label", text = "Add")),
-            )
+            ),
           ),
       )
 
@@ -141,7 +141,7 @@ class ComposeSemanticsProbeNodesTest {
     // must be restored for fields the compact encoding omits.
     val decoded =
       ComposeSemanticsDataProducer.decodeProbeNodes(
-        """[{"testTag":"cart","clickable":true},{"text":"1 item"},{"contentDescription":"Settings"}]"""
+        """[{"testTag":"cart","clickable":true},{"text":"1 item"},{"contentDescription":"Settings"}]""",
       )
 
     assertEquals(

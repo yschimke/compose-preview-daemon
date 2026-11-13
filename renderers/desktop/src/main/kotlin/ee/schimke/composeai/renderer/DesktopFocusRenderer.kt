@@ -279,7 +279,7 @@ fun renderFocusPreview(
                 showBackground = showBackground,
                 backgroundColor = backgroundColor,
                 uiMode = uiMode,
-              )
+              ),
             )
           val body: @Composable () -> Unit = {
             // The same AS-parity wrap-measure box [renderPreview] uses, so a focused capture is
@@ -346,7 +346,7 @@ fun renderFocusPreview(
         if (scrolled == null) {
           System.err.println(
             "@ScrollingPreview(END) + @FocusedPreview on $className.$functionName: no scrollable " +
-              "on axis ${scrollAxis.name} — capturing focus at the initial viewport."
+              "on axis ${scrollAxis.name} — capturing focus at the initial viewport.",
           )
         }
       }
@@ -451,7 +451,7 @@ fun renderFocusPreview(
       } else {
         "@OverrideVariant drag on $className.$functionName: target at index ${dragIndex ?: 0} " +
           "did not produce a dragged frame; interaction unavailable."
-      }
+      },
     )
     return false
   }
@@ -550,7 +550,7 @@ private fun SemanticsNodeInteractionsProvider.captureRoot(): SemanticsNodeIntera
         compareBy(
           { (_, node) -> node.descendantCount() },
           { (_, node) -> node.size.width.toLong() * node.size.height.toLong() },
-        )
+        ),
       ) ?: return onRoot()
   return onAllNodes(isRoot())[chosen.index]
 }

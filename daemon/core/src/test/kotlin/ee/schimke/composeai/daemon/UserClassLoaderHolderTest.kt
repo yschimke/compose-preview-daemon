@@ -142,14 +142,14 @@ class UserClassLoaderHolderTest {
     // Both sides must see the same composition-local key rather than one copy per classloader.
     assertTrue(
       UserClassLoaderHolder.mustDelegateToParent(
-        "org.jetbrains.compose.resources.LocalResourceReaderKt"
-      )
+        "org.jetbrains.compose.resources.LocalResourceReaderKt",
+      ),
     )
     // Cross-classloader process-static bridges shared with the daemon.
     assertTrue(
       UserClassLoaderHolder.mustDelegateToParent(
-        "ee.schimke.composeai.daemon.bridge.SandboxPreviewOverridesBridge"
-      )
+        "ee.schimke.composeai.daemon.bridge.SandboxPreviewOverridesBridge",
+      ),
     )
     // The `previewOverride*` named-override runtime — PreviewOverrideController is a process-static
     // the daemon seeds and the preview reads. If this were resolved child-first from a runtime jar
@@ -158,13 +158,13 @@ class UserClassLoaderHolderTest {
     // Regression pin for that bug.
     assertTrue(
       UserClassLoaderHolder.mustDelegateToParent(
-        "ee.schimke.composeai.overrides.PreviewOverrideController"
-      )
+        "ee.schimke.composeai.overrides.PreviewOverrideController",
+      ),
     )
     assertTrue(
       UserClassLoaderHolder.mustDelegateToParent(
-        "ee.schimke.composeai.overrides.ControllerPreviewOverrideHost"
-      )
+        "ee.schimke.composeai.overrides.ControllerPreviewOverrideHost",
+      ),
     )
     // The `choice` knob's option type. `PreviewOverrideOption` is an actual typealias onto
     // `:data-preview-overrides-core`, so a preview calling
@@ -177,24 +177,24 @@ class UserClassLoaderHolderTest {
     // Regression pin for compose-preview-server#839.
     assertTrue(
       UserClassLoaderHolder.mustDelegateToParent(
-        "ee.schimke.composeai.data.overrides.PreviewOverrideOption"
-      )
+        "ee.schimke.composeai.data.overrides.PreviewOverrideOption",
+      ),
     )
     assertTrue(
       UserClassLoaderHolder.mustDelegateToParent(
-        "ee.schimke.composeai.data.overrides.PreviewOverrideDeclaration"
-      )
+        "ee.schimke.composeai.data.overrides.PreviewOverrideDeclaration",
+      ),
     )
     // Sibling `data.*` payload packages are NOT covered: they carry no type a preview hands to the
     // overrides runtime, and widening the rule to all of `ee.schimke.composeai.data.` would pin
     // user-recompilable classes to the parent for no reason.
     assertFalse(
-      UserClassLoaderHolder.mustDelegateToParent("ee.schimke.composeai.data.gestures.Swipe")
+      UserClassLoaderHolder.mustDelegateToParent("ee.schimke.composeai.data.gestures.Swipe"),
     )
     // User preview classes (and unrelated app code) stay child-first so recompiles are picked up.
     assertFalse(UserClassLoaderHolder.mustDelegateToParent("com.example.app.MyPreviewKt"))
     assertFalse(
-      UserClassLoaderHolder.mustDelegateToParent("ee.schimke.composeai.preview.SomeUserPreview")
+      UserClassLoaderHolder.mustDelegateToParent("ee.schimke.composeai.preview.SomeUserPreview"),
     )
   }
 

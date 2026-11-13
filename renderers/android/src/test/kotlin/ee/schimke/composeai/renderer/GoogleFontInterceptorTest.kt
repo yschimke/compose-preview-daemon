@@ -72,7 +72,7 @@ class GoogleFontInterceptorTest {
   fun `axes the static instance already bakes do not need the variable file`() {
     assertFalse(requiresVariableFace("'wght' 500", GoogleFontKey("Lato", 500, italic = false)))
     assertFalse(
-      requiresVariableFace("'wght' 500, 'ital' 1", GoogleFontKey("Lato", 500, italic = true))
+      requiresVariableFace("'wght' 500, 'ital' 1", GoogleFontKey("Lato", 500, italic = true)),
     )
   }
 
@@ -81,7 +81,7 @@ class GoogleFontInterceptorTest {
     // The Glimmer shape: `Font(...)` stays at the default W400 so the query asks for the 400 face,
     // and the role's real weight rides in the axes — where a static instance drops it.
     assertTrue(
-      requiresVariableFace("'wght' 750", GoogleFontKey("Google Sans Flex", 400, italic = false))
+      requiresVariableFace("'wght' 750", GoogleFontKey("Google Sans Flex", 400, italic = false)),
     )
     assertTrue(requiresVariableFace("'ital' 1", GoogleFontKey("Lato", 400, italic = false)))
   }
@@ -188,7 +188,7 @@ class GoogleFontInterceptorTest {
     // sorted-by-axis order Compose puts on the wire.
     val settings = "'GRAD' 0,'ROND' 100.0,'opsz' 9.0,'slnt' 0.0,'wdth' 100.0,'wght' 750"
     assertTrue(
-      requiresVariableFace(settings, GoogleFontKey("Google Sans Flex", 400, italic = false))
+      requiresVariableFace(settings, GoogleFontKey("Google Sans Flex", 400, italic = false)),
     )
   }
 }

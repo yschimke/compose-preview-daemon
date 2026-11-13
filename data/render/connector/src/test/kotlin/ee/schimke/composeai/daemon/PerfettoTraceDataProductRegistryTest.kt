@@ -36,7 +36,7 @@ class PerfettoTraceDataProductRegistryTest {
               category = "compose-preview",
               timestampMicros = 1.0,
               durationMicros = 2.0,
-            )
+            ),
           ),
         metadata = TraceMetadata(previewId = previewId, backend = "test"),
       )

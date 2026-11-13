@@ -75,7 +75,7 @@ class AndroidRippleFrameTest {
             pixelX = FRAME_WIDTH_PX / 2,
             pixelY = FRAME_HEIGHT_PX / 2,
             pointerType = "touch",
-          )
+          ),
         )
 
         // Film the press. Each step advances the held clocks by one frame budget, so the sequence

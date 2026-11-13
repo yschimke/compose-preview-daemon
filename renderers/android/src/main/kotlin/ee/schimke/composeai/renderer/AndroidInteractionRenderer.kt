@@ -209,7 +209,7 @@ internal fun handleInteractionCapture(
       "@InteractionPreview on '$previewId': ${interaction.gesture} × " +
         "${interaction.targets.size} target(s), encoded ${frameFiles.size} frame(s) over " +
         "${totalDuration}ms @ ${frameInterval}ms at ${crop.width}×${crop.height} → " +
-        "${written.name}."
+        "${written.name}.",
     )
     return true
   } finally {

@@ -181,8 +181,8 @@ class RobolectricHostPoolTest {
         (0 until 8).map { i ->
           host.submit(
             RenderRequest.Render(
-              target = RenderTarget.Preview(previewId = "com.example.preview.Bg$i")
-            )
+              target = RenderTarget.Preview(previewId = "com.example.preview.Bg$i"),
+            ),
           )
         }
       assertEquals("every steady-state render should return a result", 8, results.size)
@@ -519,7 +519,7 @@ class RobolectricHostPoolTest {
         density = 1.0f,
         showBackground = true,
         outputBaseName = outputBaseName,
-      )
+      ),
     )
 
   private fun stageFixtureClassesDir(): File {
@@ -527,7 +527,7 @@ class RobolectricHostPoolTest {
     val resourceName = "ee/schimke/composeai/daemon/RedFixturePreviewsKt.class"
     val url =
       (Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()).getResource(
-        resourceName
+        resourceName,
       ) ?: error("Can't locate testFixtures class on the test classpath: $resourceName")
     val urlString = url.toString()
     if (urlString.startsWith("file:")) {

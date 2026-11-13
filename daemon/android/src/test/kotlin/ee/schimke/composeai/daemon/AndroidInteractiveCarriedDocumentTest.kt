@@ -87,7 +87,7 @@ class AndroidInteractiveCarriedDocumentTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = WIDTH_PX / 2,
             pixelY = HEIGHT_PX / 2,
-          )
+          ),
         )
         assertMostly("a tap reaches the carried document", frame(), TAP_BLUE)
         assertMostly("the tapped state survives the next frame", frame(), TAP_BLUE)
@@ -116,7 +116,7 @@ class AndroidInteractiveCarriedDocumentTest {
       val malformed =
         PreviewOverrides(
           remoteCompose =
-            RemoteComposeOverride.Builder().also { it.documentBase64 = "not base64 !!" }.build()
+            RemoteComposeOverride.Builder().also { it.documentBase64 = "not base64 !!" }.build(),
         )
       try {
         host.acquireInteractiveSession(PLAYER_PREVIEW_ID, LOADER, overrides = malformed).close()

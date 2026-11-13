@@ -70,7 +70,7 @@ object DisplayFilterDataProducer {
         variants =
           records.map {
             VariantEntry(filter = it.filter.id, path = it.path, mediaType = it.mediaType)
-          }
+          },
       )
     fileSystem.write(previewDir.resolve(FILE_VARIANTS).path.toPath()) {
       writeUtf8(json.encodeToString(VariantsManifest.serializer(), manifest))

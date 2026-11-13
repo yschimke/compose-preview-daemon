@@ -139,7 +139,7 @@ public class IncrementalDiscovery(
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: IncrementalDiscovery.scanForFile($file) failed " +
-          "(${t.javaClass.simpleName}: ${t.message}); returning empty"
+          "(${t.javaClass.simpleName}: ${t.message}); returning empty",
       )
       emptySet()
     }
@@ -267,7 +267,7 @@ public class IncrementalDiscovery(
       if (declaresGutterAndScrolling(annotations, annotationsOf)) {
         System.err.println(
           "compose-ai-daemon: IncrementalDiscovery skipping '${classInfo.name}.${method.name}'" +
-            " — @CaptureGutter cannot be combined with @ScrollingPreview; remove one annotation."
+            " — @CaptureGutter cannot be combined with @ScrollingPreview; remove one annotation.",
         )
         continue
       }

@@ -92,7 +92,7 @@ class AndroidInteractiveSessionTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = INTERACTIVE_HEIGHT_PX / 2,
-          )
+          ),
         )
 
         // Second frame: state should now be green.
@@ -130,7 +130,7 @@ class AndroidInteractiveSessionTest {
                   density = 1.0f,
                   showBackground = true,
                   outputBaseName = "post-interactive-red",
-                )
+                ),
               ),
           ),
           timeoutMs = 60_000,
@@ -181,7 +181,7 @@ class AndroidInteractiveSessionTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = INTERACTIVE_HEIGHT_PX / 2,
-          )
+          ),
         )
 
         val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
@@ -363,7 +363,7 @@ class AndroidInteractiveSessionTest {
             kind = InteractiveInputKind.POINTER_DOWN,
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = 82,
-          )
+          ),
         )
         session.dispatch(
           InteractiveInputParams(
@@ -371,7 +371,7 @@ class AndroidInteractiveSessionTest {
             kind = InteractiveInputKind.POINTER_MOVE,
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = 8,
-          )
+          ),
         )
         session.dispatch(
           InteractiveInputParams(
@@ -379,7 +379,7 @@ class AndroidInteractiveSessionTest {
             kind = InteractiveInputKind.POINTER_UP,
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = 8,
-          )
+          ),
         )
 
         val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
@@ -422,7 +422,7 @@ class AndroidInteractiveSessionTest {
           kind = InteractiveInputKind.KEY_DOWN,
           keyCode = KEYCODE_A,
           text = "a",
-        )
+        ),
       )
 
       val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
@@ -452,7 +452,7 @@ class AndroidInteractiveSessionTest {
           kind = InteractiveInputKind.KEY_DOWN,
           keyCode = KEYCODE_A,
           text = "a",
-        )
+        ),
       )
 
       val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
@@ -487,7 +487,7 @@ class AndroidInteractiveSessionTest {
           kind = InteractiveInputKind.KEY_DOWN,
           keyCode = KEYCODE_A,
           text = "a",
-        )
+        ),
       )
       session.dispatch(
         InteractiveInputParams(
@@ -495,7 +495,7 @@ class AndroidInteractiveSessionTest {
           kind = InteractiveInputKind.KEY_UP,
           keyCode = KEYCODE_A,
           text = "a",
-        )
+        ),
       )
 
       val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
@@ -524,7 +524,7 @@ class AndroidInteractiveSessionTest {
           frameStreamId = "irrelevant-on-host-side",
           kind = InteractiveInputKind.KEY_DOWN,
           text = "€",
-        )
+        ),
       )
 
       val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
@@ -583,7 +583,7 @@ class AndroidInteractiveSessionTest {
             pixelY = TEXT_BASELINE_Y,
             pointerId = 0,
             pointerType = pointerType,
-          )
+          ),
         )
       }
   }
@@ -642,7 +642,7 @@ class AndroidInteractiveSessionTest {
             kind = InteractiveInputKind.POINTER_DOWN,
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = 82,
-          )
+          ),
         )
         session.dispatch(
           InteractiveInputParams(
@@ -650,7 +650,7 @@ class AndroidInteractiveSessionTest {
             kind = InteractiveInputKind.POINTER_MOVE,
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = 70,
-          )
+          ),
         )
         session.dispatch(
           InteractiveInputParams(
@@ -658,7 +658,7 @@ class AndroidInteractiveSessionTest {
             kind = InteractiveInputKind.POINTER_UP,
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = 8,
-          )
+          ),
         )
 
         val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
@@ -706,7 +706,7 @@ class AndroidInteractiveSessionTest {
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = INTERACTIVE_HEIGHT_PX / 2,
             scrollDeltaY = 120f,
-          )
+          ),
         )
 
         val after = decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
@@ -754,7 +754,7 @@ class AndroidInteractiveSessionTest {
               pixelX = INTERACTIVE_WIDTH_PX / 2,
               pixelY = INTERACTIVE_HEIGHT_PX / 2,
               scrollDeltaY = delta,
-            )
+            ),
           )
 
         rotate(220f)
@@ -903,8 +903,8 @@ class AndroidInteractiveSessionTest {
               widthPx = INTERACTIVE_WIDTH_PX,
               heightPx = INTERACTIVE_HEIGHT_PX,
               density = 1.0f,
-            )
-          )
+            ),
+          ),
       )
 
     assertFalse(
@@ -930,8 +930,8 @@ class AndroidInteractiveSessionTest {
               widthPx = INTERACTIVE_WIDTH_PX,
               heightPx = INTERACTIVE_HEIGHT_PX,
               density = 1.0f,
-            )
-          )
+            ),
+          ),
       )
     val router = PreviewManifestRouter(manifest = manifest, sandboxCount = 2)
 
@@ -1233,7 +1233,7 @@ class AndroidInteractiveSessionTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = INTERACTIVE_HEIGHT_PX / 2,
-          )
+          ),
         )
         val afterMiss =
           decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
@@ -1250,7 +1250,7 @@ class AndroidInteractiveSessionTest {
             frameStreamId = "irrelevant-on-host-side",
             kind = InteractiveInputKind.CLICK,
             target = SemanticsInputTarget(testTag = "target-box"),
-          )
+          ),
         )
         val afterHit =
           decode(File(session.render(RenderHost.nextRequestId()).artifact.pathOrNull()!!))
@@ -1284,7 +1284,7 @@ class AndroidInteractiveSessionTest {
           frameStreamId = "irrelevant-on-host-side",
           kind = InteractiveInputKind.CLICK,
           target = SemanticsInputTarget(role = "Button", text = "Example Button"),
-        )
+        ),
       )
     }
   }
@@ -1388,7 +1388,7 @@ class AndroidInteractiveSessionTest {
           .close()
         fail(
           "without the placeholder opt-in, a missing stringResource must fail acquire with " +
-            "Resources\$NotFoundException"
+            "Resources\$NotFoundException",
         )
       } catch (expected: UnsupportedOperationException) {
         assertTrue(
@@ -1465,7 +1465,7 @@ class AndroidInteractiveSessionTest {
         // the callback is scheduled but not yet due.
         val first =
           decode(
-            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!)
+            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!),
           )
         val redFirst = pixelMatchPct(first, RED_RGB, perChannelTolerance = 8)
         assertTrue(
@@ -1486,8 +1486,8 @@ class AndroidInteractiveSessionTest {
                   advanceTimeMs = POST_DELAYED_SQUARE_DELAY_MS * 2,
                 )
                 .artifact
-                .pathOrNull()!!
-            )
+                .pathOrNull()!!,
+            ),
           )
         val greenSecond = pixelMatchPct(second, GREEN_RGB, perChannelTolerance = 8)
         assertTrue(

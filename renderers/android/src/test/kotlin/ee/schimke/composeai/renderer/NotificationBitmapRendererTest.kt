@@ -65,8 +65,8 @@ class NotificationBitmapRendererTest {
           NotificationCompat.BigTextStyle()
             .bigText(
               "BigTextStyle expanded body — the Compose-free renderer should be able to draw " +
-                "this RemoteViews tree without pulling Jetpack Compose onto the test classpath."
-            )
+                "this RemoteViews tree without pulling Jetpack Compose onto the test classpath.",
+            ),
         )
         .build()
 
@@ -83,7 +83,7 @@ class NotificationBitmapRendererTest {
       val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
       if (nm.getNotificationChannel(CHANNEL_ID) == null) {
         nm.createNotificationChannel(
-          NotificationChannel(CHANNEL_ID, "Test", NotificationManager.IMPORTANCE_DEFAULT)
+          NotificationChannel(CHANNEL_ID, "Test", NotificationManager.IMPORTANCE_DEFAULT),
         )
       }
     }

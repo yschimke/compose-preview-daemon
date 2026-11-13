@@ -61,8 +61,8 @@ class RenderEngineSizeBoundsTest {
                 showBackground = true,
                 outputBaseName = base,
                 overrides = overrides,
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )

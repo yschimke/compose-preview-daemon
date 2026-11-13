@@ -101,7 +101,7 @@ class FontFamilyLabelTest {
         FontFamily(FileBackedFont(missing)),
         FontWeight.Normal,
         FontStyle.Normal,
-      )
+      ),
     )
   }
 }

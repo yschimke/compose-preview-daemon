@@ -50,7 +50,7 @@ class LocalFsHistorySourcePruneTest {
 
     val result =
       source.prune(
-        HistoryPruneConfig(maxEntriesPerPreview = 0, maxAgeDays = 14, maxTotalSizeBytes = 0L)
+        HistoryPruneConfig(maxEntriesPerPreview = 0, maxAgeDays = 14, maxTotalSizeBytes = 0L),
       )
 
     // Survivors: newest 14 days. Floor protects most-recent-per-preview but every preview here is
@@ -78,7 +78,7 @@ class LocalFsHistorySourcePruneTest {
 
     val result =
       source.prune(
-        HistoryPruneConfig(maxEntriesPerPreview = 0, maxAgeDays = 14, maxTotalSizeBytes = 0L)
+        HistoryPruneConfig(maxEntriesPerPreview = 0, maxAgeDays = 14, maxTotalSizeBytes = 0L),
       )
 
     // Compute expected: newest entry survives (floor); plus all entries that are NOT older than 14
@@ -113,7 +113,7 @@ class LocalFsHistorySourcePruneTest {
 
     val result =
       source.prune(
-        HistoryPruneConfig(maxEntriesPerPreview = 10, maxAgeDays = 0, maxTotalSizeBytes = 0L)
+        HistoryPruneConfig(maxEntriesPerPreview = 10, maxAgeDays = 0, maxTotalSizeBytes = 0L),
       )
 
     // 30 entries survive (10 newest per preview).
@@ -146,7 +146,7 @@ class LocalFsHistorySourcePruneTest {
           maxEntriesPerPreview = 0,
           maxAgeDays = 0,
           maxTotalSizeBytes = 300L * 1024 * 1024,
-        )
+        ),
       )
 
     // 50 unique previews, each entry has a unique previewId → floor protects every entry → no
@@ -174,7 +174,7 @@ class LocalFsHistorySourcePruneTest {
           maxEntriesPerPreview = 0,
           maxAgeDays = 0,
           maxTotalSizeBytes = 300L * 1024 * 1024,
-        )
+        ),
       )
 
     val survivors = readIndexIds(tmpDir)
@@ -193,7 +193,7 @@ class LocalFsHistorySourcePruneTest {
 
     val result =
       source.prune(
-        HistoryPruneConfig(maxEntriesPerPreview = 0, maxAgeDays = 14, maxTotalSizeBytes = 0L)
+        HistoryPruneConfig(maxEntriesPerPreview = 0, maxAgeDays = 14, maxTotalSizeBytes = 0L),
       )
 
     val survivors = readIndexIds(tmpDir)
@@ -282,7 +282,7 @@ class LocalFsHistorySourcePruneTest {
     // Prune with maxEntriesPerPreview=2 → middle + third survive (newest 2), first removed.
     val result =
       source.prune(
-        HistoryPruneConfig(maxEntriesPerPreview = 2, maxAgeDays = 0, maxTotalSizeBytes = 0L)
+        HistoryPruneConfig(maxEntriesPerPreview = 2, maxAgeDays = 0, maxTotalSizeBytes = 0L),
       )
     assertEquals(listOf(first.id), result.removedEntryIds)
     // freedBytes is 0 because the surviving third sidecar's pngPath still references
@@ -321,7 +321,7 @@ class LocalFsHistorySourcePruneTest {
     // Keep newest 2 per preview → e[2] pruned; e[0], e[1] survive.
     val result =
       source.prune(
-        HistoryPruneConfig(maxEntriesPerPreview = 2, maxAgeDays = 0, maxTotalSizeBytes = 0L)
+        HistoryPruneConfig(maxEntriesPerPreview = 2, maxAgeDays = 0, maxTotalSizeBytes = 0L),
       )
 
     assertEquals(listOf(e[2].id), result.removedEntryIds)
@@ -379,7 +379,7 @@ class LocalFsHistorySourcePruneTest {
         )
       }
     source.prune(
-      HistoryPruneConfig(maxEntriesPerPreview = 3, maxAgeDays = 0, maxTotalSizeBytes = 0L)
+      HistoryPruneConfig(maxEntriesPerPreview = 3, maxAgeDays = 0, maxTotalSizeBytes = 0L),
     )
     val tempfile = tmpDir.resolve("${LocalFsHistorySource.INDEX_FILENAME}.tmp")
     assertFalse("prune temp file must be cleaned up after success", Files.exists(tempfile))
@@ -422,7 +422,7 @@ class LocalFsHistorySourcePruneTest {
 
     val result =
       source.prune(
-        HistoryPruneConfig(maxEntriesPerPreview = 3, maxAgeDays = 14, maxTotalSizeBytes = 0L)
+        HistoryPruneConfig(maxEntriesPerPreview = 3, maxAgeDays = 14, maxTotalSizeBytes = 0L),
       )
 
     // After age pass: recent (4) + the floor-protected oldest survives. So 5 entries survive age

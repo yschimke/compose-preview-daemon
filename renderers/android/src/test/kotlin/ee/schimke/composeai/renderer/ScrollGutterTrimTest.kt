@@ -100,7 +100,7 @@ class ScrollGutterTrimTest {
           fixedWidthPx = 200,
           fixedHeightPx = 400,
         )
-        .trimRect(file)
+        .trimRect(file),
     )
   }
 

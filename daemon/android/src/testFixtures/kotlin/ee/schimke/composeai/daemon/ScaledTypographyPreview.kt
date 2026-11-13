@@ -44,7 +44,7 @@ const val BODY_SP: Int = 14
 fun ScaledHeadingParagraph() {
   Column(
     modifier =
-      Modifier.fillMaxSize().background(Color.White).width(PARAGRAPH_WIDTH_DP.dp).padding(8.dp)
+      Modifier.fillMaxSize().background(Color.White).width(PARAGRAPH_WIDTH_DP.dp).padding(8.dp),
   ) {
     Text(
       text = "From Java Programming Language to Kotlin",

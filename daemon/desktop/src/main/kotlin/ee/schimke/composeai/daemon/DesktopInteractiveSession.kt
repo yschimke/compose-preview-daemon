@@ -138,7 +138,7 @@ class DesktopInteractiveSession(
           } catch (t: Throwable) {
             System.err.println(
               "compose-ai-daemon: DesktopInteractiveSession: onSceneClose threw " +
-                "(${t.javaClass.simpleName}: ${t.message}); continuing with tearDown"
+                "(${t.javaClass.simpleName}: ${t.message}); continuing with tearDown",
             )
           }
         }
@@ -150,7 +150,7 @@ class DesktopInteractiveSession(
         if (!sceneExecutor.awaitTermination(EXECUTOR_SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
           System.err.println(
             "compose-ai-daemon: DesktopInteractiveSession($previewId): sceneExecutor did not " +
-              "terminate within ${EXECUTOR_SHUTDOWN_TIMEOUT_SECONDS}s; continuing"
+              "terminate within ${EXECUTOR_SHUTDOWN_TIMEOUT_SECONDS}s; continuing",
           )
         }
       } catch (_: InterruptedException) {
@@ -162,7 +162,7 @@ class DesktopInteractiveSession(
         } catch (t: Throwable) {
           System.err.println(
             "compose-ai-daemon: DesktopInteractiveSession: onCloseHook threw " +
-              "(${t.javaClass.simpleName}: ${t.message}); continuing"
+              "(${t.javaClass.simpleName}: ${t.message}); continuing",
           )
         }
       }
@@ -229,7 +229,7 @@ class DesktopInteractiveSession(
   private fun logUnresolved(target: SemanticsTarget, reason: String): Pair<Int, Int>? {
     System.err.println(
       "compose-ai-daemon: DesktopInteractiveSession($previewId): target $target unresolved " +
-        "($reason); dropping input"
+        "($reason); dropping input",
     )
     return null
   }

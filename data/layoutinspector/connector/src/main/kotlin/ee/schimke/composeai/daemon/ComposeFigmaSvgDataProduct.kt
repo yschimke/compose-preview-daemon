@@ -228,7 +228,7 @@ object ComposeFigmaSvgDataProducer {
           System.err.println(
             "ComposeFigmaSvg: the render drew with ${unnamed.joinToString(", ")} but the export " +
               "could not name ${if (unnamed.size == 1) "it" else "them"} — text is exported as " +
-              "missing-glyph boxes rather than silently substituting $DEFAULT_EMBED_FAMILY"
+              "missing-glyph boxes rather than silently substituting $DEFAULT_EMBED_FAMILY",
           )
           FigmaLayeredSvg.render(
             model,
@@ -487,7 +487,7 @@ object ComposeFigmaSvgDataProducer {
         System.err.println(
           "ComposeFigmaSvg: could not embed font \"$name\" " +
             "(weight=$weight${if (italic) ", italic" else ""}) — the figma-svg text falls back to a " +
-            "generic family and will render with a substitute typeface"
+            "generic family and will render with a substitute typeface",
         )
         return
       }
@@ -519,7 +519,7 @@ object ComposeFigmaSvgDataProducer {
                   span.fontFamily ?: t.fontFamily,
                   span.fontWeight ?: t.fontWeight ?: 400,
                   span.italic,
-                )
+                ),
               ) {
                 LinkedHashSet()
               }
@@ -736,7 +736,7 @@ class ComposeFigmaSvgDataProductRegistry(
           facets = listOf(DataProductFacet.ARTIFACT, DataProductFacet.IMAGE),
           mediaTypes = listOf(ComposeFigmaSvgProduct.MEDIA_TYPE_SVG),
           sampling = SamplingPolicy.End,
-        )
+        ),
       ),
     fileSystem = fileSystem,
   ) {
@@ -820,7 +820,7 @@ class ComposeFigmaSvgLongDataProductRegistry(
           facets = listOf(DataProductFacet.ARTIFACT, DataProductFacet.IMAGE),
           mediaTypes = listOf(ComposeFigmaSvgProduct.MEDIA_TYPE_SVG),
           sampling = SamplingPolicy.End,
-        )
+        ),
       ),
     fileSystem = fileSystem,
   ) {

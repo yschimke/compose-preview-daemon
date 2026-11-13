@@ -72,7 +72,7 @@ class RobolectricLaunchTest {
       .isEqualTo(
         DaemonBackend.Android(File("/sdk/android.jar"), sdkLevel = 33)
           .robolectricConfig()
-          .composableLaneBody()
+          .composableLaneBody(),
       )
   }
 
@@ -81,7 +81,7 @@ class RobolectricLaunchTest {
     assertThat(RobolectricLaunch.config(sdkLevel = 35).composableLaneBody())
       .contains("application=android.app.Application")
     assertThat(
-        RobolectricLaunch.config(sdkLevel = 35, useConsumerApplication = true).composableLaneBody()
+        RobolectricLaunch.config(sdkLevel = 35, useConsumerApplication = true).composableLaneBody(),
       )
       .doesNotContain("application=")
   }

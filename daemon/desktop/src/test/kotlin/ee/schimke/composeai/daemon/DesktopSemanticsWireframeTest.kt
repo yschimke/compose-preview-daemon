@@ -46,7 +46,7 @@ class DesktopSemanticsWireframeTest {
                 node("btn", "16,24,344,84", label = "Save", clickable = true),
                 node("lyrics", "16,100,344,300", mergeMode = "clearAndSet", label = "Lyrics"),
               ),
-          )
+          ),
       )
     val dest = File(tmp.root, "out/wireframe.png")
     val written = DesktopSemanticsWireframe.generate(payload, dest, padding = 16)

@@ -82,7 +82,7 @@ public data class XrServerHandshake(
         serverInfo?.get("version")?.jsonPrimitive?.intOrNull
           ?: throw XrServerException(
             "initialize: no serverInfo.version — not an ${XrRenderService.SERVER_NAME} render " +
-              "server, or one too old to report its protocol version (result: $result)"
+              "server, or one too old to report its protocol version (result: $result)",
           )
       if (
         version > XrRenderService.XR_RENDER_SERVICE_VERSION ||
@@ -92,7 +92,7 @@ public data class XrServerHandshake(
           "XR render service version mismatch: ${name ?: "server"} speaks v$version, this client " +
             "speaks v${XrRenderService.XR_RENDER_SERVICE_VERSION} and supports back to " +
             "v${XrRenderService.MIN_SUPPORTED_XR_RENDER_SERVICE_VERSION}. Update the " +
-            "`xr-composite` pin to a release built from a compatible commit."
+            "`xr-composite` pin to a release built from a compatible commit.",
         )
       }
       return XrServerHandshake(
@@ -171,7 +171,7 @@ internal constructor(
     if (!caps.has(capability)) {
       throw XrServerException(
         "$what: server ${caps.serverName ?: "(unknown)"} v${caps.serviceVersion} does not " +
-          "advertise the `$capability` capability"
+          "advertise the `$capability` capability",
       )
     }
   }
@@ -237,7 +237,7 @@ internal constructor(
         put("jsonrpc", "2.0")
         put("method", XrRenderService.Method.STOP)
         put("params", buildJsonObject { put(XrRenderService.Param.SESSION_ID, sessionId) })
-      }
+      },
     )
     frames.remove(sessionId)
     openSessions.remove(sessionId)
@@ -252,7 +252,7 @@ internal constructor(
       buildJsonObject {
         put("jsonrpc", "2.0")
         put("method", XrRenderService.Method.EXIT)
-      }
+      },
     )
   }
 
@@ -293,7 +293,7 @@ internal constructor(
         "SpatialScene version mismatch: this scene is v$sceneVersion but the render server parses " +
           "v$serverVersion. The compositor is pinned separately from this repository " +
           "(`xr-composite` in gradle/libs.versions.toml); bump that pin to a release built " +
-          "against scene v$sceneVersion."
+          "against scene v$sceneVersion.",
       )
     }
   }
@@ -316,7 +316,7 @@ internal constructor(
         put("id", id)
         put("method", method)
         put("params", params)
-      }
+      },
     )
     val response =
       slot.poll(timeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)

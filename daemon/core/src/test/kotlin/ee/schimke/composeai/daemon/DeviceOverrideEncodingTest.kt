@@ -88,7 +88,7 @@ class DeviceOverrideEncodingTest {
   fun portraitRotatesALandscapeDeviceFrame() {
     val captured =
       renderAndCaptureTarget(
-        overrides = """{"device":"id:pixel_tablet","orientation":"portrait"}"""
+        overrides = """{"device":"id:pixel_tablet","orientation":"portrait"}""",
       )
     // #3547 — the reported URL: `?device=id:pixel_tablet&orientation=portrait`. Pixel Tablet is
     // 1280x800dp at density 2.0, i.e. 2560x1600px landscape by nature. Portrait must trade the
@@ -114,7 +114,7 @@ class DeviceOverrideEncodingTest {
   fun orientationMatchingTheDeviceFrameLeavesItAlone() {
     val captured =
       renderAndCaptureTarget(
-        overrides = """{"device":"id:pixel_tablet","orientation":"landscape"}"""
+        overrides = """{"device":"id:pixel_tablet","orientation":"landscape"}""",
       )
     // The swap is idempotent: a device already in the requested orientation stays put, so the
     // downstream routers can apply the same rule again without rotating it back.
@@ -126,7 +126,7 @@ class DeviceOverrideEncodingTest {
   fun explicitPixelsBeatTheOrientationRequest() {
     val captured =
       renderAndCaptureTarget(
-        overrides = """{"device":"id:pixel_tablet","orientation":"portrait","widthPx":900}"""
+        overrides = """{"device":"id:pixel_tablet","orientation":"portrait","widthPx":900}""",
       )
     // PROTOCOL.md § 5 precedence: naming exact pixels outranks every derived value, the rotation
     // included. Neither axis is swapped, so the caller's 900 is not silently moved to the height.
@@ -296,7 +296,7 @@ private class PayloadCapturingHost : RenderHost {
               is RenderRequest.Render -> {
                 lastTarget.set(req.target)
                 results.put(
-                  RenderResult(id = req.id, classLoaderHashCode = 0, classLoaderName = "fake")
+                  RenderResult(id = req.id, classLoaderHashCode = 0, classLoaderName = "fake"),
                 )
               }
               // Never enqueued here: `submit` only accepts a Render. Present so the `when` stays

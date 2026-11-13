@@ -76,7 +76,7 @@ class WearScrollSliceStitcherTest {
                   sweepRadians = 1.0,
                   clockwise = true,
                   fontSizePx = 12.0,
-                )
+                ),
               ),
           ),
         )

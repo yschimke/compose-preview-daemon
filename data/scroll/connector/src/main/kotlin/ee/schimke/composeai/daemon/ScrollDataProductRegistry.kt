@@ -64,7 +64,7 @@ class ScrollDataProductRegistry(private val rootDir: File) :
           mediaTypes = listOf("image/gif"),
           sampling = SamplingPolicy.End,
         ),
-      )
+      ),
   ) {
 
   override fun fileFor(previewId: String, kind: String): File? {

@@ -101,7 +101,7 @@ object RemoteDensitySelection {
       System.err.println(
         "compose-preview: -D$PROPERTY=$raw names no Remote Compose capture density; capturing " +
           "with the default (fixed). Valid values: host (aka deferred, variable), fixed (aka " +
-          "capture, literal, baked)."
+          "capture, literal, baked).",
       )
     }
     return selected ?: DEFAULT

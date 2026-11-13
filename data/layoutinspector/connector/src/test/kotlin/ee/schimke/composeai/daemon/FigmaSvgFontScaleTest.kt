@@ -51,9 +51,9 @@ class FigmaSvgFontScaleTest {
               component = "Text",
               bounds = LayoutInspectorBounds(8, 8, 192, 40),
               size = LayoutInspectorSize(184, 32),
-            )
+            ),
           ),
-      )
+      ),
     )
 
   private fun semantics() =
@@ -74,9 +74,9 @@ class FigmaSvgFontScaleTest {
                   lineHeight = "24.0sp",
                   letterSpacing = "1.0sp",
                 ),
-            )
+            ),
           ),
-      )
+      ),
     )
 
   /** The first `<text …>`'s `font-size` value, or null when the export emitted no sized text. */

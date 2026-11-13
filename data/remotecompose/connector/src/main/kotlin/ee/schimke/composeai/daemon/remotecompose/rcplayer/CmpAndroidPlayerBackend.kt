@@ -122,7 +122,7 @@ internal class RobolectricRcTimeSource(
 
 /** The CMP player's named values — one snapshot map — as a [NamedValueSeedTarget]. */
 internal class SnapshotStateMapSeedTarget(
-  private val values: SnapshotStateMap<String, RcNamedValue>
+  private val values: SnapshotStateMap<String, RcNamedValue>,
 ) : NamedValueSeedTarget {
   override fun setString(name: String, value: String) {
     values[name] = RcNamedValue.Text(value)

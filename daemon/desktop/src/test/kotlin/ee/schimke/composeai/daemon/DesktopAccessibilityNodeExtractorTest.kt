@@ -33,7 +33,7 @@ import org.junit.Test
 class DesktopAccessibilityNodeExtractorTest {
 
   private fun extract(
-    content: @androidx.compose.runtime.Composable () -> Unit
+    content: @androidx.compose.runtime.Composable () -> Unit,
   ): List<AccessibilityNode> {
     val scene =
       ImageComposeScene(width = 300, height = 300, density = Density(1.0f), content = content)

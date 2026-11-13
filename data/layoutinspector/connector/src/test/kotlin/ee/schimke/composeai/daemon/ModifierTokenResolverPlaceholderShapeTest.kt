@@ -25,7 +25,7 @@ class ModifierTokenResolverPlaceholderShapeTest {
   fun `placeholder and placeholderShimmer by inspector name are skipped`() {
     assertTrue(PlaceholderModifiers.isPlaceholderModifier("placeholder", "PlaceholderElement"))
     assertTrue(
-      PlaceholderModifiers.isPlaceholderModifier("placeholderShimmer", "PlaceholderShimmerElement")
+      PlaceholderModifiers.isPlaceholderModifier("placeholderShimmer", "PlaceholderShimmerElement"),
     )
   }
 
@@ -33,7 +33,7 @@ class ModifierTokenResolverPlaceholderShapeTest {
   fun `placeholder elements by class name are skipped when inspector name is absent`() {
     assertTrue(PlaceholderModifiers.isPlaceholderModifier(null, "PlaceholderElement"))
     assertTrue(
-      PlaceholderModifiers.isPlaceholderModifier(null, "PlaceholderShimmerModifierNodeElement")
+      PlaceholderModifiers.isPlaceholderModifier(null, "PlaceholderShimmerModifierNodeElement"),
     )
   }
 

@@ -150,7 +150,7 @@ class EarlyInitializeTest {
       Client(
         SocketChannel.open(StandardProtocolFamily.UNIX).apply {
           connect(UnixDomainSocketAddress.of(socket))
-        }
+        },
       )
     val firstInit = first.request(1, "initialize", initializeParams(bootProgress = true))
     assertEquals(true, firstInit.result()?.get("booting")?.jsonPrimitive?.booleanOrNull)
@@ -164,7 +164,7 @@ class EarlyInitializeTest {
       Client(
         SocketChannel.open(StandardProtocolFamily.UNIX).apply {
           connect(UnixDomainSocketAddress.of(socket))
-        }
+        },
       )
     second.send(1, "initialize", initializeParams(bootProgress = false))
     assertNull("a client that did not opt in waits", second.poll(500) { it.id() == 1 })

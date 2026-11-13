@@ -101,7 +101,7 @@ public object FfmpegEncoder {
       proc.destroyForcibly()
       runCatching { drainThread.join(2_000) }
       error(
-        "FfmpegEncoder: ffmpeg ${format.name.lowercase()} encode timed out after ${ENCODE_TIMEOUT_MS}ms"
+        "FfmpegEncoder: ffmpeg ${format.name.lowercase()} encode timed out after ${ENCODE_TIMEOUT_MS}ms",
       )
     }
     runCatching { drainThread.join(2_000) }
@@ -112,7 +112,7 @@ public object FfmpegEncoder {
     }
     if (!out.isFile || out.length() == 0L) {
       error(
-        "FfmpegEncoder: ffmpeg ${format.name.lowercase()} produced no output at ${out.absolutePath}"
+        "FfmpegEncoder: ffmpeg ${format.name.lowercase()} produced no output at ${out.absolutePath}",
       )
     }
   }
@@ -146,7 +146,7 @@ public object FfmpegEncoder {
             "veryfast",
             "-movflags",
             "+faststart",
-          )
+          ),
         )
         if (audioTrack != null) args.addAll(listOf("-c:a", "aac"))
       }
@@ -164,7 +164,7 @@ public object FfmpegEncoder {
             "4",
             "-row-mt",
             "1",
-          )
+          ),
         )
         if (audioTrack != null) args.addAll(listOf("-c:a", "libopus"))
       }

@@ -35,7 +35,7 @@ class DesktopHostRenderTimeoutTest {
           Thread.sleep(RENDER_MS)
           resolved += id
           null
-        }
+        },
       )
     host.start()
     val pool = Executors.newFixedThreadPool(BATCH)
@@ -64,7 +64,7 @@ class DesktopHostRenderTimeoutTest {
           resolved += id
           if (id == "hung") release.await(30, TimeUnit.SECONDS)
           null
-        }
+        },
       )
     host.start()
     val pool = Executors.newFixedThreadPool(2)

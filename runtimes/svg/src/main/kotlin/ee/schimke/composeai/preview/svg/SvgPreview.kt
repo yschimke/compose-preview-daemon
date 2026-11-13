@@ -100,7 +100,7 @@ fun loadSvgAsset(asset: String): ByteArray {
   }
   throw IllegalArgumentException(
     "SVG asset '$asset' not found on the classpath. Put it under src/main/resources " +
-      "(e.g. src/main/resources/$normalized) so the preview plugin links and bundles it."
+      "(e.g. src/main/resources/$normalized) so the preview plugin links and bundles it.",
   )
 }
 

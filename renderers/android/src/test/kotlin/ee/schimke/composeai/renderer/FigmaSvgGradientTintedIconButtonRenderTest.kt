@@ -87,7 +87,7 @@ class FigmaSvgGradientTintedIconButtonRenderTest {
             .drawWithContent {
               drawContent()
               drawRect(brush = Brush.linearGradient(tint), blendMode = BlendMode.Plus)
-            }
+            },
         ) {
           Box(Modifier.size(24.dp).background(Color.White))
         }

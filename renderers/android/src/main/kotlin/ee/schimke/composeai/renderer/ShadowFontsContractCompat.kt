@@ -77,10 +77,10 @@ class ShadowFontsContractCompat {
       if (key == null) {
         System.err.println(
           "ComposeAiFonts: ignored a downloadable-font request with an unparseable query " +
-            "(${request.query}); text renders in the platform fallback (Roboto)"
+            "(${request.query}); text renders in the platform fallback (Roboto)",
         )
         callback.onTypefaceRequestFailed(
-          FontsContractCompat.FontRequestCallback.FAIL_REASON_FONT_NOT_FOUND
+          FontsContractCompat.FontRequestCallback.FAIL_REASON_FONT_NOT_FOUND,
         )
         return
       }
@@ -110,7 +110,7 @@ class ShadowFontsContractCompat {
           FontResolutionDiagnostics.currentFailureReason(),
         )
         callback.onTypefaceRequestFailed(
-          FontsContractCompat.FontRequestCallback.FAIL_REASON_FONT_NOT_FOUND
+          FontsContractCompat.FontRequestCallback.FAIL_REASON_FONT_NOT_FOUND,
         )
         return
       }
@@ -121,7 +121,7 @@ class ShadowFontsContractCompat {
           "the cached font file could not be decoded into a Typeface (corrupt or unreadable)",
         )
         callback.onTypefaceRequestFailed(
-          FontsContractCompat.FontRequestCallback.FAIL_REASON_FONT_LOAD_ERROR
+          FontsContractCompat.FontRequestCallback.FAIL_REASON_FONT_LOAD_ERROR,
         )
         return
       }

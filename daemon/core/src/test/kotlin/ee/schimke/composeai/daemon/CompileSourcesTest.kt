@@ -85,7 +85,7 @@ class CompileSourcesTest {
         outcome = {
           activeDuringCompile.put(CompileActivity.isActive)
           BtaCompileService.Outcome.Ok
-        }
+        },
       )
     val rig = startServer(service = service)
     try {
@@ -110,10 +110,10 @@ class CompileSourcesTest {
                 line = 4,
                 column = 17,
                 message = "Unresolved reference 'R'",
-              )
-            )
+              ),
+            ),
           )
-        }
+        },
       )
     val rig = startServer(service = service)
     try {
@@ -153,7 +153,7 @@ class CompileSourcesTest {
     try {
       rig.handshake()
       rig.writeFrame(
-        """{"jsonrpc":"2.0","id":42,"method":"compileSources","params":{"sources":[]}}"""
+        """{"jsonrpc":"2.0","id":42,"method":"compileSources","params":{"sources":[]}}""",
       )
       val resp = rig.pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 42 }
       assertNotNull("compileSources response should arrive", resp)
@@ -341,7 +341,7 @@ class CompileSourcesTest {
     fun writeFrame(json: String) {
       val payload = json.toByteArray(Charsets.UTF_8)
       clientToServerOut.write(
-        "Content-Length: ${payload.size}\r\n\r\n".toByteArray(Charsets.US_ASCII)
+        "Content-Length: ${payload.size}\r\n\r\n".toByteArray(Charsets.US_ASCII),
       )
       clientToServerOut.write(payload)
       clientToServerOut.flush()
@@ -369,7 +369,7 @@ class CompileSourcesTest {
           "capabilities":{"visibility":true,"metrics":false}
         }}
         """
-          .trimIndent()
+          .trimIndent(),
       )
       val init = pollUntil { it["id"]?.jsonPrimitive?.intOrNull == 1 }
       assertNotNull("initialize response should arrive", init)
@@ -389,7 +389,7 @@ class CompileSourcesTest {
           ""","changes":{"modified":[$m],"removed":[$r]}"""
         } ?: ""
       writeFrame(
-        """{"jsonrpc":"2.0","id":$id,"method":"compileSources","params":{"sources":[$sourcesJson]$changesJson}}"""
+        """{"jsonrpc":"2.0","id":$id,"method":"compileSources","params":{"sources":[$sourcesJson]$changesJson}}""",
       )
       val resp = pollUntil { it["id"]?.jsonPrimitive?.longOrNull == id }
       assertNotNull("compileSources response (id=$id) should arrive", resp)

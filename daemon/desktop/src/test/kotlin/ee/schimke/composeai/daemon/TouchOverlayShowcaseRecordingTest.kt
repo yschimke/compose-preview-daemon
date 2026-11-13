@@ -108,7 +108,7 @@ class TouchOverlayShowcaseRecordingTest {
         // Trail/ring assertion — a mid-drag frame must carry cyan overlay pixels.
         val dragFrame =
           TouchOverlayTestSupport.readPng(
-            File(result.framesDir, "frame-${"%05d".format(result.frameCount / 3)}.png")
+            File(result.framesDir, "frame-${"%05d".format(result.frameCount / 3)}.png"),
           )
         val cyan =
           TouchOverlayTestSupport.pixelMatchPctApprox(dragFrame, 0x00BCD4, perChannelTolerance = 60)
@@ -118,7 +118,7 @@ class TouchOverlayShowcaseRecordingTest {
         // in the final third, so sample near the end where the spread (and the caliper) is largest.
         val pinchFrame =
           TouchOverlayTestSupport.readPng(
-            File(result.framesDir, "frame-${"%05d".format(result.frameCount - 4)}.png")
+            File(result.framesDir, "frame-${"%05d".format(result.frameCount - 4)}.png"),
           )
         val purple =
           TouchOverlayTestSupport.pixelMatchPctApprox(

@@ -176,7 +176,7 @@ class RenderTraceDataProductRegistryTest {
                     0L,
                     2_000_000L,
                     0,
-                  )
+                  ),
                 ),
             ),
         ),

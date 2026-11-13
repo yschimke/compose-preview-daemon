@@ -22,7 +22,7 @@ class DaemonClientCompileWarmUpTest {
       withPeer(
         answer = { id ->
           """{"jsonrpc":"2.0","id":$id,"error":{"code":-32601,"message":"method not found: compileWarmUp"}}"""
-        }
+        },
       ) { client ->
         assertThat(client.compileWarmUp(timeout = 5.seconds)).isNull()
       }
@@ -45,7 +45,7 @@ class DaemonClientCompileWarmUpTest {
     withPeer(
       answer = { id ->
         """{"jsonrpc":"2.0","id":$id,"result":{"ready":false,"durationMs":3,"message":"no warm compiler is bundled for Kotlin 2.4.20"}}"""
-      }
+      },
     ) { client ->
       val result = client.compileWarmUp(timeout = 5.seconds)!!
       assertThat(result.ready).isFalse()

@@ -74,7 +74,7 @@ class DesktopAccessibilityDataProductRegistry(private val rootDir: File) :
           mediaTypes = listOf("image/png"),
           sampling = SamplingPolicy.End,
         ),
-      )
+      ),
   ) {
 
   private val knownKinds =
@@ -130,7 +130,7 @@ class DesktopAccessibilityDataProductRegistry(private val rootDir: File) :
         path = overlay.absolutePath,
         mediaType = "image/png",
         sizeBytes = overlay.length().takeIf { it > 0 },
-      )
+      ),
     )
   }
 }

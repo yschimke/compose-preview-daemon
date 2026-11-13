@@ -223,7 +223,7 @@ object ComposeSemanticsDataProducer {
    */
   fun buildPayload(root: SemanticsNode, density: Float? = null): ComposeSemanticsPayload =
     SemanticsRefs.assign(
-      ComposeSemanticsPayload(root = root.toWireNode(density ?: 1f), density = density)
+      ComposeSemanticsPayload(root = root.toWireNode(density ?: 1f), density = density),
     )
 
   private val probeNodesSerializer = ListSerializer(RecordingProbeNode.serializer())
@@ -771,9 +771,9 @@ object ComposeSemanticsDataProducer {
       }
         .getOrNull()
         ?.takeIf { it.isNotBlank() }
-        // A vendored desktop GoogleFont face carries the `Font(GoogleFont("X", …))` label as its
-        // identity; surface the clean display name so the figma-svg names the family, not the blob.
-        ?.let { googleFontNameFromIdentity(it) ?: it }
+      // A vendored desktop GoogleFont face carries the `Font(GoogleFont("X", …))` label as its
+      // identity; surface the clean display name so the figma-svg names the family, not the blob.
+      ?.let { googleFontNameFromIdentity(it) ?: it }
       ?: fileFontPath(font)
       ?: runCatching {
         font.javaClass.methods
@@ -1016,7 +1016,7 @@ fun ComposeSemanticsNode.toProbeNodes(): List<RecordingProbeNode> = buildList {
           role = role,
           clickable = node.clickable,
           mergedText = mergedText,
-        )
+        ),
       )
     }
     node.children.forEach(::visit)
@@ -1248,7 +1248,7 @@ internal data class LayoutInspectorCaptureContext(
         rootSemanticsNode = root.semanticsOwner.unmergedRootSemanticsNode,
         slotTables =
           ExtensionSlotTables.of(
-            previewContext.inspection.slotTables.filterIsInstance<CompositionData>()
+            previewContext.inspection.slotTables.filterIsInstance<CompositionData>(),
           ),
       )
     }
@@ -1536,7 +1536,7 @@ internal object ComposeLayoutInspector {
    * A zero-area node has no measurable scale and yields null rather than a divide-by-zero.
    */
   private fun LayoutCoordinates?.scaleIn(
-    rootCoordinates: LayoutCoordinates?
+    rootCoordinates: LayoutCoordinates?,
   ): LayoutInspectorTransform? {
     if (this == null || rootCoordinates == null || !isAttached) return null
     val w = size.width
@@ -1856,7 +1856,7 @@ internal object ComposeLayoutInspector {
   private fun roundLayoutTextPx(value: Double): Double = (value * 100.0).roundToInt() / 100.0
 
   private fun LayoutCoordinates?.boundsIn(
-    rootCoordinates: LayoutCoordinates?
+    rootCoordinates: LayoutCoordinates?,
   ): LayoutInspectorBounds =
     if (this == null || rootCoordinates == null) {
       LayoutInspectorBounds(0, 0, 0, 0)
@@ -2218,10 +2218,10 @@ internal object ComposeLayoutInspector {
       val filter =
         externalColorFilter
           ?: currentStateValue(
-            runCatching { field(painter, "intrinsicColorFilter\$delegate") }.getOrNull()
+            runCatching { field(painter, "intrinsicColorFilter\$delegate") }.getOrNull(),
           )
           ?: currentStateValue(
-            runCatching { vector?.let { field(it, "intrinsicColorFilter\$delegate") } }.getOrNull()
+            runCatching { vector?.let { field(it, "intrinsicColorFilter\$delegate") } }.getOrNull(),
           )
           ?: return NoTint
       if (filter.javaClass.simpleName != "BlendModeColorFilter") return UnsupportedTint
@@ -2346,7 +2346,7 @@ internal object ComposeLayoutInspector {
       val packed =
         sizePackedValue(runCatching { field(vector, "viewportSize") }.getOrNull())
           ?: sizePackedValue(
-            currentStateValue(runCatching { field(vector, "viewportSize\$delegate") }.getOrNull())
+            currentStateValue(runCatching { field(vector, "viewportSize\$delegate") }.getOrNull()),
           )
           ?: return null
       val w = Float.fromBits((packed shr 32).toInt())
@@ -2551,12 +2551,12 @@ internal object ComposeLayoutInspector {
           "ArcTo" ->
             sb.append(
               "A ${g("horizontalEllipseRadius")} ${g("verticalEllipseRadius")} ${g("theta")} " +
-                "${b("isMoreThanHalf")} ${b("isPositiveArc")} ${g("arcStartX")} ${g("arcStartY")}"
+                "${b("isMoreThanHalf")} ${b("isPositiveArc")} ${g("arcStartX")} ${g("arcStartY")}",
             )
           "RelativeArcTo" ->
             sb.append(
               "a ${g("horizontalEllipseRadius")} ${g("verticalEllipseRadius")} ${g("theta")} " +
-                "${b("isMoreThanHalf")} ${b("isPositiveArc")} ${g("arcStartDx")} ${g("arcStartDy")}"
+                "${b("isMoreThanHalf")} ${b("isPositiveArc")} ${g("arcStartDx")} ${g("arcStartDy")}",
             )
           "Close" -> sb.append("Z")
           else -> return "" // an unknown node type means we can't faithfully serialise — bail
@@ -3163,9 +3163,9 @@ internal object ComposeLayoutInspector {
       method.isAccessible = true
       method.invoke(null, value) as Int
     }
-      // sRGB colours occupy the high 32 bits; this is the representation Material theme colours
-      // use and a safe fallback when a future Compose build renames the mangled helper.
-      .getOrElse { (value ushr 32).toInt() }
+    // sRGB colours occupy the high 32 bits; this is the representation Material theme colours
+    // use and a safe fallback when a future Compose build renames the mangled helper.
+    .getOrElse { (value ushr 32).toInt() }
 
     /**
      * Whether this layout node's live modifier-node chain draws content.
@@ -3344,8 +3344,8 @@ class ComposeSemanticsDataProductRegistry(private val rootDir: File) :
           facets = listOf(DataProductFacet.STRUCTURED),
           mediaTypes = listOf("application/json"),
           sampling = SamplingPolicy.End,
-        )
-      )
+        ),
+      ),
   ) {
   // The producer keys its directory on the render's `outputBaseName`, which is the previewId on the
   // renderNow lane but the manifest stem on the routed one (compose-preview-server#1166). Track the
@@ -3386,8 +3386,8 @@ class LayoutInspectorDataProductRegistry(private val rootDir: File) :
           attachable = true,
           fetchable = true,
           requiresRerender = false,
-        )
-      )
+        ),
+      ),
   ) {
   override fun fileFor(previewId: String, kind: String): File? =
     if (kind == LayoutInspectorDataProducer.KIND)

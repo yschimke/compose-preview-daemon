@@ -264,7 +264,7 @@ class ThemeDataProductRegistryTest {
           RenderRequest.Render(
             id = RenderHost.nextRequestId(),
             target = RenderTarget.Preview(previewId = "preview-3", renderMode = "theme"),
-          )
+          ),
         )
       registry.onRender("preview-3", result)
       val outcome = registry.fetch("preview-3", "compose/theme", params = null, inline = true)
@@ -285,7 +285,7 @@ class ThemeDataProductRegistryTest {
             colorScheme = emptyMap(),
             typography = emptyMap(),
             shapes = emptyMap(),
-          )
+          ),
       ),
     )
 

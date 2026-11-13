@@ -58,7 +58,7 @@ object AccessibilityChecker {
       val hierarchy = AccessibilityHierarchyAndroid.newBuilder(root).build()
       val checks =
         AccessibilityCheckPreset.getAccessibilityHierarchyChecksForPreset(
-          AccessibilityCheckPreset.LATEST
+          AccessibilityCheckPreset.LATEST,
         )
       val allResults = mutableListOf<AccessibilityHierarchyCheckResult>()
       for (check in checks) {
@@ -67,7 +67,7 @@ object AccessibilityChecker {
       if (DEBUG) {
         val typeCounts = allResults.groupingBy { it.type?.name ?: "null" }.eachCount()
         println(
-          "[compose-a11y] $previewId: ran ${checks.size} check(s), got ${allResults.size} raw result(s) on ${root.javaClass.simpleName} (attached=${root.isAttachedToWindow}) types=$typeCounts"
+          "[compose-a11y] $previewId: ran ${checks.size} check(s), got ${allResults.size} raw result(s) on ${root.javaClass.simpleName} (attached=${root.isAttachedToWindow}) types=$typeCounts",
         )
       }
       val findings = allResults.mapNotNull { it.toFinding() }
@@ -314,7 +314,7 @@ object AccessibilityChecker {
         }
       System.err.println(
         "[compose-a11y] $previewId: ${findings.size} finding(s) / " +
-          "${nodes.size} node(s) but no overlay — $reason"
+          "${nodes.size} node(s) but no overlay — $reason",
       )
     }
 

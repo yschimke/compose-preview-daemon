@@ -105,7 +105,7 @@ internal object DrawContentEffectProbe {
     fun gap(shift: Int): Int =
       abs(
         (((first shr shift) and 0xFF) * firstAlpha) / 255 -
-          (((second shr shift) and 0xFF) * secondAlpha) / 255
+          (((second shr shift) and 0xFF) * secondAlpha) / 255,
       )
     return maxOf(gap(16), gap(8), gap(0), abs(firstAlpha - secondAlpha))
   }

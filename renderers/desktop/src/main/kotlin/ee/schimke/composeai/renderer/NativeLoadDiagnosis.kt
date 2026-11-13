@@ -49,8 +49,8 @@ internal object NativeLoadDiagnosis {
         object : LinkedHashMap<String, Boolean>(16, 0.75f, false) {
           override fun removeEldestEntry(eldest: Map.Entry<String, Boolean>): Boolean =
             size > MAX_REMEMBERED_NON_SKIKO
-        }
-      )
+        },
+      ),
     )
 
   /** Roots whose libraries carry the store's own glibc rather than the host's. */

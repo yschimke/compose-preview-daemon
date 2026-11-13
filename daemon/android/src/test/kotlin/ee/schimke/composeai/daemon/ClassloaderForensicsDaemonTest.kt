@@ -58,7 +58,7 @@ class ClassloaderForensicsDaemonTest {
         parentSupplier = {
           DaemonHostBridge.currentSandboxClassLoader()
             ?: error(
-              "DaemonHostBridge.sandboxClassLoaderRef is null — sandbox prologue didn't run."
+              "DaemonHostBridge.sandboxClassLoaderRef is null — sandbox prologue didn't run.",
             )
         },
       )
@@ -70,7 +70,7 @@ class ClassloaderForensicsDaemonTest {
     try {
       val request =
         RenderRequest.Render(
-          target = RenderTarget.Forensic(outPath = outFile.absolutePath, survey = survey)
+          target = RenderTarget.Forensic(outPath = outFile.absolutePath, survey = survey),
         )
       val result = host.submit(request, timeoutMs = 180_000)
       // `pngPath` carries the dump path back via the same field (no need to widen RenderResult).
@@ -111,7 +111,7 @@ class ClassloaderForensicsDaemonTest {
     val resourceName = "ee/schimke/composeai/daemon/RedFixturePreviewsKt.class"
     val url =
       (Thread.currentThread().contextClassLoader ?: ClassLoader.getSystemClassLoader()).getResource(
-        resourceName
+        resourceName,
       ) ?: error("Can't locate testFixtures class on the test classpath: $resourceName")
     val urlString = url.toString()
     // Two cases: directory-style URL (file:.../classes/.../RedFixturePreviewsKt.class) or

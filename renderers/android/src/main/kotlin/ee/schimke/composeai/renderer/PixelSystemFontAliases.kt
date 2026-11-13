@@ -109,7 +109,7 @@ object PixelSystemFontAliases {
         "compose-preview: system font aliases not seeded: ${missing.joinToString(", ")}. " +
           "`Font(DeviceFontFamilyName(<slug>))` for these renders as Roboto instead of the real " +
           "face. Warm the font cache (composeai.fonts.cacheDir) or allow egress to " +
-          "fonts.googleapis.com + fonts.gstatic.com."
+          "fonts.googleapis.com + fonts.gstatic.com.",
       )
     }
     return seeded

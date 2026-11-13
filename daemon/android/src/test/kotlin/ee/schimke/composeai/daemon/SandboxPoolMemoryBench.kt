@@ -53,7 +53,7 @@ class SandboxPoolMemoryBench {
         appendLine("daemon JVM (slot 0, 1 sandbox):")
         appendLine(
           "  baseline: heap=${baseline.heapMb} MiB  committedVirtual=${baseline
-          .nativeHeapMb} MiB"
+          .nativeHeapMb} MiB",
         )
         appendLine("  warm:     heap=${warm.heapMb} MiB  committedVirtual=${warm.nativeHeapMb} MiB")
         appendLine("workers (${workerPids.size} × 1 sandbox):")

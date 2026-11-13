@@ -55,7 +55,7 @@ class ApngEncoderTest {
 
     val decoded =
       ApngDecoder.decode(
-        encode(listOf(first, second, third, third.copy()), List(4) { ApngFrameDelay(1, 30) })
+        encode(listOf(first, second, third, third.copy()), List(4) { ApngFrameDelay(1, 30) }),
       )
 
     assertEquals(

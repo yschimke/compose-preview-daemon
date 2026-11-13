@@ -42,7 +42,7 @@ class S7LatencyRecordOnlyAndroidRealModeTest {
               id = previewId,
               className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
               functionName = "RedSquare",
-            )
+            ),
           ),
       )
 
@@ -78,7 +78,7 @@ class S7LatencyRecordOnlyAndroidRealModeTest {
               "(android wire metric is hardcoded 0 today — same gap as desktop's pre-fix S8)",
         )
         System.err.println(
-          "S7LatencyRecordOnlyAndroidRealModeTest: $tag wall=${took}ms daemonTookMs=$daemonTookMs"
+          "S7LatencyRecordOnlyAndroidRealModeTest: $tag wall=${took}ms daemonTookMs=$daemonTookMs",
         )
       }
 
@@ -86,7 +86,7 @@ class S7LatencyRecordOnlyAndroidRealModeTest {
       assertEquals("Daemon must exit cleanly. Stderr=\n${client.dumpStderr()}", 0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "S7LatencyRecordOnlyAndroidRealModeTest failed; daemon stderr:\n${client.dumpStderr()}"
+        "S7LatencyRecordOnlyAndroidRealModeTest failed; daemon stderr:\n${client.dumpStderr()}",
       )
       throw t
     } finally {

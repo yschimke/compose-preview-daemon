@@ -420,7 +420,7 @@ private fun buildStitchedContent(
           firstImage
         } else {
           ImageIO.read(
-            fileSystem.read(slices[i].file.path.toPath()) { readByteArray() }.inputStream()
+            fileSystem.read(slices[i].file.path.toPath()) { readByteArray() }.inputStream(),
           ) ?: error("Failed to read slice PNG: ${slices[i].file}")
         }
       require(img.width == width && img.height == sliceH) {

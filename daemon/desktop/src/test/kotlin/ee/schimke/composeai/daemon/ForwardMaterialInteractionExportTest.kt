@@ -207,7 +207,7 @@ class ForwardMaterialInteractionExportTest {
       engine =
         RenderEngine(
           previewOverrideExtensions =
-            PreviewOverrideExtensions(listOf(FocusPreviewOverrideExtension()))
+            PreviewOverrideExtensions(listOf(FocusPreviewOverrideExtension())),
         ),
     )
   }

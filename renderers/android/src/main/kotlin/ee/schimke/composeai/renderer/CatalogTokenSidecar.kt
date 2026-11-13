@@ -197,7 +197,7 @@ internal object CatalogTokenSidecar {
             token.member,
             "COLOR",
             colorJson(CatalogValueReflection.reflectColor(token.className, token.member)),
-          )
+          ),
         )
       CatalogTokenKind.TEXT_STYLE ->
         listOf(
@@ -207,7 +207,7 @@ internal object CatalogTokenSidecar {
             token.member,
             "TEXT_STYLE",
             textStyleJson(CatalogValueReflection.reflectTextStyle(token.className, token.member)),
-          )
+          ),
         )
       CatalogTokenKind.SHAPE ->
         listOf(
@@ -217,7 +217,7 @@ internal object CatalogTokenSidecar {
             token.member,
             "SHAPE",
             shapeJson(CatalogValueReflection.reflectAs(token.className, token.member)),
-          )
+          ),
         )
       CatalogTokenKind.COLOR_SCHEME ->
         catalogColorSchemeRoles(CatalogValueReflection.reflectAs(token.className, token.member))

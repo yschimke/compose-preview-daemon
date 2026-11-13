@@ -172,7 +172,7 @@ private fun ContentDescriptionFixture() {
     modifier =
       Modifier.size(64.dp).background(Color.Red).semantics {
         contentDescription = "decorative-heart"
-      }
+      },
   )
 }
 

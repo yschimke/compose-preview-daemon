@@ -49,7 +49,7 @@ class TestFailureDataProductRegistryTest {
               "ExamplePreview",
               "ExamplePreview.kt",
               37,
-            )
+            ),
           )
       }
 
@@ -104,7 +104,7 @@ class TestFailureDataProductRegistryTest {
     registry.onRenderFailed(previewId = "preview", cause = IllegalStateException("boom"))
 
     assertTrue(
-      registry.attachmentsFor("preview", setOf(TestFailureDataProductRegistry.KIND)).isEmpty()
+      registry.attachmentsFor("preview", setOf(TestFailureDataProductRegistry.KIND)).isEmpty(),
     )
   }
 }

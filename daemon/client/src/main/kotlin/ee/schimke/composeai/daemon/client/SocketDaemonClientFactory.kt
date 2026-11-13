@@ -59,7 +59,7 @@ public class SocketDaemonClientFactory(
           if (!process.isAlive) {
             error(
               "daemon for ${descriptor.modulePath} exited (${process.exitValue()}) before it " +
-                "listened on $socket; see ${File(dir, LOG_FILE)}"
+                "listened on $socket; see ${File(dir, LOG_FILE)}",
             )
           }
           Thread.sleep(POLL_MS)
@@ -96,7 +96,7 @@ public class SocketDaemonClientFactory(
       Path.of(
         requireNotNull(descriptor.systemProperties[DaemonProperties.Names.SOCKET_PATH]) {
           "${descriptor.modulePath}: no ${DaemonProperties.Names.SOCKET_PATH} in the descriptor"
-        }
+        },
       )
 
     /** A connection to the daemon listening on [socket], or `null` when none is. */

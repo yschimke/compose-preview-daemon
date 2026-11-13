@@ -165,7 +165,7 @@ private fun NavigationPillBar(modifier: Modifier, tint: Color, foreground: Color
           .size(width = PILL_WIDTH_DP.dp, height = PILL_HEIGHT_DP.dp)
           .clip(RoundedCornerShape(PILL_HEIGHT_DP.dp / 2))
           .background(foreground)
-          .fillMaxHeight()
+          .fillMaxHeight(),
     )
   }
 }

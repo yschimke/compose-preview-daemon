@@ -73,7 +73,7 @@ class S12DesktopPortableKindsRealModeTest {
         ]
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val classpath =
@@ -135,7 +135,7 @@ class S12DesktopPortableKindsRealModeTest {
       assertEquals("Daemon must exit cleanly. Stderr=\n${client.dumpStderr()}", 0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "S12DesktopPortableKindsRealModeTest failed; stderr from daemon:\n" + client.dumpStderr()
+        "S12DesktopPortableKindsRealModeTest failed; stderr from daemon:\n" + client.dumpStderr(),
       )
       throw t
     } finally {

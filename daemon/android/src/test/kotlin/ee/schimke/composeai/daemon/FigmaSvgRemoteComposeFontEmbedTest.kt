@@ -50,9 +50,9 @@ class FigmaSvgRemoteComposeFontEmbedTest {
                 heightPx = 180,
                 density = 1.0f,
                 outputBaseName = previewId,
-              )
-            )
-        )
+              ),
+            ),
+        ),
       )
     host.start()
     try {

@@ -51,7 +51,7 @@ class UiAutomatorPrototypeTest {
             text = "Submit"
             isClickable = true
             setOnClickListener { submitClicked++ }
-          }
+          },
         )
         addView(TextView(activity).apply { text = "Cancel" })
       }
@@ -73,14 +73,14 @@ class UiAutomatorPrototypeTest {
           TextView(activity).apply {
             text = "Submit"
             isClickable = true
-          }
+          },
         )
         addView(
           TextView(activity).apply {
             text = "Cancel"
             isClickable = true
             isEnabled = false
-          }
+          },
         )
       }
     activity.setContentView(root)
@@ -117,13 +117,13 @@ class UiAutomatorPrototypeTest {
           LinearLayout(activity).apply {
             contentDescription = "row-1"
             addView(TextView(activity).apply { text = "Alice" })
-          }
+          },
         )
         addView(
           LinearLayout(activity).apply {
             contentDescription = "row-2"
             addView(TextView(activity).apply { text = "Bob" })
-          }
+          },
         )
       }
     activity.setContentView(root)

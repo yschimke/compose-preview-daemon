@@ -111,7 +111,7 @@ class ScrollGifFrameDriverExtension(private val plan: ScrollGifFramePlan) :
               ScrollGifFrame(
                 frame = ExtensionFrame(index = 0, fraction = 0f, timeMillis = 0L, delayMillis = 0),
                 scrollDeltaPx = 0f,
-              )
+              ),
             ),
           contentExtentPxHint = plan.contentExtentPxHint,
           viewportPx = plan.viewportPx,

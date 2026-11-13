@@ -96,7 +96,7 @@ class VisualSettleDiagnosticsTest {
             VisualSettleDiagnostics.UnsettledCapture(
               role = "preview still",
               outcome = VisualSettleOutcome.STILL_CHANGING,
-            )
+            ),
           ),
       )
     assertTrue(json.contains("\"schema\":\"compose-preview-warnings/v1\""))

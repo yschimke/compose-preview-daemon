@@ -102,12 +102,12 @@ class HistoryDiffTest {
       assertEquals(entry2.id, result["toMetadata"]!!.jsonObject["id"]!!.jsonPrimitive.content)
       // Pixel-mode fields are null in METADATA mode by design.
       assertTrue(
-        result["diffPx"] == null || result["diffPx"] == kotlinx.serialization.json.JsonNull
+        result["diffPx"] == null || result["diffPx"] == kotlinx.serialization.json.JsonNull,
       )
       assertTrue(result["ssim"] == null || result["ssim"] == kotlinx.serialization.json.JsonNull)
       assertTrue(
         result["diffPngPath"] == null ||
-          result["diffPngPath"] == kotlinx.serialization.json.JsonNull
+          result["diffPngPath"] == kotlinx.serialization.json.JsonNull,
       )
     }
   }
@@ -295,7 +295,7 @@ class HistoryDiffTest {
       // No overlay possible for mismatched dimensions.
       assertTrue(
         result["diffPngPath"] == null ||
-          result["diffPngPath"] == kotlinx.serialization.json.JsonNull
+          result["diffPngPath"] == kotlinx.serialization.json.JsonNull,
       )
     }
   }
@@ -574,7 +574,7 @@ class HistoryDiffTest {
 
   private fun findingsPayload(type: String, level: String, bounds: String): JsonElement =
     json.parseToJsonElement(
-      """{"findings":[{"level":"$level","type":"$type","message":"contrast","boundsInScreen":"$bounds"}]}"""
+      """{"findings":[{"level":"$level","type":"$type","message":"contrast","boundsInScreen":"$bounds"}]}""",
     )
 
   private fun hierarchyPayload(ref: String, bounds: String): JsonElement =
@@ -582,7 +582,7 @@ class HistoryDiffTest {
 
   private fun themePayload(primary: String): JsonElement =
     json.parseToJsonElement(
-      """{"resolvedTokens":{"colorScheme":{"primary":"$primary"},"typography":{},"shapes":{}},"consumers":[]}"""
+      """{"resolvedTokens":{"colorScheme":{"primary":"$primary"},"typography":{},"shapes":{}},"consumers":[]}""",
     )
 
   /** True when a delta list field is absent (omitted because empty) or present-but-empty. */
@@ -592,7 +592,7 @@ class HistoryDiffTest {
   /** A one-node `compose/semantics` payload as a [JsonElement], for seeding history entries. */
   private fun semanticsPayload(testTag: String, text: String): JsonElement =
     json.parseToJsonElement(
-      """{"root":{"nodeId":"1","boundsInRoot":"0,0,100,50","testTag":"$testTag","text":"$text"}}"""
+      """{"root":{"nodeId":"1","boundsInRoot":"0,0,100,50","testTag":"$testTag","text":"$text"}}""",
     )
 
   // -------------------------------------------------------------------------
@@ -606,7 +606,7 @@ class HistoryDiffTest {
         HistoryManager,
         send: (String) -> Unit,
         receive: LinkedBlockingQueue<JsonObject>,
-      ) -> Unit
+      ) -> Unit,
   ) {
     val manager =
       HistoryManager.forLocalFs(historyDir = historyDir, module = ":t", gitProvenance = null)
@@ -648,7 +648,7 @@ class HistoryDiffTest {
     val send: (String) -> Unit = { jsonText ->
       val payload = jsonText.toByteArray(Charsets.UTF_8)
       clientToServerOut.write(
-        "Content-Length: ${payload.size}\r\n\r\n".toByteArray(Charsets.US_ASCII)
+        "Content-Length: ${payload.size}\r\n\r\n".toByteArray(Charsets.US_ASCII),
       )
       clientToServerOut.write(payload)
       clientToServerOut.flush()
@@ -659,7 +659,7 @@ class HistoryDiffTest {
         """{"jsonrpc":"2.0","id":1,"method":"initialize","params":{
               "protocolVersion":2,"clientVersion":"test","workspaceRoot":"/tmp",
               "moduleId":":test","moduleProjectDir":"/tmp",
-              "capabilities":{"visibility":true,"metrics":false}}}"""
+              "capabilities":{"visibility":true,"metrics":false}}}""",
       )
       assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 1 })
       send("""{"jsonrpc":"2.0","method":"initialized","params":{}}""")
@@ -693,7 +693,7 @@ class HistoryDiffTest {
   ): JsonObject {
     val id = nextId++
     send(
-      """{"jsonrpc":"2.0","id":$id,"method":"history/diff","params":{"from":"$from","to":"$to","mode":"$mode"}}"""
+      """{"jsonrpc":"2.0","id":$id,"method":"history/diff","params":{"from":"$from","to":"$to","mode":"$mode"}}""",
     )
     val resp = pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull?.toLong() == id }
     assertNotNull("history/diff response did not arrive", resp)

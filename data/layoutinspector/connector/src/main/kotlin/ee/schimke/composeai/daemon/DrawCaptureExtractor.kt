@@ -347,7 +347,7 @@ internal object DrawCaptureExtractor {
             strokeAlpha = alpha,
             strokeCap = capName(style.cap),
             strokeJoin = joinName(style.join),
-          )
+          ),
         )
       } else {
         paths.add(LayoutInspectorVectorPath(pathData = d, fillArgb = hex, fillAlpha = alpha))
@@ -647,7 +647,7 @@ internal object DrawCaptureExtractor {
           strokeWidth = strokeWidth,
           strokeAlpha = alpha,
           strokeCap = capName(cap),
-        )
+        ),
       )
     }
 
@@ -673,7 +673,7 @@ internal object DrawCaptureExtractor {
           strokeWidth = strokeWidth,
           strokeAlpha = alpha,
           strokeCap = capName(cap),
-        )
+        ),
       )
     }
 

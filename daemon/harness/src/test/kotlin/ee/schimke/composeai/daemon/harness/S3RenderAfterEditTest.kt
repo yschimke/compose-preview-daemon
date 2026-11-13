@@ -61,7 +61,7 @@ class S3RenderAfterEditTest {
       // Fake-mode harness fixture for S3. Not compiled. The daemon's discovery cascade reads this
       // path purely as the `sourceFile` anchor recorded in the in-memory PreviewIndex.
       """
-        .trimIndent()
+        .trimIndent(),
     )
     writePreviewsManifest(paths.fixtureDir, listOf(previewId to sourceKtFile.absolutePath))
 
@@ -153,7 +153,7 @@ class S3RenderAfterEditTest {
           )
           throw AssertionError(
             "S3 v2 render did not match v2 fixture: ${diffV2.message}. " +
-              "Artefacts under ${paths.reportsDir.absolutePath}. Stderr=\n${client.dumpStderr()}"
+              "Artefacts under ${paths.reportsDir.absolutePath}. Stderr=\n${client.dumpStderr()}",
           )
         }
 

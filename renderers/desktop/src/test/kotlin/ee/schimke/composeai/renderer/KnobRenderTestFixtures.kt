@@ -28,7 +28,7 @@ import ee.schimke.composeai.preview.KnobValue
 fun KnobSticker(sizeDp: Int = 40, dark: Boolean = false) {
   Box(
     modifier =
-      Modifier.size(sizeDp.dp).background(if (dark) Color(0xFF102027) else Color(0xFFB71C1C))
+      Modifier.size(sizeDp.dp).background(if (dark) Color(0xFF102027) else Color(0xFFB71C1C)),
   )
 }
 

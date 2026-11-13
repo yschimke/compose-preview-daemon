@@ -24,7 +24,7 @@ public fun pixelAssertVerdict(
 ): AssertionVerdict {
   if (baselinePng == null) {
     return AssertionVerdict.Failed(
-      "assert.pixels: baseline PNG not found (set inputText / --baseline-dir)"
+      "assert.pixels: baseline PNG not found (set inputText / --baseline-dir)",
     )
   }
   if (actualPng == null) {
@@ -36,6 +36,6 @@ public fun pixelAssertVerdict(
   }
   return AssertionVerdict.Failed(
     "assert.pixels: ${result.message} " +
-      "(offending=${result.offendingPixelCount}/${result.totalPixels}, maxDelta=${result.maxDelta})"
+      "(offending=${result.offendingPixelCount}/${result.totalPixels}, maxDelta=${result.maxDelta})",
   )
 }

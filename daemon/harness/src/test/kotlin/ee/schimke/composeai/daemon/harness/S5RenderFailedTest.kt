@@ -52,7 +52,7 @@ class S5RenderFailedTest {
       .writeBytes(TestPatterns.solidColour(32, 32, 0xFF00FF00.toInt()))
     File(paths.fixtureDir, "$brokenId.error")
       .writeText(
-        """{"kind":"runtime","message":"deliberate test failure","stackTrace":"<stub stacktrace>"}"""
+        """{"kind":"runtime","message":"deliberate test failure","stackTrace":"<stub stacktrace>"}""",
       )
     writePreviewsManifest(paths.fixtureDir, listOf(brokenId, goodId))
 

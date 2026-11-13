@@ -110,7 +110,7 @@ class ResourcePreviewRenderTest {
               "compose-preview: failed to rasterise ${preview.id} (${capture.renderOutput}): " +
                 "$message; skipping capture — a renderer limitation (e.g. an adaptive launcher icon " +
                 "or a vector NATIVE graphics can't draw), not a preview error. Surfaced as a " +
-                "missing render (issue #2589)."
+                "missing render (issue #2589).",
             )
             errors += RenderErrorEntry(preview.id, capture.renderOutput, "failed", message)
           },
@@ -120,7 +120,7 @@ class ResourcePreviewRenderTest {
             true
           } else {
             System.err.println(
-              "compose-preview: ${preview.id} (${capture.renderOutput}) — skipped: $skipReason"
+              "compose-preview: ${preview.id} (${capture.renderOutput}) — skipped: $skipReason",
             )
             errors += RenderErrorEntry(preview.id, capture.renderOutput, "skipped", skipReason)
             false
@@ -338,7 +338,7 @@ class ResourcePreviewRenderTest {
           if (monochrome == null) {
             System.err.println(
               "compose-preview: $resourceId has no <monochrome> layer; skipping " +
-                "${style.name} capture"
+                "${style.name} capture",
             )
             composed.recycle()
             return null
@@ -605,13 +605,13 @@ class ResourcePreviewRenderTest {
       System.err.println(
         "compose-preview: no AnimatorSet found in ${drawable.javaClass.name} " +
           "(state=${state?.javaClass?.name}, wrapper=${animatorWrapper?.javaClass?.name}); " +
-          "falling back to single-frame GIF"
+          "falling back to single-frame GIF",
       )
       null
     } catch (e: Throwable) {
       System.err.println(
         "compose-preview: AVD AnimatorSet reflection failed (${e.javaClass.simpleName}: " +
-          "${e.message}); falling back to single-frame GIF"
+          "${e.message}); falling back to single-frame GIF",
       )
       null
     }

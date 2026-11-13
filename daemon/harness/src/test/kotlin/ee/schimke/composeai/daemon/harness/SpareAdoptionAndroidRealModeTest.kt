@@ -64,7 +64,7 @@ class SpareAdoptionAndroidRealModeTest {
               id = previewId,
               className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
               functionName = "RedSquare",
-            )
+            ),
           ),
       )
     val descriptor = descriptor(paths)
@@ -72,7 +72,7 @@ class SpareAdoptionAndroidRealModeTest {
     // 1. The cold reference: what every catalog open costs today.
     val cold = SubprocessDaemonClientFactory().openAndRender(descriptor, "cold", previewId)
     System.err.println(
-      "[measure] cold daemon: initialize ${cold.initializeMs}ms, render ${cold.renderMs}ms"
+      "[measure] cold daemon: initialize ${cold.initializeMs}ms, render ${cold.renderMs}ms",
     )
 
     val pool =
@@ -81,7 +81,7 @@ class SpareAdoptionAndroidRealModeTest {
           maxSpares = 2,
           perSignature = 1,
           workingDirectory = paths.rendersDir.parentFile,
-        )
+        ),
       )
     try {
       // 2. One spare, booted and warm ahead of demand.
@@ -92,7 +92,7 @@ class SpareAdoptionAndroidRealModeTest {
       // 3. Adopt it.
       val adopted = factory.openAndRender(descriptor, "adopted", previewId)
       System.err.println(
-        "[measure] adopting daemon: initialize ${adopted.initializeMs}ms, render ${adopted.renderMs}ms"
+        "[measure] adopting daemon: initialize ${adopted.initializeMs}ms, render ${adopted.renderMs}ms",
       )
       assertEquals("the launch should have taken the warm spare", 1, pool.snapshot().adopted)
       assertTrue(
@@ -107,7 +107,7 @@ class SpareAdoptionAndroidRealModeTest {
       val reused = factory.openAndRender(descriptor, "reused", previewId)
       System.err.println(
         "[measure] next daemon (returned worker): initialize ${reused.initializeMs}ms, " +
-          "render ${reused.renderMs}ms"
+          "render ${reused.renderMs}ms",
       )
       assertEquals(
         "the second launch should have adopted the returned spare",

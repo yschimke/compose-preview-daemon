@@ -29,7 +29,7 @@ class TestFailureDataProductRegistry : DataProductRegistry {
         displayName = "Render failure",
         facets = listOf(DataProductFacet.STRUCTURED, DataProductFacet.DIAGNOSTIC),
         sampling = SamplingPolicy.Failure,
-      )
+      ),
     )
 
   override fun onRender(
@@ -54,7 +54,7 @@ class TestFailureDataProductRegistry : DataProductRegistry {
     if (kind != KIND) return DataProductRegistry.Outcome.Unknown
     val payload = latestFailures[previewId] ?: return DataProductRegistry.Outcome.NotAvailable
     return DataProductRegistry.Outcome.Ok(
-      DataFetchResult(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload)
+      DataFetchResult(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload),
     )
   }
 

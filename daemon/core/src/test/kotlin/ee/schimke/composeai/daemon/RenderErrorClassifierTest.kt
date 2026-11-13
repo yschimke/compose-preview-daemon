@@ -13,7 +13,7 @@ class RenderErrorClassifierTest {
   fun androidxComposeOnDesktopIsClasspathSkewWithAClasspathSuggestion() {
     val c =
       RenderErrorClassifier.classify(
-        "java.lang.NoSuchMethodError: Implemented only in JetBrains fork"
+        "java.lang.NoSuchMethodError: Implemented only in JetBrains fork",
       )
     assertEquals(RenderErrorKind.CLASSPATH_SKEW, c.kind)
     assertTrue(c.suggestion, c.suggestion!!.contains("org.jetbrains.compose"))
@@ -24,7 +24,7 @@ class RenderErrorClassifierTest {
     val c =
       RenderErrorClassifier.classify(
         "java.lang.UnsatisfiedLinkError: 'int org.jetbrains.skia.paragraph.ParagraphKt" +
-          "._nGetUnresolvedCodepointsCount(long)'"
+          "._nGetUnresolvedCodepointsCount(long)'",
       )
     assertEquals(RenderErrorKind.CLASSPATH_SKEW, c.kind)
     assertTrue(c.suggestion, c.suggestion!!.contains("skiko-awt-runtime"))
@@ -35,7 +35,7 @@ class RenderErrorClassifierTest {
     val c =
       RenderErrorClassifier.classify(
         "org.jetbrains.skiko.LibraryLoadException: Cannot find libskiko-linux-x64.so.sha256, " +
-          "proper native dependency missing."
+          "proper native dependency missing.",
       )
     assertEquals(RenderErrorKind.CLASSPATH_SKEW, c.kind)
     assertTrue(c.suggestion, c.suggestion!!.contains("skiko-awt-runtime"))
@@ -60,7 +60,7 @@ class RenderErrorClassifierTest {
   fun anUnrelatedUnsatisfiedLinkErrorIsNotBlamedOnSkiko() {
     val c =
       RenderErrorClassifier.classify(
-        "java.lang.UnsatisfiedLinkError: no sqlitejdbc in java.library.path"
+        "java.lang.UnsatisfiedLinkError: no sqlitejdbc in java.library.path",
       )
     assertEquals(RenderErrorKind.RUNTIME, c.kind)
   }
@@ -77,7 +77,7 @@ class RenderErrorClassifierTest {
   fun capturePathFailureIsCapture() {
     val c =
       RenderErrorClassifier.classify(
-        "java.lang.RuntimeException: captureRoboImage / PixelCopy failed"
+        "java.lang.RuntimeException: captureRoboImage / PixelCopy failed",
       )
     assertEquals(RenderErrorKind.CAPTURE, c.kind)
     assertNotNull(c.suggestion)
@@ -87,7 +87,7 @@ class RenderErrorClassifierTest {
   fun robolectricLockIsCaptureWithSandboxSuggestion() {
     val c =
       RenderErrorClassifier.classify(
-        "java.io.IOException: /home/user/.robolectric-download-lock: permission denied"
+        "java.io.IOException: /home/user/.robolectric-download-lock: permission denied",
       )
     assertEquals(RenderErrorKind.CAPTURE, c.kind)
     assertTrue(c.suggestion, c.suggestion!!.contains(".robolectric-download-lock"))
@@ -97,7 +97,7 @@ class RenderErrorClassifierTest {
   fun missingComposableIsMissingComposableWithASuggestion() {
     val c =
       RenderErrorClassifier.classify(
-        "java.lang.NoSuchMethodException: getDeclaredComposableMethod failed"
+        "java.lang.NoSuchMethodException: getDeclaredComposableMethod failed",
       )
     assertEquals(RenderErrorKind.MISSING_COMPOSABLE, c.kind)
     assertTrue(c.suggestion, c.suggestion!!.contains("@Composable"))
@@ -108,7 +108,7 @@ class RenderErrorClassifierTest {
     val c =
       RenderErrorClassifier.classify(
         "java.lang.IllegalArgumentException: preview parameter 'user' has no value (missing " +
-          "@PreviewParameter provider)"
+          "@PreviewParameter provider)",
       )
     assertEquals(RenderErrorKind.UNSET_PARAMETER, c.kind)
     assertTrue(c.suggestion, c.suggestion!!.contains("@PreviewParameter"))

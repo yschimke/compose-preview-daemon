@@ -66,7 +66,7 @@ class PainterBrushGradientTest {
   fun `the Glimmer card header resolves the gradient the render drew`() {
     val g =
       requireNotNull(
-        resolve(BrushPainter(headerBrush), 396, 248, contentScale = ContentScale.FillWidth)
+        resolve(BrushPainter(headerBrush), 396, 248, contentScale = ContentScale.FillWidth),
       )
 
     assertEquals(

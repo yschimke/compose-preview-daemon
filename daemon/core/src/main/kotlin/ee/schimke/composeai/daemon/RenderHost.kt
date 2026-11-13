@@ -102,7 +102,7 @@ public interface RenderHost {
     overrides: ee.schimke.composeai.daemon.protocol.PreviewOverrides? = null,
   ): InteractiveSession =
     throw UnsupportedOperationException(
-      "interactive mode unsupported by ${this::class.simpleName ?: this::class.java.name}"
+      "interactive mode unsupported by ${this::class.simpleName ?: this::class.java.name}",
     )
 
   /**
@@ -140,7 +140,7 @@ public interface RenderHost {
     live: Boolean = false,
   ): RecordingSession =
     throw UnsupportedOperationException(
-      "recording unsupported by ${this::class.simpleName ?: this::class.java.name}"
+      "recording unsupported by ${this::class.simpleName ?: this::class.java.name}",
     )
 
   /**
@@ -162,7 +162,7 @@ public interface RenderHost {
   public fun previewParameterRows(previewId: String): List<PreviewParameterRow> =
     throw UnsupportedOperationException(
       "preview-parameter row enumeration unsupported by " +
-        (this::class.simpleName ?: this::class.java.name)
+        (this::class.simpleName ?: this::class.java.name),
     )
 
   public companion object {

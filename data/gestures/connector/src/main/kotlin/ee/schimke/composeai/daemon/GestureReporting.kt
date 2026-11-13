@@ -121,7 +121,7 @@ fun Modifier.reportedOneHandedGesture(
         onGestureAvailable = { latestShowIndicator?.let { show -> scope.launch { show() } } },
         onGesture = { latestOnGesture() },
       )
-    }
+    },
   )
 }
 

@@ -101,7 +101,7 @@ class FigmaSvgShowBackgroundBoundsRenderTest {
             Modifier.align(Alignment.Center)
               .fillMaxWidth()
               .height(1.dp)
-              .background(Color(0x1FFFFFFF))
+              .background(Color(0x1FFFFFFF)),
           )
         }
       }

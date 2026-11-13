@@ -47,7 +47,7 @@ class UserClassLoaderTipTest {
         "Preview" to
           "public class Preview { public static String value() { return Caller.value(); } }",
         "Theme" to "public class Theme { public static String value() { return \"theme\"; } }",
-      )
+      ),
     )
 
   @Test
@@ -60,8 +60,8 @@ class UserClassLoaderTipTest {
 
     compile(
       mapOf(
-        "Edited" to "public class Edited { public static String value() { return \"after\"; } }"
-      )
+        "Edited" to "public class Edited { public static String value() { return \"after\"; } }",
+      ),
     )
     holder.swap()
     val tip = holder.currentChildLoader()
@@ -87,13 +87,13 @@ class UserClassLoaderTipTest {
     val holder = holder()
     val base = holder.currentChildLoader()
     compile(
-      mapOf("Edited" to "public class Edited { public static String value() { return \"one\"; } }")
+      mapOf("Edited" to "public class Edited { public static String value() { return \"one\"; } }"),
     )
     holder.swap()
     assertEquals("one", call(holder.currentChildLoader(), "Preview"))
 
     compile(
-      mapOf("Theme" to "public class Theme { public static String value() { return \"two\"; } }")
+      mapOf("Theme" to "public class Theme { public static String value() { return \"two\"; } }"),
     )
     holder.swap()
     val second = holder.currentChildLoader()

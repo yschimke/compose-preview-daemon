@@ -149,7 +149,7 @@ class TouchOverlayPinchRecordingTest {
         // (active-pointer overlay). We sample a frame mid-pinch where both fingers are pressed.
         val midFrame =
           TouchOverlayTestSupport.readPng(
-            File(result.framesDir, "frame-${"%05d".format(result.frameCount / 2)}.png")
+            File(result.framesDir, "frame-${"%05d".format(result.frameCount / 2)}.png"),
           )
         val cyanMatch =
           TouchOverlayTestSupport.pixelMatchPctApprox(
@@ -170,7 +170,7 @@ class TouchOverlayPinchRecordingTest {
         val firstFrame = TouchOverlayTestSupport.readPng(File(result.framesDir, "frame-00000.png"))
         val lastFrame =
           TouchOverlayTestSupport.readPng(
-            File(result.framesDir, "frame-${"%05d".format(result.frameCount - 1)}.png")
+            File(result.framesDir, "frame-${"%05d".format(result.frameCount - 1)}.png"),
           )
         val initialBlue =
           TouchOverlayTestSupport.pixelMatchPctApprox(
@@ -216,7 +216,7 @@ class TouchOverlayPinchRecordingTest {
           pixelX = centre - startSpread,
           pixelY = centre - startSpread,
           pointerId = POINTER_A,
-        )
+        ),
       )
       add(
         RecordingScriptEvent(
@@ -225,7 +225,7 @@ class TouchOverlayPinchRecordingTest {
           pixelX = centre + startSpread,
           pixelY = centre + startSpread,
           pointerId = POINTER_B,
-        )
+        ),
       )
       // Interpolated moves — fingers walk symmetrically outward along the main diagonal.
       for (i in 1..steps) {
@@ -239,7 +239,7 @@ class TouchOverlayPinchRecordingTest {
             pixelX = centre - spread,
             pixelY = centre - spread,
             pointerId = POINTER_A,
-          )
+          ),
         )
         add(
           RecordingScriptEvent(
@@ -248,7 +248,7 @@ class TouchOverlayPinchRecordingTest {
             pixelX = centre + spread,
             pixelY = centre + spread,
             pointerId = POINTER_B,
-          )
+          ),
         )
       }
       // Release both fingers at the final tMs.
@@ -259,7 +259,7 @@ class TouchOverlayPinchRecordingTest {
           pixelX = centre - endSpread,
           pixelY = centre - endSpread,
           pointerId = POINTER_A,
-        )
+        ),
       )
       add(
         RecordingScriptEvent(
@@ -268,7 +268,7 @@ class TouchOverlayPinchRecordingTest {
           pixelX = centre + endSpread,
           pixelY = centre + endSpread,
           pointerId = POINTER_B,
-        )
+        ),
       )
     }
   }
@@ -310,7 +310,7 @@ fun PinchableSquare() {
       modifier =
         Modifier.size(80.dp)
           .graphicsLayer(scaleX = scale, scaleY = scale)
-          .background(Color(0xFF1976D2))
+          .background(Color(0xFF1976D2)),
     )
   }
 }

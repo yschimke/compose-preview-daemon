@@ -91,7 +91,7 @@ class S4VisibilityFilterTest {
       //    focus-first expectation). We log the observed order to stderr for human readers and to
       //    the latency CSV; we don't fail the test on order.
       System.err.println(
-        "S4 observed renderFinished arrival order (v1 daemon reality): $arrivalOrder"
+        "S4 observed renderFinished arrival order (v1 daemon reality): $arrivalOrder",
       )
 
       // 5. Latency rows — one per preview.

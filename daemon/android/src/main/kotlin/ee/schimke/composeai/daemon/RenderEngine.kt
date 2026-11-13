@@ -185,7 +185,7 @@ class RenderEngine(
     outputDirOverride
       ?: File(
         System.getProperty(OUTPUT_DIR_PROP)
-          ?: composeAiCacheDir("history").resolve("daemon-renders").absolutePath
+          ?: composeAiCacheDir("history").resolve("daemon-renders").absolutePath,
       )
 
   /** See the `dataDir` constructor parameter: derived beside [outputDir] unless given or `null`. */
@@ -398,13 +398,13 @@ class RenderEngine(
         ?: "fingerprint unavailable (class not on a file: URL)"
     System.err.println(
       "compose-ai-daemon: [render] ${spec.className}#${spec.functionName} " +
-        "loaderId=${System.identityHashCode(classLoader).toString(16)} classFile=$fingerprint"
+        "loaderId=${System.identityHashCode(classLoader).toString(16)} classFile=$fingerprint",
     )
     System.err.println(
       "compose-ai-daemon: [render] mode=${spec.renderMode ?: "<default>"} " +
         "effectiveRunAccessibility=$effectiveRunAccessibility " +
         "inspectionMode=${if (effectiveRunAccessibility) false else spec.inspectionMode ?: true} " +
-        "outputBaseName=${spec.outputBaseName}"
+        "outputBaseName=${spec.outputBaseName}",
     )
 
     val environment = prepareRenderEnvironment(spec, classLoader)
@@ -465,11 +465,11 @@ class RenderEngine(
             val builtDataArtifactExtensions =
               dataArtifactExtensions.build(
                 if (placeholderMissingResources) rule.activity.wrappedForPlaceholderResources()
-                else rule.activity
+                else rule.activity,
               )
 
             System.err.println(
-              "compose-ai-daemon: [render] phase=setContent.start outputBaseName=${spec.outputBaseName}"
+              "compose-ai-daemon: [render] phase=setContent.start outputBaseName=${spec.outputBaseName}",
             )
             trace.section("compose:setContent") {
               rule.setContent {
@@ -510,7 +510,7 @@ class RenderEngine(
                   // fill drops it to match the transparent decor-view background. Defaults false.
                   add(
                     ee.schimke.composeai.preview.slots.LocalPreviewBackgroundCleared provides
-                      spec.clearBackground
+                      spec.clearBackground,
                   )
                   // Flatten Wear `TransformingLazyColumn` scaling for the grown scroll-SVG
                   // render and for `@ScrollingPreview(reduceMotion = true)` (see
@@ -545,7 +545,7 @@ class RenderEngine(
                       // the override still applied (#4371). See the helper's KDoc.
                       extensions =
                         previewOverrideExtensions.plan(
-                          spec.overrides.withPseudolocaleFrom(spec.localeTag)
+                          spec.overrides.withPseudolocaleFrom(spec.localeTag),
                         ) + builtDataArtifactExtensions,
                       previewId = spec.previewId,
                       renderMode = spec.renderMode,
@@ -634,11 +634,11 @@ class RenderEngine(
                             // zero and this is the pre-gutter layout verbatim.
                             val boxWidth =
                               (placeable.width + gutterStartPx + gutterEndPx).coerceAtMost(
-                                constraints.maxWidth
+                                constraints.maxWidth,
                               )
                             val boxHeight =
                               (placeable.height + gutterTopPx + gutterBottomPx).coerceAtMost(
-                                constraints.maxHeight
+                                constraints.maxHeight,
                               )
                             measuredContent[0] = boxWidth
                             measuredContent[1] = boxHeight
@@ -776,7 +776,7 @@ class RenderEngine(
             }
 
             System.err.println(
-              "compose-ai-daemon: [render] phase=setContent.done outputBaseName=${spec.outputBaseName}"
+              "compose-ai-daemon: [render] phase=setContent.done outputBaseName=${spec.outputBaseName}",
             )
 
             // CAPTURE_ADVANCE_MS is the same paused-clock advance `RobolectricRenderTest` uses —
@@ -845,7 +845,7 @@ class RenderEngine(
                   System.err.println(
                     "compose-ai-daemon: [render] @ScrollingPreview(END) on " +
                       "'${spec.previewId}' but no scrollable composable found on axis " +
-                      "${staticScroll.axis} — capturing the initial frame."
+                      "${staticScroll.axis} — capturing the initial frame.",
                   )
                 }
               }
@@ -916,8 +916,8 @@ class RenderEngine(
               RoborazziOptions(
                 recordOptions =
                   RoborazziOptions.RecordOptions(
-                    applyDeviceCrop = environment.isRound && !environment.flattenWearScroll
-                  )
+                    applyDeviceCrop = environment.isRound && !environment.flattenWearScroll,
+                  ),
               )
             // A preview may install more than one Compose owner (Wear empty-state scaffolds and
             // popup/dialog-like content do this). `onRoot()` asserts that exactly one node matches
@@ -927,7 +927,7 @@ class RenderEngine(
             // sample, and resolve its semantics once more after capture so the pixels and every
             // structured export describe the accepted frame.
             System.err.println(
-              "compose-ai-daemon: [render] phase=captureRoboImage.start outputBaseName=${spec.outputBaseName}"
+              "compose-ai-daemon: [render] phase=captureRoboImage.start outputBaseName=${spec.outputBaseName}",
             )
             trace.section("render:captureRoboImage") {
               fun capture(candidate: File, captureOptions: RoborazziOptions = roborazziOptions) {
@@ -985,7 +985,7 @@ class RenderEngine(
               }
             }
             System.err.println(
-              "compose-ai-daemon: [render] phase=captureRoboImage.done outputBaseName=${spec.outputBaseName}"
+              "compose-ai-daemon: [render] phase=captureRoboImage.done outputBaseName=${spec.outputBaseName}",
             )
             val resolvedSemanticsRoot =
               resolveRenderedCaptureRoot(rule).semanticsRoot
@@ -1115,7 +1115,7 @@ class RenderEngine(
                 buildList<ExtensionContextValue<*>> {
                   add(
                     RenderArtifactContextKeys.SemanticsSnapshot provides
-                      ComposeSemanticsSnapshot(resolvedSemanticsRoot)
+                      ComposeSemanticsSnapshot(resolvedSemanticsRoot),
                   )
                   add(
                     RenderArtifactContextKeys.LayoutSnapshot provides
@@ -1124,7 +1124,7 @@ class RenderEngine(
                         artifactSlotTables,
                         spec.density,
                         spec.fontScale ?: 1.0f,
-                      )
+                      ),
                   )
                   add(RenderDataArtifactContextKeys.RootDir provides dataDir)
                   add(RenderDataArtifactContextKeys.OutputBaseName provides spec.outputBaseName)
@@ -1140,13 +1140,13 @@ class RenderEngine(
                   add(RenderDataArtifactContextKeys.HeldActivity provides rule.activity)
                   add(
                     RenderDataArtifactContextKeys.LayoutInspectorPreviewContext provides
-                      layoutInspectorPreviewContext
+                      layoutInspectorPreviewContext,
                   )
                   // Round-Wear clip for the shared figma-svg export — the same
                   // `previewContext.device.isRound` the inline Android extension read.
                   add(
                     RenderDataArtifactContextKeys.RoundClip provides
-                      layoutInspectorPreviewContext.device.isRound
+                      layoutInspectorPreviewContext.device.isRound,
                   )
                   // The background this render actually painted behind the composable — the
                   // resolution of `@Preview(showBackground, backgroundColor)` the PNG was drawn
@@ -1186,7 +1186,7 @@ class RenderEngine(
                   continue
                 }
                 System.err.println(
-                  "compose-ai-daemon: [render] phase=dataArtifact.${ext.id}.start outputBaseName=${spec.outputBaseName}"
+                  "compose-ai-daemon: [render] phase=dataArtifact.${ext.id}.start outputBaseName=${spec.outputBaseName}",
                 )
                 val extStartNs = System.nanoTime()
                 try {
@@ -1198,7 +1198,7 @@ class RenderEngine(
                         renderMode = spec.renderMode,
                         products = productStore.scopedFor(ext),
                         data = extensionContextData,
-                      )
+                      ),
                     )
                   }
                   val extTookMs = (System.nanoTime() - extStartNs) / 1_000_000L
@@ -1206,7 +1206,7 @@ class RenderEngine(
                   System.err.println(
                     "compose-ai-daemon: [render] phase=dataArtifact.${ext.id}.done " +
                       "outputBaseName=${spec.outputBaseName} " +
-                      "tookMs=$extTookMs"
+                      "tookMs=$extTookMs",
                   )
                 } catch (t: Throwable) {
                   // It still ran, and the trace reports what the render paid for — a processor
@@ -1215,7 +1215,7 @@ class RenderEngine(
                     (System.nanoTime() - extStartNs) / 1_000_000L
                   System.err.println(
                     "RenderEngine: ${ext.id} data write failed for ${spec.outputBaseName}: " +
-                      "${t.javaClass.simpleName}: ${t.message}"
+                      "${t.javaClass.simpleName}: ${t.message}",
                   )
                 }
               }
@@ -1229,7 +1229,7 @@ class RenderEngine(
             // file as "no attachment for this kind on this render".
             if (effectiveRunAccessibility && dataDir != null) {
               System.err.println(
-                "compose-ai-daemon: [render] phase=a11y.start outputBaseName=${spec.outputBaseName}"
+                "compose-ai-daemon: [render] phase=a11y.start outputBaseName=${spec.outputBaseName}",
               )
               val a11yStartNs = System.nanoTime()
               try {
@@ -1251,9 +1251,9 @@ class RenderEngine(
                       products = store.scopedFor(hierarchyExtension),
                       data =
                         ExtensionContextData.of(
-                          AccessibilityHierarchyContextKeys.ViewRoot provides view
+                          AccessibilityHierarchyContextKeys.ViewRoot provides view,
                         ),
-                    )
+                    ),
                   )
                   val hierarchy = store.require(AccessibilityDataProducts.Hierarchy)
                   val findings = store.require(AccessibilityDataProducts.Atf)
@@ -1268,7 +1268,7 @@ class RenderEngine(
                   )
                   System.err.println(
                     "compose-ai-daemon: [render] phase=a11y.done outputBaseName=${spec.outputBaseName} " +
-                      "findings=${findings.findings.size} nodes=${hierarchy.nodes.size}"
+                      "findings=${findings.findings.size} nodes=${hierarchy.nodes.size}",
                   )
                   RenderWorkTraceMetrics.recordDataKinds(
                     postCaptureMetrics,
@@ -1279,7 +1279,7 @@ class RenderEngine(
               } catch (t: Throwable) {
                 System.err.println(
                   "compose-ai-daemon: [render] phase=a11y.failed outputBaseName=${spec.outputBaseName} " +
-                    "error=${t.javaClass.simpleName}: ${t.message}"
+                    "error=${t.javaClass.simpleName}: ${t.message}",
                 )
                 t.printStackTrace(System.err)
               }
@@ -1307,9 +1307,9 @@ class RenderEngine(
                       data =
                         ExtensionContextData.of(
                           UiAutomatorHierarchyContextKeys.SemanticsRoot provides
-                            resolvedSemanticsRoot
+                            resolvedSemanticsRoot,
                         ),
-                    )
+                    ),
                   )
                   val payload = uiaStore.require(UiAutomatorDataProducts.Hierarchy)
                   UiAutomatorDataProducer.writeArtifacts(
@@ -1326,7 +1326,7 @@ class RenderEngine(
               } catch (t: Throwable) {
                 System.err.println(
                   "RenderEngine: uia/hierarchy write failed for ${spec.outputBaseName}: " +
-                    "${t.javaClass.simpleName}: ${t.message}"
+                    "${t.javaClass.simpleName}: ${t.message}",
                 )
               }
             }
@@ -1357,7 +1357,7 @@ class RenderEngine(
                 } catch (t: Throwable) {
                   System.err.println(
                     "RenderEngine: displayfilter write failed for ${spec.outputBaseName}: " +
-                      "${t.javaClass.simpleName}: ${t.message}"
+                      "${t.javaClass.simpleName}: ${t.message}",
                   )
                 }
               }
@@ -1381,7 +1381,7 @@ class RenderEngine(
               rule.mainClock.advanceTimeBy(spec.captureAdvanceMs ?: CAPTURE_ADVANCE_MS)
             } catch (t: Throwable) {
               System.err.println(
-                "RenderEngine: post-capture mainClock advance failed for ${spec.className}.${spec.functionName}: ${t.message}"
+                "RenderEngine: post-capture mainClock advance failed for ${spec.className}.${spec.functionName}: ${t.message}",
               )
             }
           }
@@ -1419,17 +1419,17 @@ class RenderEngine(
     }
     try {
       System.err.println(
-        "compose-ai-daemon: [render] phase=evaluateRule.start outputBaseName=${spec.outputBaseName}"
+        "compose-ai-daemon: [render] phase=evaluateRule.start outputBaseName=${spec.outputBaseName}",
       )
       ee.schimke.composeai.renderer.PreviewHostTheme.suppressHostTitle()
       trace.section("render:evaluateRule") { rule.apply(statement, description).evaluate() }
       System.err.println(
-        "compose-ai-daemon: [render] phase=evaluateRule.done outputBaseName=${spec.outputBaseName}"
+        "compose-ai-daemon: [render] phase=evaluateRule.done outputBaseName=${spec.outputBaseName}",
       )
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: [render] phase=evaluateRule.failed outputBaseName=${spec.outputBaseName} " +
-          "error=${t.javaClass.simpleName}: ${t.message}"
+          "error=${t.javaClass.simpleName}: ${t.message}",
       )
       t.printStackTrace(System.err)
       throw t
@@ -1549,7 +1549,7 @@ class RenderEngine(
     val previewContext = previewContextBuilder.build()
     System.err.println(
       "compose-ai-daemon: [render] phase=complete outputBaseName=${spec.outputBaseName} " +
-        "tookMs=$tookMs pngPath=${outputFile.absolutePath}"
+        "tookMs=$tookMs pngPath=${outputFile.absolutePath}",
     )
     return RenderResult(
       id = requestId,
@@ -1594,7 +1594,7 @@ class RenderEngine(
       spec.previewId
         ?: error(
           "RenderEngine: scroll mode '${spec.renderMode}' requires a previewId on the RenderSpec " +
-            "so the scroll metadata can be resolved from the previews.json index"
+            "so the scroll metadata can be resolved from the previews.json index",
         )
     val previewIndex = loadPreviewIndexLazily()
     val scroll =
@@ -1602,13 +1602,13 @@ class RenderEngine(
         ?: error(
           "RenderEngine: scroll mode '${spec.renderMode}' requested for previewId '$previewId' " +
             "but the preview has no matching dataProducts[].scroll entry in previews.json — " +
-            "the host should fall back to the Gradle composePreviewRenderAll path"
+            "the host should fall back to the Gradle composePreviewRenderAll path",
         )
     val scenarioDataDir =
       dataDir
         ?: error(
           "RenderEngine: scroll mode '${spec.renderMode}' needs a non-null dataDir to write " +
-            "<dataDir>/render-scroll-{long,gif}/<previewId>.{png,gif}"
+            "<dataDir>/render-scroll-{long,gif}/<previewId>.{png,gif}",
         )
     val (subdir, ext) =
       when (spec.renderMode) {
@@ -1637,7 +1637,7 @@ class RenderEngine(
       androidx.test.core.app.ApplicationProvider.getApplicationContext()
     org.robolectric.Shadows.shadowOf(appContext.packageManager)
       .addActivityIfNotPresent(
-        android.content.ComponentName(appContext.packageName, ComponentActivity::class.java.name)
+        android.content.ComponentName(appContext.packageName, ComponentActivity::class.java.name),
       )
 
     @Suppress("DEPRECATION") val rule = createAndroidComposeRule<ComponentActivity>()
@@ -1689,7 +1689,7 @@ class RenderEngine(
                 ?.let(::add)
               add(
                 ee.schimke.composeai.preview.slots.LocalPreviewBackgroundCleared provides
-                  spec.clearBackground
+                  spec.clearBackground,
               )
               if (scrollReduceMotionLocal != null) add(scrollReduceMotionLocal provides true)
             }
@@ -1740,7 +1740,7 @@ class RenderEngine(
     if (!handled) {
       error(
         "RenderEngine: scroll mode '${spec.renderMode}' returned false (no scrollable on " +
-          "scroll.axis=${scroll.axis} for previewId '$previewId')"
+          "scroll.axis=${scroll.axis} for previewId '$previewId')",
       )
     }
     val tookMs = (System.nanoTime() - startNs) / 1_000_000L
@@ -1800,13 +1800,13 @@ class RenderEngine(
     val previewId =
       spec.previewId
         ?: error(
-          "RenderEngine: render mode '${spec.renderMode}' requires a previewId on the RenderSpec"
+          "RenderEngine: render mode '${spec.renderMode}' requires a previewId on the RenderSpec",
         )
     val scenarioDataDir =
       dataDir
         ?: error(
           "RenderEngine: render mode '${spec.renderMode}' needs a non-null dataDir to write " +
-            "<dataDir>/<previewId>/figma-long/compose-figma-long.svg"
+            "<dataDir>/<previewId>/figma-long/compose-figma-long.svg",
         )
     val startNs = System.nanoTime()
     val deviceDp = pxToDp(spec.widthPx, spec.density)
@@ -1828,7 +1828,7 @@ class RenderEngine(
       androidx.test.core.app.ApplicationProvider.getApplicationContext()
     org.robolectric.Shadows.shadowOf(appContext.packageManager)
       .addActivityIfNotPresent(
-        android.content.ComponentName(appContext.packageName, ComponentActivity::class.java.name)
+        android.content.ComponentName(appContext.packageName, ComponentActivity::class.java.name),
       )
 
     @Suppress("DEPRECATION") val rule = createAndroidComposeRule<ComponentActivity>()
@@ -1876,7 +1876,7 @@ class RenderEngine(
                 ?.let(::add)
               add(
                 ee.schimke.composeai.preview.slots.LocalPreviewBackgroundCleared provides
-                  spec.clearBackground
+                  spec.clearBackground,
               )
               if (reduceMotionLocal != null) add(reduceMotionLocal provides true)
             }
@@ -1914,7 +1914,7 @@ class RenderEngine(
                     file = file,
                     roborazziOptions =
                       RoborazziOptions(
-                        recordOptions = RoborazziOptions.RecordOptions(applyDeviceCrop = false)
+                        recordOptions = RoborazziOptions.RecordOptions(applyDeviceCrop = false),
                       ),
                   )
               },
@@ -1922,7 +1922,7 @@ class RenderEngine(
                 val semRoot =
                   resolveRenderedCaptureRoot(rule).semanticsRoot
                     ?: error(
-                      "RenderEngine: no semantics root for scroll-slice capture of $previewId"
+                      "RenderEngine: no semantics root for scroll-slice capture of $previewId",
                     )
                 val semantics =
                   ComposeSemanticsDataProducer.buildPayload(semRoot, density = spec.density)
@@ -1934,7 +1934,7 @@ class RenderEngine(
                     fontScale = spec.fontScale ?: 1f,
                   )
                     ?: error(
-                      "RenderEngine: layout tree unreachable for scroll-slice capture of $previewId"
+                      "RenderEngine: layout tree unreachable for scroll-slice capture of $previewId",
                     )
                 layout.root to semantics.root
               },
@@ -1984,7 +1984,7 @@ class RenderEngine(
       backgroundMode =
         spec.svgBackground
           ?: FigmaSvgBackgroundMode.parse(
-            System.getProperty(ComposeFigmaSvgDataProducer.PROP_BACKGROUND)
+            System.getProperty(ComposeFigmaSvgDataProducer.PROP_BACKGROUND),
           )
           ?: FigmaSvgBackgroundMode.DEVICE,
     )
@@ -1993,7 +1993,7 @@ class RenderEngine(
       runCatching { workDir.deleteRecursively() }
       error(
         "RenderEngine: render mode '${spec.renderMode}' produced no capsule SVG for previewId " +
-          "'$previewId'"
+          "'$previewId'",
       )
     }
     val longDir =
@@ -2014,7 +2014,7 @@ class RenderEngine(
     val tookMs = (System.nanoTime() - startNs) / 1_000_000L
     System.err.println(
       "compose-ai-daemon: [render] phase=wearScrollSlice.done previewId=$previewId " +
-        "height=${out.height} items=${out.itemCount} tookMs=$tookMs"
+        "height=${out.height} items=${out.itemCount} tookMs=$tookMs",
     )
     return RenderResult(
       id = requestId,
@@ -2035,13 +2035,13 @@ class RenderEngine(
     val previewId =
       spec.previewId
         ?: error(
-          "RenderEngine: render mode '${spec.renderMode}' requires a previewId on the RenderSpec"
+          "RenderEngine: render mode '${spec.renderMode}' requires a previewId on the RenderSpec",
         )
     val scenarioDataDir =
       dataDir
         ?: error(
           "RenderEngine: render mode '${spec.renderMode}' needs a non-null dataDir to write " +
-            "<dataDir>/<previewId>/figma-long/compose-figma-long.svg"
+            "<dataDir>/<previewId>/figma-long/compose-figma-long.svg",
         )
     val startNs = System.nanoTime()
 
@@ -2118,7 +2118,7 @@ class RenderEngine(
     if (!producedSvg.exists()) {
       error(
         "RenderEngine: render mode '${spec.renderMode}' produced no layered SVG for previewId " +
-          "'$previewId' (no layout tree captured?)"
+          "'$previewId' (no layout tree captured?)",
       )
     }
     // The long export lives in its own subdir (SVG + its own figma-raster/ crops). A hybrid export
@@ -2187,7 +2187,7 @@ class RenderEngine(
       androidx.test.core.app.ApplicationProvider.getApplicationContext()
     org.robolectric.Shadows.shadowOf(appContext.packageManager)
       .addActivityIfNotPresent(
-        android.content.ComponentName(appContext.packageName, ComponentActivity::class.java.name)
+        android.content.ComponentName(appContext.packageName, ComponentActivity::class.java.name),
       )
 
     @Suppress("DEPRECATION") val rule = createAndroidComposeRule<ComponentActivity>()
@@ -2241,7 +2241,7 @@ class RenderEngine(
                 ?.let(::add)
               add(
                 ee.schimke.composeai.preview.slots.LocalPreviewBackgroundCleared provides
-                  spec.clearBackground
+                  spec.clearBackground,
               )
               if (wearReduceMotionLocal != null) add(wearReduceMotionLocal provides true)
             }
@@ -2334,7 +2334,7 @@ class RenderEngine(
         backgroundColor = spec.backgroundColor,
         night = spec.uiMode == RenderSpec.SpecUiMode.DARK,
         clearBackground = spec.clearBackground,
-      )
+      ),
     )
 
   private fun pxToDp(px: Int, density: Float): Int {
@@ -2591,7 +2591,7 @@ class RenderEngine(
       androidx.test.core.app.ApplicationProvider.getApplicationContext()
     org.robolectric.Shadows.shadowOf(appContext.packageManager)
       .addActivityIfNotPresent(
-        android.content.ComponentName(appContext.packageName, ComponentActivity::class.java.name)
+        android.content.ComponentName(appContext.packageName, ComponentActivity::class.java.name),
       )
 
     PixelSystemFontAliases.seedSystemFonts()
@@ -2677,7 +2677,7 @@ class RenderEngine(
       // own default locale (`en-rUS`) is the locale analogue of the unconditional `notnight` reset
       // below.
       add(
-        localeTagToQualifier(effectiveLocaleTag?.takeIf { it.isNotBlank() } ?: DEFAULT_LOCALE_TAG)
+        localeTagToQualifier(effectiveLocaleTag?.takeIf { it.isNotBlank() } ?: DEFAULT_LOCALE_TAG),
       )
       add(if (rtl) "ldrtl" else "ldltr")
       // `sw<n>dp-w<n>dp-h<n>dp` — smallest width has to precede available width in the grammar,
@@ -2922,7 +2922,7 @@ internal fun selectRenderedSurfaceSemanticsRoot(
       },
       { it.descendantCount() },
       { it.boundsInRoot.width * it.boundsInRoot.height },
-    )
+    ),
   )
 }
 
@@ -2932,7 +2932,7 @@ private data class RenderedCaptureRoot(
 )
 
 private fun resolveRenderedCaptureRoot(
-  rule: AndroidComposeTestRule<*, ComponentActivity>
+  rule: AndroidComposeTestRule<*, ComponentActivity>,
 ): RenderedCaptureRoot {
   val rootInteractions = rule.onAllNodes(isRoot(), useUnmergedTree = true)
   val semanticsRoots = runCatching {
@@ -3251,7 +3251,7 @@ private fun loadWrapperByFqnOrNull(wrapperFqn: String): Pair<ComposableMethod, A
   .onFailure { t ->
     System.err.println(
       "compose-ai-daemon: [render] wrapper resolution failed for $wrapperFqn " +
-        "(${t.javaClass.simpleName}: ${t.message}); rendering without wrapper"
+        "(${t.javaClass.simpleName}: ${t.message}); rendering without wrapper",
     )
   }
   .getOrNull()
@@ -3324,7 +3324,7 @@ internal class WearThemeCapture {
 
 @Composable
 private fun CaptureMaterialTheme(
-  onCaptured: (ColorScheme, Typography, Shapes, ThemePayload) -> Unit
+  onCaptured: (ColorScheme, Typography, Shapes, ThemePayload) -> Unit,
 ) {
   val colorScheme = MaterialTheme.colorScheme
   val typography = MaterialTheme.typography

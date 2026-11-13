@@ -60,8 +60,8 @@ class PreviewOverridesDataFetchE2ETest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = previewId,
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     val registry = PreviewOverridesDataProductRegistry()
@@ -120,8 +120,8 @@ class PreviewOverridesDataFetchE2ETest {
               heightPx = 16,
               density = 1.0f,
               outputBaseName = previewId,
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     val registry = PreviewOverridesDataProductRegistry()

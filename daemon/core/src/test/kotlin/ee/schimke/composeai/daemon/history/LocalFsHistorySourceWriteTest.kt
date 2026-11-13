@@ -93,17 +93,17 @@ class LocalFsHistorySourceWriteTest {
     val hash = LocalFsHistorySource.sha256Hex(bytes)
     val atf =
       json.parseToJsonElement(
-        """{"findings":[{"level":"ERROR","type":"TouchTargetSizeCheck","message":"too small"}]}"""
+        """{"findings":[{"level":"ERROR","type":"TouchTargetSizeCheck","message":"too small"}]}""",
       )
     val hierarchy =
       json.parseToJsonElement("""{"nodes":[{"label":"Submit","boundsInScreen":"0,0,10,10"}]}""")
     val touch =
       json.parseToJsonElement(
-        """{"targets":[{"nodeId":"n2","boundsInScreen":"0,0,10,10","widthDp":10.0,"heightDp":10.0,"findings":["belowMinimumSize"]}]}"""
+        """{"targets":[{"nodeId":"n2","boundsInScreen":"0,0,10,10","widthDp":10.0,"heightDp":10.0,"findings":["belowMinimumSize"]}]}""",
       )
     val theme =
       json.parseToJsonElement(
-        """{"resolvedTokens":{"colorScheme":{"primary":"#FF0000"},"typography":{},"shapes":{}}}"""
+        """{"resolvedTokens":{"colorScheme":{"primary":"#FF0000"},"typography":{},"shapes":{}}}""",
       )
 
     val entry =
@@ -483,6 +483,6 @@ class LocalFsHistorySourceWriteTest {
   /** A one-node `compose/semantics` payload as a [JsonElement], for seeding sidecars. */
   private fun semanticsJson(nodeId: String = "1", testTag: String): JsonElement =
     json.parseToJsonElement(
-      """{"root":{"nodeId":"$nodeId","boundsInRoot":"0,0,10,10","testTag":"$testTag"}}"""
+      """{"root":{"nodeId":"$nodeId","boundsInRoot":"0,0,10,10","testTag":"$testTag"}}""",
     )
 }

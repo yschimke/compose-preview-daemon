@@ -42,8 +42,8 @@ class FigmaSvgRetiredSlotTest {
               heightPx = 520,
               density = 1.0f,
               outputBaseName = "retired-slot",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()

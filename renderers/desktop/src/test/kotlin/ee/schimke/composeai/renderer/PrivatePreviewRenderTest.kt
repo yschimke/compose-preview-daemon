@@ -80,7 +80,7 @@ class PrivatePreviewRenderTest {
         outputFile = out,
         providerFqn = "ee.schimke.composeai.renderer.PrivateSwatchProvider",
         providerLimit = "10",
-      )
+      ),
     )
 
     val crimson = File(renders, "private-swatch_Crimson.png")

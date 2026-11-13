@@ -55,20 +55,20 @@ class FigmaSvgPerVariantTest {
               density = 1.0f,
               outputBaseName = id,
             )
-          }
+          },
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
     try {
       host.submit(
         RenderRequest.Render(
-          target = preview("dark-aware-light", PreviewOverrides(uiMode = UiMode.LIGHT))
+          target = preview("dark-aware-light", PreviewOverrides(uiMode = UiMode.LIGHT)),
         ),
         timeoutMs = 120_000,
       )
       host.submit(
         RenderRequest.Render(
-          target = preview("dark-aware-dark", PreviewOverrides(uiMode = UiMode.DARK))
+          target = preview("dark-aware-dark", PreviewOverrides(uiMode = UiMode.DARK)),
         ),
         timeoutMs = 120_000,
       )
@@ -91,7 +91,7 @@ class FigmaSvgPerVariantTest {
           lightSvg.copyTo(File(dump, "dark-aware-light.svg"), overwrite = true)
           darkSvg.copyTo(File(dump, "dark-aware-dark.svg"), overwrite = true)
           System.err.println(
-            "FIGMA-SVG-PER-VARIANT dumped light=${lightBytes.size}B dark=${darkBytes.size}B to $dump"
+            "FIGMA-SVG-PER-VARIANT dumped light=${lightBytes.size}B dark=${darkBytes.size}B to $dump",
           )
         }
 
@@ -133,8 +133,8 @@ class FigmaSvgPerVariantTest {
                 baseSpec.copy(
                   uiMode = RenderSpec.SpecUiMode.LIGHT,
                   outputBaseName = "dark-aware-light",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )
@@ -146,8 +146,8 @@ class FigmaSvgPerVariantTest {
                 baseSpec.copy(
                   uiMode = RenderSpec.SpecUiMode.DARK,
                   outputBaseName = "dark-aware-dark",
-                )
-              )
+                ),
+              ),
           ),
           timeoutMs = 120_000,
         )

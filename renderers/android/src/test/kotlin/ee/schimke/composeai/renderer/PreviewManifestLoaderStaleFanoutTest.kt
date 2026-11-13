@@ -33,7 +33,7 @@ class PreviewManifestLoaderStaleFanoutTest {
       params =
         RenderPreviewParams(
           previewParameterProviderClassName =
-            if (parameterized) "com.example.UserProvider" else null
+            if (parameterized) "com.example.UserProvider" else null,
         ),
       captures = renderOutputs.map { RenderPreviewCapture(renderOutput = it) },
     )
@@ -46,7 +46,7 @@ class PreviewManifestLoaderStaleFanoutTest {
         captures =
           base.captures.map {
             it.copy(
-              renderOutput = PreviewManifestLoader.insertBeforeExtension(it.renderOutput, suffix)
+              renderOutput = PreviewManifestLoader.insertBeforeExtension(it.renderOutput, suffix),
             )
           },
         dataProducts =

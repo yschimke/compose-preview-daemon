@@ -115,7 +115,7 @@ class FontResolverRecorder(private val context: Context? = null) {
       fonts =
         synchronized(entries) {
           entries.values.sortedWith(compareBy({ it.requestedFamily }, { it.weight }, { it.style }))
-        }
+        },
     )
 
   private fun sourceFile(

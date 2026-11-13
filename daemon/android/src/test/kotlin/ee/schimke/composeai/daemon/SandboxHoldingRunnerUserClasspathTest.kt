@@ -50,7 +50,7 @@ class SandboxHoldingRunnerUserClasspathTest {
     val parent = SandboxHoldingRunner::class.java.classLoader!!
     assertFalse(isClassVisible(consumerOnly, parent))
     assertTrue(
-      isClassVisible(consumerOnly, AppComposeFirstLoader(listOf(dir.toURI().toURL()), parent))
+      isClassVisible(consumerOnly, AppComposeFirstLoader(listOf(dir.toURI().toURL()), parent)),
     )
   }
 
@@ -61,13 +61,13 @@ class SandboxHoldingRunnerUserClasspathTest {
     val runner = ExposedRunner(DummyTest::class.java)
     val method = FrameworkMethod(DummyTest::class.java.getMethod("stub"))
     assertFalse(
-      runner.exposedExtraShadows(method).any { it == ShadowRemoteContentPreview::class.java }
+      runner.exposedExtraShadows(method).any { it == ShadowRemoteContentPreview::class.java },
     )
 
     Thread.currentThread().contextClassLoader =
       AppComposeFirstLoader(listOf(dir.toURI().toURL()), parent)
     assertTrue(
-      runner.exposedExtraShadows(method).any { it == ShadowRemoteContentPreview::class.java }
+      runner.exposedExtraShadows(method).any { it == ShadowRemoteContentPreview::class.java },
     )
   }
 

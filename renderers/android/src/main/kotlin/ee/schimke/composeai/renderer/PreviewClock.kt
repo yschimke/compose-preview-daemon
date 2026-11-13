@@ -164,7 +164,7 @@ object PreviewClock {
     throw IllegalArgumentException(
       "compose-preview: -D$PROPERTY=$value is not a time. Use HH:mm (e.g. 10:10), an ISO-8601 " +
         "local date-time (e.g. 2024-01-01T10:10), epoch millis, or 'off' to render against the " +
-        "host wall clock."
+        "host wall clock.",
     )
   }
 

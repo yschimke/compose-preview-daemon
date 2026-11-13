@@ -220,7 +220,7 @@ internal object AppTourRenderer {
             ?.name
           ?: error(
             "No activity resolves $intent — check the manifest's intent-filters " +
-              "or use an explicit activityClassName"
+              "or use an explicit activityClassName",
           )
       return Class.forName(className).asSubclass(Activity::class.java)
     }
@@ -278,7 +278,7 @@ internal object AppTourRenderer {
       if (clickView(click)) return
       error(
         "No clickable target matched $click — for Compose use text/contentDescription/tag " +
-          "(merged semantics), for classic views use viewId/text"
+          "(merged semantics), for classic views use viewId/text",
       )
     }
 

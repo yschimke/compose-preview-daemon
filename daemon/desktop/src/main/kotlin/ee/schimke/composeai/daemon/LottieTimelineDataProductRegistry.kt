@@ -40,7 +40,7 @@ class LottieTimelineDataProductRegistry(private val previewIndex: PreviewIndex) 
         requiresRerender = false,
         displayName = "Lottie timeline",
         facets = listOf(DataProductFacet.STRUCTURED, DataProductFacet.INTERACTIVE),
-      )
+      ),
     )
 
   override fun fetch(
@@ -52,7 +52,7 @@ class LottieTimelineDataProductRegistry(private val previewIndex: PreviewIndex) 
     if (kind != KIND) return DataProductRegistry.Outcome.Unknown
     val payload = payloadFor(previewId) ?: return DataProductRegistry.Outcome.NotAvailable
     return DataProductRegistry.Outcome.Ok(
-      DataFetchResult(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload)
+      DataFetchResult(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload),
     )
   }
 
@@ -60,7 +60,7 @@ class LottieTimelineDataProductRegistry(private val previewIndex: PreviewIndex) 
     if (KIND !in kinds) return emptyList()
     val payload = payloadFor(previewId) ?: return emptyList()
     return listOf(
-      DataProductAttachment(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload)
+      DataProductAttachment(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload),
     )
   }
 

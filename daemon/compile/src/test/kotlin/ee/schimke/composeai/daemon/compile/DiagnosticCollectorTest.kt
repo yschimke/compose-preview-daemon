@@ -131,7 +131,7 @@ class DiagnosticCollectorTest {
           line = 1,
           column = 1,
           message = "oops",
-        )
+        ),
       )
     val ex = BtaCompileDiagnosticException(errors)
     assertEquals(errors, ex.errors)

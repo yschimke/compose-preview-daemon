@@ -147,7 +147,7 @@ class DesktopFocusRendererTest {
                 "desktop-focus-tr${i + 1}",
                 DesktopFocusIntent(directions = directions, step = i + 1),
               )
-              .first
+              .first,
           )
         }
     assertEquals("step 1 (Enter + Next) lands where index 0 does", indexed, steps[0])

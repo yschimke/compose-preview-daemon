@@ -36,8 +36,8 @@ class RenderDataArtifactExtensionsTest {
           RenderDataArtifactExtensionFactory { ctx ->
             seen += ctx
             sentinel
-          }
-        )
+          },
+        ),
       )
 
     val built = registry.build(context)

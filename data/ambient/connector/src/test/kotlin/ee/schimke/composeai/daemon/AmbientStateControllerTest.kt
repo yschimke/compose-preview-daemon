@@ -34,7 +34,7 @@ class AmbientStateControllerTest {
           state = AmbientStateOverride.AMBIENT,
           burnInProtectionRequired = true,
           deviceHasLowBitAmbient = true,
-        )
+        ),
       )
       assertEquals(AmbientStateOverride.AMBIENT, AmbientStateController.current())
       assertEquals(1, cb.enterCount)
@@ -79,7 +79,7 @@ class AmbientStateControllerTest {
     AmbientStateController.registerCallback(cb)
     try {
       AmbientStateController.set(
-        AmbientOverride(state = AmbientStateOverride.AMBIENT, idleTimeoutMs = 25L)
+        AmbientOverride(state = AmbientStateOverride.AMBIENT, idleTimeoutMs = 25L),
       )
       assertEquals(1, cb.enterCount)
       AmbientStateController.notifyUserInput(tNanos = 0L)
@@ -120,7 +120,7 @@ class AmbientStateControllerTest {
     AmbientStateController.registerCallback(cb)
     try {
       AmbientStateController.set(
-        AmbientOverride(state = AmbientStateOverride.AMBIENT, idleTimeoutMs = 50L)
+        AmbientOverride(state = AmbientStateOverride.AMBIENT, idleTimeoutMs = 50L),
       )
       AmbientStateController.notifyUserInput(tNanos = 0L)
       // Replace before the idle restoration would fire.

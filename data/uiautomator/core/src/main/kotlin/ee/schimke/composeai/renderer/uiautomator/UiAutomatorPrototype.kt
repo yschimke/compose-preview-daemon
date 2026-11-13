@@ -516,8 +516,8 @@ internal constructor(internal val rule: ComposeContentTestRule, public val node:
   private fun invokeLambda(
     key:
       androidx.compose.ui.semantics.SemanticsPropertyKey<
-        androidx.compose.ui.semantics.AccessibilityAction<() -> Boolean>
-      >
+        androidx.compose.ui.semantics.AccessibilityAction<() -> Boolean>,
+      >,
   ): Boolean {
     val action = config.getOrNull(key) ?: return false
     val lambda = action.action ?: return false

@@ -388,7 +388,7 @@ open class DesktopHost(
     if (current.startedAtNs != 0L && runningMs > current.timeoutMs) {
       error(
         "DesktopHost.submit($request) gave up while queued: the render thread has been on " +
-          "request ${current.id} for ${runningMs}ms, past its ${current.timeoutMs}ms timeout"
+          "request ${current.id} for ${runningMs}ms, past its ${current.timeoutMs}ms timeout",
       )
     }
   }
@@ -412,12 +412,12 @@ open class DesktopHost(
       previewSpecResolver
         ?: throw UnsupportedOperationException(
           "DesktopHost has no previewSpecResolver; pass one at construction time to enable " +
-            "@PreviewParameter row enumeration"
+            "@PreviewParameter row enumeration",
         )
     val spec =
       resolver(previewId)
         ?: throw IllegalArgumentException(
-          "DesktopHost.previewSpecResolver returned null for previewId='$previewId'"
+          "DesktopHost.previewSpecResolver returned null for previewId='$previewId'",
         )
     val provider =
       spec.previewParameterProviderClassName?.takeIf { it.isNotBlank() } ?: return emptyList()
@@ -431,7 +431,7 @@ open class DesktopHost(
       } ?: previewId
     val limit =
       spec.previewParameterLimit.coerceAtMost(
-        ee.schimke.composeai.renderer.PreviewParameterSupport.MAX_ROW_SCAN
+        ee.schimke.composeai.renderer.PreviewParameterSupport.MAX_ROW_SCAN,
       )
     // Enumerate on the same disposable child loader a render would use, so a provider edited since
     // the daemon started is read fresh rather than off the bytecode it booted with. A fresh
@@ -474,7 +474,7 @@ open class DesktopHost(
       previewSpecResolver
         ?: throw UnsupportedOperationException(
           "DesktopHost has no previewSpecResolver; pass one at construction time to enable v2 " +
-            "interactive sessions"
+            "interactive sessions",
         )
     val baseSpec =
       resolver(previewId)
@@ -485,7 +485,7 @@ open class DesktopHost(
         ?: CarriedRemoteCompose.carriedDocumentSpec(previewId, overrides)
         ?: throw UnsupportedOperationException(
           "DesktopHost.previewSpecResolver returned null for previewId='$previewId'; " +
-            "interactive session not allocated"
+            "interactive session not allocated",
         )
     // Apply the same override-merge pass that recording sessions use, so `touchOverlay = true` on
     // an `interactive/start` installs the `TouchOverlayExtension` against the held composition.
@@ -509,7 +509,7 @@ open class DesktopHost(
       UiThreadExecutorService(
         Executors.newSingleThreadExecutor { r ->
           Thread(r, "compose-ai-daemon-interactive-scene-$previewId").apply { isDaemon = true }
-        }
+        },
       )
     val state =
       try {
@@ -559,12 +559,12 @@ open class DesktopHost(
           System.err.println(
             "compose-ai-daemon: DesktopHost: interactiveSessionListener.acquire threw " +
               "(${e.cause?.javaClass?.simpleName ?: e.javaClass.simpleName}: " +
-              "${e.cause?.message ?: e.message}); continuing with session"
+              "${e.cause?.message ?: e.message}); continuing with session",
           )
         } catch (t: Throwable) {
           System.err.println(
             "compose-ai-daemon: DesktopHost: interactiveSessionListener.acquire threw " +
-              "(${t.javaClass.simpleName}: ${t.message}); continuing with session"
+              "(${t.javaClass.simpleName}: ${t.message}); continuing with session",
           )
         }
         {
@@ -573,7 +573,7 @@ open class DesktopHost(
           } catch (t: Throwable) {
             System.err.println(
               "compose-ai-daemon: DesktopHost: interactiveSessionListener.release threw " +
-                "(${t.javaClass.simpleName}: ${t.message}); continuing with session.close()"
+                "(${t.javaClass.simpleName}: ${t.message}); continuing with session.close()",
             )
           }
         }
@@ -613,7 +613,7 @@ open class DesktopHost(
       previewSpecResolver
         ?: throw UnsupportedOperationException(
           "DesktopHost has no previewSpecResolver; pass one at construction time to enable " +
-            "recording sessions"
+            "recording sessions",
         )
     val baseSpec =
       resolver(previewId)
@@ -621,7 +621,7 @@ open class DesktopHost(
         ?: CarriedRemoteCompose.carriedDocumentSpec(previewId, overrides)
         ?: throw UnsupportedOperationException(
           "DesktopHost.previewSpecResolver returned null for previewId='$previewId'; " +
-            "recording session not allocated"
+            "recording session not allocated",
         )
     // Touch overlay is opt-in only — callers set `overrides.touchOverlay = true` to activate the
     // `TouchOverlayExtension` `AroundComposableHook` for the session. Deliberately no implicit
@@ -737,8 +737,8 @@ open class DesktopHost(
             ?.put(
               IllegalStateException(
                 "DesktopHost does not dispatch ParameterRows through the render queue; " +
-                  "call previewParameterRows() instead"
-              )
+                  "call previewParameterRows() instead",
+              ),
             )
         }
         is RenderRequest.Render -> {
@@ -748,7 +748,7 @@ open class DesktopHost(
           if (pending == null) {
             System.err.println(
               "compose-ai-daemon: DesktopHost dropping render ${request.id}: " +
-                "its caller stopped waiting before it reached the render thread"
+                "its caller stopped waiting before it reached the render thread",
             )
             continue
           }

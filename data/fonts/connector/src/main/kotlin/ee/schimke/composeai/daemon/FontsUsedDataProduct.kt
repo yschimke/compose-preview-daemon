@@ -28,8 +28,8 @@ class FontsUsedDataProductRegistry(private val rootDir: File) :
           attachable = true,
           fetchable = true,
           requiresRerender = false,
-        )
-      )
+        ),
+      ),
   ) {
   override fun fileFor(previewId: String, kind: String): File? =
     if (kind == FontsUsedDataProducer.KIND)

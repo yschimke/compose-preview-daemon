@@ -56,7 +56,7 @@ class AndroidParameterKnobTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            target = preview(KNOBBED_PREVIEW_ID, textBag("topArgb" to blue.toString()))
+            target = preview(KNOBBED_PREVIEW_ID, textBag("topArgb" to blue.toString())),
           ),
           timeoutMs = 120_000,
         )
@@ -134,7 +134,7 @@ class AndroidParameterKnobTest {
       val result =
         host.submit(
           RenderRequest.Render(
-            target = preview(KNOBBED_PREVIEW_ID, textBag("topArgb" to blue.toString()))
+            target = preview(KNOBBED_PREVIEW_ID, textBag("topArgb" to blue.toString())),
           ),
           timeoutMs = 120_000,
         )
@@ -211,7 +211,7 @@ class AndroidParameterKnobTest {
    */
   private fun textBag(vararg entries: Pair<String, String>): PreviewOverrides =
     PreviewOverrides(
-      namedOverrides = entries.associate { (k, v) -> k to PreviewOverrideValue.StringValue(v) }
+      namedOverrides = entries.associate { (k, v) -> k to PreviewOverrideValue.StringValue(v) },
     )
 
   private fun decode(file: File): java.awt.image.BufferedImage {

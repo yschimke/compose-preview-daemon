@@ -94,7 +94,7 @@ class DesktopCaptureGutterRendererTest {
                 actual,
                 x + dx,
                 y + dy,
-              )
+              ),
           )
         }
       }

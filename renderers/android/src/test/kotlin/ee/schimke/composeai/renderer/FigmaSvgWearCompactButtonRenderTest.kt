@@ -66,7 +66,7 @@ class FigmaSvgWearCompactButtonRenderTest {
     // The pill is the rect carrying the container fill; the root frame paints nothing.
     val m =
       Regex(
-          """<rect x="(-?[\d.]+)" y="(-?[\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*fill="#E9DDFF""""
+          """<rect x="(-?[\d.]+)" y="(-?[\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*fill="#E9DDFF"""",
         )
         .find(svg) ?: error("no filled pill rect in:\n$svg")
     val (x, y, w, h) = m.destructured.toList().map { it.toDouble().toInt() }

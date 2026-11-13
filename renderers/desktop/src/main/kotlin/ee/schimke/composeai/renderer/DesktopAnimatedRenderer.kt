@@ -95,7 +95,7 @@ fun renderAnimatedPreview(
   if (showCurves) {
     System.err.println(
       "@AnimatedPreview(showCurves = true) on ${outputFile.name}: the curve-strip overlay isn't " +
-        "supported on the desktop backend yet — emitting a screenshot-only GIF."
+        "supported on the desktop backend yet — emitting a screenshot-only GIF.",
     )
   }
 
@@ -112,7 +112,7 @@ fun renderAnimatedPreview(
     System.err.println(
       "@AnimatedPreview(durationMs = 0) on ${outputFile.name}: duration auto-detection isn't " +
         "supported on the desktop backend — capturing the ${AUTO_DURATION_FALLBACK_MS}ms fallback " +
-        "window (set an explicit durationMs to override)."
+        "window (set an explicit durationMs to override).",
     )
   }
   val requestedDuration = if (autoDetect) AUTO_DURATION_FALLBACK_MS else durationMs
@@ -200,6 +200,6 @@ fun renderAnimatedPreview(
       "${totalDuration}ms @ ${frameInterval}ms at ${result.crop.width}×${result.crop.height} " +
       "(${format.name.lowercase()}" +
       (if (result.reRecorded) ", re-recorded for growth" else "") +
-      ")."
+      ").",
   )
 }

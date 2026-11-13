@@ -146,7 +146,7 @@ class GestureStateControllerTest {
           it.enabled = false
           it.showHints = true
         }
-        .build()
+        .build(),
     )
     assertFalse(GestureStateController.enabled())
     assertTrue(GestureStateController.hintsShownState.value)

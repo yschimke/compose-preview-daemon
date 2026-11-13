@@ -66,7 +66,7 @@ internal class Coil2PreviewInstaller : CoilPreviewInstaller {
         .respectCacheHeaders(false)
         .components { add(PlaceholderFallbackInterceptor) }
         .eventListener(DiagnosticEventListener)
-        .build()
+        .build(),
     )
   }
 

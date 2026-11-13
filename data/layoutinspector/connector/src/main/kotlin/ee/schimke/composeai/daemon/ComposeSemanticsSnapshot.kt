@@ -7,7 +7,7 @@ import ee.schimke.composeai.data.render.extensions.ExtensionPostCaptureContext
 class ComposeSemanticsSnapshot
 internal constructor(private val build: (Float?) -> ComposeSemanticsPayload) {
   constructor(
-    root: SemanticsNode
+    root: SemanticsNode,
   ) : this({ density -> ComposeSemanticsDataProducer.buildPayload(root, density) })
 
   private val payloads = mutableMapOf<Float?, ComposeSemanticsPayload>()
@@ -18,7 +18,7 @@ internal constructor(private val build: (Float?) -> ComposeSemanticsPayload) {
 }
 
 internal fun ExtensionPostCaptureContext.semanticsPayload(
-  density: Float?
+  density: Float?,
 ): ComposeSemanticsPayload =
   get(RenderArtifactContextKeys.SemanticsSnapshot)?.payload(density)
     ?: ComposeSemanticsDataProducer.buildPayload(

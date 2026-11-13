@@ -84,7 +84,7 @@ public class ClasspathFingerprint(
      * (classpath changes are then only seen on respawn).
      */
     public fun parseCheapSignalFilesSysprop(
-      value: String? = System.getProperty(CHEAP_SIGNAL_FILES_PROP)
+      value: String? = System.getProperty(CHEAP_SIGNAL_FILES_PROP),
     ): List<File> = DaemonProperties.cheapSignalFiles.parse(value).map { File(it) }
 
     private fun longToBytes(v: Long): ByteArray {

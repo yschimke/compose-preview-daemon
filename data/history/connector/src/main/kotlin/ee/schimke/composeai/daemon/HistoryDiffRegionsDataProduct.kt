@@ -42,7 +42,7 @@ class HistoryDiffRegionsDataProductRegistry(
         attachable = true,
         fetchable = true,
         requiresRerender = false,
-      )
+      ),
     )
 
   override fun fetch(
@@ -55,7 +55,7 @@ class HistoryDiffRegionsDataProductRegistry(
     val diffParams =
       parseParams(params)
         ?: return DataProductRegistry.Outcome.FetchFailed(
-          "history/diff/regions requires params.baselineHistoryId"
+          "history/diff/regions requires params.baselineHistoryId",
         )
     return fetchDiff(previewId, diffParams)
   }
@@ -70,7 +70,7 @@ class HistoryDiffRegionsDataProductRegistry(
         kind = HistoryDiffRegionsProduct.KIND,
         schemaVersion = HistoryDiffRegionsProduct.SCHEMA_VERSION,
         payload = outcome.result.payload,
-      )
+      ),
     )
   }
 
@@ -94,31 +94,31 @@ class HistoryDiffRegionsDataProductRegistry(
     val baseline =
       historyManager.read(params.baselineHistoryId, includeBytes = false)
         ?: return DataProductRegistry.Outcome.FetchFailed(
-          "baseline history entry ${params.baselineHistoryId} was not found"
+          "baseline history entry ${params.baselineHistoryId} was not found",
         )
     if (baseline.entry.previewId != previewId) {
       return DataProductRegistry.Outcome.FetchFailed(
-        "baseline history entry ${params.baselineHistoryId} belongs to ${baseline.entry.previewId}, not $previewId"
+        "baseline history entry ${params.baselineHistoryId} belongs to ${baseline.entry.previewId}, not $previewId",
       )
     }
     val latestImage =
       ImageIO.read(
-        fileSystem.read(File(latest.pngPath).path.toPath()) { readByteArray() }.inputStream()
+        fileSystem.read(File(latest.pngPath).path.toPath()) { readByteArray() }.inputStream(),
       )
         ?: return DataProductRegistry.Outcome.FetchFailed(
-          "could not decode latest PNG ${latest.pngPath}"
+          "could not decode latest PNG ${latest.pngPath}",
         )
     val baselineImage =
       ImageIO.read(
-        fileSystem.read(File(baseline.pngPath).path.toPath()) { readByteArray() }.inputStream()
+        fileSystem.read(File(baseline.pngPath).path.toPath()) { readByteArray() }.inputStream(),
       )
         ?: return DataProductRegistry.Outcome.FetchFailed(
-          "could not decode baseline PNG ${baseline.pngPath}"
+          "could not decode baseline PNG ${baseline.pngPath}",
         )
     if (latestImage.width != baselineImage.width || latestImage.height != baselineImage.height) {
       return DataProductRegistry.Outcome.FetchFailed(
         "latest and baseline PNG dimensions differ: ${latestImage.width}x${latestImage.height} vs " +
-          "${baselineImage.width}x${baselineImage.height}"
+          "${baselineImage.width}x${baselineImage.height}",
       )
     }
     val payload = diff(params.baselineHistoryId, latestImage, baselineImage, params.threshold)
@@ -127,7 +127,7 @@ class HistoryDiffRegionsDataProductRegistry(
         kind = HistoryDiffRegionsProduct.KIND,
         schemaVersion = HistoryDiffRegionsProduct.SCHEMA_VERSION,
         payload = json.encodeToJsonElement(HistoryDiffPayload.serializer(), payload),
-      )
+      ),
     )
   }
 

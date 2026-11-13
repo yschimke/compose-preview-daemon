@@ -177,7 +177,7 @@ class AppComposeSelectionTest {
 
     assertFalse(URLClassLoader::class.java.isInstance(loader))
     assertTrue(
-      loader.getResource(AppComposeSelection.COMPOSER_RESOURCE)!!.path.contains("/app.jar!")
+      loader.getResource(AppComposeSelection.COMPOSER_RESOURCE)!!.path.contains("/app.jar!"),
     )
     assertEquals("APP", loader.getResource("androidx/compose/ui/R\$id.class")!!.text())
     assertEquals(
@@ -209,7 +209,7 @@ class AppComposeSelectionTest {
   fun childLoaderPrefersTheDaemonsAndroidxClasses() {
     assertTrue(UserClassLoaderHolder.mustDelegateToParent("androidx.compose.runtime.Composer"))
     assertTrue(
-      UserClassLoaderHolder.mustDelegateToParent("androidx.compose.ui.platform.ComposeView")
+      UserClassLoaderHolder.mustDelegateToParent("androidx.compose.ui.platform.ComposeView"),
     )
     val app = composeJar("app", "1.13.0").url()
 

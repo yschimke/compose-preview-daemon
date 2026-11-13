@@ -76,7 +76,7 @@ class FigmaSvgPaddingClipRenderTest {
             .padding(11.dp)
             .clip(CircleShape)
             .border(2.dp, Brush.linearGradient(listOf(Color.Cyan, Color.Magenta)), CircleShape)
-            .background(Color(0xFF102030))
+            .background(Color(0xFF102030)),
         )
       }
 

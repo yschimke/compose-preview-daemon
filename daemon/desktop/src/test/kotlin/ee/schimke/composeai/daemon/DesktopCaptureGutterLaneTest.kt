@@ -87,9 +87,9 @@ class DesktopCaptureGutterLaneTest {
           methodName = "Foo",
           params =
             PreviewParamsDto(
-              captureGutter = CaptureGutterDto(start = 4, top = 4, end = 4, bottom = 5)
+              captureGutter = CaptureGutterDto(start = 4, top = 4, end = 4, bottom = 5),
             ),
-        )
+        ),
       )
     assertEquals(4, spec.gutterStartDp)
     assertEquals(4, spec.gutterTopDp)
@@ -111,7 +111,7 @@ class DesktopCaptureGutterLaneTest {
           className = "com.example.FooKt",
           methodName = "Foo",
           params = PreviewParamsDto(),
-        )
+        ),
       )
     assertEquals(0, spec.gutterStartDp)
     assertEquals(0, spec.captureGutterPx().horizontalPx)
@@ -130,8 +130,8 @@ class DesktopCaptureGutterLaneTest {
             gutterTopDp = 2,
             gutterEndDp = 3,
             gutterBottomDp = 4,
-          )
-        )
+          ),
+        ),
       )
     assertEquals(1, parsed.gutterStartDp)
     assertEquals(2, parsed.gutterTopDp)
@@ -155,7 +155,7 @@ class DesktopCaptureGutterLaneTest {
         functionName = "Foo",
         params =
           PreviewParamsEntry(
-            captureGutter = CaptureGutterDto(start = 4, top = 4, end = 4, bottom = 5)
+            captureGutter = CaptureGutterDto(start = 4, top = 4, end = 4, bottom = 5),
           ),
       )
     assertEquals(CaptureGutterDto(4, 4, 4, 5), entry.resolved().captureGutter)
@@ -169,7 +169,7 @@ class DesktopCaptureGutterLaneTest {
         )
         .resolved()
         .captureGutter
-        .isEmpty()
+        .isEmpty(),
     )
   }
 
@@ -220,7 +220,7 @@ class DesktopCaptureGutterLaneTest {
           wrap = false,
           widthPx = 320,
           heightPx = 320,
-        )
+        ),
       )
     // A fixed axis still measures the component against its declared frame; the gutter is canvas
     // added around it, so a 320 px frame with a 4 dp gutter a side comes out 336 px at density 2.

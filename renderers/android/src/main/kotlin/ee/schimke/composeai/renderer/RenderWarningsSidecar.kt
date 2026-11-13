@@ -87,12 +87,12 @@ object RenderWarningsSidecar {
             pinned,
             unlandedScrollSteps,
             unverifiedScrollSeams,
-          )
+          ),
         )
       }
     } catch (writeFailure: Throwable) {
       System.err.println(
-        "Failed to write render-warnings sidecar for ${pngFile.name}: ${writeFailure.message}"
+        "Failed to write render-warnings sidecar for ${pngFile.name}: ${writeFailure.message}",
       )
     }
   }

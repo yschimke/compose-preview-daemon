@@ -30,8 +30,8 @@ class DeclaredRenderOutputTest {
       DeclaredRenderOutput.stillOutput(
         captures(
           """{"renderOutput": "renders/Foo_SCROLL_end.png", "optional": false, "cost": 1.0,
-             "settle": {"afterMs": 0, "maxMs": 1000}, "scroll": {"mode": "END"}}"""
-        )
+             "settle": {"afterMs": 0, "maxMs": 1000}, "scroll": {"mode": "END"}}""",
+        ),
       ),
     )
   }
@@ -41,7 +41,7 @@ class DeclaredRenderOutputTest {
     assertEquals(
       "renders/Foo.png",
       DeclaredRenderOutput.stillOutput(
-        captures("""{"renderOutput": "renders/Foo.png", "advanceTimeMillis": null}""")
+        captures("""{"renderOutput": "renders/Foo.png", "advanceTimeMillis": null}"""),
       ),
     )
   }
@@ -54,7 +54,7 @@ class DeclaredRenderOutputTest {
         captures(
           """{"renderOutput": "lottie/Foo.png"}""",
           """{"renderOutput": "lottie/Foo_animated.png", "animation": {"durationMs": 500}}""",
-        )
+        ),
       ),
     )
   }
@@ -66,8 +66,8 @@ class DeclaredRenderOutputTest {
         captures(
           """{"renderOutput": "renders/Foo_SCROLL_top.png", "scroll": {"mode": "TOP"}}""",
           """{"renderOutput": "renders/Foo_SCROLL_end.png", "scroll": {"mode": "END"}}""",
-        )
-      )
+        ),
+      ),
     )
   }
 
@@ -87,7 +87,7 @@ class DeclaredRenderOutputTest {
   @Test
   fun `a non-PNG or empty output is never written as a PNG`() {
     assertNull(
-      DeclaredRenderOutput.stillOutput(captures("""{"renderOutput": "renders/Foo.gif"}"""))
+      DeclaredRenderOutput.stillOutput(captures("""{"renderOutput": "renders/Foo.gif"}""")),
     )
     assertNull(DeclaredRenderOutput.stillOutput(captures("""{"renderOutput": ""}""")))
     assertNull(DeclaredRenderOutput.stillOutput(captures("""{}""")))

@@ -34,7 +34,7 @@ class AccessibilityHierarchyExtensionTest {
             previewId = "preview",
             renderMode = null,
             products = store.scopedFor(extension),
-          )
+          ),
         )
       }
     assertTrue(ex.message!!, ex.message!!.contains(AccessibilityHierarchyContextKeys.ViewRoot.name))

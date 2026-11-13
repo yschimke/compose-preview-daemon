@@ -83,7 +83,7 @@ class InteractiveTouchOverlayTest {
             pixelX = CANVAS_PX / 2,
             pixelY = CANVAS_PX / 2,
             pointerId = 1,
-          )
+          ),
         )
         val pressed = session.render(requestId = RenderHost.nextRequestId())
         val pressedImage = TouchOverlayTestSupport.readPng(File(pressed.artifact.pathOrNull()!!))
@@ -110,7 +110,7 @@ class InteractiveTouchOverlayTest {
             pixelX = CANVAS_PX / 2,
             pixelY = CANVAS_PX / 2,
             pointerId = 1,
-          )
+          ),
         )
         session.render(requestId = RenderHost.nextRequestId())
       } finally {

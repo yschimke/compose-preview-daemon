@@ -234,7 +234,7 @@ internal object DialogWindowCapture {
         },
         { it.descendantCount() },
         { it.size.width.toLong() * it.size.height.toLong() },
-      )
+      ),
     )
   }
 

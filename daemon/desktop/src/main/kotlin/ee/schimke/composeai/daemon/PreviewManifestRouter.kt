@@ -95,7 +95,7 @@ private constructor(
       rowAddressed(previewId)
         ?: error(
           "PreviewManifestRouter: no manifest entry for previewId='$previewId'. " +
-            "Manifest knows: ${manifest.byId().keys}"
+            "Manifest knows: ${manifest.byId().keys}",
         )
     // An explicit inbound row wins over the one parsed out of the id, so a caller can render a row
     // of the bare base id without minting a row id for it.
@@ -189,7 +189,7 @@ private constructor(
      * UnsupportedOperationException" path.
      */
     internal fun manifestPreviewSpecResolver(
-      byId: Map<String, PreviewManifestEntry>
+      byId: Map<String, PreviewManifestEntry>,
     ): (String) -> RenderSpec? = { previewId ->
       // Row-addressed ids (issue #3749) resolve here too, so a held session — `interactive/start`,
       // `recording/start`, `stream/start` — on `<baseId>_Dark` composes that row rather than
@@ -256,7 +256,7 @@ internal class RoutedManifest(manifest: PreviewManifest, file: File?) {
       onReadFailed = { e ->
         System.err.println(
           "compose-ai-tools desktop daemon: PreviewManifestRouter kept the previous manifest; " +
-            "'$it' did not load (${e.message})"
+            "'$it' did not load (${e.message})",
         )
       },
     )

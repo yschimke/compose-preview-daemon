@@ -57,7 +57,7 @@ class ReportedGestureRecompositionTest {
           gestureConfiguration = config,
           showIndicator = { hints++ },
           interactionSource = interactions,
-        ) {}
+        ) {},
       )
     }
     settle()

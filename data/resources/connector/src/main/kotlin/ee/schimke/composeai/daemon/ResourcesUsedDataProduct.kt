@@ -204,7 +204,7 @@ class RecordingResources(
 private object ResourceSourceIndex {
   private val valuesEntry =
     Regex(
-      """<\s*(string|color|dimen|plurals|string-array|integer-array|array)\b[^>]*\bname\s*=\s*["']([^"']+)["']"""
+      """<\s*(string|color|dimen|plurals|string-array|integer-array|array)\b[^>]*\bname\s*=\s*["']([^"']+)["']""",
     )
 
   private val indexed: Map<String, String> by lazy { buildIndex() }
@@ -290,8 +290,8 @@ class ResourcesUsedDataProductRegistry(private val rootDir: File) :
           attachable = true,
           fetchable = true,
           requiresRerender = false,
-        )
-      )
+        ),
+      ),
   ) {
   override fun fileFor(previewId: String, kind: String): File? =
     if (kind == ResourcesUsedDataProducer.KIND)

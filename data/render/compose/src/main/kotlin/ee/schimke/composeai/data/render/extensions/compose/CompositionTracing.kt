@@ -82,7 +82,7 @@ object CompositionTracing {
         }
 
         override fun isTraceInProgress(): Boolean = true
-      }
+      },
     )
     try {
       return block()

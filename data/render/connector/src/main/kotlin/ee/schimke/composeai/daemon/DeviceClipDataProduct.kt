@@ -47,7 +47,7 @@ class DeviceClipDataProductRegistry(previewIndex: PreviewIndex) : DataProductReg
           )
           .device(preview.previewDeviceContext())
           .build()
-      }
+      },
     )
 
   override val capabilities: List<DataProductCapability> =
@@ -62,7 +62,7 @@ class DeviceClipDataProductRegistry(previewIndex: PreviewIndex) : DataProductReg
         displayName = "Device clip",
         facets = listOf(DataProductFacet.STRUCTURED),
         sampling = SamplingPolicy.End,
-      )
+      ),
     )
 
   override fun fetch(
@@ -74,7 +74,7 @@ class DeviceClipDataProductRegistry(previewIndex: PreviewIndex) : DataProductReg
     if (kind != KIND) return DataProductRegistry.Outcome.Unknown
     val payload = payloadFor(previewId) ?: return DataProductRegistry.Outcome.NotAvailable
     return DataProductRegistry.Outcome.Ok(
-      DataFetchResult(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload)
+      DataFetchResult(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload),
     )
   }
 
@@ -82,7 +82,7 @@ class DeviceClipDataProductRegistry(previewIndex: PreviewIndex) : DataProductReg
     if (KIND !in kinds) return emptyList()
     val payload = payloadFor(previewId) ?: return emptyList()
     return listOf(
-      DataProductAttachment(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload)
+      DataProductAttachment(kind = KIND, schemaVersion = SCHEMA_VERSION, payload = payload),
     )
   }
 

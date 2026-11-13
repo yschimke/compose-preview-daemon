@@ -27,7 +27,7 @@ class TouchTargetsExtensionTest {
               boundsInScreen = "0,0,80,80",
             ),
             AccessibilityNode(label = "Static text", boundsInScreen = "100,0,200,80"),
-          )
+          ),
       )
 
     val store = RecordingDataProductStore()
@@ -41,7 +41,7 @@ class TouchTargetsExtensionTest {
         previewId = "preview",
         renderMode = null,
         products = scoped,
-      )
+      ),
     )
 
     val emitted = store.require(AccessibilityDataProducts.TouchTargets)

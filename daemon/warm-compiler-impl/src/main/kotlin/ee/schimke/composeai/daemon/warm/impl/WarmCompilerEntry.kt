@@ -133,7 +133,7 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
           "-Xfriend-paths=${classesDir.path}",
           "-no-stdlib",
           "-no-reflect",
-        ) + sources
+        ) + sources,
       )
     return runWarmPipeline(arguments, plugins, frontend, messages, keepAlive)
   }

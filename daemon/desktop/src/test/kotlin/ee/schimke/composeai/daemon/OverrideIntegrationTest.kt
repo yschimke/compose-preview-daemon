@@ -59,7 +59,7 @@ class OverrideIntegrationTest {
               name = "disabled",
               seeds =
                 listOf(
-                  OverrideSeed(key = "fill", kind = OverrideSeedKind.COLOR, raw = "#FF42A5F5")
+                  OverrideSeed(key = "fill", kind = OverrideSeedKind.COLOR, raw = "#FF42A5F5"),
                 ),
             ),
           ),
@@ -70,7 +70,7 @@ class OverrideIntegrationTest {
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension())),
           ),
         previewSpecResolver = byId::get,
       )
@@ -140,16 +140,20 @@ class OverrideIntegrationTest {
                     name = "disabled",
                     seeds =
                       listOf(
-                        OverrideSeed(key = "fill", kind = OverrideSeedKind.COLOR, raw = "#FF42A5F5")
+                        OverrideSeed(
+                          key = "fill",
+                          kind = OverrideSeedKind.COLOR,
+                          raw = "#FF42A5F5",
+                        ),
                       ),
                   ),
                 ),
-              )
+              ),
           ),
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension())),
           ),
       )
     host.start()
@@ -219,7 +223,7 @@ class OverrideIntegrationTest {
          "captures":[{"drag":{"targetIndex":0}}]}
       ]}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val previousPreviewsJson = System.getProperty(PreviewIndex.PREVIEWS_JSON_PATH_PROP)
     System.setProperty(PreviewIndex.PREVIEWS_JSON_PATH_PROP, previewsJson.absolutePath)
@@ -246,14 +250,14 @@ class OverrideIntegrationTest {
                 entry(focusedId, OverrideVariantInteraction.Focused),
                 entry(pressedId, OverrideVariantInteraction.Pressed),
                 entry(draggedId),
-              )
+              ),
           ),
         engine =
           RenderEngine(
             previewOverrideExtensions =
               PreviewOverrideExtensions(
-                listOf(PreviewOverridesPreviewOverrideExtension(), FocusPreviewOverrideExtension())
-              )
+                listOf(PreviewOverridesPreviewOverrideExtension(), FocusPreviewOverrideExtension()),
+              ),
           ),
       )
     host.start()
@@ -316,12 +320,12 @@ class OverrideIntegrationTest {
                 entry(baseId),
                 entry(focusedId, OverrideVariantInteraction.Focused),
                 entry(pressedId, OverrideVariantInteraction.Pressed),
-              )
+              ),
           ),
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(FocusPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(FocusPreviewOverrideExtension())),
           ),
       )
     host.start()
@@ -425,13 +429,13 @@ class OverrideIntegrationTest {
                       name = "focused",
                       interaction = OverrideVariantInteraction.Focused,
                     ),
-                )
-              )
+                ),
+              ),
           ),
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(FocusPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(FocusPreviewOverrideExtension())),
           ),
       )
     host.start()
@@ -565,13 +569,13 @@ class OverrideIntegrationTest {
                       name = "focused",
                       interaction = OverrideVariantInteraction.Focused,
                     ),
-                )
-              )
+                ),
+              ),
           ),
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(FocusPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(FocusPreviewOverrideExtension())),
           ),
       )
     host.start()
@@ -602,8 +606,8 @@ class OverrideIntegrationTest {
               heightPx = 64,
               density = 1.0f,
               outputBaseName = "red-square-default",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -647,8 +651,8 @@ class OverrideIntegrationTest {
               heightPx = 120,
               density = 1.0f,
               outputBaseName = "portrait-rect",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -758,8 +762,8 @@ class OverrideIntegrationTest {
               heightPx = 64,
               density = 1.0f,
               outputBaseName = "red-square-device-orientation",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -854,7 +858,7 @@ class OverrideIntegrationTest {
               density = 1.0f,
               outputBaseName = "portrait-rect",
             ),
-          )
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -951,8 +955,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "dark-aware",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -1026,8 +1030,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "direction-aware",
-            )
-          )
+            ),
+          ),
       )
     // The production seam, as `namedOverrideAppliesThroughGatedRegistryWithoutEnable` uses it: a
     // real registry whose `data/pseudolocale` extension is registered but never enabled — exactly
@@ -1040,8 +1044,8 @@ class OverrideIntegrationTest {
           Extension(
             id = "data/pseudolocale",
             previewOverrideExtensions = listOf(PseudolocalePreviewOverrideExtensionDesktop()),
-          )
-        )
+          ),
+        ),
       )
     assertFalse(
       "the pseudolocale extension must be inactive — half of what this regression covers",
@@ -1122,8 +1126,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "locale-aware",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -1201,7 +1205,7 @@ class OverrideIntegrationTest {
           heightPx = 32,
           density = 1.0f,
           localeTag = "de",
-        )
+        ),
       )
     try {
       assertEquals(
@@ -1232,8 +1236,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "wallpaper-aware",
-            )
-          )
+            ),
+          ),
       )
     val host =
       PreviewManifestRouter(
@@ -1241,7 +1245,7 @@ class OverrideIntegrationTest {
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(WallpaperPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(WallpaperPreviewOverrideExtension())),
           ),
       )
     host.start()
@@ -1299,8 +1303,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "font-scale",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -1360,8 +1364,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "overridable",
-            )
-          )
+            ),
+          ),
       )
     val host =
       PreviewManifestRouter(
@@ -1369,7 +1373,7 @@ class OverrideIntegrationTest {
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension())),
           ),
       )
     host.start()
@@ -1440,8 +1444,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "remembered",
-            )
-          )
+            ),
+          ),
       )
     val host =
       PreviewManifestRouter(
@@ -1449,7 +1453,7 @@ class OverrideIntegrationTest {
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension())),
           ),
       )
     host.start()
@@ -1500,8 +1504,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "animated",
-            )
-          )
+            ),
+          ),
       )
     val host =
       PreviewManifestRouter(
@@ -1509,7 +1513,7 @@ class OverrideIntegrationTest {
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension())),
           ),
       )
     host.start()
@@ -1557,7 +1561,7 @@ class OverrideIntegrationTest {
         RenderTarget.Preview(
           previewId = "wrapped",
           overrides = PreviewOverrides(orientation = Orientation.PORTRAIT),
-        )
+        ),
       )
 
     assertNotNull(rotated)
@@ -1584,7 +1588,7 @@ class OverrideIntegrationTest {
               heightPx = 800,
               orientation = Orientation.PORTRAIT,
             ),
-        )
+        ),
       )
     assertEquals("explicit pixels suppress the swap", 400, untouched!!.widthPx)
     assertEquals(800, untouched.heightPx)
@@ -1624,8 +1628,8 @@ class OverrideIntegrationTest {
               heightPx = 32,
               density = 1.0f,
               outputBaseName = "overridable",
-            )
-          )
+            ),
+          ),
       )
     // A real registry with the named-override extension registered but NOT enabled — the exact
     // shape `serve` builds (it never calls extensions/enable). activeOverrideExtensions() returns
@@ -1636,8 +1640,8 @@ class OverrideIntegrationTest {
           Extension(
             id = "compose/overrides",
             previewOverrideExtensions = listOf(PreviewOverridesPreviewOverrideExtension()),
-          )
-        )
+          ),
+        ),
       )
     assertFalse(
       "the override extension must be inactive — the whole point of this regression",
@@ -1699,7 +1703,7 @@ class OverrideIntegrationTest {
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension())),
           ),
         previewSpecResolver = { id -> baseSpec.takeIf { id == "overridable" } },
       )
@@ -1761,7 +1765,7 @@ class OverrideIntegrationTest {
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension())),
           ),
         previewSpecResolver = { id -> baseSpec.takeIf { id == "knobbed" } },
       )
@@ -1834,7 +1838,7 @@ class OverrideIntegrationTest {
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension())),
           ),
         previewSpecResolver = { id -> baseSpec.takeIf { id == "knobbed" } },
       )
@@ -1901,7 +1905,7 @@ class OverrideIntegrationTest {
         engine =
           RenderEngine(
             previewOverrideExtensions =
-              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension()))
+              PreviewOverrideExtensions(listOf(PreviewOverridesPreviewOverrideExtension())),
           ),
         previewSpecResolver = { id -> baseSpec.takeIf { id == "knobbed" } },
       )
@@ -1952,8 +1956,8 @@ class OverrideIntegrationTest {
               heightPx = 120,
               density = 1.0f,
               outputBaseName = "ambient-primary",
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -2031,10 +2035,10 @@ class OverrideIntegrationTest {
               // The wrapper FQN only travels nested, exactly as the gradle plugin writes it.
               params =
                 PreviewParamsEntry(
-                  wrapperClassName = "ee.schimke.composeai.daemon.RequiredEnvironmentWrapper"
+                  wrapperClassName = "ee.schimke.composeai.daemon.RequiredEnvironmentWrapper",
                 ),
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -2090,10 +2094,10 @@ class OverrideIntegrationTest {
               // the resolver — so a bad themeProvider must fall back to THIS, not strip it.
               params =
                 PreviewParamsEntry(
-                  wrapperClassName = "ee.schimke.composeai.daemon.BluePrimaryThemeProvider"
+                  wrapperClassName = "ee.schimke.composeai.daemon.BluePrimaryThemeProvider",
                 ),
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()
@@ -2157,7 +2161,7 @@ class OverrideIntegrationTest {
               name = "blue",
               seeds =
                 listOf(
-                  OverrideSeed(key = "fill", kind = OverrideSeedKind.COLOR, raw = "#FF42A5F5")
+                  OverrideSeed(key = "fill", kind = OverrideSeedKind.COLOR, raw = "#FF42A5F5"),
                 ),
             ),
           ),
@@ -2238,7 +2242,7 @@ class OverrideIntegrationTest {
          "overrides":{"name":"focused","seeds":[],"interaction":"Focused"}}
       ]}
       """
-        .trimIndent()
+        .trimIndent(),
     )
     val previousPreviewsJson = System.getProperty(PreviewIndex.PREVIEWS_JSON_PATH_PROP)
     System.setProperty(PreviewIndex.PREVIEWS_JSON_PATH_PROP, previewsJson.absolutePath)
@@ -2430,7 +2434,7 @@ class OverrideIntegrationTest {
    */
   private fun textBag(vararg entries: Pair<String, String>): PreviewOverrides =
     PreviewOverrides(
-      namedOverrides = entries.associate { (k, v) -> k to PreviewOverrideValue.StringValue(v) }
+      namedOverrides = entries.associate { (k, v) -> k to PreviewOverrideValue.StringValue(v) },
     )
 
   private fun pixelMatchPct(

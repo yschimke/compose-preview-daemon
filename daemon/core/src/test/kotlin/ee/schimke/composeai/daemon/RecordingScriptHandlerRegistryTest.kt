@@ -33,8 +33,8 @@ class RecordingScriptHandlerRegistryTest {
               observedTNanos = ctx.tNanos
               observedTMs = ctx.tMs
               appliedEvidence(event, "click handled")
-            }
-        )
+            },
+        ),
       )
 
     val event = RecordingScriptEvent(tMs = 33L, kind = "click", pixelX = 10, pixelY = 20)
@@ -188,7 +188,7 @@ class RecordingScriptHandlerRegistryTest {
     val sentinelEvidence = appliedEvidence(RecordingScriptEvent(tMs = 0L, kind = "click"))
     val registry =
       RecordingScriptHandlerRegistry(
-        mapOf("click" to RecordingScriptEventHandler { _, _ -> sentinelEvidence })
+        mapOf("click" to RecordingScriptEventHandler { _, _ -> sentinelEvidence }),
       )
 
     val returned =

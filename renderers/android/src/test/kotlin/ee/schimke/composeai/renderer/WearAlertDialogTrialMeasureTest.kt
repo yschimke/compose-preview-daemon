@@ -53,7 +53,7 @@ class WearAlertDialogTrialMeasureTest {
 
     val root =
       ComposeSemanticsDataProducer.buildPayload(
-          composeRule.onRoot(useUnmergedTree = true).fetchSemanticsNode()
+          composeRule.onRoot(useUnmergedTree = true).fetchSemanticsNode(),
         )
         .root
 

@@ -77,7 +77,7 @@ internal fun Modifier.fakeSurface(
       shape = shape,
       focusProgress = focusProgress,
       pressedProgress = pressedProgress,
-    )
+    ),
   )
 
 /**
@@ -193,7 +193,7 @@ internal class SurfaceNode(
   @Suppress("unused")
   private val contentColorNode =
     delegate(
-      ContentColorProviderNode(if (focusProgress >= 1f) focusedContentColor else contentColor)
+      ContentColorProviderNode(if (focusProgress >= 1f) focusedContentColor else contentColor),
     )
 
   private val drawnColor: Color
@@ -278,7 +278,7 @@ internal class IconColorFilterNode(
           layer.colorFilter = if (resolved.isSpecified) ColorFilter.tint(resolved) else null
           drawLayer(layer)
         }
-      }
+      },
     )
 
   /** `androidx.xr.glimmer.currentContentColor()`: the nearest ancestor provider, else white. */

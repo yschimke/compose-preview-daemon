@@ -37,9 +37,9 @@ class RecordingTestGeneratorTest {
                   target = SemanticsInputTarget(testTag = "submit"),
                 ),
                 RecordingScriptEvent(tMs = 400L, kind = "recording.probe", label = "after-click"),
-              )
+              ),
             ),
-        )
+        ),
       )
 
     val expected =
@@ -93,7 +93,7 @@ class RecordingTestGeneratorTest {
                   tMs = 0L,
                   kind = "input.click",
                   target = SemanticsInputTarget(testTag = "addItem"),
-                )
+                ),
               ),
               Step(
                 RecordingScriptEvent(tMs = 100L, kind = "recording.probe", label = "after-add"),
@@ -108,7 +108,7 @@ class RecordingTestGeneratorTest {
                   tMs = 200L,
                   kind = "input.click",
                   target = SemanticsInputTarget(testTag = "addItem"),
-                )
+                ),
               ),
               Step(
                 RecordingScriptEvent(
@@ -123,7 +123,7 @@ class RecordingTestGeneratorTest {
                   ),
               ),
             ),
-        )
+        ),
       )
 
     val expected =
@@ -177,9 +177,9 @@ class RecordingTestGeneratorTest {
             Step(
               RecordingScriptEvent(tMs = 0L, kind = "recording.probe", label = "blank"),
               probeSemantics = listOf(RecordingProbeNode(role = "Button")),
-            )
-          )
-        )
+            ),
+          ),
+        ),
       )
     assertTrue(source, source.contains("// TODO assert state at probe \"blank\""))
     assertFalse(source, source.contains("assertExists()"))
@@ -196,10 +196,10 @@ class RecordingTestGeneratorTest {
                 tMs = 0L,
                 kind = "input.click",
                 target = SemanticsInputTarget(text = "Add to cart"),
-              )
-            )
-          )
-        )
+              ),
+            ),
+          ),
+        ),
       )
     assertTrue(
       source,
@@ -213,9 +213,9 @@ class RecordingTestGeneratorTest {
       RecordingTestGenerator.generate(
         spec(
           RecordingTestGenerator.stepsOf(
-            listOf(RecordingScriptEvent(tMs = 0L, kind = "input.click", pixelX = 12, pixelY = 8))
-          )
-        )
+            listOf(RecordingScriptEvent(tMs = 0L, kind = "input.click", pixelX = 12, pixelY = 8)),
+          ),
+        ),
       )
     assertTrue(
       source,
@@ -236,9 +236,9 @@ class RecordingTestGeneratorTest {
                 target = SemanticsInputTarget(testTag = "missing"),
               ),
               applied = false,
-            )
-          )
-        )
+            ),
+          ),
+        ),
       )
     assertFalse(
       "must not emit a performClick for an unresolved target\n$source",
@@ -247,7 +247,7 @@ class RecordingTestGeneratorTest {
     assertTrue(
       source,
       source.contains(
-        "// input.click testTag=missing — not resolved during the recording; step skipped"
+        "// input.click testTag=missing — not resolved during the recording; step skipped",
       ),
     )
   }
@@ -265,9 +265,9 @@ class RecordingTestGeneratorTest {
                 kind = "input.click",
                 target = SemanticsInputTarget(testTag = "first"),
               ),
-            )
-          )
-        )
+            ),
+          ),
+        ),
       )
     val clickIdx = source.indexOf("onNodeWithTag(\"first\")")
     val keyIdx = source.indexOf("input.keyDown")
@@ -320,9 +320,9 @@ class RecordingTestGeneratorTest {
                   pixelX = 200,
                   pixelY = 60,
                 ),
-              )
+              ),
             ),
-        )
+        ),
       )
 
     val expected =
@@ -380,16 +380,16 @@ class RecordingTestGeneratorTest {
                 kind = "input.rotaryScroll",
                 target = SemanticsInputTarget(testTag = "list"),
                 scrollDeltaY = -12.5f,
-              )
-            )
-          )
-        )
+              ),
+            ),
+          ),
+        ),
       )
     assertTrue(
       source,
       source.contains(
         "composeTestRule.onNodeWithTag(\"list\").performRotaryScrollInput { " +
-          "rotateToScrollVertically(-12.5f) }"
+          "rotateToScrollVertically(-12.5f) }",
       ),
     )
     assertFalse(
@@ -419,9 +419,9 @@ class RecordingTestGeneratorTest {
                 kind = "input.pointerUp",
                 target = SemanticsInputTarget(testTag = "knob"),
               ),
-            )
-          )
-        )
+            ),
+          ),
+        ),
       )
     assertTrue(
       source,
@@ -433,7 +433,7 @@ class RecordingTestGeneratorTest {
           "    composeTestRule.onNodeWithTag(\"knob\").performTouchInput {\n" +
           "      advanceEventTime(80)\n" +
           "      up()\n" +
-          "    }\n"
+          "    }\n",
       ),
     )
     assertFalse(source, source.contains("import androidx.compose.ui.geometry.Offset"))
@@ -450,9 +450,9 @@ class RecordingTestGeneratorTest {
               RecordingScriptEvent(tMs = 20L, kind = "input.pointerMove", pixelX = 10, pixelY = 40),
               RecordingScriptEvent(tMs = 30L, kind = "recording.probe"),
               RecordingScriptEvent(tMs = 50L, kind = "input.pointerUp", pixelX = 10, pixelY = 40),
-            )
-          )
-        )
+            ),
+          ),
+        ),
       )
     assertTrue(
       source,
@@ -461,7 +461,7 @@ class RecordingTestGeneratorTest {
           "    composeTestRule.onRoot().performTouchInput {\n" +
           "      advanceEventTime(30)\n" +
           "      up()\n" +
-          "    }\n"
+          "    }\n",
       ),
     )
   }
@@ -492,16 +492,16 @@ class RecordingTestGeneratorTest {
                 target = SemanticsInputTarget(testTag = "from"),
               ),
               RecordingScriptEvent(tMs = 140L, kind = "input.pointerUp", pixelX = 3, pixelY = 4),
-            )
-          )
-        )
+            ),
+          ),
+        ),
       )
     assertFalse(source, source.contains("performTouchInput"))
     assertTrue(
       source,
       source.contains(
         "// input.pointerDown testTag=from — gesture has no single node or full pixel path to " +
-          "replay; drive it by hand"
+          "replay; drive it by hand",
       ),
     )
     assertTrue(
@@ -536,15 +536,15 @@ class RecordingTestGeneratorTest {
                 pixelX = 1,
                 pixelY = 1,
                 pointerType = "mouse",
-              )
+              ),
             ),
-          )
-        )
+          ),
+        ),
       )
     assertTrue(
       source,
       source.contains(
-        "// input.rotaryScroll testTag=missing — not resolved during the recording; step skipped"
+        "// input.rotaryScroll testTag=missing — not resolved during the recording; step skipped",
       ),
     )
     assertTrue(source, source.contains("// input.pointerDown — not yet generated"))
@@ -568,7 +568,7 @@ class RecordingTestGeneratorTest {
               tMs = 0L,
               kind = "input.click",
               target = SemanticsInputTarget(testTag = "refresh"),
-            )
+            ),
           ),
       )
     assertEquals("GeneratedWeatherForecastTest", spec.className)

@@ -31,7 +31,7 @@ public fun previewSystemThemeValue(theme: PreviewSystemTheme): ProvidedValue<*> 
       (it as Enum<*>).name.equals(theme.name, ignoreCase = true)
     }
       ?: error(
-        "Compose LocalSystemTheme value type ${binding.themeClass.name} has no ${theme.name} value"
+        "Compose LocalSystemTheme value type ${binding.themeClass.name} has no ${theme.name} value",
       )
   return binding.local.provides(enumValue)
 }

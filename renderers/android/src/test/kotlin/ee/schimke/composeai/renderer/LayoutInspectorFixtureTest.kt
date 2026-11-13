@@ -80,7 +80,7 @@ class LayoutInspectorFixtureTest {
       rootFor("box") {
         Box(
           modifier =
-            Modifier.testTag("hero").size(160.dp, 80.dp).background(Color.White).padding(8.dp)
+            Modifier.testTag("hero").size(160.dp, 80.dp).background(Color.White).padding(8.dp),
         )
       }
 

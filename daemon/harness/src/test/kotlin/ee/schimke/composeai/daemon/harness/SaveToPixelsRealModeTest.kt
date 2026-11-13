@@ -82,7 +82,7 @@ class SaveToPixelsRealModeTest {
     val reportDir = File("build/reports/daemon-harness").apply { mkdirs() }
     val csv =
       StringBuilder(
-        "mode,scenario,iteration,compile_rpc_ms,compile_server_ms,render_ms,took_ms,total_ms\n"
+        "mode,scenario,iteration,compile_rpc_ms,compile_server_ms,render_ms,took_ms,total_ms\n",
       )
     val summary = StringBuilder()
     val traces = StringBuilder()
@@ -99,7 +99,7 @@ class SaveToPixelsRealModeTest {
             """{"id":"${it.preview}","className":"bench.${it.preview}Kt","functionName":"${it.preview}",""" +
               """"widthPx":160,"heightPx":120,"density":1.0,"showBackground":true,"outputBaseName":"${it.preview}"}"""
           } +
-          "]}"
+          "]}",
       )
       val launcher =
         RealDesktopHarnessLauncher(
@@ -165,7 +165,7 @@ class SaveToPixelsRealModeTest {
             pngs += png
             if (i < warmup) continue
             traces.append(
-              "$mode ${scenario.name} $i ${params["workTrace"]} ${params["dataProducts"]}\n"
+              "$mode ${scenario.name} $i ${params["workTrace"]} ${params["dataProducts"]}\n",
             )
             val compileMs = (compiledAt - start) / 1_000_000
             val renderMs = (end - compiledAt) / 1_000_000
@@ -175,7 +175,7 @@ class SaveToPixelsRealModeTest {
             totals += totalMs
             csv.append(
               "$mode,${scenario.name},$i,$compileMs,${compiled.durationMs},$renderMs," +
-                "${params["tookMs"]?.jsonPrimitive?.longOrNull},$totalMs\n"
+                "${params["tookMs"]?.jsonPrimitive?.longOrNull},$totalMs\n",
             )
           }
           summary.append(
@@ -187,7 +187,7 @@ class SaveToPixelsRealModeTest {
                 p90(totals),
                 median(compiles),
                 median(renders),
-              )
+              ),
           )
         }
         assertEquals(0, client.shutdownAndExit(timeout = 30.seconds))
@@ -246,7 +246,7 @@ class SaveToPixelsRealModeTest {
             }
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
       }
 
@@ -271,7 +271,7 @@ class SaveToPixelsRealModeTest {
             }
           }
           """
-            .trimIndent()
+            .trimIndent(),
         )
       }
   }

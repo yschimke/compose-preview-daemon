@@ -153,7 +153,7 @@ object SandboxBootstrapSpikeMain {
             }
           }
           failure?.let { throw it }
-        }
+        },
       )
     }
   }
@@ -182,7 +182,7 @@ object SandboxBootstrapSpikeMain {
     fun renderFixtures() {
       val runtime = ManagementFactory.getRuntimeMXBean()
       println(
-        "[measure] sandboxReadyMs=${runtime.uptime} epochMs=${System.currentTimeMillis()} processCpuMs=${processCpuMs()}"
+        "[measure] sandboxReadyMs=${runtime.uptime} epochMs=${System.currentTimeMillis()} processCpuMs=${processCpuMs()}",
       )
       val engine = RenderEngine()
       for ((index, name) in listOf("RedSquare", "MaterialButtonInteractionState").withIndex()) {
@@ -198,7 +198,7 @@ object SandboxBootstrapSpikeMain {
           requestId = index.toLong(),
         )
         println(
-          "[measure] fixture=$name renderMs=${(System.nanoTime() - start) / 1_000_000} processUptimeMs=${runtime.uptime} epochMs=${System.currentTimeMillis()} processCpuMs=${processCpuMs()}"
+          "[measure] fixture=$name renderMs=${(System.nanoTime() - start) / 1_000_000} processUptimeMs=${runtime.uptime} epochMs=${System.currentTimeMillis()} processCpuMs=${processCpuMs()}",
         )
       }
     }

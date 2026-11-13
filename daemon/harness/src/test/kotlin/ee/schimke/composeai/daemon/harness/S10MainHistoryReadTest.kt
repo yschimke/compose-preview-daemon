@@ -105,7 +105,7 @@ class S10MainHistoryReadTest {
       assertEquals(0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "S10MainHistoryReadTest failed; stderr from daemon:\n${client.dumpStderr()}"
+        "S10MainHistoryReadTest failed; stderr from daemon:\n${client.dumpStderr()}",
       )
       throw t
     } finally {
@@ -224,7 +224,7 @@ class S10MainHistoryReadTest {
   private fun commitTree(repoRoot: File, treeSha: String, message: String): String {
     val pb =
       ProcessBuilder(
-          listOf("git", "-C", repoRoot.absolutePath, "commit-tree", treeSha, "-m", message)
+          listOf("git", "-C", repoRoot.absolutePath, "commit-tree", treeSha, "-m", message),
         )
         .redirectErrorStream(false)
         .start()

@@ -114,11 +114,11 @@ class AndroidInteractiveFocusOverrideTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = TOUCH_FRAME_PX / 2,
             pixelY = TOUCH_FRAME_PX / 2,
-          )
+          ),
         )
         val directActivation =
           decode(
-            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!)
+            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!),
           )
         assertEquals(
           "direct activation retains the touch-sized width",
@@ -142,11 +142,11 @@ class AndroidInteractiveFocusOverrideTest {
             kind = InteractiveInputKind.POINTER_MOVE,
             pixelX = TOUCH_FRAME_PX / 2,
             pixelY = TOUCH_FRAME_PX / 2,
-          )
+          ),
         )
         val gazeFocused =
           decode(
-            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!)
+            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!),
           )
         assertTrue(
           "pointer movement must still acquire Glimmer gaze focus after the resting first frame",
@@ -170,11 +170,11 @@ class AndroidInteractiveFocusOverrideTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = GAZE_FRAME_PX / 2,
             pixelY = GAZE_FRAME_PX / 2,
-          )
+          ),
         )
         val activated =
           decode(
-            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!)
+            File(session.render(requestId = RenderHost.nextRequestId()).artifact.pathOrNull()!!),
           )
         assertEquals("gaze activation retains keyboard-mode width", GAZE_FRAME_PX, activated.width)
         assertEquals(

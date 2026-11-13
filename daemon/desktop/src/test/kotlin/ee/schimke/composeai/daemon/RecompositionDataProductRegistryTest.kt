@@ -121,7 +121,7 @@ class RecompositionDataProductRegistryTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = 32,
             pixelY = 32,
-          )
+          ),
         )
         session.render(requestId = RenderHost.nextRequestId())
 
@@ -269,7 +269,7 @@ class RecompositionDataProductRegistryTest {
           onScopeDisposed: (androidx.compose.runtime.RecomposeScope) -> Unit,
         ): androidx.compose.runtime.tooling.CompositionObserverHandle {
           throw NoSuchMethodError(
-            "synthetic: androidx.compose.runtime.tooling.CompositionObserver.onScopeExit signature changed"
+            "synthetic: androidx.compose.runtime.tooling.CompositionObserver.onScopeExit signature changed",
           )
         }
       }

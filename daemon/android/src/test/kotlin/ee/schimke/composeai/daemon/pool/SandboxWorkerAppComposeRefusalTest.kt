@@ -60,7 +60,7 @@ class SandboxWorkerAppComposeRefusalTest {
     assertNull(SandboxWorkerMain.appComposeRefusal(configure(listOf(classes))))
     assertNotNull(SandboxWorkerMain.appComposeRefusal(configure(listOf(classes, newer))))
     assertNull(
-      SandboxWorkerMain.appComposeRefusal(configure(listOf(classes, newer), mode = "daemon"))
+      SandboxWorkerMain.appComposeRefusal(configure(listOf(classes, newer), mode = "daemon")),
     )
   }
 }

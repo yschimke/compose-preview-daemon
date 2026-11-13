@@ -240,7 +240,7 @@ class WearScrollSvgGrowthTest {
               roborazziOptions =
                 RoborazziOptions(
                   recordOptions =
-                    RoborazziOptions.RecordOptions(applyDeviceCrop = heightPx == deviceDp)
+                    RoborazziOptions.RecordOptions(applyDeviceCrop = heightPx == deviceDp),
                 ),
             )
           val semanticsRoot = rule.onRoot(useUnmergedTree = true).fetchSemanticsNode()

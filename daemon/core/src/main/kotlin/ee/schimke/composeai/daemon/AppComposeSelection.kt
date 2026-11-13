@@ -244,7 +244,7 @@ public class AppComposeFirstLoader(appUrls: List<URL>, parent: ClassLoader) : Cl
 
             override fun getInputStream(): InputStream =
               ByteArrayInputStream(
-                LocalVariableTables.dedupe(source.getInputStream().use { it.readBytes() })
+                LocalVariableTables.dedupe(source.getInputStream().use { it.readBytes() }),
               )
           }
       },

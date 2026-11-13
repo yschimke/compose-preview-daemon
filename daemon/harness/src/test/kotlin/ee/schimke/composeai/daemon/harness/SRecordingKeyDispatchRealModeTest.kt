@@ -84,7 +84,7 @@ class SRecordingKeyDispatchRealModeTest {
         ]
       }
       """
-        .trimIndent()
+        .trimIndent(),
     )
 
     val classpath =
@@ -156,7 +156,7 @@ class SRecordingKeyDispatchRealModeTest {
       assertEquals("daemon must exit cleanly. Stderr=\n${client.dumpStderr()}", 0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "SRecordingKeyDispatchRealModeTest failed; stderr from daemon:\n" + client.dumpStderr()
+        "SRecordingKeyDispatchRealModeTest failed; stderr from daemon:\n" + client.dumpStderr(),
       )
       throw t
     } finally {

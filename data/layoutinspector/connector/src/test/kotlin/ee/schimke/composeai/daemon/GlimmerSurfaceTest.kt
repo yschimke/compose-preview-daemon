@@ -93,7 +93,7 @@ class GlimmerSurfaceTest {
   fun `a resting surface resolves its fill, its border width and the idle border ramp`() {
     val paint =
       requireNotNull(
-        GlimmerSurface.paint(element(), node = null, minDimensionPx = 248, density = 1f)
+        GlimmerSurface.paint(element(), node = null, minDimensionPx = 248, density = 1f),
       )
 
     assertEquals("#FF303030", paint.fillArgb)
@@ -114,7 +114,7 @@ class GlimmerSurfaceTest {
   fun `a surface with no reachable live node resolves the same resting paint`() {
     val withoutNode =
       requireNotNull(
-        GlimmerSurface.paint(element(), node = null, minDimensionPx = 248, density = 1f)
+        GlimmerSurface.paint(element(), node = null, minDimensionPx = 248, density = 1f),
       )
     val withRestingNode =
       requireNotNull(GlimmerSurface.paint(element(), node(), minDimensionPx = 248, density = 1f))
@@ -127,7 +127,7 @@ class GlimmerSurfaceTest {
   fun `a focused surface takes its focused fill, its wider border and the focused corners`() {
     val paint =
       requireNotNull(
-        GlimmerSurface.paint(element(), node(focus = 1f), minDimensionPx = 248, density = 1f)
+        GlimmerSurface.paint(element(), node(focus = 1f), minDimensionPx = 248, density = 1f),
       )
 
     assertEquals("#FF9BBFFF", paint.fillArgb)
@@ -144,7 +144,7 @@ class GlimmerSurfaceTest {
   fun `a half-focused surface reports the paint that frame was drawn with`() {
     val paint =
       requireNotNull(
-        GlimmerSurface.paint(element(), node(focus = 0.5f), minDimensionPx = 248, density = 1f)
+        GlimmerSurface.paint(element(), node(focus = 0.5f), minDimensionPx = 248, density = 1f),
       )
     // Between the two border widths, and a fill that is neither endpoint.
     assertEquals("1.75dp", paint.borderWidthDp)
@@ -156,7 +156,7 @@ class GlimmerSurfaceTest {
     // 248px / 8 = 31px, and at density 2 that is 15.5dp.
     val paint =
       requireNotNull(
-        GlimmerSurface.paint(element(), node(pressed = 1f), minDimensionPx = 248, density = 2f)
+        GlimmerSurface.paint(element(), node(pressed = 1f), minDimensionPx = 248, density = 2f),
       )
     assertEquals("15.5dp", paint.borderWidthDp)
   }
@@ -212,7 +212,7 @@ class GlimmerSurfaceTest {
           node = null,
           minDimensionPx = 100,
           density = 1f,
-        )
+        ),
       )
     assertNull(paint.fillArgb)
     assertNotNull(paint.border)

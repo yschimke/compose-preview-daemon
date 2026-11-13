@@ -32,7 +32,7 @@ class AnimatedPreviewEncodingTest {
 
     val apng =
       json.decodeFromString<AnimationCapture>(
-        """{"durationMs":600,"frameIntervalMs":33,"format":"APNG","caption":"x"}"""
+        """{"durationMs":600,"frameIntervalMs":33,"format":"APNG","caption":"x"}""",
       )
     assertEquals(MotionFormat.APNG, apng.format)
   }

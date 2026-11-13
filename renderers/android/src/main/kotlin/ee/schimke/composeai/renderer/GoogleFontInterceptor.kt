@@ -292,7 +292,7 @@ object FontResolutionDiagnostics {
         "variation settings ($variationSettings) are dropped and the text renders at that " +
         "instance's baked axis values. The family's variable file — the only one carrying an " +
         "`fvar` table — could not be fetched; allow egress to raw.githubusercontent.com or warm " +
-        "the font cache to render the axes."
+        "the font cache to render the axes.",
     )
   }
 
@@ -345,9 +345,9 @@ class FontFallbackException(fallbacks: List<FontResolutionDiagnostics.FontFallba
       append(
         fallbacks.joinToString("; ") {
           "${it.family} (weight=${it.weight}${if (it.italic) ", italic" else ""}) — ${it.reason}"
-        }
+        },
       )
-    }
+    },
   )
 
 /**

@@ -120,7 +120,7 @@ class DesktopRecordingWrappedFrameTest {
               RecordingScriptEvent(tMs = 0L, kind = "recording.probe"),
               RecordingScriptEvent(tMs = 100L, kind = "input.click", pixelX = 30, pixelY = 15),
               RecordingScriptEvent(tMs = 400L, kind = "recording.probe"),
-            )
+            ),
           )
           val result = session.stop()
           // 60x30 dp closed, 60x90 dp open, at density 1.
@@ -185,7 +185,7 @@ class DesktopRecordingWrappedFrameTest {
             listOf(
               RecordingScriptEvent(tMs = 0L, kind = "recording.probe"),
               RecordingScriptEvent(tMs = 200L, kind = "recording.probe"),
-            )
+            ),
           )
           // Capture the bytes mid-flight is impossible; instead assert the frames decode at the
           // reported size and that re-finalizing would change nothing — the size equality that
@@ -461,7 +461,7 @@ class DesktopRecordingWrappedFrameTest {
               RecordingScriptEvent(tMs = 0L, kind = "recording.probe"),
               RecordingScriptEvent(tMs = 100L, kind = "input.click", pixelX = 30, pixelY = 15),
               RecordingScriptEvent(tMs = 400L, kind = "recording.probe"),
-            )
+            ),
           )
           val result = session.stop()
           assertEquals(60 to 90, result.frameWidthPx to result.frameHeightPx)

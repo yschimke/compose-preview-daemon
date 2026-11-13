@@ -53,7 +53,7 @@ class PreviewManifestLoaderLaneTest {
       Json.encodeToString(
         RenderManifest.serializer(),
         RenderManifest(module = ":app", variant = "debug", previews = entries),
-      )
+      ),
     )
     System.setProperty("composeai.render.manifest", manifest.absolutePath)
     System.setProperty("composeai.render.outputDir", tmp.root.absolutePath)
@@ -83,7 +83,7 @@ class PreviewManifestLoaderLaneTest {
       Json.encodeToString(
         RenderManifest.serializer(),
         RenderManifest(module = ":app", variant = "debug", previews = entries),
-      )
+      ),
     )
     System.setProperty("composeai.render.manifest", manifest.absolutePath)
     System.setProperty("composeai.render.outputDir", tmp.root.absolutePath)

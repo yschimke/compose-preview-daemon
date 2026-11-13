@@ -64,7 +64,7 @@ object DesktopTalkBackFocusOverlay {
         ImageIO.read(ByteArrayInputStream(pngBytes))
       } catch (t: Throwable) {
         System.err.println(
-          "[compose-a11y] desktop talkback overlay decode failed: ${t.javaClass.simpleName}: ${t.message}"
+          "[compose-a11y] desktop talkback overlay decode failed: ${t.javaClass.simpleName}: ${t.message}",
         )
         null
       } ?: return null
@@ -155,7 +155,7 @@ object DesktopTalkBackFocusOverlay {
         cardHeight.toFloat(),
         CAPTION_CORNER_PX,
         CAPTION_CORNER_PX,
-      )
+      ),
     )
     // Green accent bar down the left edge, tying the caption to the focus rectangle's colour.
     g.color = FOCUS_GREEN
@@ -167,7 +167,7 @@ object DesktopTalkBackFocusOverlay {
         cardHeight.toFloat(),
         CAPTION_CORNER_PX,
         CAPTION_CORNER_PX,
-      )
+      ),
     )
     g.color = Color.WHITE
     var baseline = cardTop + CAPTION_PADDING_PX + CAPTION_TEXT_PX

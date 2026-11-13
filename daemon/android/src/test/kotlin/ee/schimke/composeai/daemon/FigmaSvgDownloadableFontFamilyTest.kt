@@ -88,8 +88,8 @@ class FigmaSvgDownloadableFontFamilyTest {
               heightPx = 64,
               density = 1.0f,
               outputBaseName = previewId,
-            )
-          )
+            ),
+          ),
       )
     val host = PreviewManifestRouter(manifest = manifest)
     host.start()

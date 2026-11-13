@@ -449,7 +449,7 @@ public class SandboxSparePool(
 
     /** The production launcher: [ProcessBuilder], with [environment] applied. */
     internal fun processLauncher(
-      environment: ChildEnvironment
+      environment: ChildEnvironment,
     ): (command: List<String>, workingDirectory: File) -> Process = { command, dir ->
       ProcessBuilder(command)
         .directory(dir)

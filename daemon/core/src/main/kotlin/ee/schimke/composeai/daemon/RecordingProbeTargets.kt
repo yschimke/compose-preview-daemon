@@ -76,14 +76,14 @@ public fun resolveProbeTarget(
   }
   if (role != null && text != null) {
     return ProbeTargetResolution.Matched(
-      nodes.filter { it.role == role && it.effectiveText() == text }
+      nodes.filter { it.role == role && it.effectiveText() == text },
     )
   }
   if (text != null) {
     // Own text (not merged) so the merged-text container and its child text node don't both match
     // and make assert.textEquals ambiguous; contentDescription covers icon-only controls.
     return ProbeTargetResolution.Matched(
-      nodes.filter { it.text == text || it.contentDescription == text }
+      nodes.filter { it.text == text || it.contentDescription == text },
     )
   }
   if (role != null) {
@@ -92,10 +92,10 @@ public fun resolveProbeTarget(
   if (ref != null) {
     return ProbeTargetResolution.Unsupported(
       "the Android recording backend has no refs in its probe snapshot; " +
-        "target by testTag, role+text, or text instead of ref"
+        "target by testTag, role+text, or text instead of ref",
     )
   }
   return ProbeTargetResolution.Unsupported(
-    "target has no resolvable field; set testTag, role, or text"
+    "target has no resolvable field; set testTag, role, or text",
   )
 }

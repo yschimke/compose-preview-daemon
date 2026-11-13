@@ -116,7 +116,7 @@ class GitRefHistorySourceTest {
         a11yHierarchy = json.parseToJsonElement("""{"nodes":[]}"""),
         theme =
           json.parseToJsonElement(
-            """{"resolvedTokens":{"colorScheme":{},"typography":{},"shapes":{}}}"""
+            """{"resolvedTokens":{"colorScheme":{},"typography":{},"shapes":{}}}""",
           ),
       )
     assertEquals(WriteResult.WRITTEN, src.write(e, bytes))
@@ -139,7 +139,7 @@ class GitRefHistorySourceTest {
     assertEquals(1, manifest.previews.size)
     assertEquals("com.example.A", manifest.previews[0].previewId)
     assertTrue(
-      manifest.previews[0].dataProducts.containsAll(listOf("a11y/hierarchy", "compose/theme"))
+      manifest.previews[0].dataProducts.containsAll(listOf("a11y/hierarchy", "compose/theme")),
     )
 
     // Round-trips through the source's own read surface, stamped as a git source.
@@ -189,7 +189,7 @@ class GitRefHistorySourceTest {
     assertEquals(WriteResult.WRITTEN, src.write(first, "v1".toByteArray()))
     assertTrue(
       capture("git", "-C", repoRoot.toString(), "ls-tree", "-r", "--name-only", ref)
-        .contains("$previewId/a11y.json")
+        .contains("$previewId/a11y.json"),
     )
 
     // A later render with different pixels and NO a11y must overwrite render.png and drop
@@ -316,14 +316,14 @@ class GitRefHistorySourceTest {
     val pngSha = hashObject("x".toByteArray())
     val sidecarSha =
       hashObject(
-        json.encodeToString(HistoryEntry.serializer(), e).toByteArray(StandardCharsets.UTF_8)
+        json.encodeToString(HistoryEntry.serializer(), e).toByteArray(StandardCharsets.UTF_8),
       )
     val sub = mktree("100644 blob $pngSha\t${e.id}.png\n100644 blob $sidecarSha\t${e.id}.json\n")
     val indexSha =
       hashObject(
         (json.encodeToString(HistoryEntry.serializer(), e) + "\n").toByteArray(
-          StandardCharsets.UTF_8
-        )
+          StandardCharsets.UTF_8,
+        ),
       )
     val root = mktree("040000 tree $sub\t$dir\n100644 blob $indexSha\t_index.jsonl\n")
     val commit = commitTree(root, parent = null, message = "legacy")

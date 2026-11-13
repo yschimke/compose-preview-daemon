@@ -48,8 +48,8 @@ class RenderEngineRetiredSlotTest {
                 density = 1.0f,
                 showBackground = true,
                 outputBaseName = "retired-slot",
-              )
-            )
+              ),
+            ),
         ),
         timeoutMs = 120_000,
       )

@@ -43,7 +43,7 @@ class ChildEnvironmentTest {
             "COMPOSE_PREVIEW_SERVE_TOKEN",
             "AWS_SECRET_ACCESS_KEY",
             "GITHUB_TOKEN",
-          )
+          ),
       )
   }
 
@@ -83,7 +83,7 @@ class ChildEnvironmentTest {
           "SystemRoot" to "C:\\Windows",
           "lc_ctype" to "C",
           "Token" to "x",
-        )
+        ),
       )
 
     assertThat(child.keys).containsExactly("Path", "SystemRoot", "lc_ctype")
@@ -117,8 +117,8 @@ class ChildEnvironmentTest {
     val env =
       spawnAndDump(
         SubprocessDaemonClientFactory(
-          environment = ChildEnvironment.Allowlist(extra = mapOf("ENV_DUMP_EXTRA" to "present"))
-        )
+          environment = ChildEnvironment.Allowlist(extra = mapOf("ENV_DUMP_EXTRA" to "present")),
+        ),
       )
 
     assertThat(env["ENV_DUMP_EXTRA"]).isEqualTo("present")

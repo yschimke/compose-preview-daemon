@@ -58,7 +58,7 @@ class S1LifecycleAndroidRealModeTest {
               id = previewId,
               className = "ee.schimke.composeai.daemon.RedFixturePreviewsKt",
               functionName = "RedSquare",
-            )
+            ),
           ),
       )
 
@@ -108,7 +108,7 @@ class S1LifecycleAndroidRealModeTest {
       assertTrue("rendered PNG must be non-empty: $reportedPath", reportedPng.length() > 0)
       val wallClockMs = (System.nanoTime() - cold) / 1_000_000
       System.err.println(
-        "S1LifecycleAndroidRealModeTest: cold-spawn → renderFinished in ${wallClockMs}ms"
+        "S1LifecycleAndroidRealModeTest: cold-spawn → renderFinished in ${wallClockMs}ms",
       )
 
       // 6. Sanity: the rendered PNG must be mostly red (RedSquare = 0xFFEF5350).
@@ -133,7 +133,7 @@ class S1LifecycleAndroidRealModeTest {
       assertEquals("Daemon must exit cleanly. Stderr=\n${client.dumpStderr()}", 0, exitCode)
     } catch (t: Throwable) {
       System.err.println(
-        "S1LifecycleAndroidRealModeTest failed; stderr from daemon:\n" + client.dumpStderr()
+        "S1LifecycleAndroidRealModeTest failed; stderr from daemon:\n" + client.dumpStderr(),
       )
       throw t
     } finally {

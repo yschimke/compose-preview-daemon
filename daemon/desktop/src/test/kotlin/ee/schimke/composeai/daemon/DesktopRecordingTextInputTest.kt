@@ -128,7 +128,7 @@ class DesktopRecordingTextInputTest {
       // Neither a keycode the table knows nor a printable character. Interactive input drops this
       // silently (fire-and-forget); recording owes the agent an explanation.
       session.postScript(
-        listOf(keyDown(tMs = FIRST_EVENT_MS, keyCode = UNMAPPED_KEYCODE, text = "Shift"))
+        listOf(keyDown(tMs = FIRST_EVENT_MS, keyCode = UNMAPPED_KEYCODE, text = "Shift")),
       )
       val result = session.stop()
 
@@ -206,7 +206,7 @@ class DesktopRecordingTextInputTest {
       // wall-clock
       // offsets from `recording/start`, and the field needs a render tick to take focus first.
       session.postScript(
-        keyEvents.mapIndexed { i, e -> e.copy(tMs = FIRST_EVENT_MS + i * EVENT_GAP_MS) }
+        keyEvents.mapIndexed { i, e -> e.copy(tMs = FIRST_EVENT_MS + i * EVENT_GAP_MS) },
       )
       session.stop()
 

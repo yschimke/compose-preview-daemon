@@ -173,7 +173,7 @@ class XrSessionManagerTest {
             buildJsonObject {
               put("id", "top")
               put("x", 0)
-            }
+            },
           )
         },
       )
@@ -188,7 +188,7 @@ class XrSessionManagerTest {
           buildJsonObject {
             put("id", "top")
             put("x", 120)
-          }
+          },
         )
         // Complete new panel — appended.
         add(
@@ -197,14 +197,14 @@ class XrSessionManagerTest {
             putJsonObject("poseInRoot") {}
             putJsonObject("sizeDp") {}
             put("texture", "extra.png")
-          }
+          },
         )
         // Partial new panel — dropped (the native renderer would skip it).
         add(
           buildJsonObject {
             put("id", "junk")
             put("x", 9)
-          }
+          },
         )
       },
     )

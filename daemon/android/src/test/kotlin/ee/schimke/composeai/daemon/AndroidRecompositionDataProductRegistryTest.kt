@@ -140,7 +140,7 @@ class AndroidRecompositionDataProductRegistryTest {
             kind = InteractiveInputKind.CLICK,
             pixelX = INTERACTIVE_WIDTH_PX / 2,
             pixelY = INTERACTIVE_HEIGHT_PX / 2,
-          )
+          ),
         )
         session.render(requestId = RenderHost.nextRequestId())
 

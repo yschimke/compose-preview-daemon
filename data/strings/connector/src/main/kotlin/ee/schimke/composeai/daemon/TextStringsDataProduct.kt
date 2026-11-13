@@ -49,7 +49,7 @@ class TextStringsDataProductRegistry(
         attachable = true,
         fetchable = true,
         requiresRerender = false,
-      )
+      ),
     )
 
   override fun fetch(
@@ -64,7 +64,7 @@ class TextStringsDataProductRegistry(
         payloadFor(previewId)
       } catch (t: Throwable) {
         return DataProductRegistry.Outcome.FetchFailed(
-          message = "could not parse $kind for $previewId: ${t.message}"
+          message = "could not parse $kind for $previewId: ${t.message}",
         )
       } ?: return DataProductRegistry.Outcome.NotAvailable
     return DataProductRegistry.Outcome.Ok(
@@ -72,7 +72,7 @@ class TextStringsDataProductRegistry(
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(TextStringsPayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -98,7 +98,7 @@ class TextStringsDataProductRegistry(
         kind = KIND,
         schemaVersion = SCHEMA_VERSION,
         payload = json.encodeToJsonElement(TextStringsPayload.serializer(), payload),
-      )
+      ),
     )
   }
 
@@ -167,7 +167,7 @@ class TextStringsDataProductRegistry(
           overflow = node.textOverflow?.overflow?.takeIf { it.isNotBlank() },
           didOverflowWidth = node.textOverflow?.didOverflowWidth,
           didOverflowHeight = node.textOverflow?.didOverflowHeight,
-        )
+        ),
       )
     }
     node.children.forEach { collectTexts(it, localeTag, fontScale) }

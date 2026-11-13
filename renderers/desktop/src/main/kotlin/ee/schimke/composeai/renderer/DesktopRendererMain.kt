@@ -127,7 +127,7 @@ private fun renderMain(args: Array<String>) {
 
   if (args.size < 8) {
     System.err.println(
-      "Usage: DesktopRendererMain <className> <functionName> <widthPx> <heightPx> <density> <showBackground> <backgroundColor> <outputFile> [wrapperClassName] [wrapWidth] [wrapHeight] [previewParameterProviderFqn] [previewParameterLimit] [localeTag] [scrollMode] [scrollAxis] [scrollMaxScrollPx] [scrollFrameIntervalMs]"
+      "Usage: DesktopRendererMain <className> <functionName> <widthPx> <heightPx> <density> <showBackground> <backgroundColor> <outputFile> [wrapperClassName] [wrapWidth] [wrapHeight] [previewParameterProviderFqn] [previewParameterLimit] [localeTag] [scrollMode] [scrollAxis] [scrollMaxScrollPx] [scrollFrameIntervalMs]",
     )
     exitProcess(1)
   }
@@ -461,7 +461,7 @@ private fun renderMain(args: Array<String>) {
         loadProviderValues(previewParameterProviderFqn, previewParameterLimit).also { vs ->
           if (vs.isEmpty()) {
             System.err.println(
-              "@PreviewParameter(provider = $previewParameterProviderFqn) on $functionName produced no values — skipping."
+              "@PreviewParameter(provider = $previewParameterProviderFqn) on $functionName produced no values — skipping.",
             )
           }
         }
@@ -501,7 +501,7 @@ private fun renderMain(args: Array<String>) {
       allSuffixes.filterIndexed { idx, _ -> idx !in keptRows }.map { it.removePrefix("_") }
     System.err.println(
       "@PreviewParameter on $functionName: skipping ${skipped.size} of ${allSuffixes.size} row(s) " +
-        "excluded by ${PreviewRowFilter.PROPERTY}: ${skipped.joinToString(", ")}"
+        "excluded by ${PreviewRowFilter.PROPERTY}: ${skipped.joinToString(", ")}",
     )
   }
   val targetFiles = keptRows.map { allTargetFiles[it] }
@@ -666,7 +666,7 @@ private fun renderMain(args: Array<String>) {
           if (dragIndex != null) {
             error(
               "@OverrideVariant drag on $className.$functionName: target at index $dragIndex " +
-                "did not produce a dragged frame; refusing to publish an undriven artifact."
+                "did not produce a dragged frame; refusing to publish an undriven artifact.",
             )
           } else {
             renderPreview(
@@ -761,7 +761,7 @@ private fun renderMain(args: Array<String>) {
             throw IllegalStateException(
               "@ScrollingPreview(${scrollDispatchMode.name}) on $className.$functionName: " +
                 "no scrollable composable found on axis ${scrollAxis.name} — refusing to " +
-                "write a single-frame capture into the data product path."
+                "write a single-frame capture into the data product path.",
             )
           }
           renderPreview(
@@ -837,7 +837,7 @@ private fun renderMain(args: Array<String>) {
         } catch (t: Throwable) {
           System.err.println(
             "DesktopRendererMain: displayfilter write failed for ${targetFile.name}: " +
-              "${t.javaClass.simpleName}: ${t.message}"
+              "${t.javaClass.simpleName}: ${t.message}",
           )
         }
       }
@@ -858,7 +858,7 @@ private fun renderMain(args: Array<String>) {
         } catch (t: Throwable) {
           System.err.println(
             "DesktopRendererMain: deviceframe write failed for ${targetFile.name}: " +
-              "${t.javaClass.simpleName}: ${t.message}"
+              "${t.javaClass.simpleName}: ${t.message}",
           )
         }
       }
@@ -1168,7 +1168,7 @@ private fun loadProviderValues(providerFqn: String, limit: Int): List<Any?> {
   }
     .getOrElse { e ->
       System.err.println(
-        "@PreviewParameter: couldn't instantiate $providerFqn via nullary ctor: ${e.message}"
+        "@PreviewParameter: couldn't instantiate $providerFqn via nullary ctor: ${e.message}",
       )
       return emptyList()
     }
@@ -1177,7 +1177,7 @@ private fun loadProviderValues(providerFqn: String, limit: Int): List<Any?> {
   }
     .getOrElse {
       System.err.println(
-        "@PreviewParameter: $providerFqn has no getValues() — not a PreviewParameterProvider?"
+        "@PreviewParameter: $providerFqn has no getValues() — not a PreviewParameterProvider?",
       )
       return emptyList()
     }
@@ -1466,7 +1466,7 @@ internal fun renderPreview(
               showBackground = showBackground,
               backgroundColor = backgroundColor,
               uiMode = uiMode,
-            )
+            ),
           )
         val body: @Composable () -> Unit = {
           // The AS-parity wrap-measure box (and its fixed-axis `fillMaxSize` counterpart) is shared
@@ -1786,7 +1786,7 @@ internal fun findComposableMethodWithArgs(
     }
       ?: throw NoSuchMethodException(
         "Couldn't find composable method $name on ${clazz.name} taking $argCount parameter(s); " +
-          "check that the @PreviewParameter provider's value type matches the preview's parameter type."
+          "check that the @PreviewParameter provider's value type matches the preview's parameter type.",
       )
   val declaredTypes = candidate.parameterTypes.take(argCount).toTypedArray()
   return clazz.getDeclaredComposableMethod(name, *declaredTypes)

@@ -122,7 +122,7 @@ public object BundleIrReplayStore {
 
   @Serializable
   private data class BundleManifestLite(
-    val intermediateRepresentations: List<BundleIrLite> = emptyList()
+    val intermediateRepresentations: List<BundleIrLite> = emptyList(),
   )
 
   @Serializable

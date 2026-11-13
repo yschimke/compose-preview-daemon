@@ -55,7 +55,7 @@ data class NavigationBackPressedState(
    * with the activity's dispatcher. When `false`, a back press would fall through to the activity's
    * default behaviour (finish / pop the task).
    */
-  val hasEnabledCallbacks: Boolean
+  val hasEnabledCallbacks: Boolean,
 )
 
 /**

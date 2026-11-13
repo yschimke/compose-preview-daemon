@@ -38,7 +38,7 @@ public fun evaluateVisibilityAssertion(
     if (matchCount == 0) AssertionVerdict.Passed
     else
       AssertionVerdict.Failed(
-        "assert.notVisible: $matchCount node(s) matched $targetLabel but none were expected"
+        "assert.notVisible: $matchCount node(s) matched $targetLabel but none were expected",
       )
   }
 
@@ -58,7 +58,7 @@ public fun evaluateTextEqualsAssertion(
   else
     AssertionVerdict.Failed(
       "assert.textEquals: $targetLabel text was ${actual?.let { "\"$it\"" } ?: "<none>"} " +
-        "but expected \"$expected\""
+        "but expected \"$expected\"",
     )
 
 /**
@@ -135,6 +135,6 @@ public fun evaluateA11yAssertion(
   val detail = gated.take(5).joinToString("; ") { "${it.type}: ${it.message}" }
   return AssertionVerdict.Failed(
     "assert.a11y: $errors error(s), $warnings warning(s) at threshold " +
-      "${threshold.name.lowercase()} — $detail"
+      "${threshold.name.lowercase()} — $detail",
   )
 }

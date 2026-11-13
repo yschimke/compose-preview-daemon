@@ -52,7 +52,7 @@ class DesktopAccessibilityDataProductRegistryTest {
         "missingOutcome",
         "preview",
         DesktopAccessibilityDataProducer.KIND_ATF,
-      ) is DataProductRegistry.Outcome.RequiresRerender
+      ) is DataProductRegistry.Outcome.RequiresRerender,
     )
   }
 

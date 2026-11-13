@@ -29,7 +29,7 @@ class LottieDispatchTest {
     // Regression: `foo_animated.json` sanitises to a stem ending in `_animated`; its still must
     // still dispatch to the single-frame path, not the APNG companion.
     assertFalse(
-      isLottieAnimatedOutput("lottie/foo_animated.json", out("lottie__lottie_foo_animated.png"))
+      isLottieAnimatedOutput("lottie/foo_animated.json", out("lottie__lottie_foo_animated.png")),
     )
   }
 
@@ -39,7 +39,7 @@ class LottieDispatchTest {
       isLottieAnimatedOutput(
         "lottie/foo_animated.json",
         out("lottie__lottie_foo_animated_animated.png"),
-      )
+      ),
     )
   }
 

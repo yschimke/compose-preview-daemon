@@ -45,7 +45,7 @@ class FontResolverRecorderTest {
         listOf(
           googleFont("Orbitron", FontWeight.Medium),
           googleFont("Noto Sans JP", FontWeight.Normal),
-        )
+        ),
       )
     val recorder = FontResolverRecorder()
 

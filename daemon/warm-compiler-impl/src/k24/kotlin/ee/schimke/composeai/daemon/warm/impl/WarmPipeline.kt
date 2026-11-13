@@ -97,7 +97,7 @@ internal class LoadedPlugins(
  */
 internal class InjectPluginsPhase(private val plugins: LoadedPlugins) :
   PipelinePhase<ConfigurationPipelineArtifact, ConfigurationPipelineArtifact>(
-    name = "WarmInjectPlugins"
+    name = "WarmInjectPlugins",
   ) {
   override fun executePhase(input: ConfigurationPipelineArtifact): ConfigurationPipelineArtifact {
     val configuration = input.configuration
@@ -276,7 +276,7 @@ internal class WarmCliPipeline(
   override val defaultPerformanceManager: PerformanceManager = perf
 
   override fun createCompoundPhase(
-    arguments: K2JVMCompilerArguments
+    arguments: K2JVMCompilerArguments,
   ): CompilerPhase<PipelineContext, ArgumentsPipelineArtifact<K2JVMCompilerArguments>, *> =
     JvmConfigurationPipelinePhase then
       InjectPluginsPhase(plugins) then

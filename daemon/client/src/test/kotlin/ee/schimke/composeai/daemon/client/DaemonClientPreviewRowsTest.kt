@@ -22,7 +22,7 @@ class DaemonClientPreviewRowsTest {
       withPeer(
         answer = { id ->
           """{"jsonrpc":"2.0","id":$id,"error":{"code":-32601,"message":"method not found: preview/rows"}}"""
-        }
+        },
       ) { client ->
         assertThat(client.previewRows("com.example.CardKt.Card", timeout = 5.seconds)).isNull()
       }
@@ -37,7 +37,7 @@ class DaemonClientPreviewRowsTest {
     withPeer(
       answer = { id ->
         """{"jsonrpc":"2.0","id":$id,"result":{"previewId":"a.CardKt.Card","rows":[{"index":0,"label":"Dark","id":"a.CardKt.Card_Dark"},{"index":1,"label":"PARAM_1","id":"a.CardKt.Card_PARAM_1"}]}}"""
-      }
+      },
     ) { client ->
       val result = client.previewRows("a.CardKt.Card", timeout = 5.seconds)!!
       assertThat(result.previewId).isEqualTo("a.CardKt.Card")
@@ -54,7 +54,7 @@ class DaemonClientPreviewRowsTest {
     withPeer(
       answer = { id ->
         """{"jsonrpc":"2.0","id":$id,"error":{"code":-32602,"message":"invalid preview/rows params: unknown previewId"}}"""
-      }
+      },
     ) { client ->
       val failure =
         assertThrows(IllegalStateException::class.java) {

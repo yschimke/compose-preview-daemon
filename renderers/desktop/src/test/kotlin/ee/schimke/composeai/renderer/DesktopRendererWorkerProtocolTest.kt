@@ -37,7 +37,7 @@ class DesktopRendererWorkerProtocolTest {
     if (!SKIKO_LOADED) {
       System.err.println(
         "DesktopRendererWorkerProtocolTest skipped entirely: skiko's native library did not load, " +
-          "so the pooled-capture transport was never exercised. Cause: $skikoLoadFailure"
+          "so the pooled-capture transport was never exercised. Cause: $skikoLoadFailure",
       )
     }
     Assume.assumeTrue("skiko natives unavailable: $skikoLoadFailure", SKIKO_LOADED)
@@ -159,7 +159,7 @@ class DesktopRendererWorkerProtocolTest {
   private fun renderForked(target: File) {
     val process =
       ProcessBuilder(
-          jvmCommand("ee.schimke.composeai.renderer.DesktopRendererMainKt") + argsFor(target)
+          jvmCommand("ee.schimke.composeai.renderer.DesktopRendererMainKt") + argsFor(target),
         )
         .redirectError(ProcessBuilder.Redirect.INHERIT)
         .start()

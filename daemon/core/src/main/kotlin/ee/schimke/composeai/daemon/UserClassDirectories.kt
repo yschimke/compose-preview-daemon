@@ -219,7 +219,7 @@ private constructor(
     init {
       Runtime.getRuntime()
         .addShutdownHook(
-          Thread({ roots.forEach { it.toFile().deleteRecursively() } }, "preview-class-cleanup")
+          Thread({ roots.forEach { it.toFile().deleteRecursively() } }, "preview-class-cleanup"),
         )
     }
 
