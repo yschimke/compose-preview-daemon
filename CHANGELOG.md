@@ -1,5 +1,33 @@
 # Changelog
 
+## [3.28.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.7...v3.28.0) (2026-11-14)
+
+
+### Features
+
+* support Declarative Watch Face render sessions in Android and desktop daemons ([#482](https://github.com/yschimke/compose-preview-daemon/issues/482)) ([8360262](https://github.com/yschimke/compose-preview-daemon/commit/8360262601e94dd65f8422a047e56a2094f01a96))
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.android.tools.build:gradle to v9.5.1 ([#477](https://github.com/yschimke/compose-preview-daemon/issues/477)) ([383a37e](https://github.com/yschimke/compose-preview-daemon/commit/383a37e24333e7924c87b960170edc495a363da3))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.43.0 ([#475](https://github.com/yschimke/compose-preview-daemon/issues/475)) ([85c9329](https://github.com/yschimke/compose-preview-daemon/commit/85c932972ff48e5125441fab377112a2e49fcfee))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.1.0 ([#472](https://github.com/yschimke/compose-preview-daemon/issues/472)) ([e132ef7](https://github.com/yschimke/compose-preview-daemon/commit/e132ef7e7a164dfea99fefbcb595d76c494bab6c))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.1.2 ([#478](https://github.com/yschimke/compose-preview-daemon/issues/478)) ([abd60df](https://github.com/yschimke/compose-preview-daemon/commit/abd60dfa91171b1cc2ab83496b78bc821aee025d))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.1.3 ([#483](https://github.com/yschimke/compose-preview-daemon/issues/483)) ([a68f377](https://github.com/yschimke/compose-preview-daemon/commit/a68f377d43eaba49f1a7ab61feb05ecd747d830e))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.2.0 ([#486](https://github.com/yschimke/compose-preview-daemon/issues/486)) ([93a9bff](https://github.com/yschimke/compose-preview-daemon/commit/93a9bffeb69f28b50505326cf6f931ad4856edf9))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.3.1 ([#487](https://github.com/yschimke/compose-preview-daemon/issues/487)) ([2419222](https://github.com/yschimke/compose-preview-daemon/commit/24192226e1144fc25737b70da60d6c29af8825f7))
+* **deps:** update dependency io.github.classgraph:classgraph to v5.0.2 ([#479](https://github.com/yschimke/compose-preview-daemon/issues/479)) ([13d92ce](https://github.com/yschimke/compose-preview-daemon/commit/13d92ce68f6b5389dd1b87645d79c14264c5cd9f))
+* **deps:** update ktfmt to v0.28.0 ([#480](https://github.com/yschimke/compose-preview-daemon/issues/480)) ([094dc6b](https://github.com/yschimke/compose-preview-daemon/commit/094dc6bf7232c5d60fdc2161c3804977ec631f6b))
+
+
+### Chores
+
+* **deps:** update agp to v9.5.1 ([#476](https://github.com/yschimke/compose-preview-daemon/issues/476)) ([be004c0](https://github.com/yschimke/compose-preview-daemon/commit/be004c04c72ff449a6932e68ec032886ca007d0b))
+* **deps:** update amannn/action-semantic-pull-request action to v6.1.2 ([#474](https://github.com/yschimke/compose-preview-daemon/issues/474)) ([a3b8fb9](https://github.com/yschimke/compose-preview-daemon/commit/a3b8fb9b088a51c714904dea81fc68da62bd776a))
+* **deps:** update dependency yschimke/compose-preview-xr to v2.0.4 ([#484](https://github.com/yschimke/compose-preview-daemon/issues/484)) ([0cf0045](https://github.com/yschimke/compose-preview-daemon/commit/0cf00459aecd7266090cf385ca653a618e8f73f2))
+* **deps:** update gradle to v9.9.0 ([#485](https://github.com/yschimke/compose-preview-daemon/issues/485)) ([086198e](https://github.com/yschimke/compose-preview-daemon/commit/086198eae7aae5e2bd4b1e67b3810987b0d1ebfd))
+
 ## [3.27.7](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.6...v3.27.7) (2026-11-12)
 
 
