@@ -130,10 +130,13 @@ internal suspend fun captureAndroidxRemoteDocument(
 /**
  * `RemoteDensity.from(displayInfo)`, whichever way the consumer's `remote-creation-compose`
  * declares it: a member of `RemoteDensity.Companion`, or (newer lines) a top-level extension on it
- * compiled into `RemoteDensityKt`. A direct call binds to one of the two at compile time, so on the
- * other line [AndroidxRemoteCapture.requireLinked] refused every capture by name and, past it, the
- * call was a `NoSuchMethodError` (compose-preview-daemon#341). Resolved reflectively instead, which
- * also leaves no constant-pool reference to either form for the linkage check to trip on.
+ * compiled into a file class — `RemoteDensityKt` through alpha23, `RemoteCreationDisplayInfoKt` on
+ * androidx-main (alpha24), where `RemoteDensity` itself moved to `remote-creation-expression` and
+ * the extension stayed behind (as `internal`, which leaves its JVM name and signature unchanged). A
+ * direct call binds to one of these at compile time, so on another line
+ * [AndroidxRemoteCapture.requireLinked] refused every capture by name and, past it, the call was a
+ * `NoSuchMethodError` (compose-preview-daemon#341). Resolved reflectively instead, which also
+ * leaves no constant-pool reference to any form for the linkage check to trip on.
  */
 internal fun remoteDensityFrom(displayInfo: RemoteCreationDisplayInfo): RemoteDensity {
   val companion: Any = RemoteDensity.Companion
@@ -145,15 +148,35 @@ internal fun remoteDensityFrom(displayInfo: RemoteCreationDisplayInfo): RemoteDe
       null
     }
   if (member != null) return member.invoke(companion, displayInfo) as RemoteDensity
+  val loader = RemoteDensity::class.java.classLoader
   val extension =
-    Class.forName(REMOTE_DENSITY_FILE_CLASS, false, RemoteDensity::class.java.classLoader)
-      .getMethod("from", companion.javaClass, displayInfoType)
+    REMOTE_DENSITY_FILE_CLASSES.firstNotNullOfOrNull { fileClass ->
+      try {
+        Class.forName(fileClass, false, loader)
+          .getMethod("from", companion.javaClass, displayInfoType)
+      } catch (_: ClassNotFoundException) {
+        null
+      } catch (_: NoSuchMethodException) {
+        null
+      }
+    }
+      ?: throw NoSuchMethodException(
+        "RemoteDensity.Companion.from(RemoteCreationDisplayInfo) is neither a member nor in " +
+          REMOTE_DENSITY_FILE_CLASSES.joinToString(" or "),
+      )
   return extension.invoke(null, companion, displayInfo) as RemoteDensity
 }
 
-/** The file class newer `remote-creation-compose` compiles `RemoteDensity.Companion.from` into. */
-private const val REMOTE_DENSITY_FILE_CLASS: String =
-  "androidx.compose.remote.creation.compose.capture.RemoteDensityKt"
+/**
+ * The file classes `remote-creation-compose` has compiled `RemoteDensity.Companion.from` into,
+ * oldest line first: `RemoteDensityKt` (through alpha23), `RemoteCreationDisplayInfoKt`
+ * (androidx-main, alpha24).
+ */
+private val REMOTE_DENSITY_FILE_CLASSES: List<String> =
+  listOf(
+    "androidx.compose.remote.creation.compose.capture.RemoteDensityKt",
+    "androidx.compose.remote.creation.compose.capture.RemoteCreationDisplayInfoKt",
+  )
 
 /** The linkage of [captureAndroidxRemoteDocument] against the consumer's creation library. */
 internal object AndroidxRemoteCapture {

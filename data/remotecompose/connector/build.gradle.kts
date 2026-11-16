@@ -37,6 +37,11 @@ plugins {
   alias(libs.plugins.compose.compiler)
 }
 
+// The Remote Compose lane `settings.gradle.kts` resolved, with the same default and spelling: the
+// released alphas (`release`) or the androidx.dev build `-Pcomposeai.remoteCompose=snapshot` pins.
+val remoteComposeLine =
+  providers.gradleProperty("composeai.remoteCompose").orElse("release").get().trim().lowercase()
+
 android {
   namespace = "ee.schimke.composeai.data.remotecompose.connector"
   // The alpha `compose-remote` AARs (`androidx.compose.remote:remote-creation`,
@@ -120,6 +125,14 @@ dependencies {
   compileOnly(libs.compose.remote.creation)
   compileOnly(libs.compose.remote.creation.compose)
   compileOnly(libs.compose.remote.tooling.preview)
+  // On androidx-main (the snapshot lane, `-Pcomposeai.remoteCompose=snapshot`) the state types this
+  // module names (`RemoteFloat`, `RemoteString`, `RemoteDensity`, ...) moved out of
+  // `remote-creation-compose` into `remote-creation-expression`, same package. Named directly there
+  // rather than leaning on the transitive edge; the released line has no such artifact.
+  if (remoteComposeLine == "snapshot") {
+    compileOnly(libs.compose.remote.creation.expression)
+    testImplementation(libs.compose.remote.creation.expression)
+  }
   // `ShadowRemoteContentPreview` is a Robolectric shadow; the daemon's sandbox supplies
   // Robolectric at runtime, same as the ambient / gestures / permissions connectors' shadows.
   compileOnly(libs.robolectric)

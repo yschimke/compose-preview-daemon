@@ -5,15 +5,11 @@ package ee.schimke.composeai.daemon
 import androidx.compose.remote.creation.compose.state.RemoteColor
 import androidx.compose.remote.creation.compose.state.RemoteDp
 import androidx.compose.remote.creation.compose.state.RemoteFloat
+import androidx.compose.remote.creation.compose.state.RemoteState
 import androidx.compose.remote.creation.compose.state.RemoteString
-import androidx.compose.remote.creation.compose.state.rdp
-import androidx.compose.remote.creation.compose.state.rememberNamedRemoteColor
-import androidx.compose.remote.creation.compose.state.rememberNamedRemoteDp
-import androidx.compose.remote.creation.compose.state.rememberNamedRemoteFloat
-import androidx.compose.remote.creation.compose.state.rememberNamedRemoteString
-import androidx.compose.remote.creation.compose.state.rf
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
@@ -40,6 +36,18 @@ import ee.schimke.composeai.data.remotecompose.RemoteComposeKnobDeclaration
  * `RemoteComposeOverrideExtension`'s render-start `clearDeclarations`, mirroring the plain-Compose
  * `previewOverride*` discipline. Outside a daemon/render the record is a harmless no-op write to
  * the process-static controller.
+ *
+ * **Why not the upstream `rememberNamedRemote*`.** This published connector is linked once and then
+ * run against whichever Remote Compose line the consumer brings, so it binds only to members that
+ * have the same JVM signature on every line it supports. The `rememberNamedRemote*` composables do
+ * not: androidx-main (alpha24) moved them from `RemoteFloatKt` / `RemoteStringKt` /
+ * `RemoteDpComposeKt` into `RemoteStateComposables.kt` (class `RemoteStateKt`) and made the float
+ * and dp defaults values instead of lambdas, so a connector compiled against alpha23 threw
+ * `NoSuchMethodError` from every knob on the newer line. The `RemoteX.createNamedRemoteX(name,
+ * primitive, domain)` companion factories they wrap are unchanged across both lines (on alpha24 in
+ * the new `remote-creation-expression` artifact, same package), so each wrapper remembers one of
+ * those, keyed like upstream on `(name, domain)`. The document they write is the one the upstream
+ * composable writes for a constant default.
  */
 @Composable
 fun rememberOverridableRemoteString(name: String, default: String): RemoteString {
@@ -48,7 +56,7 @@ fun rememberOverridableRemoteString(name: String, default: String): RemoteString
       RemoteComposeKnobDeclaration(name, RemoteNamedValue.StringValue(default)),
     )
   }
-  return rememberNamedRemoteString(name, default)
+  return remember(name, USER) { RemoteString.createNamedRemoteString(name, default, USER) }
 }
 
 /** [rememberOverridableRemoteString] for a color knob; the default is recorded as `#AARRGGBB`. */
@@ -59,7 +67,8 @@ fun rememberOverridableRemoteColor(name: String, default: Color): RemoteColor {
       RemoteComposeKnobDeclaration(name, RemoteNamedValue.ColorValue(default.toArgbHex())),
     )
   }
-  return rememberNamedRemoteColor(name, default)
+  val argb = default.toArgb()
+  return remember(name, USER) { RemoteColor.createNamedRemoteColor(name, argb, USER) }
 }
 
 /**
@@ -73,9 +82,7 @@ fun rememberOverridableRemoteFloat(name: String, default: Float): RemoteFloat {
       RemoteComposeKnobDeclaration(name, RemoteNamedValue.FloatValue(default)),
     )
   }
-  // The alpha `rememberNamedRemoteFloat` has no plain-default overload — it takes a lambda that
-  // produces the default RemoteFloat — so wrap the bare default with `.rf`.
-  return rememberNamedRemoteFloat(name) { default.rf }
+  return remember(name, USER) { RemoteFloat.createNamedRemoteFloat(name, default, USER) }
 }
 
 /**
@@ -89,9 +96,15 @@ fun rememberOverridableRemoteDp(name: String, default: Dp): RemoteDp {
       RemoteComposeKnobDeclaration(name, RemoteNamedValue.DpValue(default.value)),
     )
   }
-  // Like the float wrapper, the alpha `rememberNamedRemoteDp` takes a lambda producing the default.
-  return rememberNamedRemoteDp(name) { default.value.rdp }
+  return remember(name, USER) { RemoteDp.createNamedRemoteDp(name, default.value, USER) }
 }
+
+/**
+ * The domain every overridable knob binds in, the one `rememberNamedRemote*` defaults to and the
+ * `USER:` prefix `renderNow.overrides.remoteCompose` seeds.
+ */
+private val USER: RemoteState.Domain
+  get() = RemoteState.Domain.User
 
 /**
  * `#AARRGGBB`, matching the form `RemoteNamedValue.ColorValue` carries and the connector parses.
