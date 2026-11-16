@@ -53,7 +53,7 @@ val useRemoteComposeSnapshot = remoteComposeLine == "snapshot"
 // `composeai.remoteCompose=snapshot`. Bump this one line to move all three groups to a newer
 // snapshot; build ids age out of androidx.dev after a few weeks, so if the artifacts 404 pick a
 // fresh one from https://androidx.dev/snapshots/builds.
-val androidxSnapshotBuildId = "16155060"
+val androidxSnapshotBuildId = "16942710"
 
 dependencyResolutionManagement {
   // PREFER_PROJECT exists solely so the Kotlin wasmJs toolchain's plugin-owned Node.js

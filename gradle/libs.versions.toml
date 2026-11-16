@@ -186,7 +186,13 @@ horologist = "0.7.15"
 #    with `-Pcomposeai.remoteCompose=snapshot`: `settings.gradle.kts` then adds
 #    the build-id-pinned androidx.dev repository and rewrites all three refs to
 #    `1.0.0-SNAPSHOT`. The snapshot lane is opt-in and temporary — CI, published
-#    consumers and every default build stay on these released pins.
+#    consumers and every default build stay on these released pins. Sources stay
+#    in a form both lanes compile, and the published connector binds only to
+#    members whose JVM signature is the same on both (it is built against the
+#    release pins and then run against whatever line a consumer brings); where
+#    that is impossible it resolves the member by name (`remoteDensityFrom`).
+#    Should a source ever have to differ, follow rc-players: read the same
+#    property and compile `src/remoteRelease` or `src/remoteSnapshot`.
 #  * API drift still happens between alphas, and it lands in the samples +
 #    connector, not just in resolution. Past migrations, for shape: `HostAction`
 #    went `internal` (build actions via the public `hostAction(...)` factory
@@ -438,6 +444,11 @@ compose-remote-player-view = { module = "androidx.compose.remote:remote-player-v
 # vendored player reads `androidx.compose.remote.core.*` directly rather than only through the
 # Android-only `remote-player-core`.
 compose-remote-core = { module = "androidx.compose.remote:remote-core", version.ref = "compose-remote" }
+# The creation API's state types (`RemoteFloat`, `MutableRemoteInt`, ...) after androidx-main split
+# them out of `remote-creation-compose`, same package. Not published at the pinned release
+# (alpha23), so only the snapshot lane (`-Pcomposeai.remoteCompose=snapshot`) may name it; on
+# alpha23 those types are inside `remote-creation-compose`.
+compose-remote-creation-expression = { module = "androidx.compose.remote:remote-creation-expression", version.ref = "compose-remote" }
 # `ObjectIntMap` / `IntObjectMap` in the vendored embedded player's public signatures. Compose pulls
 # collection in transitively, but the player names the types directly so it declares them itself.
 androidx-collection = { module = "androidx.collection:collection", version.ref = "androidx-collection" }
