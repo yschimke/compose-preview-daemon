@@ -29,6 +29,10 @@ import androidx.compose.ui.platform.LocalContext
  * and a shadow would change the colours for every context in the sandbox (including the next
  * render's), where a wrapped context is scoped to this composition by construction.
  *
+ * Material 3 1.5.0 resolves the colours through a styled-attribute lookup on the context's theme
+ * instead, which the wrapped `Resources` never sees; the wrapped context's theme is recreated on
+ * the wrapped `Resources` and [ShadowSystemDynamicColorTypedArray] answers those arrays.
+ *
  * What it does not reach: a lookup that does not go through `LocalContext` (e.g. an XML theme
  * attribute already resolved against the activity's own `Resources`), and code that casts
  * `LocalContext.current` to an `Activity` (use `LocalActivity` instead) — the same caveat as the
@@ -197,6 +201,19 @@ private class WearDynamicColorSetting(private val resolver: ContentResolver) : R
 private class SystemDynamicColorContext(base: Context, private val res: Resources) :
   ContextWrapper(base) {
   override fun getResources(): Resources = res
+
+  /**
+   * The base theme, recreated on [res] so a `TypedArray` it fills records [res] as its resources.
+   * Material 3 1.5.0 reads the dynamic colours that way (`theme.obtainStyledAttributes(...)`), and
+   * [ShadowSystemDynamicColorTypedArray] serves the table to those arrays only.
+   */
+  private val wrappedTheme: Resources.Theme by lazy {
+    res.newTheme().also { theme ->
+      runCatching { baseContext.theme }.getOrNull()?.let(theme::setTo)
+    }
+  }
+
+  override fun getTheme(): Resources.Theme = wrappedTheme
 }
 
 /**
@@ -209,7 +226,7 @@ private class SystemDynamicColorContext(base: Context, private val res: Resource
 @Suppress("DEPRECATION")
 internal class SystemDynamicColorResources(
   private val base: Resources,
-  private val colors: Map<Int, Int>,
+  internal val colors: Map<Int, Int>,
 ) : Resources(base.assets, base.displayMetrics, base.configuration) {
 
   override fun getColor(id: Int): Int = colors[id] ?: base.getColor(id)

@@ -28,7 +28,7 @@ import org.robolectric.annotation.Config
  * module's test classpath, so the reflective Wear `MaterialTheme` wrap is exercised too.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
+@Config(sdk = [35], shadows = [ShadowSystemDynamicColorTypedArray::class])
 class SystemDynamicColorsTest {
 
   @get:Rule val rule = createComposeRule()
