@@ -2826,6 +2826,18 @@ internal object ComposeLayoutInspector {
       )
 
     /**
+     * The Android ripple nodes that keep the active press in a platform `RippleDrawable` on a
+     * `RippleHostView` (`rippleHostView.ripple`). material3 1.5.0 builds its ripple from its own
+     * `material3-ripple` artifact, whose `AndroidRippleNode` has the same shape as
+     * `material.ripple`'s; matching only the latter dropped the press ripple from the export.
+     */
+    val ANDROID_RIPPLE_NODE_CLASSES: Set<String> =
+      setOf(
+        "androidx.compose.material.ripple.AndroidRippleNode",
+        "androidx.compose.material3.ripple.AndroidRippleNode",
+      )
+
+    /**
      * Reads settled opacity state from Material's delegated ripple node on both backends.
      *
      * `ModifierInfo` exposes the `ClickableElement`, but the active state lives on a delegate of
@@ -2975,7 +2987,7 @@ internal object ComposeLayoutInspector {
           // animation map. The host survives release for the exit animation and reuse, so gate on
           // the drawable's actual pressed state rather than host allocation.
           val androidHost =
-            if (candidate.javaClass.name == "androidx.compose.material.ripple.AndroidRippleNode")
+            if (candidate.javaClass.name in ANDROID_RIPPLE_NODE_CLASSES)
               reflectedField(candidate, "rippleHostView")
             else null
           val androidRipple = androidHost?.let { reflectedField(it, "ripple") }
