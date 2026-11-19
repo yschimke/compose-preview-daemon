@@ -179,9 +179,9 @@ horologist = "0.7.15"
 #    compile and the daemon-harness render; and #2823 once pinned a
 #    `wear-compose-remote` version that didn't exist yet (every artifact 404'd),
 #    making every Remote Compose module here unresolvable. Check the POMs
-#    before landing a bump: `remote-material3:1.0.0-alpha10` and
-#    `androidx.glance.wear:*:1.0.0-alpha17` both declare `remote-creation*`
-#    `1.0.0-alpha18`, which is what makes the current trio consistent.
+#    before landing a bump: `remote-material3:1.0.0-alpha16` and
+#    `androidx.glance.wear:*:1.0.0-alpha23` both declare `remote-creation*`
+#    `1.0.0-alpha24`, which is what makes the current trio consistent.
 #  * To try an API that has landed on androidx-main but is not released yet, run
 #    with `-Pcomposeai.remoteCompose=snapshot`: `settings.gradle.kts` then adds
 #    the build-id-pinned androidx.dev repository and rewrites all three refs to
@@ -201,7 +201,7 @@ horologist = "0.7.15"
 #    `RemotePreview` became `RemoteContentPreview`; `RemoteDensity.from` dropped
 #    its trailing `Context` arg. Expect the same class of fix when these pins
 #    move — verify a render, not just a compile.
-compose-remote = "1.0.0-alpha23"
+compose-remote = "1.0.0-alpha24"
 # Matches what the `compose-bom-compat` Compose artifacts already resolve collection to; pinned
 # explicitly because `:third-party-rc-embedded-player` names `ObjectIntMap`/`IntObjectMap` directly.
 androidx-collection = "1.7.0"
@@ -213,20 +213,20 @@ androidx-core = "1.19.1"
 # and `:samples:wear-widget` (and, out of tree, by the `remote-m3` catalog in
 # yschimke/wear-m3-catalog, which resolves this same coordinate from Google Maven).
 # Its POM declares the `remote-creation*`
-# version it was compiled against (alpha15 → alpha23), so bump it together with
+# version it was compiled against (alpha16 → alpha24), so bump it together with
 # `compose-remote` above and `glance-wear` below. It also pulls
 # `androidx.compose.remote.foundation:foundation`, which used to exist only on the
 # androidx-main snapshot line and now publishes to Google Maven — that is what
 # unblocked the move back to released coordinates.
-wear-compose-remote = "1.0.0-alpha15"
+wear-compose-remote = "1.0.0-alpha16"
 # Glance Wear — the Wear OS *widget* layer on top of Remote Compose. Used by
 # `:samples:wear-widget` to sticker the widget **container** (the
 # squircle the host draws around widget content) via the
 # `wear-tooling-preview` artifact's `WearWidgetPreview` wrapper. Declares
-# `remote-creation*` itself (alpha22 → alpha23), so a skewed pin risks exactly
+# `remote-creation*` itself (alpha23 → alpha24), so a skewed pin risks exactly
 # the creation/player drift the Remote Compose comment describes — bump it with
 # the two pins above.
-glance-wear = "1.0.0-alpha22"
+glance-wear = "1.0.0-alpha23"
 # Pre-release compose-ui artifacts used by `:samples:remotecompose`, which
 # deliberately diverges from `compose-bom-stable` (1.10.x) to track what
 # wear-compose-remote-material3 alpha pulls in transitively — compose 1.11.0+
@@ -445,9 +445,8 @@ compose-remote-player-view = { module = "androidx.compose.remote:remote-player-v
 # Android-only `remote-player-core`.
 compose-remote-core = { module = "androidx.compose.remote:remote-core", version.ref = "compose-remote" }
 # The creation API's state types (`RemoteFloat`, `MutableRemoteInt`, ...) after androidx-main split
-# them out of `remote-creation-compose`, same package. Not published at the pinned release
-# (alpha23), so only the snapshot lane (`-Pcomposeai.remoteCompose=snapshot`) may name it; on
-# alpha23 those types are inside `remote-creation-compose`.
+# them out of `remote-creation-compose`, same package. `remote-creation-compose` depends on it from
+# alpha24, so either lane may name it.
 compose-remote-creation-expression = { module = "androidx.compose.remote:remote-creation-expression", version.ref = "compose-remote" }
 # `ObjectIntMap` / `IntObjectMap` in the vendored embedded player's public signatures. Compose pulls
 # collection in transitively, but the player names the types directly so it declares them itself.
