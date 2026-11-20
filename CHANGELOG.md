@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.28.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.28.0...v3.28.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.44.0 ([#499](https://github.com/yschimke/compose-preview-daemon/issues/499)) ([ab70488](https://github.com/yschimke/compose-preview-daemon/commit/ab70488236b241213b61b80055a14c7092f732a4))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.5.3 ([#491](https://github.com/yschimke/compose-preview-daemon/issues/491)) ([2eb5d9a](https://github.com/yschimke/compose-preview-daemon/commit/2eb5d9aff82c3f8b9d0dc7843e48fa14bfe175f9))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.6.0 ([#493](https://github.com/yschimke/compose-preview-daemon/issues/493)) ([f3c4367](https://github.com/yschimke/compose-preview-daemon/commit/f3c4367b25c960236d780f625b4b85f34012e944))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.7.0 ([#494](https://github.com/yschimke/compose-preview-daemon/issues/494)) ([cd24cc3](https://github.com/yschimke/compose-preview-daemon/commit/cd24cc36c7477dcc83ff658f43caddbcb0a916bf))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.8.0 ([#496](https://github.com/yschimke/compose-preview-daemon/issues/496)) ([1e6b0c6](https://github.com/yschimke/compose-preview-daemon/commit/1e6b0c661ef72aa4a2a1fcf18f7512ffc0a04d78))
+* **deps:** update dependency org.jetbrains.kotlinx:kotlinx-serialization-json to v1.13.0 ([#498](https://github.com/yschimke/compose-preview-daemon/issues/498)) ([e472ca0](https://github.com/yschimke/compose-preview-daemon/commit/e472ca0b474d7b3d0c6736e09a6f183086d9dc04))
+* **deps:** update Remote Compose to 1.0.0-alpha24 ([#501](https://github.com/yschimke/compose-preview-daemon/issues/501)) ([6cc6d2e](https://github.com/yschimke/compose-preview-daemon/commit/6cc6d2eeb0bc8e2656493d487c3595966df44ec5))
+* **deps:** update roborazzi to v1.79.0 ([#500](https://github.com/yschimke/compose-preview-daemon/issues/500)) ([0e2b74d](https://github.com/yschimke/compose-preview-daemon/commit/0e2b74d4f57421dd2b55aac727b30507a6083b42))
+* **remotecompose:** link the connector on androidx.dev 16942710 (alpha24 prep) ([#495](https://github.com/yschimke/compose-preview-daemon/issues/495)) ([93bd074](https://github.com/yschimke/compose-preview-daemon/commit/93bd07499f3337457cc024ac9878c765c64547e8))
+
 ## [3.28.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.27.7...v3.28.0) (2026-11-15)
 
 
