@@ -250,6 +250,11 @@ open class SandboxHoldingRunner(testClass: Class<*>) :
     // [ShadowPausedClockHardwareRenderer]; `AndroidRippleFrameTest` and `LivePressRippleTest` are
     // the pixel oracles that fail without it.
     shadows += ShadowPausedClockHardwareRenderer::class.java
+    // Wallpaper dynamic colours for material3 1.5.0+, which reads them through a styled-attribute
+    // `TypedArray` rather than `Resources.getColor`. `TypedArray` is core Android, so the link
+    // always resolves; the shadow answers only arrays from `SystemDynamicColors`' wrapped context
+    // and forwards every other read. See [ee.schimke.composeai.renderer.SystemDynamicColors].
+    shadows += ee.schimke.composeai.renderer.ShadowSystemDynamicColorTypedArray::class.java
     // Coil 2 preview-branch shadow. Gated on coil 2 actually being on the classpath purely to keep
     // the sandbox's instrumentation config honest — the shadow itself declares its target by
     // `className`, so unlike the Wear shadows above it carries no unresolvable symbolic links and

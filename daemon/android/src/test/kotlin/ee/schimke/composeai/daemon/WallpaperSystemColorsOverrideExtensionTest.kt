@@ -14,6 +14,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import ee.schimke.composeai.daemon.protocol.PreviewOverrides
 import ee.schimke.composeai.daemon.protocol.WallpaperOverride
 import ee.schimke.composeai.daemon.protocol.WallpaperPaletteStyle
+import ee.schimke.composeai.renderer.ShadowSystemDynamicColorTypedArray
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
@@ -31,7 +32,8 @@ import org.robolectric.annotation.Config
  * in place.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
+// The shadow `SandboxHoldingRunner` registers for material3 1.5.0's styled-attribute colour reads.
+@Config(sdk = [35], shadows = [ShadowSystemDynamicColorTypedArray::class])
 class WallpaperSystemColorsOverrideExtensionTest {
 
   @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
