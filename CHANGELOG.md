@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.28.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.28.1...v3.28.2) (2026-11-21)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.45.0 ([#507](https://github.com/yschimke/compose-preview-daemon/issues/507)) ([eb763ea](https://github.com/yschimke/compose-preview-daemon/commit/eb763ea1975cc2636fdd9e3d844e1a69a4577de4))
+* **deps:** update dependency org.robolectric:robolectric to v4.18 ([#504](https://github.com/yschimke/compose-preview-daemon/issues/504)) ([b4227cf](https://github.com/yschimke/compose-preview-daemon/commit/b4227cfec97685e42693783d1416fc46108b1e53))
+
+
+### Chores
+
+* **deps:** update actions/setup-java action to v6.3.0 ([#506](https://github.com/yschimke/compose-preview-daemon/issues/506)) ([3855a97](https://github.com/yschimke/compose-preview-daemon/commit/3855a97fa0bedd727154b434dd2d5fb03e90ef79))
+* **deps:** update gradle to v9.9.1 ([#497](https://github.com/yschimke/compose-preview-daemon/issues/497)) ([baf3124](https://github.com/yschimke/compose-preview-daemon/commit/baf3124b146378b6c0310e0b7c948ab03ef29bbe))
+
 ## [3.28.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.28.0...v3.28.1) (2026-11-20)
 
 
