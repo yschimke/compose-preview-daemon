@@ -10,6 +10,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.nativeruntime.DefaultNativeRuntimeLoader
 import org.robolectric.pluginapi.NativeRuntimeLoader
 import org.robolectric.util.inject.Injector
 
@@ -24,6 +25,7 @@ class SharedNativeRuntimeLoaderTest {
     val loader = injector.getInstance(NativeRuntimeLoader::class.java)
 
     assertTrue(loader is SharedNativeRuntimeLoader)
+    loader.ensureLoaded()
     val cache = SharedNativeRuntimeLoader.cacheRoot().resolve(SharedNativeRuntimeLoader.cacheKey())
     assertTrue(Files.isRegularFile(cache.resolve(".complete")))
     assertTrue(
@@ -33,6 +35,7 @@ class SharedNativeRuntimeLoaderTest {
 
   @Test
   fun `sandbox library copies are distinct and exclude shared runtime data`() {
+    DefaultNativeRuntimeLoader.injectAndLoad()
     val cache = SharedNativeRuntimeLoader.cacheRoot().resolve(SharedNativeRuntimeLoader.cacheKey())
     val cachedLibrary = cache.resolve(System.mapLibraryName("robolectric-nativeruntime"))
 

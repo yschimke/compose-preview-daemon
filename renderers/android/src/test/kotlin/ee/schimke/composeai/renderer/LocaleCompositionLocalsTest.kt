@@ -26,13 +26,15 @@ class LocaleCompositionLocalsTest {
 
   @Test
   fun `empty preview configuration falls back to a nonempty platform locale list`() {
-    val previous = Locale.getDefault()
+    val previousLocales = LocaleList.getDefault()
+    val previousLocale = Locale.getDefault()
     try {
-      Locale.setDefault(Locale.CANADA_FRENCH)
+      LocaleList.setDefault(LocaleList(Locale.CANADA_FRENCH))
 
       assertEquals("fr-CA", LocaleCompositionLocals.languageTags(Configuration()))
     } finally {
-      Locale.setDefault(previous)
+      LocaleList.setDefault(previousLocales)
+      Locale.setDefault(previousLocale)
     }
   }
 }

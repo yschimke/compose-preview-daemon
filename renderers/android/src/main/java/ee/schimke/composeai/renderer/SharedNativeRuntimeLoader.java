@@ -8,6 +8,8 @@ import android.os.Build;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -219,11 +221,19 @@ public final class SharedNativeRuntimeLoader extends DefaultNativeRuntimeLoader 
     Files.createDirectories(staging);
     try {
       SharedTempDirectory extraction = new SharedTempDirectory(staging);
-      if (Build.VERSION.SDK_INT >= O) {
-        invokeExtraction("maybeCopyFonts", extraction);
-        invokeExtraction("maybeCopyHyphenData", extraction);
+      if (hasLegacyTempDirectoryExtractors()) {
+        if (Build.VERSION.SDK_INT >= O) {
+          invokeExtraction("maybeCopyFonts", extraction);
+          invokeExtraction("maybeCopyHyphenData", extraction);
+        }
+        invokeExtraction("maybeCopyIcuData", extraction);
+      } else {
+        if (Build.VERSION.SDK_INT >= O) {
+          invokeCopyResourceDirectory("fonts", staging);
+          invokeCopyResourceDirectory("hyphen-data", staging);
+        }
+        invokeCopyIcuData(staging);
       }
-      invokeExtraction("maybeCopyIcuData", extraction);
       maybeCopyExtraResources(extraction);
       copyNativeLibrary(staging);
       Files.writeString(staging.resolve(COMPLETE_MARKER), key, StandardCharsets.UTF_8);
@@ -244,13 +254,51 @@ public final class SharedNativeRuntimeLoader extends DefaultNativeRuntimeLoader 
         && Files.isRegularFile(directory.resolve(libraryName()));
   }
 
+  private static boolean hasLegacyTempDirectoryExtractors() {
+    try {
+      DefaultNativeRuntimeLoader.class.getDeclaredMethod("maybeCopyFonts", TempDirectory.class);
+      return true;
+    } catch (NoSuchMethodException ignored) {
+      return false;
+    }
+  }
+
   private void invokeExtraction(String methodName, TempDirectory directory)
       throws ReflectiveOperationException, IOException {
     Method method =
         DefaultNativeRuntimeLoader.class.getDeclaredMethod(methodName, TempDirectory.class);
+    invokeUnwrapped(method, this, directory);
+  }
+
+  private static void invokeCopyResourceDirectory(String directoryName, Path destinationBase)
+      throws ReflectiveOperationException, IOException {
+    URL resource = SharedNativeRuntimeLoader.class.getClassLoader().getResource(directoryName + "/");
+    if (resource == null) {
+      return;
+    }
+    URI uri;
+    try {
+      uri = resource.toURI();
+    } catch (URISyntaxException ignored) {
+      return;
+    }
+    Method method =
+        DefaultNativeRuntimeLoader.class.getDeclaredMethod(
+            "copyResourceDirectory", String.class, URI.class, Path.class);
+    invokeUnwrapped(method, null, directoryName, uri, destinationBase);
+  }
+
+  private static void invokeCopyIcuData(Path destinationBase)
+      throws ReflectiveOperationException, IOException {
+    Method method = DefaultNativeRuntimeLoader.class.getDeclaredMethod("copyIcuData", Path.class);
+    invokeUnwrapped(method, null, destinationBase);
+  }
+
+  private static void invokeUnwrapped(Method method, Object target, Object... args)
+      throws ReflectiveOperationException, IOException {
     method.setAccessible(true);
     try {
-      method.invoke(this, directory);
+      method.invoke(target, args);
     } catch (InvocationTargetException e) {
       Throwable cause = e.getCause();
       if (cause instanceof IOException) {
