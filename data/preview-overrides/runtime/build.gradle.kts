@@ -83,8 +83,13 @@ kotlin {
       implementation(libs.junit)
     }
     wasmJsMain.dependencies {
-      compileOnly(libs.jetbrains.compose.runtime)
-      compileOnly(libs.jetbrains.compose.ui)
+      // `api`, not `compileOnly`, on Wasm alone. A Wasm library is a klib, and a project compiling
+      // against it needs its dependencies at compile time too, so KGP does not support
+      // `compileOnly` there (`IncorrectCompileOnlyDependencyWarning`). The flavour reason for
+      // `compileOnly` above does not apply either: JetBrains Compose is the only Compose for Wasm,
+      // and a Wasm consumer already depends on it, so this forces nothing new onto its classpath.
+      api(libs.jetbrains.compose.runtime)
+      api(libs.jetbrains.compose.ui)
     }
   }
 }

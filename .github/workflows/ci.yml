@@ -252,5 +252,9 @@ jobs:
 
       - name: Release publication failure handling
         run: python3 .github/scripts/test-release-publish.py
+      # The render-runtime base image's layout is a contract the server and UI-builder images build
+      # on; a static check, so no Docker is needed here.
+      - name: Test the render-runtime image contract
+        run: distribution/image/test-render-runtime-image.sh
       - run: node scripts/codegen/gen-spatial-scene.mjs --check
       - run: node scripts/codegen/gen-xr-render-service.mjs --check

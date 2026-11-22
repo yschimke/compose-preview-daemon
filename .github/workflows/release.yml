@@ -2,7 +2,8 @@ name: Release
 
 # Publishes every module to Maven Central at the tag's version and attaches the two sidecar
 # archives to the GitHub Release. One version line: the `data/*` modules release with the
-# renderers they change alongside (see `printPublishTasks` in `root-tasks.gradle.kts`).
+# renderers they change alongside (see `printPublishTasks` in `root-tasks.gradle.kts`). Then
+# publishes the render-runtime base image built from those archives (`render-runtime-image.yml`).
 
 on:
   workflow_call:
@@ -194,3 +195,17 @@ jobs:
             gh release create "$TAG_NAME" --title "compose-preview-daemon ${TAG_NAME#v}" \
               --generate-notes artifacts/*.zip artifacts/*.tar.gz
           fi
+
+  # The render-runtime base image (distribution/image/), built from the archives the `sidecars`
+  # job just produced, staged from this run's artifact rather than the public download. After
+  # `release` so a published image always names a published release.
+  render-runtime-image:
+    name: Publish render-runtime image
+    needs: [sidecars, release]
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/render-runtime-image.yml
+    with:
+      daemon_version: ${{ inputs.tag }}
+      stage_release_assets: true

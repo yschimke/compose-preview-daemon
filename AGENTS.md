@@ -168,6 +168,7 @@ keeps its runner's full capacity. Do not copy these limits into `gradle.properti
 | --- | --- |
 | Why this repository exists and what moved | [`docs/design/DAEMON_SPLIT.md`](docs/design/DAEMON_SPLIT.md) |
 | The daemon: design, protocol, sandbox pool, startup profile | [`docs/daemon/README.md`](docs/daemon/README.md) |
+| The render-runtime base image and its layout contract | [`docs/daemon/RENDER_RUNTIME_IMAGE.md`](docs/daemon/RENDER_RUNTIME_IMAGE.md) |
 | The road to a 2-3 s sandbox boot | [`docs/daemon/BOOT-ROADMAP.md`](docs/daemon/BOOT-ROADMAP.md) |
 | Data products and their extractors | [`docs/DATA_PRODUCTS.md`](docs/DATA_PRODUCTS.md) |
 | Renderer / consumer AndroidX alignment | [`docs/RENDERER_COMPATIBILITY.md`](docs/RENDERER_COMPATIBILITY.md) |
