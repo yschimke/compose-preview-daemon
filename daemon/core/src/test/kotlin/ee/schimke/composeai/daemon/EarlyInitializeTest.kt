@@ -99,6 +99,25 @@ class EarlyInitializeTest {
   }
 
   @Test
+  fun `a renderNow is answered before its renderFinished`() {
+    // The reply says the render was queued, so it must not trail the render's own completion.
+    // The fake host renders almost instantly, which is when a reply sent after the render started
+    // could lose the race to the render watcher's renderFinished; repeat to give it the chance.
+    gate.countDown()
+    val daemon = Daemon(SlowStartHost(gate))
+    val client = daemon.client
+    client.request(1, "initialize", initializeParams(bootProgress = false))
+    client.notify("initialized")
+    for (i in 0 until 200) {
+      val id = 100 + i
+      client.send(id, "renderNow", """{"previews":["preview-$i"],"tier":"fast"}""")
+      val order = client.collectUntil { it.method() == "renderFinished" }
+      assertTrue("reply $id before renderFinished: $order", order.any { it.id() == id })
+    }
+    daemon.stop()
+  }
+
+  @Test
   fun `an opted-in client whose host is already up gets the old answer`() {
     gate.countDown()
     val daemon = Daemon(SlowStartHost(gate))

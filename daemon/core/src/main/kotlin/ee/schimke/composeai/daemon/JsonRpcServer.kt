@@ -1120,6 +1120,10 @@ public class JsonRpcServer(
     }
     val queued = mutableListOf<String>()
     val rejected = mutableListOf<RejectedRender>()
+    // Override-bearing renders admitted below start only after the reply is enqueued, like the
+    // plain ones (see the end of this function). Admission itself is decided here, so coalescing
+    // within one request is unchanged.
+    val admittedOverrideRenders = mutableListOf<String>()
     val now = System.currentTimeMillis()
     val overrides = params.overrides
     for (previewId in params.previews) {
@@ -1190,13 +1194,17 @@ public class JsonRpcServer(
           }
         }
       } else {
-        submitRender(previewId, overrides, acceptedAt = now)
+        admittedOverrideRenders.add(previewId)
       }
       queued.add(previewId)
     }
-    startPlainRenders()
+    // Reply first, then start the renders. Started first, a fast render's `renderFinished` could
+    // reach the client ahead of the reply that says the render was queued, since the render
+    // watcher thread enqueues it independently of this one.
     val result = RenderNowResult(queued = queued, rejected = rejected)
     sendResponse(req.id, encode(RenderNowResult.serializer(), result))
+    for (previewId in admittedOverrideRenders) submitRender(previewId, overrides, acceptedAt = now)
+    startPlainRenders()
   }
 
   private enum class OverrideAdmission {
