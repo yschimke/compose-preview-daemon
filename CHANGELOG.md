@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.29.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.28.2...v3.29.0) (2026-11-22)
+
+
+### Features
+
+* publish the compose-preview-render-runtime base image ([#511](https://github.com/yschimke/compose-preview-daemon/issues/511)) ([681639f](https://github.com/yschimke/compose-preview-daemon/commit/681639fb49bfa08b9c3ed6c3f8b64ad78f4949d1))
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.10.0 ([#502](https://github.com/yschimke/compose-preview-daemon/issues/502)) ([f23de6d](https://github.com/yschimke/compose-preview-daemon/commit/f23de6db24badf6db3635504cfc8dc205bb127ed))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.11.0 ([#509](https://github.com/yschimke/compose-preview-daemon/issues/509)) ([b2b3de9](https://github.com/yschimke/compose-preview-daemon/commit/b2b3de9861e4eadd4390abe71e88748a2767e307))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.12.0 ([#510](https://github.com/yschimke/compose-preview-daemon/issues/510)) ([3295cb4](https://github.com/yschimke/compose-preview-daemon/commit/3295cb4cc242b1f7c5060b648a91b4eb2fd7e9c4))
+
 ## [3.28.2](https://github.com/yschimke/compose-preview-daemon/compare/v3.28.1...v3.28.2) (2026-11-21)
 
 
