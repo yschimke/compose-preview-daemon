@@ -158,6 +158,16 @@
         "at any time"
       ],
       "minimumReleaseAge": null
+    },
+    {
+      "description": "eclipse-temurin 25 fails distribution/image/test-render-runtime-image.sh ('base must be FROM eclipse-temurin:21.0.13.1_2-jdk') because the render-runtime base image intentionally stays on Temurin 21 until a deliberate runtime/render validation moves it. Skipped from https://github.com/yschimke/compose-preview-daemon/pull/512. Remove or raise when migrating the render-runtime image to Java 25 and updating test-render-runtime-image.sh together.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "eclipse-temurin"
+      ],
+      "allowedVersions": "/^21([._+-]|$)/"
     }
   ],
   "customManagers": [
