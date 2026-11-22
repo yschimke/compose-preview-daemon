@@ -52,7 +52,7 @@ ARG ANDROID_ALL_VERSION=15-robolectric-14663667-2-i7
 # GL). Same package list as the server's `base` stage; `jq` is for consumers' entrypoints (and
 # writes the manifest below), `git` for bundle fetches.
 # ---------------------------------------------------------------------------
-FROM eclipse-temurin:21.0.13.1_2-jdk AS base
+FROM eclipse-temurin:25.0.4.1_1-jdk AS base
 COPY install-linux-font-fallbacks.sh /usr/local/bin/install-linux-font-fallbacks
 RUN COMPOSEAI_CLEAN_APT=1 /usr/local/bin/install-linux-font-fallbacks \
       libfreetype6 libfontconfig1 libgl1 libglx-mesa0 libgl1-mesa-dri \
