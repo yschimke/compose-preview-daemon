@@ -17,7 +17,7 @@ through that stack rather than as an agent plugin of its own.
 | `daemon/` | `core` (JSON-RPC server, host contract), `android`, `desktop` (the hosts), `client`, `harness` |
 | `api/` | `preview-annotations`, `preview-data-api` |
 | `runtimes/` | The small runtime libraries previews compile against (slots, Lottie, SVG) |
-| `distribution/` | The sidecar archives releases ship (`compose-preview-android-daemon-<v>.zip`, `compose-preview-desktop-daemon-<v>.tar.gz`) |
+| `distribution/` | The sidecar archives releases ship (`compose-preview-android-daemon-<v>.zip`, `compose-preview-desktop-daemon-<v>.tar.gz`), and `image/`, the [`compose-preview-render-runtime`](docs/daemon/RENDER_RUNTIME_IMAGE.md) base image built from them |
 
 Every module publishes to Maven Central under `ee.schimke.composeai` at the release tag.
 

@@ -83,3 +83,8 @@ settings-gradle.lockfile
 # Resolved from Maven Central by .github/scripts/maven-publish-plan.sh at release time and read by
 # the Gradle build; never committed, because Central is the source of truth for what is published.
 publishing-manifest.json
+
+# The render-runtime image build context: render-runtime-image.yml stages the release's sidecar
+# archives here; a local or manual build leaves it empty and downloads them.
+distribution/image/release-assets/*
+!distribution/image/release-assets/.keep

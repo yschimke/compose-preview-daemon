@@ -1,0 +1,127 @@
+name: Publish render-runtime image
+
+# Builds and pushes ghcr.io/<owner>/compose-preview-render-runtime from distribution/image/: the
+# base image the preview server and the UI builder images build FROM. Tagged `<daemon version>` and
+# `latest`. The layout is a contract; see docs/daemon/RENDER_RUNTIME_IMAGE.md.
+#
+# Called by release.yml once the release's sidecar archives exist, with `stage_release_assets` so
+# the build reads them from this run's `sidecars` artifact rather than waiting on the public
+# download. A manual dispatch (a recovery, or a rebuild of an older release) falls back to the
+# published release assets.
+
+on:
+  workflow_dispatch:
+    inputs:
+      daemon_version:
+        description: Released compose-preview-daemon version (leading v optional)
+        required: true
+      tag_latest:
+        description: Also move `latest` (untick when rebuilding an older release)
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      daemon_version:
+        required: true
+        type: string
+      stage_release_assets:
+        description: Read the sidecar archives from this run's `sidecars` artifact
+        required: false
+        type: boolean
+        default: false
+      tag_latest:
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Resolve the version and the tag's commit
+        id: versions
+        env:
+          RAW_DAEMON: ${{ inputs.daemon_version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          daemon="${RAW_DAEMON#v}"
+          test -n "${daemon}" || { echo "::error::daemon_version is empty"; exit 1; }
+          revision="$(gh api "repos/${GITHUB_REPOSITORY}/commits/v${daemon}" --jq .sha)" || {
+            echo "::error::no tag v${daemon} in ${GITHUB_REPOSITORY}"
+            exit 1
+          }
+          echo "daemon=${daemon}" >> "$GITHUB_OUTPUT"
+          echo "revision=${revision}" >> "$GITHUB_OUTPUT"
+      - name: Check the image contract
+        run: distribution/image/test-render-runtime-image.sh
+      - name: Prepare image context
+        run: |
+          mkdir -p distribution/image/release-assets
+          touch distribution/image/release-assets/.keep
+      - name: Stage this release's sidecar archives
+        if: ${{ inputs.stage_release_assets }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sidecars
+          path: distribution/image/release-assets
+      - name: Check the archives are reachable
+        env:
+          V: ${{ steps.versions.outputs.daemon }}
+        run: |
+          set -euo pipefail
+          for name in "compose-preview-android-daemon-${V}.zip" "compose-preview-desktop-daemon-${V}.tar.gz"; do
+            if [ -f "distribution/image/release-assets/${name}" ]; then
+              echo "staged: ${name}"
+              continue
+            fi
+            url="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${V}/${name}"
+            for i in $(seq 1 20); do
+              code=$(curl -sSL -o /dev/null -w '%{http_code}' -r 0-0 "$url" || true)
+              if [ "$code" = 200 ] || [ "$code" = 206 ]; then echo "public: ${name}"; continue 2; fi
+              echo "waiting for ${name} (attempt ${i}/20)"
+              sleep 30
+            done
+            echo "::error::release asset is not resolvable: ${url}"
+            exit 1
+          done
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/compose-preview-render-runtime
+          tags: |
+            type=raw,value=${{ steps.versions.outputs.daemon }}
+            type=raw,value=latest,enable=${{ inputs.tag_latest }}
+          # The defaults would stamp the dispatching ref's commit; the image is the tag's.
+          labels: |
+            org.opencontainers.image.version=${{ steps.versions.outputs.daemon }}
+            org.opencontainers.image.revision=${{ steps.versions.outputs.revision }}
+      # linux/amd64 only: the Android SDK's build-tools (aapt2) and the cmdline-tools this image
+      # installs are x86-64 Linux binaries. The sidecar archives themselves are arch-neutral and the
+      # Dockerfile already picks the arm64 Skiko native, so arm64 is a platform line away once an
+      # arm64 SDK story exists.
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: distribution/image
+          file: distribution/image/Dockerfile
+          target: runtime
+          platforms: linux/amd64
+          build-args: |
+            DAEMON_VERSION=${{ steps.versions.outputs.daemon }}
+            REVISION=${{ steps.versions.outputs.revision }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

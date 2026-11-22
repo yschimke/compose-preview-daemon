@@ -86,9 +86,11 @@ jobs:
     #
     # `pull-requests: write` is gone with that job -- the publish plan reads its baseline from
     # Maven Central now and writes nothing back. Keep this in step with the job `permissions`
-    # blocks in `release.yml`.
+    # blocks in `release.yml`: `packages: write` is for `render-runtime-image`, which pushes the
+    # render-runtime base image to GHCR.
     permissions:
       contents: write
+      packages: write
 
   # The PR half of release-please: open or update the next release PR. On an ordinary push it runs
   # straight away; on the release run it waits for `release`, which un-drafts the release, so
