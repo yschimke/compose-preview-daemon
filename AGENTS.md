@@ -69,11 +69,11 @@ pins its public API in a committed dump under `api/`; `checkKotlinAbi` runs in C
 public-surface change is committed with `./gradlew updateKotlinAbi`.
 
 Apply the gate with `id("composeai.abi-validation")` in the module's `plugins {}` block — it sets
-the dump location and wires `checkKotlinAbi` into `check`, which KGP does not do. **53 of the 71
-published modules are gated**: every JVM and Kotlin Multiplatform one (50 + 3). The exceptions are
-not oversights:
+the dump location and wires `checkKotlinAbi` into `check`, which KGP does not do. **53 of the 73
+published modules are gated**: every JVM and Kotlin Multiplatform one (50 + 3), all through the
+convention plugin. The exceptions are not oversights:
 
-- the **17 Android modules** compile Kotlin through AGP's built-in support rather than the Kotlin
+- the **19 Android modules** compile Kotlin through AGP's built-in support rather than the Kotlin
   Android plugin, and Kotlin 2.4.20 writes them an *empty* dump — which would make `checkKotlinAbi`
   pass while recording nothing. The convention plugin fails the build rather than let that happen,
   so they stay ungated until Kotlin can dump one; and
@@ -84,14 +84,10 @@ off `android.library` still say so in their header comment, and a grep over the 
 them as Android — which is how they were missed on the first pass. `gradlew lintDebug --dry-run`
 names the real Android set: a lint task exists only where AGP is applied.
 
-Five modules predate the convention plugin and hand-roll the same wiring in their own build files
-(`:daemon-client`, `:daemon-core`, `:preview-data-api`, `:data-pseudolocale-core`,
-`:data-remotecompose-core`); they are gated, just not through the plugin. New modules use the
-plugin.
-
-The gate is independent of `explicitApi()`: a dump records whatever is public, explicit or not. The
-five above declare both for their own reasons, and adding the gate to a module does not require an
-explicit-API pass first.
+The gate is independent of `explicitApi()`: a dump records whatever is public, explicit or not.
+Modules that declare both (`:daemon-client`, `:daemon-core`, `:preview-data-api`,
+`:data-pseudolocale-core`, `:data-remotecompose-core`) do so for their own reasons, and adding the
+gate to a module does not require an explicit-API pass first.
 
 `docs/daemon/TUNABLES.md` is generated from `DaemonProperties`; `DaemonPropertiesDocTest` fails
 when it is stale.
