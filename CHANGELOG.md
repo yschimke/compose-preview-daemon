@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.29.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.29.0...v3.29.1) (2026-11-24)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.46.0 ([#514](https://github.com/yschimke/compose-preview-daemon/issues/514)) ([a648f4f](https://github.com/yschimke/compose-preview-daemon/commit/a648f4f575f809c393ef9c31b0b18a8c777d9c5c))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v3.12.1 ([#516](https://github.com/yschimke/compose-preview-daemon/issues/516)) ([b50c3e3](https://github.com/yschimke/compose-preview-daemon/commit/b50c3e392edaa6f37645103cd25602970807f1e0))
+
+
+### Chores
+
+* **deps:** update dependency dev.zacsweers.metro to v1.6.0 ([#517](https://github.com/yschimke/compose-preview-daemon/issues/517)) ([2e70790](https://github.com/yschimke/compose-preview-daemon/commit/2e707908452bfcd80e6e2e800d44c8f451a70170))
+* **renovate:** skip eclipse-temurin v25 ([#513](https://github.com/yschimke/compose-preview-daemon/issues/513)) ([cd40428](https://github.com/yschimke/compose-preview-daemon/commit/cd40428a19a66ed591483d7bcd2fb439d2f3469c))
+* unify ABI validation plugin and bump xr-composite to 2.0.5 ([#518](https://github.com/yschimke/compose-preview-daemon/issues/518)) ([b4d9573](https://github.com/yschimke/compose-preview-daemon/commit/b4d957371affcce26c69572a114a4be52bc643e8))
+
 ## [3.29.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.28.2...v3.29.0) (2026-11-22)
 
 
