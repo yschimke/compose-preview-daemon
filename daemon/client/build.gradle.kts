@@ -19,6 +19,7 @@
 plugins {
   id("composeai.base-conventions")
   id("composeai.maven-publishing")
+  id("composeai.abi-validation")
   alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.kotlin.serialization)
 }
@@ -29,18 +30,7 @@ kotlin {
   // against across a repo boundary (#3824), so an implicitly-public declaration is an API decision
   // nobody made. The compiler now asks. See docs/API_STABILITY.md and #3824 preparation item 6.
   explicitApi()
-
-  // ABI dump gate, following `:rc-player-*`. `checkKotlinAbi` diffs the module's real public ABI
-  // against the committed dump in `api/`, so a change to the published surface shows up as a diff
-  // in review rather than as a downstream break. Ships in the Kotlin Gradle plugin itself (still
-  // `@ExperimentalAbiValidation` at 2.4), so no extra plugin on the classpath. Regenerate with
-  // `./gradlew :daemon-client:updateKotlinAbi`.
-  @OptIn(org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation::class) abiValidation()
 }
-
-// `checkKotlinAbi` is not wired into `check` by the Kotlin Gradle plugin, so an unrecorded surface
-// change would pass CI silently. Wire it explicitly — the gate is only worth having if it runs.
-tasks.named("check") { dependsOn("checkKotlinAbi") }
 
 // The golden descriptor files are recorded, not hand-written. `-Dcomposeai.updateGolden=true` has
 // to reach the test JVM to rewrite them, and a system property set on Gradle's own JVM does not.
