@@ -190,17 +190,18 @@ class ComposeAiBaseConventionsPlugin : Plugin<Project> {
 
       project.configurations.configureEach {
         if (!isCanBeResolved) return@configureEach
-        if (DependencyOwnership.isProductionRuntimeClasspath(name)) {
+        val configName = name
+        if (DependencyOwnership.isProductionRuntimeClasspath(configName)) {
           val versions = resolvedModuleVersions(this)
           floorCheck.configure {
             if (project.path != ":data-keyboard-connector") {
               resolvedVersions.addAll(versions)
             }
-            if (name == "runtimeClasspath" || name == "jvmRuntimeClasspath") {
+            if (configName == "runtimeClasspath" || configName == "jvmRuntimeClasspath") {
               runtimeClasspath.from(this@configureEach)
             }
           }
-        } else if (ClientCompatibilityFloor.isProductionCompileClasspath(name)) {
+        } else if (ClientCompatibilityFloor.isProductionCompileClasspath(configName)) {
           val versions = resolvedModuleVersions(this)
           floorCheck.configure { resolvedVersions.addAll(versions) }
         }

@@ -23,8 +23,11 @@ private fun Project.configureCommonAndroid() {
 }
 
 private fun LibraryExtension.configureLibraryDefaults() {
-  compileSdk = 36
-  defaultConfig { minSdk = 24 }
+  compileSdk = 37
+  defaultConfig {
+    minSdk = 24
+    aarMetadata { minCompileSdk = 36 }
+  }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
@@ -33,7 +36,7 @@ private fun LibraryExtension.configureLibraryDefaults() {
 }
 
 private fun ApplicationExtension.configureApplicationDefaults() {
-  compileSdk = 36
+  compileSdk = 37
   defaultConfig { minSdk = 24 }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_17

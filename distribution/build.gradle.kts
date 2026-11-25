@@ -77,7 +77,8 @@ fun Sync.stageFrom(configuration: Configuration) {
       val mapped =
         if (counts.getValue(original) > 1) {
           val id = artifact.id.componentIdentifier
-          if (id is ModuleComponentIdentifier) "${id.module}-${id.version}.jar" else original
+          if (id is ModuleComponentIdentifier) "${id.group}-${id.module}-${id.version}.jar"
+          else original
         } else original
       artifact.file.absolutePath to mapped
     }
