@@ -71,50 +71,6 @@
       "allowedVersions": "/^1\\.13\\./"
     },
     {
-      "description": "compose-multiplatform: pin to the 1.11.x line. `:data-render-compose` exposes `org.jetbrains.compose.{runtime,ui}` as `api` on a published artifact, so the Compose Multiplatform version is part of the supported-minimum floor for consumers, and the ref is also a CEILING on every catalog the serve host renders live (docs/RENDERER_COMPATIBILITY.md). 1.12.0 needs a coordinated move, not a minor/patch bump: its `androidx.compose.*` AARs declare `minCompileSdk = 37` (the repo default is 36), skiko 0.150.1 deletes the mutating `org.jetbrains.skia.Path` API our `conicTo` seams call, and `compose-multiplatform-material3` + `compottie` have to move with it. See gradle/libs.versions.toml \u2014 raising the floor is a manual decision. `matchCurrentValue` scopes this to the refs that are actually on 1.11.x, leaving `compose-multiplatform-forward` free to track the line ahead.",
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchPackageNames": [
-        "org.jetbrains.compose",
-        "org.jetbrains.compose{/,}**"
-      ],
-      "matchCurrentValue": "/^1\\.11\\./",
-      "allowedVersions": "/^1\\.11\\./"
-    },
-    {
-      "description": "compottie: pin to the 2.2.x line. `:lottie-preview-runtime` is built against JetBrains Compose foundation 1.11.0 (matching `compose-multiplatform = 1.11.x`); a compottie line built against a newer foundation drags a newer Compose onto the renderer classpath \u2014 the skew `docs/RENDERER_COMPATIBILITY.md` warns about. Bump only in lockstep with `compose-multiplatform`; see gradle/libs.versions.toml.",
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchDepNames": [
-        "io.github.alexzhirkevich:compottie"
-      ],
-      "matchCurrentValue": "/^2\\.2\\./",
-      "allowedVersions": "/^2\\.2\\./"
-    },
-    {
-      "description": "coil3: pin to the 3.5.x line. 3.6.0 depends on `org.jetbrains.compose.foundation:foundation-android:1.12.0`, which resolves `androidx.compose.foundation`/`ui` 1.12.0 \u2014 the Compose line this repo deliberately does not sit on (see the compose-multiplatform rule above). coil3 is `compileOnly` in `:renderer-android` but `testImplementation` for that module's own unit tests, so the upgrade lands on a test classpath compiled against `compose-bom-compat` and `FigmaSvgRasterizedTextFieldRenderTest` fails with `AbstractMethodError` (#4503). 3.5.0 resolves foundation 1.11.2 and is green. Bump in lockstep with the Compose floor, not on its own.",
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchPackageNames": [
-        "io.coil-kt.coil3:{/,}**"
-      ],
-      "matchCurrentValue": "/^3\\.5\\./",
-      "allowedVersions": "/^3\\.5\\./"
-    },
-    {
-      "description": "robolectric: released versions only. Robolectric publishes a rolling `4.17-SNAPSHOT` to Sonatype and Renovate ranks it above `4.17-beta-2`, but the build declares no snapshot repository \u2014 so the bump resolves nowhere and fails every Android configuration. Betas and RCs are still fair game; only `-SNAPSHOT` is excluded.",
-      "matchManagers": [
-        "gradle"
-      ],
-      "matchDepNames": [
-        "org.robolectric:robolectric"
-      ],
-      "allowedVersions": "!/-SNAPSHOT$/"
-    },
-    {
       "description": "Remote Compose, its Wear widget layer and Glance Wear resolve from Google Maven on released alpha coordinates, and the three groups only work together when built against the same `remote-creation*` \u2014 `remote-material3` and `androidx.glance.wear:*` name that version in their POMs. Renovate updates one dependency at a time, so an automated bump of any one group produces exactly the skew that has taken CI red before (a `NoClassDefFoundError` inside `RemoteButtonImpl` at render time, a wear pin that did not exist yet). Bump the three refs in gradle/libs.versions.toml as one set after checking the POMs, and re-verify a render, not just a compile.",
       "matchManagers": [
         "gradle"

@@ -46,9 +46,7 @@ class SkikoBridgeShapeTest {
   }
 
   @Test
-  fun `the probe jar really is the version whose signature changed`() {
-    // Guards the guard: if the probe silently resolved to the same skiko the module compiles
-    // against, every assertion below would pass while proving nothing.
+  fun `the probe jar and compiled skiko both expose the three-parameter encodeToData shape`() {
     val probeMethod =
       probeImageClass().methods.single { it.name == "encodeToData" }.parameterTypes.size
     val compiledMethod =
@@ -60,8 +58,8 @@ class SkikoBridgeShapeTest {
         .size
     assertEquals("the probe jar should carry the three-parameter form", 3, probeMethod)
     assertEquals(
-      "this module should still compile against the two-parameter form",
-      2,
+      "this module compiles against CMP 1.12+ (skiko 0.150+) three-parameter form",
+      3,
       compiledMethod,
     )
   }
@@ -75,6 +73,6 @@ class SkikoBridgeShapeTest {
   @Test
   fun `binds the shape this module compiles against too, from the same rule`() {
     val binding = SkiaPngEncoder.bind(org.jetbrains.skia.Image::class.java)
-    assertEquals("Image.encodeToData(EncodedImageFormat, int)", binding.description)
+    assertEquals("Image.encodeToData(EncodedImageFormat, int, int)", binding.description)
   }
 }

@@ -684,22 +684,39 @@ internal object DesktopSceneRecomposer {
 
   internal fun currentFromSceneHandle(scene: Any): Any {
     val composeScene = fieldValue(scene, "scene") ?: error("ImageComposeScene.scene was null")
+    // CMP 1.12 renamed BaseComposeScene.recomposer -> frameRecomposer; try both so either runtime
+    // works when aligned with a consumer's Compose Multiplatform version.
     val sceneRecomposer =
-      fieldValue(composeScene, "recomposer")
-        ?: error("ComposeScene.recomposer was null on ${composeScene.javaClass.name}")
+      findFirstFieldValue(composeScene, "frameRecomposer", "recomposer")
+        ?: error(
+          "ComposeScene.frameRecomposer / recomposer was null on ${composeScene.javaClass.name}",
+        )
     val recomposer =
       fieldValue(sceneRecomposer, "recomposer")
-        ?: error("ComposeSceneRecomposer.recomposer was null")
+        ?: error("${sceneRecomposer.javaClass.simpleName}.recomposer was null")
     return recomposer
   }
 
+  private fun findFirstFieldValue(receiver: Any, vararg names: String): Any? {
+    for (name in names) {
+      val field = findDeclaredFieldOrNull(receiver.javaClass, name) ?: continue
+      field.isAccessible = true
+      return field.get(receiver)
+    }
+    throw NoSuchFieldException(
+      "${names.joinToString(" / ")} not found on ${receiver.javaClass} or any superclass",
+    )
+  }
+
   private fun fieldValue(receiver: Any, name: String): Any? {
-    val field = findDeclaredField(receiver.javaClass, name)
+    val field =
+      findDeclaredFieldOrNull(receiver.javaClass, name)
+        ?: throw NoSuchFieldException("$name not found on ${receiver.javaClass} or any superclass")
     field.isAccessible = true
     return field.get(receiver)
   }
 
-  private fun findDeclaredField(start: Class<*>, name: String): java.lang.reflect.Field {
+  private fun findDeclaredFieldOrNull(start: Class<*>, name: String): java.lang.reflect.Field? {
     var cls: Class<*>? = start
     while (cls != null) {
       try {
@@ -708,6 +725,6 @@ internal object DesktopSceneRecomposer {
         cls = cls.superclass
       }
     }
-    throw NoSuchFieldException("$name not found on $start or any superclass")
+    return null
   }
 }

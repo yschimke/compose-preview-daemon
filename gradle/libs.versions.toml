@@ -68,28 +68,11 @@ compose-bom-compat = "2025.11.01"
 # it must be >= the newest `compose-multiplatform` of any catalog served from this host. A catalog
 # that upgrades ahead of the host pairs its newer `org.jetbrains.skia.*` bindings with the sidecar's
 # older `libskiko` and every live render dies with `UnsatisfiedLinkError` — silently, at
-# regeneration time, with baked PNGs still serving fine. That is issue #3447: m3-catalog moved to
-# CMP 1.11.1 (skiko 0.144.6, which introduced `org.jetbrains.skia.PathBuilder`) while the host was
-# on 1.10.3 (skiko 0.9.37.4, whose native exports no `PathBuilder_*` symbol at all). Bumping this
-# ref is therefore a SERVE-HOST RELEASE concern, not just a build-hygiene one — see
-# `docs/RENDERER_COMPATIBILITY.md`.
-#
-# HELD AT 1.11.1 — 1.12.0 is not a minor/patch bump this ref can take on its own (#4503):
-#   * `androidx.compose.*:1.12.0` AAR metadata declares `minCompileSdk = 37`, so every Android
-#     module on the conventions default (`compileSdk = 36`) fails `checkAarMetadata` — the bump is
-#     a repo-wide platform move, not a version-ref edit.
-#   * skiko 0.150.1 (what 1.12.0 resolves) REMOVES the mutating `org.jetbrains.skia.Path` API that
-#     m144 had only deprecated at `DeprecationLevel.ERROR`. `Path.conicTo` is gone, which breaks
-#     `PathConic.{jvm,wasm,ios}.kt` and the vendored `FloatsToPath.kt`; the replacement
-#     (`PathBuilder`) is build-then-`snapshot()`, so those seams have to be restructured.
-#   * `compose-multiplatform-material3` (1.11.0-alpha07) and `compottie` (built against foundation
-#     1.11.0) move in lockstep with this ref — see their comments below.
-# The Renovate rule for `org.jetbrains.compose**` in `.github/renovate.json` now tracks the 1.11.x
-# line so the group stops re-proposing this; moving to 1.12 is a deliberate, coordinated change.
-compose-multiplatform = "1.11.1"
+# regeneration time, with baked PNGs still serving fine. See `docs/RENDERER_COMPATIBILITY.md`.
+compose-multiplatform = "1.12.1"
 # Consumer runtime used by renderer forward-compatibility tests. Keep this on the newest CMP line
 # that catalogs are expected to adopt; it intentionally does not affect production compilation.
-compose-multiplatform-forward = "1.12.0-rc01"
+compose-multiplatform-forward = "1.12.2"
 # The Compose Multiplatform line the CMP Remote Compose player (`rc-player-compose`, `rcplayers`
 # below) requires: the `:daemon:desktop` `carriedRemoteComposeTest` runtime pins
 # `compose.desktop.currentOs` to it so Skiko's native runtime matches the `skiko-awt` the player's
@@ -97,27 +80,17 @@ compose-multiplatform-forward = "1.12.0-rc01"
 compose-multiplatform-rcplayer = "1.12.1"
 # JetBrains Compose Multiplatform material3 tracks its own line, so the explicit coordinate must
 # use this version rather than `compose-multiplatform`. Matched to what `m3-catalog` pins on the
-# 1.11 line, so the largest live-rendered catalog and the host agree on the material3 ABI as well
-# as on Skiko. (This artifact itself declares foundation/ui `1.11.0-beta03`; the `1.11.1` ref above
-# is newer, so Gradle's conflict resolution keeps one coherent 1.11.1 Compose graph.)
-compose-multiplatform-material3 = "1.11.0-alpha07"
+# 1.12 line, so the largest live-rendered catalog and the host agree on the material3 ABI as well
+# as on Skiko.
+compose-multiplatform-material3 = "1.12.0-alpha02"
 # The material3 line the *catalogs* render on, used only by
-# `:daemon:desktop:forwardComposeInteractionExportTest`. It must stay strictly ahead of
-# `compose-multiplatform-material3` above, because the whole point of that task is to run the
-# `compose/figma-svg` export against the material3 that forked its ripple node into
-# `androidx.compose.material3.internal.ripple` — the fork the export silently stopped recognising
-# (#4980), on a line nothing else here compiles or renders against. `compose.desktop.currentOs`
-# carries no material3 of its own (its POM is foundation/material/runtime/ui only), so upgrading
-# `compose-multiplatform-forward` alone would leave material3 on the pre-fork line and the task
-# would pass while covering nothing. `m3-catalog` pins this exact version.
+# `:daemon:desktop:forwardComposeInteractionExportTest`. Must stay strictly ahead of
+# `compose-multiplatform-material3` above.
 compose-multiplatform-material3-forward = "1.12.0-alpha03"
 graphics-shapes = "1.1.0"
 # Compottie — the KMP Lottie runtime that powers `:lottie-preview-runtime`. Tracks the same Compose
-# minor as `compose-multiplatform`: 2.2.x is built against JetBrains Compose foundation 1.11.0, which
-# is what the 1.11 line above now ships. (On the old 1.10.3 floor this was held at 2.1.0 precisely so
-# it could not drag a *newer* Compose onto the renderer classpath — the failure direction
-# `docs/RENDERER_COMPATIBILITY.md` warns about. Bump only in lockstep with `compose-multiplatform`.)
-compottie = "2.2.4"
+# minor as `compose-multiplatform`: 2.3.x is built against JetBrains Compose 1.12 / Skiko 0.150+.
+compottie = "2.3.3"
 activity-compose = "1.13.0"
 # `androidx.glance:glance-appwidget` — used only by `:samples:android`'s Glance widget
 # preview (`GlanceWidgetPreview` in `AppWidgetPreviews.kt`). Renders a `GlanceAppWidget` to
@@ -304,7 +277,7 @@ coil2 = "2.7.0"
 # `FigmaSvgRasterizedTextFieldRenderTest` dies with `AbstractMethodError` inside the Compose test
 # rule. 3.5.0 stops at foundation 1.11.2 and is green. Bump this when the repo's Compose floor
 # moves to 1.12, not before; the pin lives in `.github/renovate.json`.
-coil3 = "3.5.0"
+coil3 = "3.6.3"
 
 # The wire contracts, now published from yschimke/compose-preview-contracts rather than built
 # here. This repository consumes them; it no longer owns these coordinates. A change to a contract

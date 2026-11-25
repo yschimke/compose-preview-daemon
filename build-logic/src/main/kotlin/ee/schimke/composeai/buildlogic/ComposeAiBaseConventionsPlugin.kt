@@ -67,6 +67,7 @@ class ComposeAiBaseConventionsPlugin : Plugin<Project> {
     project.alignContractsThroughBom()
 
     registerDependencyChecks(project)
+    registerClientCompatibilityFloorCheck(project)
   }
 
   /**
@@ -115,6 +116,99 @@ class ComposeAiBaseConventionsPlugin : Plugin<Project> {
       project.tasks.named("check") {
         dependsOn(ownership)
         dependsOn(httpFloor)
+      }
+    }
+  }
+
+  private fun resolvedModuleVersions(configuration: Configuration) =
+    configuration.incoming.resolutionResult.rootComponent.map {
+      configuration.incoming.resolutionResult.allComponents
+        .mapNotNull { component ->
+          (component.id as? ModuleComponentIdentifier)?.let {
+            "${configuration.name}\t${it.group}:${it.module}\t${it.version}"
+          }
+        }
+    }
+
+  /**
+   * Enforces published client-compatibility floors (Java 17 bytecode floor + published compile/
+   * runtime version ceilings) on every published module. See docs/RENDERER_COMPATIBILITY.md.
+   */
+  private fun registerClientCompatibilityFloorCheck(project: Project) {
+    project.plugins.withId("composeai.maven-publishing") {
+      val floorCheck =
+        project.tasks.register<CheckClientCompatibilityFloor>("checkClientCompatibilityFloor") {
+          description =
+            "Fails if published production classpaths exceed Java 17 bytecode or client version floors."
+          group = "verification"
+          maxJavaMajor.set(17)
+          resolvedVersions.convention(emptyList())
+          val baseCeilings = mutableListOf(
+            ClientCompatibilityFloor.Ceiling(
+              "io.github.classgraph:classgraph",
+              5,
+              999,
+              "ClassGraph 6 requires Java 25",
+            ),
+            ClientCompatibilityFloor.Ceiling(
+              "com.materialkolor:material-kolor",
+              4,
+              0,
+              "material-kolor 4.1+ raises the Compose/Kotlin floor above published surface",
+            ),
+          )
+          if (project.path == ":data-keyboard-connector") {
+            baseCeilings +=
+              ClientCompatibilityFloor.Ceiling(
+                "androidx.core:core",
+                1,
+                13,
+                "keyboard connector compileOnly compat floor",
+              )
+          }
+          versionCeilings.set(baseCeilings.map { it.encode() })
+        }
+
+      project.plugins.withId("com.android.library") {
+        // `:data-gestures-connector` intentionally compiles `compileOnly` against wear-compose 1.7+
+        // and `compose-bom-stable` behind a runtime classloader gate (`isWearGestureAvailable`).
+        if (project.path != ":data-gestures-connector") {
+          floorCheck.configure {
+            versionCeilings.addAll(
+              listOf(
+                ClientCompatibilityFloor.Ceiling(
+                  "androidx.compose:compose-bom",
+                  2025,
+                  11,
+                  "Android published modules compile against compose-bom-compat (2025.11.x / Compose 1.9.x)",
+                ),
+              ).map { it.encode() }
+            )
+          }
+        }
+      }
+
+      project.configurations.configureEach {
+        if (!isCanBeResolved) return@configureEach
+        val configName = name
+        if (DependencyOwnership.isProductionRuntimeClasspath(configName)) {
+          val versions = resolvedModuleVersions(this)
+          floorCheck.configure {
+            if (project.path != ":data-keyboard-connector") {
+              resolvedVersions.addAll(versions)
+            }
+            if (configName == "runtimeClasspath" || configName == "jvmRuntimeClasspath") {
+              runtimeClasspath.from(this@configureEach)
+            }
+          }
+        } else if (ClientCompatibilityFloor.isProductionCompileClasspath(configName)) {
+          val versions = resolvedModuleVersions(this)
+          floorCheck.configure { resolvedVersions.addAll(versions) }
+        }
+      }
+
+      project.plugins.withId("base") {
+        project.tasks.named("check") { dependsOn(floorCheck) }
       }
     }
   }
