@@ -37,14 +37,14 @@ ARG ANDROID_SDK_PLATFORM=android-36
 ARG ANDROID_BUILD_TOOLS=35.0.0
 # Robolectric's instrumented android-all, prefetched into /root/.m2. The coordinate is
 # Robolectric-version + SDK specific. The daemon's default sandbox SDK is
-# `RobolectricHost.ANDROID_SDK` = 35, and Robolectric 4.18 (`robolectric` in
+# `RobolectricHost.ANDROID_SDK` = 35, and Robolectric 4.18.1 (`robolectric` in
 # gradle/libs.versions.toml, which the sidecar bundles) maps SDK 35 in `DefaultSdkProvider` to
 # android-all 15 / build `14663667-2` with PREINSTRUMENTED_VERSION 7 (the `i7` suffix) — read off
-# the 4.18 jar's bytecode. The server's previous default, `15-robolectric-13954326-i7`, is the
+# the 4.18 jar's bytecode, and unchanged in 4.18.1's. The server's previous default, `15-robolectric-13954326-i7`, is the
 # 4.16/4.17 row and is a cache MISS on 4.18. Re-verify (the SDK 35 row in `DefaultSdkProvider` +
 # the `i<N>` literal in `DefaultSdkProvider$DefaultSdk`) whenever `robolectric` bumps;
 # test-render-runtime-image.sh fails until the marker below names the new version.
-# verified-robolectric: 4.18
+# verified-robolectric: 4.18.1
 ARG ANDROID_ALL_VERSION=15-robolectric-14663667-2-i7
 
 # ---------------------------------------------------------------------------
