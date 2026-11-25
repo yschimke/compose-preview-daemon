@@ -481,3 +481,21 @@ device crop automatically — both happen unconditionally for
 than black can paint inside the tile itself; the hosting FrameLayout's
 background is intentionally not exposed as a knob since it mirrors the
 watchface substrate, not the tile's own surface.
+
+## Enforced published client-compatibility floors
+
+Dependencies whose upgrade would silently raise the minimum runtime or binary
+surface required of downstream consumers are both constrained in
+`.github/renovate.json` and enforced on every `check` run by Gradle
+(`checkClientCompatibilityFloor`, `tapmoc`, and
+`distribution/image/test-render-runtime-image.sh`):
+
+| Surface / Dependency | Enforced floor | Gradle / CI check | Why it cannot drift unattended |
+| --- | --- | --- | --- |
+| JVM bytecode (`classgraph`, all published runtime JARs) | Java 17 (class file `<= 61`) | `checkClientCompatibilityFloor` | ClassGraph 6+ (Java 25 / class file 69) and newer JVM deps fail on JDK 17 consumers with `UnsupportedClassVersionError`. |
+| Kotlin language/API floor (`kotlinCoreLibraries`) | Kotlin `2.0.21` | `tapmoc` (`checkDependencies`) | Keeps published artifacts linkable by consumers on Kotlin 2.0.x / Gradle 8.x. |
+| Android Compose (`androidx.compose.{ui,foundation,runtime}`) | `1.9.x` (`compose-bom-compat` `2025.11.x`) | `checkClientCompatibilityFloor` | Published Android modules compile `compileOnly` against Compose 1.9.5 so consumers on 1.9+ do not hit `NoSuchMethodError`. |
+| `androidx.core:core` (`:data-keyboard-connector`) | `1.13.x` | `checkClientCompatibilityFloor` | Keeps `:data-keyboard-connector` `compileOnly` bytecode binary-compatible with consumers on `androidx.core` 1.13+. |
+| `com.materialkolor:material-kolor` (`:data-wallpaper-connector`) | `4.0.x` | `checkClientCompatibilityFloor` | 4.1+ raises the transitive Compose/Kotlin floor above the published connector surface. |
+| Render-runtime base image (`eclipse-temurin`) | Java `21.x` | `distribution/image/test-render-runtime-image.sh` | Moving the shipped render-runtime image to Java 25 requires deliberate render validation. |
+| Desktop / KMP Compose Multiplatform (`compose-multiplatform`) | `1.12.x` | `forwardComposeSystemThemeTest` / `SkikoBridgeShapeTest` | Minimum supported CMP/Skiko line for Desktop/KMP previews; Android consumers are isolated via mechanism #5 above. |
