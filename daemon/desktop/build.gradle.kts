@@ -309,7 +309,7 @@ dependencies {
   carriedRemoteComposeTestRuntime(platform(libs.rcplayers.bom))
   carriedRemoteComposeTestRuntime(libs.rcplayer.compose)
   carriedRemoteComposeTestRuntime(compose.desktop.currentOs) {
-    version { strictly(libs.versions.compose.multiplatform.rcplayer.get()) }
+    version { require(libs.versions.compose.multiplatform.rcplayer.get()) }
   }
 }
 

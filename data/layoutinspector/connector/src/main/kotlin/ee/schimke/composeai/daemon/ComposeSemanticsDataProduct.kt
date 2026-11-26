@@ -2730,8 +2730,9 @@ internal object ComposeLayoutInspector {
    */
   internal object LayoutTreeAccess {
     fun rootLayoutNode(semanticsNode: Any): LayoutNodeFacade? =
-      (call(semanticsNode, "getLayoutNode\$ui_release") ?: call(semanticsNode, "getLayoutInfo"))
-        ?.let(::LayoutNodeFacade)
+      (callUiInternal(semanticsNode, "getLayoutNode") ?: call(semanticsNode, "getLayoutInfo"))?.let(
+        ::LayoutNodeFacade,
+      )
 
     fun coordinates(node: Any): LayoutCoordinates? =
       call(node, "getCoordinates") as? LayoutCoordinates
@@ -2872,13 +2873,7 @@ internal object ComposeLayoutInspector {
             .firstOrNull { it.name in RIPPLE_NODE_CLASSES }
         if (rippleClass != null) {
           val coordinates =
-            sequenceOf(
-                "getCoordinator\$ui_release",
-                "getCoordinator\$ui",
-                "getCoordinator",
-              )
-              .mapNotNull { call(candidate, it) as? LayoutCoordinates }
-              .firstOrNull() ?: fallbackCoordinates
+            callUiInternal(candidate, "getCoordinator") as? LayoutCoordinates ?: fallbackCoordinates
           val modifierIndex =
             modifiers.indexOfFirst { it.coordinates === coordinates }.takeIf { it >= 0 }
               ?: fallbackIndex
@@ -3017,18 +3012,13 @@ internal object ComposeLayoutInspector {
               )
           }
         }
-        sequenceOf("getDelegate\$ui_release", "getDelegate\$ui", "getDelegate")
-          .mapNotNull { call(candidate, it) }
-          .firstOrNull()
-          ?.let { visit(it, fallbackCoordinates, fallbackIndex) }
-        sequenceOf("getParent\$ui_release", "getParent\$ui", "getParent")
-          .mapNotNull { call(candidate, it) }
-          .firstOrNull()
-          ?.let { visit(it, fallbackCoordinates, fallbackIndex) }
-        sequenceOf("getChild\$ui_release", "getChild\$ui", "getChild")
-          .mapNotNull { call(candidate, it) }
-          .firstOrNull()
-          ?.let { visit(it, fallbackCoordinates, fallbackIndex) }
+        callUiInternal(candidate, "getDelegate")?.let {
+          visit(it, fallbackCoordinates, fallbackIndex)
+        }
+        callUiInternal(candidate, "getParent")?.let {
+          visit(it, fallbackCoordinates, fallbackIndex)
+        }
+        callUiInternal(candidate, "getChild")?.let { visit(it, fallbackCoordinates, fallbackIndex) }
       }
       modifiers.forEachIndexed { index, info ->
         val tail = call(info.coordinates, "getTail")
@@ -3191,14 +3181,8 @@ internal object ComposeLayoutInspector {
      * `$ui_release`.
      */
     fun hasDrawModifierNode(node: Any): Boolean {
-      val nodes =
-        sequenceOf("getNodes\$ui_release", "getNodes\$ui", "getNodes")
-          .mapNotNull { call(node, it) }
-          .firstOrNull() ?: return false
-      val head =
-        sequenceOf("getHead\$ui_release", "getHead\$ui", "getHead")
-          .mapNotNull { call(nodes, it) }
-          .firstOrNull() ?: return false
+      val nodes = callUiInternal(node, "getNodes") ?: return false
+      val head = callUiInternal(nodes, "getHead") ?: return false
       val drawType =
         runCatching {
           Class.forName(
@@ -3213,10 +3197,7 @@ internal object ComposeLayoutInspector {
       fun visitsDraw(candidate: Any?): Boolean {
         if (candidate == null || !seen.add(candidate)) return false
         if (drawType.isInstance(candidate)) return true
-        val delegate =
-          sequenceOf("getDelegate\$ui_release", "getDelegate\$ui", "getDelegate")
-            .mapNotNull { call(candidate, it) }
-            .firstOrNull()
+        val delegate = callUiInternal(candidate, "getDelegate")
         return visitsDraw(delegate)
       }
 
@@ -3224,15 +3205,9 @@ internal object ComposeLayoutInspector {
       while (current != null && seen.add(current)) {
         val chainNode = current
         if (drawType.isInstance(chainNode)) return true
-        val delegate =
-          sequenceOf("getDelegate\$ui_release", "getDelegate\$ui", "getDelegate")
-            .mapNotNull { call(chainNode, it) }
-            .firstOrNull()
+        val delegate = callUiInternal(chainNode, "getDelegate")
         if (visitsDraw(delegate)) return true
-        current =
-          sequenceOf("getChild\$ui_release", "getChild\$ui", "getChild")
-            .mapNotNull { call(chainNode, it) }
-            .firstOrNull()
+        current = callUiInternal(chainNode, "getChild")
       }
       return false
     }
@@ -3252,21 +3227,13 @@ internal object ComposeLayoutInspector {
 
     fun children(node: Any): List<Any> =
       // The child accessors carry an internal-visibility suffix that differs by build: Android
-      // (`compose.ui` aar) mangles to `$ui_release`, the desktop/skiko jar to `$ui` — and the
-      // z-sorted accessor has no suffix at all. Try every variant, in draw order first, and
-      // coerce the result (a `MutableVector` on desktop, a `List` on Android) to a `List`. Without
-      // this the desktop walk silently returned an empty subtree — `layout/inspector` was a lone
-      // root node (#1903).
-      sequenceOf(
-          "getZSortedChildren\$ui_release",
-          "getZSortedChildren\$ui",
-          "getZSortedChildren",
-          "getChildren\$ui_release",
-          "getChildren\$ui",
-          "getFoldedChildren\$ui_release",
-          "getFoldedChildren\$ui",
-        )
-        .mapNotNull { coerceNodeList(call(node, it)) }
+      // (`compose.ui` aar) mangles to `$ui_release`, desktop/skiko 1.11/1.12 to `$ui`, and
+      // Compose Multiplatform 1.13+ to `$org_jetbrains_compose_ui_ui` — and the z-sorted accessor
+      // has no suffix at all. Try every variant, in draw order first, and coerce the result (a
+      // `MutableVector` on desktop, a `List` on Android) to a `List`. Without this the desktop walk
+      // silently returned an empty subtree — `layout/inspector` was a lone root node (#1903).
+      sequenceOf("getZSortedChildren", "getChildren", "getFoldedChildren")
+        .mapNotNull { coerceNodeList(callUiInternal(node, it)) }
         .firstOrNull { it.isNotEmpty() } ?: emptyList()
 
     /**
@@ -3281,7 +3248,7 @@ internal object ComposeLayoutInspector {
       }
 
     fun constraints(node: Any): LayoutInspectorConstraints? {
-      val delegate = call(node, "getLayoutDelegate\$ui_release") ?: return null
+      val delegate = callUiInternal(node, "getLayoutDelegate") ?: return null
       val constraints = call(delegate, "getLastConstraints-DWUhwKw") ?: return null
       val raw = constraintsLong(constraints) ?: return null
       val minWidth = constraintsValue("getMinWidth-impl", raw) ?: return null
@@ -3298,9 +3265,9 @@ internal object ComposeLayoutInspector {
     }
 
     fun zIndex(node: Any): Float? {
-      val delegate = call(node, "getLayoutDelegate\$ui_release") ?: return null
-      val measure = call(delegate, "getMeasurePassDelegate\$ui_release") ?: return null
-      return call(measure, "getZIndex\$ui_release") as? Float
+      val delegate = callUiInternal(node, "getLayoutDelegate") ?: return null
+      val measure = callUiInternal(delegate, "getMeasurePassDelegate") ?: return null
+      return callUiInternal(measure, "getZIndex") as? Float
     }
 
     fun measurePolicyName(node: Any): String? =
@@ -3323,6 +3290,14 @@ internal object ComposeLayoutInspector {
 
     private fun constraintsInfinity(): Int =
       Class.forName("androidx.compose.ui.unit.Constraints").getField("Infinity").getInt(null)
+
+    private fun callUiInternal(receiver: Any, baseName: String): Any? =
+      UI_INTERNAL_SUFFIXES.firstNotNullOfOrNull { suffix ->
+        call(receiver, "$baseName$suffix")
+      }
+
+    private val UI_INTERNAL_SUFFIXES =
+      listOf("\$ui_release", "\$ui", "\$org_jetbrains_compose_ui_ui", "")
 
     private fun call(receiver: Any, name: String): Any? = runCatching {
       val method = receiver.javaClass.findZeroArgMethod(name) ?: return null
