@@ -472,11 +472,14 @@ internal constructor(
       val plugins = composeCompilerPlugins(paths(DefaultBtaCompileService.SYSPROP_COMPILER_PLUGINS))
       val ineligibility =
         sysprops(DefaultBtaCompileService.SYSPROP_INELIGIBILITY_REASON)?.takeIf { it.isNotEmpty() }
+      val jvmTarget =
+        sysprops(DefaultBtaCompileService.SYSPROP_JVM_TARGET)?.takeIf { it.isNotBlank() }
       val session =
         BtaCompileSession(
           implClasspath = implClasspath.map { Path.of(it) },
           icWorkingDir = Path.of(icWorkingDir),
           moduleName = moduleName,
+          jvmTarget = jvmTarget,
         )
       val fallback =
         DefaultBtaCompileService.forSession(
@@ -535,18 +538,8 @@ internal constructor(
       ) {
         return null
       }
-      val pluginJars = paths(DefaultBtaCompileService.SYSPROP_COMPILER_PLUGINS)
       val workDir = File(icWorkingDir, "warm")
-      val config =
-        mapOf(
-          "compileClasspath" to paths(DefaultBtaCompileService.SYSPROP_COMPILE_CLASSPATH),
-          "classesDir" to outputDir,
-          "moduleName" to moduleName,
-          "stagingDir" to File(workDir, "staging").path,
-          "pluginClasspath" to pluginJars,
-          "pluginOptions" to
-            if (pluginJars.isEmpty()) emptyList() else listOf(COMPOSE_SOURCE_INFORMATION),
-        )
+      val config = warmCompilerConfig(sysprops, outputDir, moduleName, workDir)
       return WarmCompileService(
         fallback,
         { ReflectiveWarmCompiler.load(implClasspath, workDir, config) },
@@ -557,6 +550,31 @@ internal constructor(
           listOf(file.path)
         },
         fallbackWarmUp = fallbackWarmUp,
+      )
+    }
+
+    /** Builds the config map handed to `WarmCompilerEntry`'s constructor. */
+    internal fun warmCompilerConfig(
+      sysprops: (String) -> String?,
+      outputDir: String,
+      moduleName: String,
+      workDir: File,
+    ): Map<String, Any?> {
+      fun paths(key: String) =
+        sysprops(key).orEmpty().split(File.pathSeparator).filter { it.isNotEmpty() }
+      val pluginJars = paths(DefaultBtaCompileService.SYSPROP_COMPILER_PLUGINS)
+      val jvmTarget =
+        BtaCompileSession.parseJvmTarget(sysprops(DefaultBtaCompileService.SYSPROP_JVM_TARGET))
+          .stringValue
+      return mapOf(
+        "compileClasspath" to paths(DefaultBtaCompileService.SYSPROP_COMPILE_CLASSPATH),
+        "classesDir" to outputDir,
+        "moduleName" to moduleName,
+        "stagingDir" to File(workDir, "staging").path,
+        "jvmTarget" to jvmTarget,
+        "pluginClasspath" to pluginJars,
+        "pluginOptions" to
+          if (pluginJars.isEmpty()) emptyList() else listOf(COMPOSE_SOURCE_INFORMATION),
       )
     }
 

@@ -59,6 +59,27 @@ public class BtaCompileSession(
   private val logger: KotlinLogger = StderrLogger,
 ) {
 
+  /**
+   * Bytecode target passed to `-jvm-target`. Defaults to [JvmTarget.JVM_17] when omitted or
+   * unrecognized.
+   */
+  internal var jvmTarget: JvmTarget = JvmTarget.JVM_17
+    private set
+
+  /**
+   * Constructs a session targeting [jvmTarget] (e.g. `"17"`, `"21"`, `"1.8"`), falling back to
+   * [JvmTarget.JVM_17] when null, blank, or unrecognized.
+   */
+  public constructor(
+    implClasspath: List<Path>,
+    icWorkingDir: Path,
+    moduleName: String,
+    logger: KotlinLogger = StderrLogger,
+    jvmTarget: String?,
+  ) : this(implClasspath, icWorkingDir, moduleName, logger) {
+    this.jvmTarget = parseJvmTarget(jvmTarget)
+  }
+
   /** Memoized class-path entry hashes, shared by every [compileIncremental] on this session. */
   internal val classpathHashes: ClasspathEntryHashes = ClasspathEntryHashes()
 
@@ -195,13 +216,13 @@ public class BtaCompileSession(
     }
   }
 
-  private fun configureCompilerArgs(
+  internal fun configureCompilerArgs(
     args: JvmCompilerArguments.Builder,
     compileClasspath: List<Path>,
     compilerPlugins: List<CompilerPlugin>,
   ) {
     args.set(JvmCompilerArguments.CLASSPATH, compileClasspath)
-    args.set(JvmCompilerArguments.JVM_TARGET, JvmTarget.JVM_17)
+    args.set(JvmCompilerArguments.JVM_TARGET, jvmTarget)
     args.set(JvmCompilerArguments.MODULE_NAME, moduleName)
     if (compilerPlugins.isNotEmpty()) {
       args.set(CommonCompilerArguments.COMPILER_PLUGINS, compilerPlugins)
@@ -225,6 +246,32 @@ public class BtaCompileSession(
       .filter { it.isFile && it.extension == "class" }
       .map { it.toPath() }
       .toList()
+
+  public companion object {
+    /** Default JVM target when none is configured or the configured value is unrecognized. */
+    public const val DEFAULT_JVM_TARGET: String = "17"
+
+    /**
+     * Parses a JVM target string (such as `"17"`, `"21"`, `"1.8"`, `"8"`, or `"JVM_21"`) into a BTA
+     * [JvmTarget], falling back to [JvmTarget.JVM_17] when [raw] is null, blank, or unrecognized.
+     */
+    public fun parseJvmTarget(raw: String?): JvmTarget {
+      val trimmed = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return JvmTarget.JVM_17
+      val candidate =
+        when (trimmed.uppercase()) {
+          "8",
+          "1.8",
+          "JVM_1_8",
+          "JVM1_8" -> "1.8"
+          "6",
+          "1.6",
+          "JVM_1_6",
+          "JVM1_6" -> "1.6"
+          else -> trimmed.uppercase().removePrefix("JVM_")
+        }
+      return JvmTarget.entries.firstOrNull { it.stringValue == candidate } ?: JvmTarget.JVM_17
+    }
+  }
 }
 
 /**

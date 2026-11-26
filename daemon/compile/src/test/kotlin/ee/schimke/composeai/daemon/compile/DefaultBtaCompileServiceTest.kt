@@ -247,4 +247,109 @@ class DefaultBtaCompileServiceTest {
       (outcome as BtaCompileService.Outcome.Fallback).reason,
     )
   }
+
+  @Test
+  fun `BtaCompileSession parseJvmTarget resolves known targets and defaults to 17`() {
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM_21,
+      BtaCompileSession.parseJvmTarget("21"),
+    )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM_21,
+      BtaCompileSession.parseJvmTarget("  21  "),
+    )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM_21,
+      BtaCompileSession.parseJvmTarget("JVM_21"),
+    )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM_17,
+      BtaCompileSession.parseJvmTarget("17"),
+    )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM_11,
+      BtaCompileSession.parseJvmTarget("11"),
+    )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM1_8,
+      BtaCompileSession.parseJvmTarget("8"),
+    )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM1_8,
+      BtaCompileSession.parseJvmTarget("1.8"),
+    )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM_17,
+      BtaCompileSession.parseJvmTarget(null),
+    )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM_17,
+      BtaCompileSession.parseJvmTarget("   "),
+    )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM_17,
+      BtaCompileSession.parseJvmTarget("not-a-jvm-target"),
+    )
+  }
+
+  @Test
+  fun `BtaCompileSession configures JVM_TARGET from constructor and defaults to 17`() {
+    fun recordedArgs(session: BtaCompileSession): Map<Any, Any?> {
+      val recorded = LinkedHashMap<Any, Any?>()
+      val builder =
+        java.lang.reflect.Proxy.newProxyInstance(
+          org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Builder::class
+            .java
+            .classLoader,
+          arrayOf(
+            org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Builder::class.java,
+          ),
+        ) { _, method, args ->
+          if (method.name == "set" && args != null && args.size == 2) {
+            recorded[args[0]] = args[1]
+          }
+          null
+        } as org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Builder
+      session.configureCompilerArgs(builder, listOf(Path.of("/abs/cp.jar")), emptyList())
+      return recorded
+    }
+
+    val jvm21 =
+      BtaCompileSession(
+        implClasspath = listOf(Path.of("/abs/impl.jar")),
+        icWorkingDir = Path.of("/abs/ic"),
+        moduleName = "app",
+        jvmTarget = "21",
+      )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM_21,
+      recordedArgs(jvm21)[
+        org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.JVM_TARGET],
+    )
+
+    val defaultSession =
+      BtaCompileSession(
+        implClasspath = listOf(Path.of("/abs/impl.jar")),
+        icWorkingDir = Path.of("/abs/ic"),
+        moduleName = "app",
+      )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM_17,
+      recordedArgs(defaultSession)[
+        org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.JVM_TARGET],
+    )
+
+    val unrecognized =
+      BtaCompileSession(
+        implClasspath = listOf(Path.of("/abs/impl.jar")),
+        icWorkingDir = Path.of("/abs/ic"),
+        moduleName = "app",
+        jvmTarget = "999",
+      )
+    assertEquals(
+      org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.JVM_17,
+      recordedArgs(unrecognized)[
+        org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.JVM_TARGET],
+    )
+  }
 }

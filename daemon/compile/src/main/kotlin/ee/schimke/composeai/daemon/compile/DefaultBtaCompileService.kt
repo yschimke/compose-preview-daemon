@@ -109,6 +109,11 @@ public class DefaultBtaCompileService(
      */
     public const val SYSPROP_INELIGIBILITY_REASON: String =
       "composeai.daemon.bta.ineligibilityReason"
+    /**
+     * Optional. JVM bytecode target for stage-2 compiles (e.g. `"17"`, `"21"`, `"1.8"`). Unset,
+     * blank, or unrecognized values default to `"17"`.
+     */
+    public const val SYSPROP_JVM_TARGET: String = "composeai.daemon.bta.jvmTarget"
 
     /**
      * Production factory — captures the [session] + its per-module compile config in a
@@ -186,12 +191,14 @@ public class DefaultBtaCompileService(
       val compileClasspath = sysprops(SYSPROP_COMPILE_CLASSPATH).toPathList()
       val pluginJars = sysprops(SYSPROP_COMPILER_PLUGINS).toPathList()
       val ineligibilityReason = sysprops(SYSPROP_INELIGIBILITY_REASON)?.takeIf { it.isNotEmpty() }
+      val jvmTarget = sysprops(SYSPROP_JVM_TARGET)?.takeIf { it.isNotBlank() }
       val compilerPlugins = composeCompilerPlugins(pluginJars)
       val session =
         BtaCompileSession(
           implClasspath = implClasspath,
           icWorkingDir = java.nio.file.Path.of(icWorkingDirStr),
           moduleName = moduleName,
+          jvmTarget = jvmTarget,
         )
       return forSession(
         session = session,
