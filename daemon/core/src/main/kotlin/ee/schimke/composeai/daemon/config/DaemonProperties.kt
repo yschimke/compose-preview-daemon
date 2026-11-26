@@ -223,6 +223,7 @@ public object DaemonProperties {
     public const val SANDBOX_BOOT_TIMEOUT_MS: String = "composeai.daemon.sandboxBootTimeoutMs"
 
     public const val USER_CLASS_DIRS: String = "composeai.daemon.userClassDirs"
+    public const val SOURCE_DIRS: String = "composeai.daemon.sourceDirs"
     public const val USER_CLASS_PACKAGES: String = "composeai.daemon.userClassPackages"
     public const val TIP_RELOAD: String = "composeai.daemon.tipReload"
     public const val APP_COMPOSE: String = "composeai.daemon.appCompose"
@@ -416,6 +417,14 @@ public object DaemonProperties {
     PathListProperty(
       Names.USER_CLASS_DIRS,
       "`File.pathSeparator`-delimited user-class directories the child-first loader serves.",
+      G_CLASSPATH,
+    )
+
+  public val sourceDirs: PathListProperty =
+    PathListProperty(
+      Names.SOURCE_DIRS,
+      "`File.pathSeparator`-delimited source directories owned by this module; incremental " +
+        "discovery skips `fileChanged` paths outside them.",
       G_CLASSPATH,
     )
 
@@ -891,6 +900,7 @@ public object DaemonProperties {
       interactiveIdleLeaseMs,
       sandboxBootTimeoutMs,
       userClassDirs,
+      sourceDirs,
       userClassPackages,
       tipReload,
       appCompose,

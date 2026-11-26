@@ -2,9 +2,12 @@ package ee.schimke.composeai.daemon.client
 
 import com.google.common.truth.Truth.assertThat
 import ee.schimke.composeai.daemon.SystemPropertyArgs
+import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.protocol.DaemonLaunchDescriptor
+import ee.schimke.composeai.daemon.protocol.SourceWatch
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.PipedInputStream
@@ -58,6 +61,72 @@ class SubprocessDaemonSpawnTest {
     launch.cleanup()
     assertThat(argFiles.single().exists()).isFalse()
     assertThat(launchDir.exists()).isFalse()
+  }
+
+  @Test
+  fun `launchCommand forwards sourceWatch sourceDirs when not explicitly set`() {
+    val descriptor =
+      DaemonLaunchDescriptor.Builder(
+          schemaVersion = 2,
+          modulePath = ":app",
+          variant = "android",
+          enabled = true,
+          mainClass = "com.example.Main",
+          classpath = listOf("/app/classes"),
+          jvmArgs = emptyList(),
+          systemProperties = emptyMap(),
+          workingDirectory = "/tmp",
+          manifestPath = "",
+        )
+        .also {
+          it.sourceWatch =
+            SourceWatch.Builder()
+              .also { sw ->
+                sw.sourceDirs = listOf("/repo/app/src/main/kotlin", "/repo/app/src/debug/kotlin")
+              }
+              .build()
+        }
+        .build()
+
+    val launch = buildLaunchCommand(descriptor)
+    try {
+      val expected =
+        "-D${DaemonProperties.Names.SOURCE_DIRS}=" +
+          "/repo/app/src/main/kotlin${File.pathSeparator}/repo/app/src/debug/kotlin"
+      assertThat(launch.argv).contains(expected)
+    } finally {
+      launch.cleanup()
+    }
+  }
+
+  @Test
+  fun `launchCommand keeps explicit sourceDirs property over sourceWatch`() {
+    val descriptor =
+      DaemonLaunchDescriptor.Builder(
+          schemaVersion = 2,
+          modulePath = ":app",
+          variant = "android",
+          enabled = true,
+          mainClass = "com.example.Main",
+          classpath = listOf("/app/classes"),
+          jvmArgs = emptyList(),
+          systemProperties = mapOf(DaemonProperties.Names.SOURCE_DIRS to "/custom/src"),
+          workingDirectory = "/tmp",
+          manifestPath = "",
+        )
+        .also {
+          it.sourceWatch =
+            SourceWatch.Builder().also { sw -> sw.sourceDirs = listOf("/ignored/src") }.build()
+        }
+        .build()
+
+    val launch = buildLaunchCommand(descriptor)
+    try {
+      assertThat(launch.argv).contains("-D${DaemonProperties.Names.SOURCE_DIRS}=/custom/src")
+      assertThat(launch.argv).doesNotContain("-D${DaemonProperties.Names.SOURCE_DIRS}=/ignored/src")
+    } finally {
+      launch.cleanup()
+    }
   }
 
   @Test

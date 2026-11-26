@@ -96,15 +96,22 @@ class DeferredDiscoveryQueueTest {
   }
 
   @Test
-  fun `same path enqueued twice runs twice -- identity dedup is intentionally absent`() {
-    // Regression for the documented "two saves of the same file scan twice" behaviour. The queue
-    // is bounded by the user's editor cadence; per-scan idempotency is the cheaper invariant.
+  fun `same path enqueued multiple times coalesces into one pending entry and runs once`() {
     val ran = mutableListOf<String>()
-    val (q, _) = newQueue(runForPath = { ran.add(it) })
+    val (q, scheduler) = newQueue(runForPath = { ran.add(it) })
     q.enqueue("/a.kt")
     q.enqueue("/a.kt")
+    q.enqueue("/a.kt")
+    assertEquals(1, q.pendingCount())
+    // Earlier superseded timers must not fire early or duplicate the scan.
+    scheduler.fireFirst()
+    assertTrue(ran.isEmpty())
+    assertEquals(1, q.pendingCount())
     q.drain()
-    assertEquals(listOf("/a.kt", "/a.kt"), ran)
+    assertEquals(listOf("/a.kt"), ran)
+    assertEquals(0, q.pendingCount())
+    scheduler.fireAll()
+    assertEquals(listOf("/a.kt"), ran)
   }
 
   @Test
@@ -196,18 +203,37 @@ class DeferredDiscoveryQueueTest {
   fun `a render drain excludes saves enqueued after the frame boundary`() {
     val ran = mutableListOf<String>()
     val (q, scheduler) = newQueue(runForPath = { ran.add(it) })
-    q.enqueue("/same.kt")
+    q.enqueue("/before.kt")
     val boundary = q.currentSequence()
-    // The client receives renderFinished and immediately saves the same file again.
-    q.enqueue("/same.kt")
+    // The client receives renderFinished and immediately saves another file.
+    q.enqueue("/after.kt")
     q.drainThrough(boundary)
-    assertEquals(listOf("/same.kt"), ran)
+    assertEquals(listOf("/before.kt"), ran)
     assertEquals(1, q.pendingCount())
     scheduler.fireFirst() // the already-drained save's stale timer
     assertEquals(1, ran.size)
     q.drain()
     scheduler.fireAll()
-    assertEquals(listOf("/same.kt", "/same.kt"), ran)
+    assertEquals(listOf("/before.kt", "/after.kt"), ran)
+  }
+
+  @Test
+  fun `re-enqueuing the same path after a frame boundary supersedes the earlier entry`() {
+    val ran = mutableListOf<String>()
+    val (q, scheduler) = newQueue(runForPath = { ran.add(it) })
+    q.enqueue("/same.kt")
+    val boundary = q.currentSequence()
+    // The client saves the same file again before the prior save drains; the newer save supersedes
+    // the older one and waits for its own render or watchdog instead of scanning twice.
+    q.enqueue("/same.kt")
+    q.drainThrough(boundary)
+    assertTrue(ran.isEmpty())
+    assertEquals(1, q.pendingCount())
+    scheduler.fireFirst() // superseded entry's stale timer
+    assertTrue(ran.isEmpty())
+    q.drain()
+    scheduler.fireAll()
+    assertEquals(listOf("/same.kt"), ran)
   }
 
   @Test
@@ -221,5 +247,51 @@ class DeferredDiscoveryQueueTest {
     assertEquals(1, q.pendingCount())
     q.drain()
     assertEquals(listOf("/first-edit.kt"), ran)
+  }
+
+  @Test
+  fun `SerializedDiscoveryRunner runs scans one at a time and coalesces rapid duplicates`() {
+    val firstStarted = java.util.concurrent.CountDownLatch(1)
+    val releaseFirst = java.util.concurrent.CountDownLatch(1)
+    val done = java.util.concurrent.CountDownLatch(3)
+    val active = AtomicInteger(0)
+    val maxActive = AtomicInteger(0)
+    val runs = java.util.concurrent.ConcurrentLinkedQueue<String>()
+    val workerLaunches = AtomicInteger(0)
+
+    val runner =
+      SerializedDiscoveryRunner(
+        runScan = { path ->
+          val now = active.incrementAndGet()
+          maxActive.accumulateAndGet(now, Math::max)
+          try {
+            runs.add(path)
+            if (runs.size == 1) {
+              firstStarted.countDown()
+              assertTrue(releaseFirst.await(5, java.util.concurrent.TimeUnit.SECONDS))
+            }
+          } finally {
+            active.decrementAndGet()
+            done.countDown()
+          }
+        },
+        launchWorker = { task ->
+          workerLaunches.incrementAndGet()
+          Thread(task, "test-serialized-discovery").apply { isDaemon = true }.start()
+        },
+      )
+
+    runner.submit("/a.kt")
+    assertTrue(firstStarted.await(5, java.util.concurrent.TimeUnit.SECONDS))
+    // Burst of repeated saves while the first scan is in flight must coalesce to one pending entry
+    // per path and never launch parallel workers.
+    repeat(10) { runner.submit("/a.kt") }
+    repeat(5) { runner.submit("/b.kt") }
+    releaseFirst.countDown()
+
+    assertTrue(done.await(5, java.util.concurrent.TimeUnit.SECONDS))
+    assertEquals(1, maxActive.get())
+    assertEquals(1, workerLaunches.get())
+    assertEquals(listOf("/a.kt", "/a.kt", "/b.kt"), runs.toList())
   }
 }

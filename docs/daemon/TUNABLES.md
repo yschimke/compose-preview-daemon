@@ -40,6 +40,7 @@ flips a knob.
 | Property | Type | Default | Effect |
 | --- | --- | --- | --- |
 | `composeai.daemon.userClassDirs` | path list | empty | `File.pathSeparator`-delimited user-class directories the child-first loader serves. |
+| `composeai.daemon.sourceDirs` | path list | empty | `File.pathSeparator`-delimited source directories owned by this module; incremental discovery skips `fileChanged` paths outside them. |
 | `composeai.daemon.userClassPackages` | path list | empty | Packages excluded from Robolectric instrumentation and served from the user classloader. |
 | `composeai.daemon.tipReload` | Boolean | `false` | Whether a user-class swap keeps the first loader warm and reloads only the changed classes and the classes that reference them (docs/daemon/CLASSLOADER.md). |
 | `composeai.daemon.appCompose` | String | `auto` | Whose Compose runs when the user classpath carries one: `auto` (the app's when newer or unversioned), `app` (always the app's) or `daemon` (always the bundled one). See docs/daemon/CLASSLOADER.md. |
