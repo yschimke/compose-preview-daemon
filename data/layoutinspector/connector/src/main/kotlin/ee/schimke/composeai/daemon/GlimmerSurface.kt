@@ -149,9 +149,24 @@ internal object GlimmerSurface {
   /** The `Modifier.Node` links walked looking for a [SURFACE_NODE], in the order they are tried. */
   private val NODE_LINKS =
     listOf(
-      listOf("getDelegate\$ui_release", "getDelegate\$ui", "getDelegate"),
-      listOf("getChild\$ui_release", "getChild\$ui", "getChild"),
-      listOf("getParent\$ui_release", "getParent\$ui", "getParent"),
+      listOf(
+        "getDelegate\$ui_release",
+        "getDelegate\$ui",
+        "getDelegate\$org_jetbrains_compose_ui_ui",
+        "getDelegate",
+      ),
+      listOf(
+        "getChild\$ui_release",
+        "getChild\$ui",
+        "getChild\$org_jetbrains_compose_ui_ui",
+        "getChild",
+      ),
+      listOf(
+        "getParent\$ui_release",
+        "getParent\$ui",
+        "getParent\$org_jetbrains_compose_ui_ui",
+        "getParent",
+      ),
     )
 
   /**

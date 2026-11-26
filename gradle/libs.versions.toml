@@ -69,24 +69,24 @@ compose-bom-compat = "2025.11.01"
 # that upgrades ahead of the host pairs its newer `org.jetbrains.skia.*` bindings with the sidecar's
 # older `libskiko` and every live render dies with `UnsatisfiedLinkError` — silently, at
 # regeneration time, with baked PNGs still serving fine. See `docs/RENDERER_COMPATIBILITY.md`.
-compose-multiplatform = "1.12.1"
+compose-multiplatform = "1.12.2"
 # Consumer runtime used by renderer forward-compatibility tests. Keep this on the newest CMP line
 # that catalogs are expected to adopt; it intentionally does not affect production compilation.
-compose-multiplatform-forward = "1.12.2"
+compose-multiplatform-forward = "1.13.0-rc01"
 # The Compose Multiplatform line the CMP Remote Compose player (`rc-player-compose`, `rcplayers`
 # below) requires: the `:daemon:desktop` `carriedRemoteComposeTest` runtime pins
 # `compose.desktop.currentOs` to it so Skiko's native runtime matches the `skiko-awt` the player's
 # Compose pulls in. Test-only; move it with `rcplayers` when a release raises its Compose floor.
-compose-multiplatform-rcplayer = "1.12.1"
+compose-multiplatform-rcplayer = "1.12.2"
 # JetBrains Compose Multiplatform material3 tracks its own line, so the explicit coordinate must
 # use this version rather than `compose-multiplatform`. Matched to what `m3-catalog` pins on the
 # 1.12 line, so the largest live-rendered catalog and the host agree on the material3 ABI as well
 # as on Skiko.
-compose-multiplatform-material3 = "1.12.0-alpha02"
+compose-multiplatform-material3 = "1.12.0-alpha03"
 # The material3 line the *catalogs* render on, used only by
 # `:daemon:desktop:forwardComposeInteractionExportTest`. Must stay strictly ahead of
 # `compose-multiplatform-material3` above.
-compose-multiplatform-material3-forward = "1.12.0-alpha03"
+compose-multiplatform-material3-forward = "1.13.0-rc01"
 graphics-shapes = "1.1.0"
 # Compottie — the KMP Lottie runtime that powers `:lottie-preview-runtime`. Tracks the same Compose
 # minor as `compose-multiplatform`: 2.3.x is built against JetBrains Compose 1.12 / Skiko 0.150+.
