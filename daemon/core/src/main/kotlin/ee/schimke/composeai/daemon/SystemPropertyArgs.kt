@@ -1,8 +1,14 @@
 package ee.schimke.composeai.daemon
 
 import java.io.File
+import java.io.IOException
 import java.nio.charset.Charset
+import java.nio.file.FileVisitResult
 import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.Path
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
@@ -105,6 +111,74 @@ public object SystemPropertyArgs {
     }
   }
 
+  /**
+   * Deletes [dir] and its descendants in post-order without following symbolic links.
+   *
+   * Top-level symbolic links are left untouched and return `false`. Nested symbolic links (or
+   * reparse points / junctions reported as `isOther`) are unlinked directly without descending into
+   * their targets. Never throws.
+   */
+  public fun deleteRecursivelyNoFollow(dir: File): Boolean = runCatching {
+    val root = dir.toPath()
+    if (Files.isSymbolicLink(root) || !Files.exists(root, LinkOption.NOFOLLOW_LINKS)) {
+      return@runCatching false
+    }
+    var allDeleted = true
+    Files.walkFileTree(
+      root,
+      object : SimpleFileVisitor<Path>() {
+        override fun preVisitDirectory(
+          subDir: Path,
+          attrs: BasicFileAttributes,
+        ): FileVisitResult {
+          if (attrs.isSymbolicLink || attrs.isOther) {
+            if (subDir == root) {
+              allDeleted = false
+              return FileVisitResult.TERMINATE
+            }
+            if (!runCatching { Files.deleteIfExists(subDir) }.isSuccess) {
+              allDeleted = false
+            }
+            return FileVisitResult.SKIP_SUBTREE
+          }
+          return FileVisitResult.CONTINUE
+        }
+
+        override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+          if (file == root && (attrs.isSymbolicLink || attrs.isOther)) {
+            allDeleted = false
+            return FileVisitResult.TERMINATE
+          }
+          if (!runCatching { Files.deleteIfExists(file) }.isSuccess) {
+            allDeleted = false
+          }
+          return FileVisitResult.CONTINUE
+        }
+
+        override fun visitFileFailed(file: Path, exc: IOException): FileVisitResult {
+          if (file == root && Files.isSymbolicLink(file)) {
+            allDeleted = false
+            return FileVisitResult.TERMINATE
+          }
+          if (!runCatching { Files.deleteIfExists(file) }.isSuccess) {
+            allDeleted = false
+          }
+          return FileVisitResult.CONTINUE
+        }
+
+        override fun postVisitDirectory(subDir: Path, exc: IOException?): FileVisitResult {
+          if (exc != null) allDeleted = false
+          if (!runCatching { Files.deleteIfExists(subDir) }.isSuccess) {
+            allDeleted = false
+          }
+          return FileVisitResult.CONTINUE
+        }
+      },
+    )
+    allDeleted && !Files.exists(root, LinkOption.NOFOLLOW_LINKS)
+  }
+    .getOrDefault(false)
+
   /** Sweeps stale argfiles and launch dirs in [directory] at most once per directory per JVM. */
   public fun sweepStaleArgFilesOnce(directory: File? = null) {
     val target = directory ?: defaultTempDir()
@@ -119,6 +193,8 @@ public object SystemPropertyArgs {
    * `composeai-cp*.args` files in [directory] (or `java.io.tmpdir` when null):
    * - PID-tagged files and launch directories are removed immediately once their owner PID is dead.
    * - Legacy non-PID argfiles are removed once older than [legacyMaxAgeMs].
+   * - Top-level symbolic links are skipped, and directory deletion never follows nested symbolic
+   *   links.
    *
    * Returns the number of entries removed. Never throws.
    */
@@ -132,26 +208,34 @@ public object SystemPropertyArgs {
     val entries = runCatching { target.listFiles() }.getOrNull() ?: return 0
     var removed = 0
     for (entry in entries) {
+      val path = entry.toPath()
+      if (runCatching { Files.isSymbolicLink(path) }.getOrDefault(true)) continue
       val name = entry.name
       val dirMatch = PID_LAUNCH_DIR_REGEX.matchEntire(name)
-      if (dirMatch != null && entry.isDirectory) {
+      if (dirMatch != null && Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
         val pid = dirMatch.groupValues[1].toLongOrNull() ?: continue
-        if (!isPidAlive(pid) && runCatching { entry.deleteRecursively() }.getOrDefault(false)) {
+        if (!isPidAlive(pid) && deleteRecursivelyNoFollow(entry)) {
           removed++
         }
         continue
       }
-      if (!entry.isFile || !name.endsWith(".args")) continue
+      if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) || !name.endsWith(".args")) continue
       if (!name.startsWith(PROPS_PREFIX) && !name.startsWith(CP_PREFIX)) continue
       val fileMatch = PID_ARGFILE_REGEX.matchEntire(name)
       if (fileMatch != null) {
         val pid = fileMatch.groupValues[1].toLongOrNull() ?: continue
-        if (!isPidAlive(pid) && runCatching { entry.delete() }.getOrDefault(false)) {
+        if (!isPidAlive(pid) && runCatching { Files.deleteIfExists(path) }.getOrDefault(false)) {
           removed++
         }
       } else {
-        val ageMs = nowMs - entry.lastModified()
-        if (ageMs >= legacyMaxAgeMs && runCatching { entry.delete() }.getOrDefault(false)) {
+        val lastModified = runCatching {
+          Files.getLastModifiedTime(path, LinkOption.NOFOLLOW_LINKS).toMillis()
+        }
+          .getOrElse { entry.lastModified() }
+        val ageMs = nowMs - lastModified
+        if (
+          ageMs >= legacyMaxAgeMs && runCatching { Files.deleteIfExists(path) }.getOrDefault(false)
+        ) {
           removed++
         }
       }

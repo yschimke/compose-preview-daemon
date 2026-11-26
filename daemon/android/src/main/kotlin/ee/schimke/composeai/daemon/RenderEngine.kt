@@ -3421,7 +3421,8 @@ internal fun redirectRoborazziResults(
           "$ROBORAZZI_RESULT_DIR_PREFIX-pid$pid-",
         )
         .toFile()
-    Runtime.getRuntime().addShutdownHook(Thread { dir.deleteRecursively() })
+    Runtime.getRuntime()
+      .addShutdownHook(Thread { SystemPropertyArgs.deleteRecursivelyNoFollow(dir) })
     System.setProperty(ROBORAZZI_RESULT_DIR_PROPERTY, dir.path)
   }
 }
@@ -3432,6 +3433,8 @@ internal fun redirectRoborazziResults(
  *   their owner PID is no longer alive.
  * - Legacy untagged directories (`composeai-roborazzi-results*`) are deleted once older than
  *   [legacyMaxAgeMs].
+ * - Top-level symbolic links are skipped, and recursive deletion never follows nested symbolic
+ *   links.
  */
 internal fun sweepStaleRoborazziResultDirs(
   baseDir: java.io.File = java.io.File(System.getProperty("java.io.tmpdir")),
@@ -3442,20 +3445,25 @@ internal fun sweepStaleRoborazziResultDirs(
   val entries = runCatching { baseDir.listFiles() }.getOrNull() ?: return 0
   var removed = 0
   for (entry in entries) {
-    if (!entry.isDirectory) continue
+    val path = entry.toPath()
+    if (runCatching { java.nio.file.Files.isSymbolicLink(path) }.getOrDefault(true)) continue
+    if (!java.nio.file.Files.isDirectory(path, java.nio.file.LinkOption.NOFOLLOW_LINKS)) continue
     val name = entry.name
     if (!name.startsWith(ROBORAZZI_RESULT_DIR_PREFIX)) continue
     val pidMatch = ROBORAZZI_PID_DIR_REGEX.matchEntire(name)
     if (pidMatch != null) {
       val pid = pidMatch.groupValues[1].toLongOrNull() ?: continue
-      if (!isPidAlive(pid) && runCatching { entry.deleteRecursively() }.getOrDefault(false)) {
+      if (!isPidAlive(pid) && SystemPropertyArgs.deleteRecursivelyNoFollow(entry)) {
         removed++
       }
     } else {
-      val ageMs = nowMs - entry.lastModified()
-      if (
-        ageMs >= legacyMaxAgeMs && runCatching { entry.deleteRecursively() }.getOrDefault(false)
-      ) {
+      val lastModified = runCatching {
+        java.nio.file.Files.getLastModifiedTime(path, java.nio.file.LinkOption.NOFOLLOW_LINKS)
+          .toMillis()
+      }
+        .getOrElse { entry.lastModified() }
+      val ageMs = nowMs - lastModified
+      if (ageMs >= legacyMaxAgeMs && SystemPropertyArgs.deleteRecursivelyNoFollow(entry)) {
         removed++
       }
     }
