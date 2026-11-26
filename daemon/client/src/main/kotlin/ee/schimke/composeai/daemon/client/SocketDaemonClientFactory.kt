@@ -50,32 +50,39 @@ public class SocketDaemonClientFactory(
         connect(socket)?.let {
           return SocketDaemonSpawn(it)
         }
-        val process = launch(descriptor, dir)
-        val deadline = System.nanoTime() + startTimeout.inWholeNanoseconds
-        while (System.nanoTime() < deadline) {
-          connect(socket)?.let {
-            return SocketDaemonSpawn(it)
+        val launch = buildLaunchCommand(descriptor)
+        try {
+          val process = launch(launch.argv, descriptor, dir)
+          val deadline = System.nanoTime() + startTimeout.inWholeNanoseconds
+          while (System.nanoTime() < deadline) {
+            connect(socket)?.let {
+              return SocketDaemonSpawn(it)
+            }
+            if (!process.isAlive) {
+              error(
+                "daemon for ${descriptor.modulePath} exited (${process.exitValue()}) before it " +
+                  "listened on $socket; see ${File(dir, LOG_FILE)}",
+              )
+            }
+            Thread.sleep(POLL_MS)
           }
-          if (!process.isAlive) {
-            error(
-              "daemon for ${descriptor.modulePath} exited (${process.exitValue()}) before it " +
-                "listened on $socket; see ${File(dir, LOG_FILE)}",
-            )
-          }
-          Thread.sleep(POLL_MS)
+          process.destroy()
+          error(
+            "daemon for ${descriptor.modulePath} did not listen on $socket within $startTimeout",
+          )
+        } finally {
+          launch.cleanup()
         }
-        process.destroy()
-        error("daemon for ${descriptor.modulePath} did not listen on $socket within $startTimeout")
       }
     }
   }
 
-  private fun launch(descriptor: DaemonLaunchDescriptor, dir: File): Process {
+  private fun launch(argv: List<String>, descriptor: DaemonLaunchDescriptor, dir: File): Process {
     // `setsid` (Linux) moves the daemon out of the caller's process group, so a Ctrl-C meant for
     // the CLI does not reach it.
     val setsid = listOf("/usr/bin/setsid", "/bin/setsid").firstOrNull { File(it).canExecute() }
     val log = File(dir, LOG_FILE)
-    return ProcessBuilder(listOfNotNull(setsid) + launchCommand(descriptor))
+    return ProcessBuilder(listOfNotNull(setsid) + argv)
       .directory(File(descriptor.workingDirectory))
       .redirectInput(ProcessBuilder.Redirect.from(NULL_FILE))
       .redirectOutput(ProcessBuilder.Redirect.appendTo(log))

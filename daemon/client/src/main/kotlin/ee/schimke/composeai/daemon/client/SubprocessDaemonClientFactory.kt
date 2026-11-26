@@ -91,21 +91,26 @@ public class SubprocessDaemonClientFactory(
     workspaceId: WorkspaceId,
     descriptor: DaemonLaunchDescriptor,
   ): DaemonSpawn {
-    val command = launchCommand(descriptor)
+    val launch = buildLaunchCommand(descriptor)
     val process =
-      ProcessBuilder(command)
-        .directory(File(descriptor.workingDirectory))
-        .redirectErrorStream(false)
-        .redirectInput(ProcessBuilder.Redirect.PIPE)
-        .redirectOutput(ProcessBuilder.Redirect.PIPE)
-        .redirectError(ProcessBuilder.Redirect.PIPE)
-        .applyEnvironment(environment)
-        .start()
+      try {
+        ProcessBuilder(launch.argv)
+          .directory(File(descriptor.workingDirectory))
+          .redirectErrorStream(false)
+          .redirectInput(ProcessBuilder.Redirect.PIPE)
+          .redirectOutput(ProcessBuilder.Redirect.PIPE)
+          .redirectError(ProcessBuilder.Redirect.PIPE)
+          .applyEnvironment(environment)
+          .start()
+      } catch (t: Throwable) {
+        launch.cleanup()
+        throw t
+      }
     forwardStderr(process, "$workspaceId/${descriptor.modulePath}")
     descriptor.hardTtlSeconds?.let { ttl ->
       armHardTtl(process, ttl, "$workspaceId/${descriptor.modulePath}")
     }
-    return SubprocessDaemonSpawn(process)
+    return SubprocessDaemonSpawn(process, onProcessReadyOrExit = launch.cleanup)
   }
 
   internal companion object {
@@ -159,8 +164,25 @@ public class SubprocessDaemonClientFactory(
   }
 }
 
-internal class SubprocessDaemonSpawn(private val process: Process) : DaemonSpawn {
+internal class SubprocessDaemonSpawn(
+  private val process: Process,
+  private val onProcessReadyOrExit: (() -> Unit)? = null,
+) : DaemonSpawn {
   private lateinit var _client: DaemonClient
+  private val cleanedUp = java.util.concurrent.atomic.AtomicBoolean(false)
+
+  init {
+    if (onProcessReadyOrExit != null) {
+      process.onExit().whenComplete { _, _ -> runCleanupOnce() }
+    }
+  }
+
+  private fun runCleanupOnce() {
+    val cleanup = onProcessReadyOrExit ?: return
+    if (cleanedUp.compareAndSet(false, true)) {
+      runCatching { cleanup() }
+    }
+  }
 
   override val client: DaemonClient
     get() = _client
@@ -169,9 +191,15 @@ internal class SubprocessDaemonSpawn(private val process: Process) : DaemonSpawn
     onNotification: (method: String, params: JsonObject?) -> Unit,
     onClose: () -> Unit,
   ): DaemonClient {
+    val input =
+      if (onProcessReadyOrExit != null) {
+        FirstReadTriggerInputStream(process.inputStream, ::runCleanupOnce)
+      } else {
+        process.inputStream
+      }
     _client =
       DaemonClient(
-        input = process.inputStream,
+        input = input,
         output = process.outputStream,
         onNotification = onNotification,
         onClose = onClose,
@@ -186,6 +214,7 @@ internal class SubprocessDaemonSpawn(private val process: Process) : DaemonSpawn
       if (!process.waitFor(2, TimeUnit.SECONDS)) process.destroyForcibly()
     }
     runCatching { _client.close() }
+    runCleanupOnce()
   }
 
   override fun shutdown(timeout: Duration) {
@@ -201,6 +230,7 @@ internal class SubprocessDaemonSpawn(private val process: Process) : DaemonSpawn
       if (process.isAlive) process.destroyForcibly()
     }
     runCatching { _client.close() }
+    runCleanupOnce()
   }
 
   private fun waitForUntil(deadlineNanos: Long) {
@@ -211,25 +241,77 @@ internal class SubprocessDaemonSpawn(private val process: Process) : DaemonSpawn
 }
 
 /**
+ * Triggers [onFirstRead] once the wrapped child stdout yields its first byte — proof that the child
+ * `java` launcher has finished parsing its `@argfile`s and entered `main`.
+ */
+private class FirstReadTriggerInputStream(
+  private val delegate: java.io.InputStream,
+  private val onFirstRead: () -> Unit,
+) : java.io.InputStream() {
+  private var triggered = false
+
+  override fun read(): Int {
+    val b = delegate.read()
+    if (!triggered && b >= 0) {
+      triggered = true
+      onFirstRead()
+    }
+    return b
+  }
+
+  override fun read(b: ByteArray, off: Int, len: Int): Int {
+    val n = delegate.read(b, off, len)
+    if (!triggered && n > 0) {
+      triggered = true
+      onFirstRead()
+    }
+    return n
+  }
+
+  override fun available(): Int = delegate.available()
+
+  override fun close() = delegate.close()
+}
+
+/** A prepared JVM argv together with a cleanup action that removes its temporary `@argfile`s. */
+internal class LaunchCommand(val argv: List<String>, val cleanup: () -> Unit)
+
+/**
  * The `java` argv that launches [descriptor]'s daemon: the optional jail, the JVM, its arguments,
  * the system properties and classpath (spilled to argfiles past the OS limits), and the main class.
  * Shared by [SubprocessDaemonClientFactory] and [SocketDaemonClientFactory].
  */
-internal fun launchCommand(descriptor: DaemonLaunchDescriptor): List<String> {
+internal fun launchCommand(descriptor: DaemonLaunchDescriptor): List<String> =
+  buildLaunchCommand(descriptor).argv
+
+internal fun buildLaunchCommand(descriptor: DaemonLaunchDescriptor): LaunchCommand {
   val javaBin =
     descriptor.javaLauncher ?: File(System.getProperty("java.home"), "bin/java").absolutePath
-  return buildList<String> {
-    // The optional OS jail (playground per-session sandbox). Empty for every ordinary daemon,
-    // so the launched argv is byte-identical to the pre-sandbox one.
-    addAll(descriptor.jailCommand)
-    add(javaBin)
-    addAll(descriptor.jvmArgs)
-    // Inside a jail the parent's temp dir may not exist (bwrap mounts its own /tmp), so the
-    // argfiles go in the one directory both sides can see: the daemon's working directory.
-    val argFileDirectory =
-      File(descriptor.workingDirectory).takeIf { descriptor.jailCommand.isNotEmpty() }
-    addAll(SystemPropertyArgs.of(descriptor.systemProperties, argFileDirectory))
-    add(classpathArgFile(descriptor.classpath, argFileDirectory))
-    add(descriptor.mainClass)
-  }
+  // Inside a jail the parent's temp dir may not exist (bwrap mounts its own /tmp), so the argfiles
+  // go in the one directory both sides can see: the daemon's working directory. For ordinary
+  // launches, stage both argfiles inside a PID-tagged per-launch temp directory so they can be
+  // deleted together once the child boots (or swept on the next startup after a SIGKILL).
+  val jailed = descriptor.jailCommand.isNotEmpty()
+  val launchDir = if (jailed) null else SystemPropertyArgs.newLaunchArgDir()
+  val argFileDirectory = launchDir ?: File(descriptor.workingDirectory)
+  if (jailed) SystemPropertyArgs.sweepStaleArgFilesOnce(argFileDirectory)
+  val argv =
+    buildList<String> {
+      // The optional OS jail (playground per-session sandbox). Empty for every ordinary daemon,
+      // so the launched argv is byte-identical to the pre-sandbox one.
+      addAll(descriptor.jailCommand)
+      add(javaBin)
+      addAll(descriptor.jvmArgs)
+      addAll(SystemPropertyArgs.of(descriptor.systemProperties, argFileDirectory))
+      add(classpathArgFile(descriptor.classpath, argFileDirectory))
+      add(descriptor.mainClass)
+    }
+  val argFiles = SystemPropertyArgs.extractArgFiles(argv)
+  val cleanup: () -> Unit =
+    if (launchDir != null) {
+      { runCatching { launchDir.deleteRecursively() } }
+    } else {
+      { SystemPropertyArgs.deleteArgFiles(argFiles) }
+    }
+  return LaunchCommand(argv = argv, cleanup = cleanup)
 }

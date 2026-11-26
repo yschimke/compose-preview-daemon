@@ -1,5 +1,6 @@
 package ee.schimke.composeai.daemon.client
 
+import ee.schimke.composeai.daemon.SystemPropertyArgs
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import ee.schimke.composeai.daemon.protocol.DaemonLaunchDescriptor
 import ee.schimke.composeai.io.classpathArgFile
@@ -232,29 +233,34 @@ public class SandboxSparePool(
     // Dropped while queued (the pool closed): nothing to launch.
     if (closed || lock.withLock { spare !in spares }) return
     val signature = spare.signature
-    val command = spareCommand(descriptor, spare.archiveSlot)
-    val process =
-      try {
-        launcher(command, config.workingDirectory)
-      } catch (t: Throwable) {
-        log("could not launch a spare for $signature: ${t.javaClass.simpleName}: ${t.message}")
+    val launch = buildSpareCommand(descriptor, spare.archiveSlot)
+    try {
+      val process =
+        try {
+          launcher(launch.argv, config.workingDirectory)
+        } catch (t: Throwable) {
+          log("could not launch a spare for $signature: ${t.javaClass.simpleName}: ${t.message}")
+          lock.withLock { spares.remove(spare) }
+          return
+        }
+      spare.process = process
+      pump(process.errorStream, "spare-$signature")
+      // The handshake is the one stdout line we parse; everything else is diagnostics.
+      val handshake = awaitHandshake(spare, process)
+      if (handshake == null) {
+        if (closed) log("spare for $signature was still booting when the pool closed")
+        else
+          log("spare for $signature did not come up within ${config.bootTimeoutMs}ms; killing it")
         lock.withLock { spares.remove(spare) }
+        process.destroyForcibly()
         return
       }
-    spare.process = process
-    pump(process.errorStream, "spare-$signature")
-    // The handshake is the one stdout line we parse; everything else is diagnostics.
-    val handshake = awaitHandshake(spare, process)
-    if (handshake == null) {
-      if (closed) log("spare for $signature was still booting when the pool closed")
-      else log("spare for $signature did not come up within ${config.bootTimeoutMs}ms; killing it")
-      lock.withLock { spares.remove(spare) }
-      process.destroyForcibly()
-      return
+      spare.pid = handshake.first
+      spare.port = handshake.second
+      log("spare for $signature warm (pid=${handshake.first}, port=${handshake.second})")
+    } finally {
+      launch.cleanup()
     }
-    spare.pid = handshake.first
-    spare.port = handshake.second
-    log("spare for $signature warm (pid=${handshake.first}, port=${handshake.second})")
   }
 
   /**
@@ -359,44 +365,54 @@ public class SandboxSparePool(
     descriptor: DaemonLaunchDescriptor,
     archiveSlot: Int,
     javaFeatureVersion: Int = Runtime.version().feature(),
-  ): List<String> = buildList {
-    add(descriptor.javaLauncher ?: File(System.getProperty("java.home"), "bin/java").absolutePath)
-    // One class-data-sharing archive per spare slot, like the daemon gives each worker slot:
-    // two JVMs dumping into one file at exit is a torn archive.
-    descriptor.jvmArgs.forEach { arg ->
-      if (arg.startsWith(SHARED_ARCHIVE_FLAG)) {
-        val path = arg.removePrefix(SHARED_ARCHIVE_FLAG)
-        val stem = path.removeSuffix(".jsa")
-        val ext = if (path.endsWith(".jsa")) ".jsa" else ""
-        add("$SHARED_ARCHIVE_FLAG$stem-spare$archiveSlot$ext")
-      } else add(arg)
+  ): List<String> = buildSpareCommand(descriptor, archiveSlot, javaFeatureVersion).argv
+
+  internal fun buildSpareCommand(
+    descriptor: DaemonLaunchDescriptor,
+    archiveSlot: Int,
+    javaFeatureVersion: Int = Runtime.version().feature(),
+  ): LaunchCommand {
+    val launchDir = SystemPropertyArgs.newLaunchArgDir()
+    val argv = buildList {
+      add(descriptor.javaLauncher ?: File(System.getProperty("java.home"), "bin/java").absolutePath)
+      // One class-data-sharing archive per spare slot, like the daemon gives each worker slot:
+      // two JVMs dumping into one file at exit is a torn archive.
+      descriptor.jvmArgs.forEach { arg ->
+        if (arg.startsWith(SHARED_ARCHIVE_FLAG)) {
+          val path = arg.removePrefix(SHARED_ARCHIVE_FLAG)
+          val stem = path.removeSuffix(".jsa")
+          val ext = if (path.endsWith(".jsa")) ".jsa" else ""
+          add("$SHARED_ARCHIVE_FLAG$stem-spare$archiveSlot$ext")
+        } else add(arg)
+      }
+      // A spare idles with what its boot and warm render left committed. `SandboxWorkerMain`
+      // collects once after the warm render; these ratios let that collection give the heap
+      // back (the defaults, 40/70, keep it), ~35-45 MB resident per spare. Only when the
+      // descriptor does not decide the ratios itself.
+      if (descriptor.jvmArgs.none { it.startsWith("-XX:MaxHeapFreeRatio=") }) {
+        add("-XX:MaxHeapFreeRatio=30")
+      }
+      if (descriptor.jvmArgs.none { it.startsWith("-XX:MinHeapFreeRatio=") }) {
+        add("-XX:MinHeapFreeRatio=10")
+      }
+      if (
+        config.trimNativeHeapMs > 0 &&
+          descriptor.javaLauncher == null &&
+          descriptor.jvmArgs.none { it.startsWith(TRIM_NATIVE_HEAP_FLAG) } &&
+          javaFeatureVersion >= 21
+      ) {
+        // Experimental on 21, a product flag from 22; the unlock is harmless either way.
+        add("-XX:+UnlockExperimentalVMOptions")
+        add("$TRIM_NATIVE_HEAP_FLAG${config.trimNativeHeapMs}")
+      }
+      bootSystemProperties(descriptor).forEach { (k, v) -> add("-D$k=$v") }
+      add("-D${DaemonProperties.Names.SANDBOX_WORKER_SPARE}=true")
+      add("-D${DaemonProperties.Names.SANDBOX_COUNT}=1")
+      add("-D${DaemonProperties.Names.BACKGROUND_SANDBOX_BOOT}=false")
+      add(classpathArgFile(descriptor.classpath, launchDir))
+      add(SANDBOX_WORKER_MAIN_CLASS)
     }
-    // A spare idles with what its boot and warm render left committed. `SandboxWorkerMain`
-    // collects once after the warm render; these ratios let that collection give the heap
-    // back (the defaults, 40/70, keep it), ~35-45 MB resident per spare. Only when the
-    // descriptor does not decide the ratios itself.
-    if (descriptor.jvmArgs.none { it.startsWith("-XX:MaxHeapFreeRatio=") }) {
-      add("-XX:MaxHeapFreeRatio=30")
-    }
-    if (descriptor.jvmArgs.none { it.startsWith("-XX:MinHeapFreeRatio=") }) {
-      add("-XX:MinHeapFreeRatio=10")
-    }
-    if (
-      config.trimNativeHeapMs > 0 &&
-        descriptor.javaLauncher == null &&
-        descriptor.jvmArgs.none { it.startsWith(TRIM_NATIVE_HEAP_FLAG) } &&
-        javaFeatureVersion >= 21
-    ) {
-      // Experimental on 21, a product flag from 22; the unlock is harmless either way.
-      add("-XX:+UnlockExperimentalVMOptions")
-      add("$TRIM_NATIVE_HEAP_FLAG${config.trimNativeHeapMs}")
-    }
-    bootSystemProperties(descriptor).forEach { (k, v) -> add("-D$k=$v") }
-    add("-D${DaemonProperties.Names.SANDBOX_WORKER_SPARE}=true")
-    add("-D${DaemonProperties.Names.SANDBOX_COUNT}=1")
-    add("-D${DaemonProperties.Names.BACKGROUND_SANDBOX_BOOT}=false")
-    add(classpathArgFile(descriptor.classpath))
-    add(SANDBOX_WORKER_MAIN_CLASS)
+    return LaunchCommand(argv = argv, cleanup = { runCatching { launchDir.deleteRecursively() } })
   }
 
   /**

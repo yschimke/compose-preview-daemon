@@ -236,7 +236,7 @@ class SandboxProcessPool(
   /** The original path: spawn a worker JVM, wait for it to dial back and report ready. */
   private fun bootColdWorker(index: Int) {
     val server = ensureServerSocket()
-    val process = launchWorkerProcess(index, server.localPort)
+    val (process, argFiles) = launchWorkerProcess(index, server.localPort)
     val socket =
       try {
         server.soTimeout = bootTimeoutMs.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
@@ -248,6 +248,8 @@ class SandboxProcessPool(
             "(exited=${!process.isAlive}); see the [sandbox-worker-$index] stderr above.",
           t,
         )
+      } finally {
+        SystemPropertyArgs.deleteArgFiles(argFiles)
       }
     socket.tcpNoDelay = true
     val reader = BufferedReader(InputStreamReader(socket.getInputStream(), Charsets.UTF_8))
@@ -439,7 +441,7 @@ class SandboxProcessPool(
     return workerJson.decodeFromString(WorkerResponse.serializer(), line)
   }
 
-  private fun launchWorkerProcess(index: Int, port: Int): Process {
+  private fun launchWorkerProcess(index: Int, port: Int): Pair<Process, List<File>> {
     val java = File(File(System.getProperty("java.home"), "bin"), "java").absolutePath
     val command = buildList {
       add(java)
@@ -458,18 +460,24 @@ class SandboxProcessPool(
       add(classpath)
       add(SandboxWorkerMain::class.java.name)
     }
+    val argFiles = SystemPropertyArgs.extractArgFiles(command)
     val process =
-      ProcessBuilder(command)
-        .redirectErrorStream(false)
-        .redirectOutput(ProcessBuilder.Redirect.PIPE)
-        .redirectError(ProcessBuilder.Redirect.PIPE)
-        .start()
+      try {
+        ProcessBuilder(command)
+          .redirectErrorStream(false)
+          .redirectOutput(ProcessBuilder.Redirect.PIPE)
+          .redirectError(ProcessBuilder.Redirect.PIPE)
+          .start()
+      } catch (t: Throwable) {
+        SystemPropertyArgs.deleteArgFiles(argFiles)
+        throw t
+      }
     // The worker speaks its protocol over the socket, so both of its stdio streams are pure
     // diagnostics — pump them onto the daemon's stderr with a slot tag. Unpumped pipes fill and
     // deadlock a chatty Robolectric bootstrap, so this is load-bearing, not just nice logging.
     pumpToStderr(process.errorStream, "sandbox-worker-$index")
     pumpToStderr(process.inputStream, "sandbox-worker-$index")
-    return process
+    return process to argFiles
   }
 
   private fun pumpToStderr(stream: java.io.InputStream, tag: String) {
