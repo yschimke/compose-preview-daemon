@@ -1067,6 +1067,118 @@ class JsonRpcServerIntegrationTest {
   }
 
   /**
+   * Regression for #525: a `fileChanged({kind:source})` for a dependency module's file outside this
+   * daemon's `sourceDirs` must still swap user classloaders, but skip incremental discovery so it
+   * never scans or drops this module's own previews (even when both modules share the same relative
+   * source path).
+   */
+  @Test
+  fun fileChanged_outside_sourceDirs_skips_discovery_and_preserves_index() {
+    val tmpDir = java.nio.file.Files.createTempDirectory("foreign-source-test")
+    val appSrc = java.nio.file.Files.createDirectories(tmpDir.resolve("app/src/main/kotlin"))
+    val libSrc = java.nio.file.Files.createDirectories(tmpDir.resolve("lib/src/main/kotlin"))
+    val libKt = libSrc.resolve("Foo.kt")
+    java.nio.file.Files.writeString(libKt, "@Preview\nfun LibFoo() {}\n")
+
+    val previewDto =
+      PreviewInfoDto(
+        id = "AppFoo",
+        className = "com.example.app.FooKt",
+        methodName = "AppFoo",
+        sourceFile = "src/main/kotlin/Foo.kt",
+      )
+    val index = PreviewIndex.fromMap(path = null, byId = mapOf("AppFoo" to previewDto))
+    val discovery =
+      IncrementalDiscovery(
+        classpath = listOf(tmpDir),
+        knownPreviewAnnotationFqns = setOf("androidx.compose.ui.tooling.preview.Preview"),
+        sourceDirs = listOf(appSrc),
+      )
+
+    val clientToServerOut = PipedOutputStream()
+    val clientToServerIn = PipedInputStream(clientToServerOut, 64 * 1024)
+    val serverToClientOut = PipedOutputStream()
+    val serverToClientIn = PipedInputStream(serverToClientOut, 64 * 1024)
+
+    val host = FakeRenderHost()
+    val exitLatch = CountDownLatch(1)
+    val server =
+      JsonRpcServer(
+        input = clientToServerIn,
+        output = serverToClientOut,
+        host = host,
+        daemonVersion = "test",
+        previewIndex = index,
+        incrementalDiscovery = discovery,
+        discoveryWatchdogMs = 100,
+        onExit = { _ -> exitLatch.countDown() },
+      )
+    val serverThread =
+      Thread({ server.run() }, "json-rpc-server-test-foreign-source").apply { isDaemon = true }
+    serverThread.start()
+
+    val reader = ContentLengthFramer(serverToClientIn)
+    val received = LinkedBlockingQueue<JsonObject>()
+    Thread(
+        {
+          try {
+            while (true) {
+              val frame = reader.readFrame() ?: break
+              val obj = json.parseToJsonElement(frame.toString(Charsets.UTF_8)).jsonObject
+              received.put(obj)
+            }
+          } catch (_: Throwable) {}
+        },
+        "json-rpc-server-test-foreign-source-reader",
+      )
+      .apply { isDaemon = true }
+      .start()
+
+    try {
+      writeFrame(
+        clientToServerOut,
+        """{"jsonrpc":"2.0","id":1,"method":"initialize","params":{
+              "protocolVersion":2,"clientVersion":"test","workspaceRoot":"/tmp",
+              "moduleId":":app","moduleProjectDir":"/tmp",
+              "capabilities":{"visibility":true,"metrics":false}}}""",
+      )
+      assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 1 })
+      writeFrame(clientToServerOut, """{"jsonrpc":"2.0","method":"initialized","params":{}}""")
+
+      val abs = libKt.toAbsolutePath().toString().replace("\\", "\\\\")
+      repeat(5) {
+        writeFrame(
+          clientToServerOut,
+          """{"jsonrpc":"2.0","method":"fileChanged","params":{
+                "path":"$abs","kind":"source","changeType":"modified"}}""",
+        )
+      }
+
+      val spurious =
+        pollUntil(received, timeoutMs = 500) {
+          it["method"]?.jsonPrimitive?.contentOrNull == "discoveryUpdated"
+        }
+      assertNull("foreign source save must not emit discoveryUpdated, got: $spurious", spurious)
+      assertEquals(1, index.size)
+      assertEquals(setOf("AppFoo"), index.ids())
+
+      writeFrame(clientToServerOut, """{"jsonrpc":"2.0","id":99,"method":"shutdown"}""")
+      assertNotNull(pollUntil(received) { it["id"]?.jsonPrimitive?.intOrNull == 99 })
+      writeFrame(clientToServerOut, """{"jsonrpc":"2.0","method":"exit"}""")
+      assertTrue(exitLatch.await(5, TimeUnit.SECONDS))
+    } finally {
+      try {
+        clientToServerOut.close()
+      } catch (_: Throwable) {}
+      try {
+        serverToClientIn.close()
+      } catch (_: Throwable) {}
+      tmpDir.toFile().deleteRecursively()
+      serverThread.join(10_000)
+    }
+  }
+
+  /**
    * B2.3 — when the host returns a `RenderResult.metrics` map carrying the four B2.3 keys,
    * `JsonRpcServer.renderFinishedFromResult` translates them into a structured [RenderMetrics] on
    * the wire.

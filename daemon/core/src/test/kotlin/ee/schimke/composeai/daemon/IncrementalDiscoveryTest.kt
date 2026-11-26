@@ -356,6 +356,90 @@ class IncrementalDiscoveryTest {
     }
   }
 
+  @Test
+  fun `unmapped file does not fall back to scanning dependency jars or return foreign previews`() {
+    // Regression for #525: when a library module file is saved, a dependent module's daemon cannot
+    // map it to one of its own class dirs (the library is on the classpath as a JAR). Falling back
+    // to scanning the whole classpath caused OOMs and injected the library's previews into the
+    // dependent module's index.
+    val root = Files.createTempDirectory("incremental-no-jar-fallback")
+    try {
+      val libPackage = "ee/schimke/composeai/daemon/fixtures"
+      val appClasses = root.resolve("app-classes")
+      Files.createDirectories(appClasses.resolve("com/example/app"))
+      val libJar = jarOfFixtureClasses(root.resolve("lib.jar"), libPackage)
+      val libSource = root.resolve("lib/src/main/kotlin/$libPackage/TestPreview.kt")
+      Files.createDirectories(libSource.parent)
+
+      val scoped =
+        IncrementalDiscovery(
+          classpath = listOf(appClasses, libJar),
+          knownPreviewAnnotationFqns = setOf(testPreviewFqn),
+        )
+
+      assertEquals(null, scoped.classpathElementForFile(libSource))
+      // Fallback must inspect only the module's class directories, never dependency JARs.
+      assertEquals(listOf(appClasses), scoped.scanRootsForFile(libSource))
+      assertEquals(emptySet<PreviewInfoDto>(), scoped.scanForFile(libSource))
+
+      // A classpath with only JARs (no module class dirs) must also return empty without scanning.
+      val jarOnly =
+        IncrementalDiscovery(
+          classpath = listOf(libJar),
+          knownPreviewAnnotationFqns = setOf(testPreviewFqn),
+        )
+      assertEquals(emptyList<Path>(), jarOnly.scanRootsForFile(libSource))
+      assertEquals(emptySet<PreviewInfoDto>(), jarOnly.scanForFile(libSource))
+    } finally {
+      root.toFile().deleteRecursively()
+    }
+  }
+
+  @Test
+  fun `sourceDirs skips files outside the module before reading or scanning`() {
+    val root = Files.createTempDirectory("incremental-source-dirs")
+    try {
+      val appSrc = Files.createDirectories(root.resolve("app/src/main/kotlin"))
+      val libSrc = Files.createDirectories(root.resolve("lib/src/main/kotlin"))
+      val appFile = appSrc.resolve("TestPreview.kt")
+      val libFile = libSrc.resolve("TestPreview.kt")
+      Files.writeString(appFile, "@TestPreview\nfun AppPreview() {}\n")
+      Files.writeString(libFile, "@TestPreview\nfun LibPreview() {}\n")
+
+      val scoped =
+        IncrementalDiscovery(
+          classpath = testClasspath,
+          knownPreviewAnnotationFqns = setOf(testPreviewFqn),
+          sourceDirs = listOf(appSrc),
+        )
+      val index =
+        PreviewIndex.fromMap(
+          path = null,
+          byId =
+            mapOf(
+              "AppPreview" to
+                PreviewInfoDto(
+                  id = "AppPreview",
+                  className = "com.example.TestPreviewKt",
+                  methodName = "AppPreview",
+                  sourceFile = "src/main/kotlin/TestPreview.kt",
+                ),
+            ),
+        )
+
+      assertFalse(scoped.ownsSourceFile(libFile))
+      assertFalse(scoped.cheapPrefilter(libFile, index))
+      assertEquals(emptyList<Path>(), scoped.scanRootsForFile(libFile))
+      assertEquals(emptySet<PreviewInfoDto>(), scoped.scanForFile(libFile))
+
+      assertTrue(scoped.ownsSourceFile(appFile))
+      assertTrue(scoped.cheapPrefilter(appFile, PreviewIndex.empty()))
+      assertTrue(scoped.scanForFile(appFile).isNotEmpty())
+    } finally {
+      root.toFile().deleteRecursively()
+    }
+  }
+
   /** Packages the compiled `TestPreviewFixtures` classes off the test classpath into [jar]. */
   private fun jarOfFixtureClasses(jar: Path, packagePath: String): Path =
     jarOfFixtureClasses(jar, packagePath, "TestPreviewFixtures")

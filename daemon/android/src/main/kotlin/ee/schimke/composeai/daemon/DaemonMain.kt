@@ -259,11 +259,13 @@ fun main(args: Array<String>) {
           .split(File.pathSeparator)
           .filter { it.isNotBlank() }
           .map { Path.of(it) }
+      val sourceDirs = DaemonProperties.sourceDirs.read().map { Path.of(it) }
       System.err.println(
         "compose-ai-tools daemon: IncrementalDiscovery active " +
-          "(classpath=${classpath.size}, previewCount=${previewIndex.size})",
+          "(classpath=${classpath.size}, sourceDirs=${sourceDirs.size}, " +
+          "previewCount=${previewIndex.size})",
       )
-      IncrementalDiscovery(classpath = classpath)
+      IncrementalDiscovery(classpath = classpath, sourceDirs = sourceDirs)
     } else null
 
   // History recording is on by default (see [HistoryFeature]); with

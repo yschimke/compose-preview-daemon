@@ -54,6 +54,25 @@ public class IncrementalDiscovery(
    */
   private val knownPreviewAnnotationFqns: Set<String> = DEFAULT_PREVIEW_ANNOTATION_FQNS,
 ) {
+  /**
+   * Canonicalised source directories owned by this module. Empty means "unknown" (legacy callers /
+   * unit tests that don't supply source dirs), in which case [ownsSourceFile] allows all paths and
+   * [scanForFile] still restricts bytecode scanning strictly to module class directories.
+   */
+  private var normalizedSourceDirs: List<Path> = emptyList()
+
+  /**
+   * Creates an [IncrementalDiscovery] scoped to this module's [sourceDirs]. When [sourceDirs] is
+   * non-empty, saves outside those directories are skipped before reading source files or scanning
+   * bytecode.
+   */
+  public constructor(
+    classpath: List<Path>,
+    knownPreviewAnnotationFqns: Set<String> = DEFAULT_PREVIEW_ANNOTATION_FQNS,
+    sourceDirs: List<Path>,
+  ) : this(classpath, knownPreviewAnnotationFqns) {
+    normalizedSourceDirs = sourceDirs.flatMap { canonicalCandidates(it) }.distinct()
+  }
 
   /**
    * Compiled regex matching any of [knownPreviewAnnotationFqns] in source text. Built once at
@@ -75,14 +94,29 @@ public class IncrementalDiscovery(
   }
 
   /**
+   * Whether [file] lies under one of this module's configured source directories. When no source
+   * directories were supplied, returns `true` so callers without a launch descriptor keep working
+   * while [scanForFile] still excludes dependency JARs.
+   */
+  internal fun ownsSourceFile(file: Path): Boolean {
+    if (normalizedSourceDirs.isEmpty()) return true
+    val candidates = canonicalCandidates(file)
+    return candidates.any { candidate ->
+      normalizedSourceDirs.any { dir -> candidate.startsWith(dir) }
+    }
+  }
+
+  /**
    * Returns `true` when [file] either contains `@Preview`-shaped annotation text OR is currently
    * known to contribute previews to [currentIndex]. Returning `true` means callers should escalate
    * to [scanForFile]; returning `false` means the save can be skipped entirely.
    *
+   * Returns `false` immediately for files outside this module's configured source directories.
    * Fail-safe on I/O errors — returns `true` so a transient read failure can't silently drop a real
    * edit.
    */
   public fun cheapPrefilter(file: Path, currentIndex: PreviewIndex): Boolean {
+    if (!ownsSourceFile(file)) return false
     // Quick path: file currently contributes previews. The basename match guards against the
     // worst-case "absolute path" → "relative path" mismatch by also accepting suffix matches.
     val pathString = file.toString()
@@ -107,12 +141,14 @@ public class IncrementalDiscovery(
 
   /**
    * Scoped ClassGraph scan: returns the previews [file] currently contributes. Scans only the
-   * smallest classpath element containing the file's compiled `.class` output (see
-   * [classpathElementForFile]) and falls back to the full classpath when the heuristic misses.
+   * smallest classpath directory containing the file's compiled `.class` output (see
+   * [classpathElementForFile]), and when the heuristic misses falls back only to the module's
+   * classpath directories — never to dependency JARs.
    *
    * A preview may use a dependency-provided multi-preview annotation, or one carrying
-   * `@CaptureGutter`, so annotation classes the scoped scan cannot see are resolved from the
-   * dependency JARs ([annotationsFromJars]) rather than rescanning every JAR on every save.
+   * `@CaptureGutter`, so annotation classes the scoped scan cannot see are resolved lazily from the
+   * dependency JARs ([annotationsFromJars]) only for methods already found in the module's own
+   * class directories.
    *
    * The returned set's id field uses the same `<className>.<methodName>` form the gradle plugin
    * emits when no variant suffix is present, plus any `_<name>` / `_<group>` suffix needed to
@@ -124,9 +160,12 @@ public class IncrementalDiscovery(
    * Fail-safe: returns `emptySet` on any scan failure (and writes a stderr diagnostic).
    */
   public fun scanForFile(file: Path): Set<PreviewInfoDto> {
+    if (!ownsSourceFile(file)) return emptySet()
     val target = classpathElementForFile(file)
-    val scanRoots = if (target != null) listOf(target) else classpath
-    val jars = if (target != null) dependencyJars(target) else emptyList()
+    val scanRoots = if (target != null) listOf(target) else classDirectories()
+    if (scanRoots.isEmpty()) return emptySet()
+    val allowedRoots = scanRoots.flatMapTo(HashSet()) { canonicalCandidates(it) }
+    val jars = dependencyJars(exclude = allowedRoots)
     return try {
       ClassGraph()
         .enableClassInfo()
@@ -135,7 +174,7 @@ public class IncrementalDiscovery(
         .ignoreMethodVisibility()
         .enableClasspathEntries(scanRoots.map { it.toAbsolutePath().toString() })
         .scan()
-        .use { scanResult -> collectPreviews(scanResult, file, target, jars) }
+        .use { scanResult -> collectPreviews(scanResult, file, allowedRoots, jars) }
     } catch (t: Throwable) {
       System.err.println(
         "compose-ai-daemon: IncrementalDiscovery.scanForFile($file) failed " +
@@ -147,16 +186,22 @@ public class IncrementalDiscovery(
 
   /**
    * Where [scanForFile] looks for [file]'s previews and their annotation classes: the changed
-   * module's class output, then the dependency JARs. Other module output directories stay excluded,
-   * preserving the cheap one-file scan this path exists for.
+   * module's class output, then the dependency JARs for annotation metadata. When [file] is outside
+   * this module's source dirs, returns empty; when the heuristic misses, returns only the
+   * classpath's class directories (never JARs).
    */
   internal fun scanRootsForFile(file: Path): List<Path> {
-    val target = classpathElementForFile(file) ?: return classpath
-    return listOf(target) + dependencyJars(target)
+    if (!ownsSourceFile(file)) return emptyList()
+    val target = classpathElementForFile(file) ?: return classDirectories()
+    val allowedTarget = canonicalCandidates(target).toSet()
+    return listOf(target) + dependencyJars(exclude = allowedTarget)
   }
 
-  private fun dependencyJars(target: Path): List<Path> = classpath.filter { root ->
-    root != target && root.fileName?.toString()?.endsWith(".jar", ignoreCase = true) == true
+  private fun classDirectories(): List<Path> = classpath.filter { Files.isDirectory(it) }
+
+  private fun dependencyJars(exclude: Set<Path>): List<Path> = classpath.filter { root ->
+    canonicalCandidates(root).none { it in exclude } &&
+      root.fileName?.toString()?.endsWith(".jar", ignoreCase = true) == true
   }
 
   /**
@@ -201,12 +246,11 @@ public class IncrementalDiscovery(
   private fun collectPreviews(
     scanResult: ScanResult,
     file: Path,
-    target: Path?,
+    allowedRoots: Set<Path>,
     jars: List<Path>,
   ): Set<PreviewInfoDto> {
     val sourceKey = file.toString()
     val basename = file.fileName?.toString().orEmpty()
-    val targetRoot = target?.let { runCatching { it.toAbsolutePath().normalize() }.getOrNull() }
     // An annotation class this scan only saw referenced is an external placeholder with no
     // annotations of its own; leave it unresolved so the dependency JARs are asked.
     // Explicit types: ClassGraph 5 annotates its API with jspecify, which isn't on this classpath,
@@ -221,9 +265,9 @@ public class IncrementalDiscovery(
       // A dependency class compiled from the same source basename as the edited file (both modules
       // having a `Previews.kt` is entirely normal) would otherwise satisfy the basename match below
       // and be emitted under this file's `sourceKey`, polluting the incremental index with foreign
-      // previews. Preview candidates therefore have to originate from the edited module's own class
-      // output.
-      if (!originatesFrom(classInfo, targetRoot)) continue
+      // previews. Preview candidates therefore have to originate from the module's own class
+      // directories, never from dependency JARs.
+      if (!originatesFrom(classInfo, allowedRoots)) continue
       // The bytecode SourceFile attribute is just the basename; we accept either the absolute
       // path stored on the index (when sourceFile happens to be absolute) or the bytecode
       // basename match. This mirrors the index's diff-key heuristic in [PreviewIndex.diff].
@@ -233,8 +277,7 @@ public class IncrementalDiscovery(
       if (!matchesFile) continue
       classInfo.methodInfo.forEach { methods += classInfo to it }
     }
-    // A full-classpath scan (no target) already holds every annotation class.
-    if (jars.isNotEmpty()) {
+    if (jars.isNotEmpty() && methods.isNotEmpty()) {
       annotationsFromJars(
         methods.flatMap { (_, method) -> method.allAnnotationInfo.map { it.name } },
         jars,
@@ -279,19 +322,32 @@ public class IncrementalDiscovery(
   }
 
   /**
-   * Whether [classInfo] was loaded from [targetRoot] — the changed module's own class output.
-   *
-   * Fail-open: with no resolved target the scan is already the full classpath, and a classpath
-   * element ClassGraph can't expose as a file (a `jrt:` module, say) can't be compared, so both
-   * cases keep the class as a candidate. Dropping a real preview is worse than the pollution this
-   * guard exists to prevent, and neither case is the JAR-vs-module ambiguity it targets.
+   * Whether [classInfo] was loaded from one of [allowedRoots] — strictly a class directory on this
+   * module's classpath, never a dependency JAR.
    */
-  private fun originatesFrom(classInfo: ClassInfo, targetRoot: Path?): Boolean {
-    if (targetRoot == null) return true
-    val element = runCatching { classInfo.classpathElementFile }.getOrNull() ?: return true
-    val elementPath =
-      runCatching { element.toPath().toAbsolutePath().normalize() }.getOrNull() ?: return true
-    return elementPath == targetRoot
+  private fun originatesFrom(classInfo: ClassInfo, allowedRoots: Set<Path>): Boolean {
+    if (allowedRoots.isEmpty()) return false
+    val element = runCatching { classInfo.classpathElementFile }.getOrNull() ?: return false
+    if (!element.isDirectory) return false
+    return canonicalCandidates(element.toPath()).any { it in allowedRoots }
+  }
+
+  /**
+   * Returns normalized absolute and (when resolvable) real-path forms of [path] so symlinked temp
+   * or workspace roots (e.g. macOS `/var` vs `/private/var`) compare equal even for deleted files.
+   */
+  private fun canonicalCandidates(path: Path): List<Path> {
+    val abs = runCatching { path.toAbsolutePath().normalize() }.getOrNull() ?: return emptyList()
+    val real = runCatching {
+      when {
+        Files.exists(abs) -> abs.toRealPath()
+        abs.parent != null && Files.exists(abs.parent) ->
+          abs.parent.toRealPath().resolve(abs.fileName)
+        else -> null
+      }
+    }
+      .getOrNull()
+    return if (real != null && real != abs) listOf(abs, real) else listOf(abs)
   }
 
   /**

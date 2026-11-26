@@ -295,6 +295,16 @@ internal fun buildLaunchCommand(descriptor: DaemonLaunchDescriptor): LaunchComma
   val launchDir = if (jailed) null else SystemPropertyArgs.newLaunchArgDir()
   val argFileDirectory = launchDir ?: File(descriptor.workingDirectory)
   if (jailed) SystemPropertyArgs.sweepStaleArgFilesOnce(argFileDirectory)
+  val sourceDirs = descriptor.sourceWatch?.sourceDirs.orEmpty().filter { it.isNotBlank() }
+  val systemProperties =
+    if (
+      sourceDirs.isNotEmpty() && DaemonProperties.Names.SOURCE_DIRS !in descriptor.systemProperties
+    ) {
+      descriptor.systemProperties +
+        (DaemonProperties.Names.SOURCE_DIRS to DaemonProperties.sourceDirs.render(sourceDirs))
+    } else {
+      descriptor.systemProperties
+    }
   val argv =
     buildList<String> {
       // The optional OS jail (playground per-session sandbox). Empty for every ordinary daemon,
@@ -302,7 +312,7 @@ internal fun buildLaunchCommand(descriptor: DaemonLaunchDescriptor): LaunchComma
       addAll(descriptor.jailCommand)
       add(javaBin)
       addAll(descriptor.jvmArgs)
-      addAll(SystemPropertyArgs.of(descriptor.systemProperties, argFileDirectory))
+      addAll(SystemPropertyArgs.of(systemProperties, argFileDirectory))
       add(classpathArgFile(descriptor.classpath, argFileDirectory))
       add(descriptor.mainClass)
     }

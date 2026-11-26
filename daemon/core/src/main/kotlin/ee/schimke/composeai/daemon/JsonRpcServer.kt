@@ -3601,16 +3601,19 @@ public class JsonRpcServer(
 
   /**
    * Deferred discovery coordination: queue + watchdog + drain race semantics live in
-   * [DeferredDiscoveryQueue]; this file just supplies the per-path scan via
-   * [runIncrementalDiscoveryNow]. Enqueue from the `fileChanged({kind:source})` handler via
-   * [queueDiscoveryAfterRender] (which short-circuits when no [incrementalDiscovery] is wired);
-   * drain from [emitRenderFinished] after the render notification flushes.
+   * [DeferredDiscoveryQueue]; execution is serialized through [discoveryRunner] so at most one scan
+   * runs at a time per daemon and bursts of saves coalesce instead of spawning parallel scans.
+   * Enqueue from the `fileChanged({kind:source})` handler via [queueDiscoveryAfterRender] (which
+   * short-circuits when no [incrementalDiscovery] is wired or the path is outside this module's
+   * source dirs); drain from [emitRenderFinished] after the render notification flushes.
    */
   private val deferredDiscovery =
     DeferredDiscoveryQueue(
       watchdogMs = discoveryWatchdogMs,
       runForPath = { path -> runIncrementalDiscoveryNow(path) },
     )
+
+  private val discoveryRunner = SerializedDiscoveryRunner(::executeIncrementalDiscovery)
 
   /**
    * Queues [path] for a deferred discovery cascade. The user-visible invariant this enforces
@@ -3620,10 +3623,13 @@ public class JsonRpcServer(
    * silent on an empty diff — see [runIncrementalDiscoveryNow]).
    *
    * No-op when [incrementalDiscovery] is null — preserves the pre-phase-2 contract for in-process
-   * integration tests and the fake-mode harness scenarios that don't wire one.
+   * integration tests and the fake-mode harness scenarios that don't wire one — or when [path] is
+   * outside this module's configured source directories.
    */
   private fun queueDiscoveryAfterRender(path: String) {
-    if (incrementalDiscovery == null) return
+    val discovery = incrementalDiscovery ?: return
+    val parsed = runCatching { Path.of(path) }.getOrNull()
+    if (parsed != null && !discovery.ownsSourceFile(parsed)) return
     deferredDiscovery.enqueue(path)
   }
 
@@ -3636,43 +3642,33 @@ public class JsonRpcServer(
   }
 
   /**
-   * Rescans for one changed source file on a fresh thread (saves are seconds apart, so a thread per
-   * save is cheap next to the scan), applies the diff to [previewIndex] and emits
-   * `discoveryUpdated` when it is non-empty.
+   * Submits [path] to the serialized single-worker [discoveryRunner] so at most one ClassGraph scan
+   * executes at a time per daemon.
    */
   private fun runIncrementalDiscoveryNow(path: String) {
+    if (incrementalDiscovery == null) return
+    discoveryRunner.submit(path)
+  }
+
+  private fun executeIncrementalDiscovery(path: String) {
     val discovery = incrementalDiscovery ?: return
-    Thread(
-        {
-          try {
-            val file =
-              try {
-                Path.of(path)
-              } catch (t: Throwable) {
-                System.err.println(
-                  "compose-ai-daemon: incrementalDiscovery: invalid path '$path' " +
-                    "(${describeThrowable(t)}); skipping",
-                )
-                return@Thread
-              }
-            if (!discovery.cheapPrefilter(file, previewIndex)) return@Thread
-            val scan = discovery.scanForFile(file)
-            val diff = previewIndex.diff(newScanForFile = scan, sourceFile = file)
-            if (discoveryDiffEmpty(diff)) return@Thread
-            previewIndex.applyDiff(diff)
-            emitDiscoveryUpdated(diff)
-          } catch (t: Throwable) {
-            System.err.println(
-              "compose-ai-daemon: incrementalDiscovery worker failed " +
-                "(${describeThrowable(t)})",
-            )
-            t.printStackTrace(System.err)
-          }
-        },
-        "compose-ai-daemon-incremental-discovery",
-      )
-      .apply { isDaemon = true }
-      .start()
+    val file =
+      try {
+        Path.of(path)
+      } catch (t: Throwable) {
+        System.err.println(
+          "compose-ai-daemon: incrementalDiscovery: invalid path '$path' " +
+            "(${describeThrowable(t)}); skipping",
+        )
+        return
+      }
+    if (!discovery.ownsSourceFile(file)) return
+    if (!discovery.cheapPrefilter(file, previewIndex)) return
+    val scan = discovery.scanForFile(file)
+    val diff = previewIndex.diff(newScanForFile = scan, sourceFile = file)
+    if (discoveryDiffEmpty(diff)) return
+    previewIndex.applyDiff(diff)
+    emitDiscoveryUpdated(diff)
   }
 
   private fun emitDiscoveryUpdated(diff: DiscoveryDiff) {

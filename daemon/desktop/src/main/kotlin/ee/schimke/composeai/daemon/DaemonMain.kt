@@ -190,11 +190,13 @@ fun runDaemon(
           .split(File.pathSeparator)
           .filter { it.isNotBlank() }
           .map { Path.of(it) }
+      val sourceDirs = DaemonProperties.sourceDirs.read().map { Path.of(it) }
       System.err.println(
         "compose-ai-tools desktop daemon: IncrementalDiscovery active " +
-          "(classpath=${classpath.size}, previewCount=${previewIndex.size})",
+          "(classpath=${classpath.size}, sourceDirs=${sourceDirs.size}, " +
+          "previewCount=${previewIndex.size})",
       )
-      IncrementalDiscovery(classpath = classpath)
+      IncrementalDiscovery(classpath = classpath, sourceDirs = sourceDirs)
     } else null
 
   // History recording is on by default (see [HistoryFeature]); set
