@@ -615,4 +615,50 @@ class WarmCompileServiceTest {
     repeat(2) { service.compile(sources, SourceChangeSet(modified = listOf("/m/A.kt"))) }
     assertEquals(2, warm.compiled.size)
   }
+
+  @Test
+  fun `warmCompilerConfig propagates configured jvmTarget and falls back to 17`() {
+    val workDir = java.io.File("/m/ic/warm")
+    val base =
+      mapOf(
+        DefaultBtaCompileService.SYSPROP_COMPILE_CLASSPATH to "/cp/a.jar",
+        DefaultBtaCompileService.SYSPROP_COMPILER_PLUGINS to "/cp/compose.jar",
+      )
+
+    val jvm21 =
+      WarmCompileService.warmCompilerConfig(
+        sysprops = (base + (DefaultBtaCompileService.SYSPROP_JVM_TARGET to "21"))::get,
+        outputDir = "/m/classes",
+        moduleName = "m",
+        workDir = workDir,
+      )
+    assertEquals("21", jvm21["jvmTarget"])
+
+    val jvm8 =
+      WarmCompileService.warmCompilerConfig(
+        sysprops = (base + (DefaultBtaCompileService.SYSPROP_JVM_TARGET to "8"))::get,
+        outputDir = "/m/classes",
+        moduleName = "m",
+        workDir = workDir,
+      )
+    assertEquals("1.8", jvm8["jvmTarget"])
+
+    val omitted =
+      WarmCompileService.warmCompilerConfig(
+        sysprops = base::get,
+        outputDir = "/m/classes",
+        moduleName = "m",
+        workDir = workDir,
+      )
+    assertEquals("17", omitted["jvmTarget"])
+
+    val unrecognized =
+      WarmCompileService.warmCompilerConfig(
+        sysprops = (base + (DefaultBtaCompileService.SYSPROP_JVM_TARGET to "bogus"))::get,
+        outputDir = "/m/classes",
+        moduleName = "m",
+        workDir = workDir,
+      )
+    assertEquals("17", unrecognized["jvmTarget"])
+  }
 }

@@ -54,20 +54,27 @@ class WarmCompilerEntryTest {
     entry = newEntry(composeRuntime)
   }
 
-  private fun newEntry(compileClasspath: List<String>): AutoCloseable =
-    loader
+  private fun newEntry(
+    compileClasspath: List<String>,
+    classesDir: File = classes,
+    moduleName: String = "demo",
+    jvmTarget: String? = null,
+  ): AutoCloseable {
+    val config =
+      buildMap<String, Any?> {
+        put("compileClasspath", compileClasspath)
+        put("classesDir", classesDir.path)
+        put("moduleName", moduleName)
+        put("stagingDir", File(root, "staging-$moduleName").path)
+        if (jvmTarget != null) put("jvmTarget", jvmTarget)
+        put("pluginClasspath", composePlugin)
+        put("pluginOptions", listOf(pluginOption))
+      }
+    return loader
       .loadClass("ee.schimke.composeai.daemon.warm.impl.WarmCompilerEntry")
       .getConstructor(Map::class.java)
-      .newInstance(
-        mapOf(
-          "compileClasspath" to compileClasspath,
-          "classesDir" to classes.path,
-          "moduleName" to "demo",
-          "stagingDir" to File(root, "staging").path,
-          "pluginClasspath" to composePlugin,
-          "pluginOptions" to listOf(pluginOption),
-        ),
-      ) as AutoCloseable
+      .newInstance(config) as AutoCloseable
+  }
 
   @After
   fun tearDown() {
@@ -307,6 +314,91 @@ class WarmCompilerEntryTest {
 
   private fun compile(vararg files: File): Map<String, Any?> = compileWith(entry, *files)
 
+  @Test
+  fun `jvmTarget 21 compiles edits that inline JVM 21 dependency bytecode and emits class version 65`() {
+    // Regression for #505: a module targeting JVM 21 that calls an inline function compiled at
+    // JVM 21 failed in-process when the warm compiler hardcoded `-jvm-target 17`.
+    val libSrc = File(root, "lib-src/lib").apply { mkdirs() }
+    val libClasses = File(root, "lib-classes")
+    val libFile =
+      File(libSrc, "Labels.kt").apply {
+        writeText(
+          """
+          package lib
+          inline fun shout(text: String): String = text.uppercase() + "!"
+          """
+            .trimIndent(),
+        )
+      }
+    stockCompile(listOf(libFile), libClasses, jvmTarget = "21", moduleName = "lib")
+
+    val appClasses = File(root, "app21-classes")
+    val appSrc = File(root, "app21-src/app").apply { mkdirs() }
+    fun callerSource(greeting: String) =
+      """
+      package app
+      import androidx.compose.runtime.Composable
+      import lib.shout
+      @Composable fun Banner(name: String) { println(shout("$greeting " + name)) }
+      """
+        .trimIndent()
+    val bannerFile = File(appSrc, "Banner.kt").apply { writeText(callerSource("hello")) }
+    val appCp = listOf(libClasses.path) + composeRuntime
+    stockCompile(
+      listOf(bannerFile),
+      appClasses,
+      jvmTarget = "21",
+      moduleName = "app",
+      classpath = appCp,
+    )
+
+    // With jvmTarget = "21", editing the caller stays in process and writes Java 21 bytecode (65).
+    val entry21 =
+      newEntry(
+        compileClasspath = appCp,
+        classesDir = appClasses,
+        moduleName = "app",
+        jvmTarget = "21",
+      )
+    try {
+      bannerFile.writeText(callerSource("bonjour"))
+      val okResult = compileWith(entry21, bannerFile)
+      assertEquals(okResult.toString(), "ok", okResult["status"])
+      val classBytes = File(appClasses, "app/BannerKt.class").readBytes()
+      val majorVersion =
+        ((classBytes[6].toInt() and 0xFF) shl 8) or (classBytes[7].toInt() and 0xFF)
+      assertEquals("expected Java 21 classfile major version (65)", 65, majorVersion)
+    } finally {
+      entry21.close()
+    }
+
+    // With omitted / unrecognized jvmTarget, WarmCompilerEntry falls back to 17 and reproduces the
+    // JVM 21 inline error rather than crashing on argument parsing.
+    val entryDefault =
+      newEntry(
+        compileClasspath = appCp,
+        classesDir = appClasses,
+        moduleName = "app",
+        jvmTarget = "not-a-target",
+      )
+    try {
+      bannerFile.writeText(callerSource("hola"))
+      val errResult = compileWith(entryDefault, bannerFile)
+      assertEquals(errResult.toString(), "errors", errResult["status"])
+      @Suppress("UNCHECKED_CAST")
+      val messages =
+        (errResult["errors"] as List<Map<String, Any?>>).joinToString(" ") {
+          it["message"].toString()
+        }
+      assertTrue(
+        "expected JVM target 21/17 inline error, got: $messages",
+        "JVM target 21" in messages,
+      )
+    } finally {
+      entryDefault.close()
+    }
+  }
+
   private fun compileWith(target: AutoCloseable, vararg files: File): Map<String, Any?> {
     @Suppress("UNCHECKED_CAST")
     return target.javaClass
@@ -320,20 +412,26 @@ class WarmCompilerEntryTest {
   /**
    * Full compile with the stock CLI, standing in for the Gradle build that produced the classes.
    */
-  private fun stockCompile(sources: List<File>, out: File) {
+  private fun stockCompile(
+    sources: List<File>,
+    out: File,
+    jvmTarget: String = "17",
+    moduleName: String = "demo",
+    classpath: List<String> = composeRuntime,
+  ) {
     val compiler =
       loader.loadClass("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler").getConstructor().newInstance()
     val log = ByteArrayOutputStream()
     val args =
       listOf(
         "-classpath",
-        composeRuntime.joinToString(File.pathSeparator),
+        classpath.joinToString(File.pathSeparator),
         "-d",
         out.path,
         "-jvm-target",
-        "17",
+        jvmTarget,
         "-module-name",
-        "demo",
+        moduleName,
         "-no-stdlib",
         "-no-reflect",
         "-Xplugin=${composePlugin.joinToString(",")}",

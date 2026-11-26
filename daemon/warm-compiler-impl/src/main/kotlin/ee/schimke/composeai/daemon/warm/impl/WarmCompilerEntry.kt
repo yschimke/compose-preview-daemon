@@ -51,7 +51,7 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
   private val classesDir = File(config["classesDir"] as String)
   private val moduleName = config["moduleName"] as String
   private val stagingDir = File(config["stagingDir"] as String)
-  private val jvmTarget = config["jvmTarget"] as? String ?: "17"
+  private val jvmTarget: String = normalizeJvmTarget(config["jvmTarget"] as? String)
 
   private val pluginLoader: URLClassLoader
   private val plugins: LoadedPlugins
@@ -325,6 +325,36 @@ public class WarmCompilerEntry(config: Map<String, Any?>) : AutoCloseable {
     @JvmStatic
     public fun runtimeCompilerVersion(): String =
       KotlinCompilerVersion::class.java.getField("VERSION").get(null) as String
+
+    /** Default JVM target when omitted, blank, or unrecognized by the runtime compiler. */
+    private const val DEFAULT_JVM_TARGET: String = "17"
+
+    /**
+     * Normalizes a configured JVM target string (e.g. `"21"`, `"8"`, `"1.8"`, `"JVM_21"`) into the
+     * `-jvm-target` value accepted by the runtime kotlinc, falling back to `"17"` when null, blank,
+     * or unsupported by this compiler version.
+     */
+    @JvmStatic
+    public fun normalizeJvmTarget(raw: String?): String {
+      val trimmed = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return DEFAULT_JVM_TARGET
+      val candidate =
+        when (trimmed.uppercase()) {
+          "8",
+          "1.8",
+          "JVM_1_8",
+          "JVM1_8" -> "1.8"
+          "6",
+          "1.6",
+          "JVM_1_6",
+          "JVM1_6" -> "1.6"
+          else -> trimmed.uppercase().removePrefix("JVM_")
+        }
+      return if (org.jetbrains.kotlin.config.JvmTarget.fromString(candidate) != null) {
+        candidate
+      } else {
+        DEFAULT_JVM_TARGET
+      }
+    }
 
     @Suppress("UNCHECKED_CAST")
     private fun Map<String, Any?>.stringList(key: String): List<String> =

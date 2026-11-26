@@ -293,6 +293,7 @@ public object DaemonProperties {
     public const val BTA_IC_WORKING_DIR: String = DefaultBtaCompileService.SYSPROP_IC_WORKING_DIR
     public const val BTA_INELIGIBILITY_REASON: String =
       DefaultBtaCompileService.SYSPROP_INELIGIBILITY_REASON
+    public const val BTA_JVM_TARGET: String = DefaultBtaCompileService.SYSPROP_JVM_TARGET
     public const val WARM_COMPILE: String = "composeai.daemon.warmCompile"
   }
 
@@ -849,6 +850,15 @@ public object DaemonProperties {
       G_BTA,
     )
 
+  public val btaJvmTarget: StringProperty =
+    StringProperty(
+      Names.BTA_JVM_TARGET,
+      null,
+      "JVM bytecode target (for example `17` or `21`) for stage-2 in-process compiles; defaults " +
+        "to `17` when omitted or unrecognized.",
+      G_BTA,
+    )
+
   public val warmCompile: BooleanProperty =
     BooleanProperty(
       Names.WARM_COMPILE,
@@ -933,6 +943,7 @@ public object DaemonProperties {
       btaOutputDir,
       btaIcWorkingDir,
       btaIneligibilityReason,
+      btaJvmTarget,
       warmCompile,
     )
 

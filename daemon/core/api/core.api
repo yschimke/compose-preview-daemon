@@ -2060,6 +2060,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties {
 	public final fun getBtaIcWorkingDir ()Lee/schimke/composeai/daemon/config/PathProperty;
 	public final fun getBtaImplClasspath ()Lee/schimke/composeai/daemon/config/PathListProperty;
 	public final fun getBtaIneligibilityReason ()Lee/schimke/composeai/daemon/config/StringProperty;
+	public final fun getBtaJvmTarget ()Lee/schimke/composeai/daemon/config/StringProperty;
 	public final fun getBtaModuleName ()Lee/schimke/composeai/daemon/config/StringProperty;
 	public final fun getBtaOutputDir ()Lee/schimke/composeai/daemon/config/PathProperty;
 	public final fun getBundleManifestPath ()Lee/schimke/composeai/daemon/config/PathProperty;
@@ -2131,6 +2132,7 @@ public final class ee/schimke/composeai/daemon/config/DaemonProperties$Names {
 	public static final field BTA_IC_WORKING_DIR Ljava/lang/String;
 	public static final field BTA_IMPL_CLASSPATH Ljava/lang/String;
 	public static final field BTA_INELIGIBILITY_REASON Ljava/lang/String;
+	public static final field BTA_JVM_TARGET Ljava/lang/String;
 	public static final field BTA_MODULE_NAME Ljava/lang/String;
 	public static final field BTA_OUTPUT_DIR Ljava/lang/String;
 	public static final field BUNDLE_MANIFEST_PATH Ljava/lang/String;
