@@ -234,6 +234,27 @@ class SandboxSparePoolTest {
     assertThat(launched.all { it.second.destroyed }).isTrue()
   }
 
+  @Test
+  fun `spare classpath argfile directory is deleted once the spare completes its handshake`() {
+    val pool = pool(SandboxSparePool.Config(maxSpares = 1, perSignature = 1))
+    val d = descriptor()
+    pool.ensure(d)
+    awaitLaunched(1)
+    val argFiles = ee.schimke.composeai.daemon.SystemPropertyArgs.extractArgFiles(launched[0].first)
+    assertThat(argFiles).hasSize(1)
+    val argFile = argFiles.single()
+    val launchDir = argFile.parentFile
+    assertThat(argFile.exists()).isTrue()
+
+    launched[0].second.handshake(pid = 101, port = 40001)
+    awaitWarm(pool, 1)
+    val deadline = System.currentTimeMillis() + 5_000
+    while (launchDir.exists() && System.currentTimeMillis() < deadline) Thread.sleep(10)
+    assertThat(argFile.exists()).isFalse()
+    assertThat(launchDir.exists()).isFalse()
+    pool.close()
+  }
+
   /** A pool with a hand-driven clock, its two spares of [a]'s signature warm. */
   private fun poolWarmFor(
     a: DaemonLaunchDescriptor,

@@ -3401,13 +3401,72 @@ fun RenderSpec.gutterVerticalPx(): Int =
  * default one, which the deferred still-encoding path requires.
  */
 internal fun redirectRoborazziResults() {
+  redirectRoborazziResults(baseDir = java.io.File(System.getProperty("java.io.tmpdir")))
+}
+
+internal fun redirectRoborazziResults(
+  baseDir: java.io.File,
+  isPidAlive: (Long) -> Boolean = ::isRoborazziOwnerAlive,
+  legacyMaxAgeMs: Long = LEGACY_ROBORAZZI_MAX_AGE_MS,
+  nowMs: Long = System.currentTimeMillis(),
+) {
   if (System.getProperty(ROBORAZZI_RESULT_DIR_PROPERTY) != null) return
   synchronized(ROBORAZZI_RESULT_DIR_PROPERTY) {
     if (System.getProperty(ROBORAZZI_RESULT_DIR_PROPERTY) != null) return
-    val dir = java.nio.file.Files.createTempDirectory("composeai-roborazzi-results").toFile()
+    sweepStaleRoborazziResultDirs(baseDir, isPidAlive, legacyMaxAgeMs, nowMs)
+    val pid = ProcessHandle.current().pid()
+    val dir =
+      java.nio.file.Files.createTempDirectory(
+          baseDir.toPath(),
+          "$ROBORAZZI_RESULT_DIR_PREFIX-pid$pid-",
+        )
+        .toFile()
     Runtime.getRuntime().addShutdownHook(Thread { dir.deleteRecursively() })
     System.setProperty(ROBORAZZI_RESULT_DIR_PROPERTY, dir.path)
   }
 }
 
+/**
+ * Removes leftover `composeai-roborazzi-results*` directories left behind by `SIGKILL`ed daemons:
+ * - PID-tagged directories (`composeai-roborazzi-results-pid<PID>-*`) are deleted immediately once
+ *   their owner PID is no longer alive.
+ * - Legacy untagged directories (`composeai-roborazzi-results*`) are deleted once older than
+ *   [legacyMaxAgeMs].
+ */
+internal fun sweepStaleRoborazziResultDirs(
+  baseDir: java.io.File = java.io.File(System.getProperty("java.io.tmpdir")),
+  isPidAlive: (Long) -> Boolean = ::isRoborazziOwnerAlive,
+  legacyMaxAgeMs: Long = LEGACY_ROBORAZZI_MAX_AGE_MS,
+  nowMs: Long = System.currentTimeMillis(),
+): Int {
+  val entries = runCatching { baseDir.listFiles() }.getOrNull() ?: return 0
+  var removed = 0
+  for (entry in entries) {
+    if (!entry.isDirectory) continue
+    val name = entry.name
+    if (!name.startsWith(ROBORAZZI_RESULT_DIR_PREFIX)) continue
+    val pidMatch = ROBORAZZI_PID_DIR_REGEX.matchEntire(name)
+    if (pidMatch != null) {
+      val pid = pidMatch.groupValues[1].toLongOrNull() ?: continue
+      if (!isPidAlive(pid) && runCatching { entry.deleteRecursively() }.getOrDefault(false)) {
+        removed++
+      }
+    } else {
+      val ageMs = nowMs - entry.lastModified()
+      if (
+        ageMs >= legacyMaxAgeMs && runCatching { entry.deleteRecursively() }.getOrDefault(false)
+      ) {
+        removed++
+      }
+    }
+  }
+  return removed
+}
+
+private fun isRoborazziOwnerAlive(pid: Long): Boolean =
+  ProcessHandle.of(pid).map { it.isAlive }.orElse(false)
+
 private const val ROBORAZZI_RESULT_DIR_PROPERTY = "roborazzi.result.dir"
+private const val ROBORAZZI_RESULT_DIR_PREFIX = "composeai-roborazzi-results"
+private val ROBORAZZI_PID_DIR_REGEX = Regex("""^composeai-roborazzi-results-pid(\d+)-.*$""")
+private val LEGACY_ROBORAZZI_MAX_AGE_MS = java.util.concurrent.TimeUnit.HOURS.toMillis(24)

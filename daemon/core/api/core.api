@@ -1808,9 +1808,18 @@ public final class ee/schimke/composeai/daemon/SystemPropertyArgs {
 	public static final field MAX_INLINE_PROPERTIES I
 	public static final field MAX_INLINE_PROPERTY I
 	public static final field MAX_WINDOWS_INLINE_PROPERTIES I
+	public final fun deleteArgFiles (Ljava/util/Collection;)V
+	public final fun extractArgFiles (Ljava/util/List;)Ljava/util/List;
+	public final fun getDEFAULT_LEGACY_ARGFILE_MAX_AGE_MS ()J
+	public final fun newLaunchArgDir (Ljava/io/File;)Ljava/io/File;
+	public static synthetic fun newLaunchArgDir$default (Lee/schimke/composeai/daemon/SystemPropertyArgs;Ljava/io/File;ILjava/lang/Object;)Ljava/io/File;
 	public final fun of (Ljava/util/Map;Ljava/io/File;)Ljava/util/List;
 	public static synthetic fun of$default (Lee/schimke/composeai/daemon/SystemPropertyArgs;Ljava/util/Map;Ljava/io/File;ILjava/lang/Object;)Ljava/util/List;
 	public final fun quote (Ljava/lang/String;)Ljava/lang/String;
+	public final fun sweepStaleArgFiles (Ljava/io/File;JJLkotlin/jvm/functions/Function1;)I
+	public static synthetic fun sweepStaleArgFiles$default (Lee/schimke/composeai/daemon/SystemPropertyArgs;Ljava/io/File;JJLkotlin/jvm/functions/Function1;ILjava/lang/Object;)I
+	public final fun sweepStaleArgFilesOnce (Ljava/io/File;)V
+	public static synthetic fun sweepStaleArgFilesOnce$default (Lee/schimke/composeai/daemon/SystemPropertyArgs;Ljava/io/File;ILjava/lang/Object;)V
 }
 
 public final class ee/schimke/composeai/daemon/UserClassLoaderHolder {
