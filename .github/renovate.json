@@ -124,6 +124,30 @@
         "eclipse-temurin"
       ],
       "allowedVersions": "/^21([._+-]|$)/"
+    },
+    {
+      "description": "compose-multiplatform 1.12.2 collides with compose-multiplatform-forward (1.12.2) in renderers/desktop/build.gradle.kts and daemon/desktop/build.gradle.kts (forward must be strictly newer than production), and conflicts with carriedRemoteComposeTestRuntime strictly pinning compose-multiplatform-rcplayer (1.12.1); bumping forward pins to 1.13.0-rc01 fails ForwardMaterialInteractionExportTest (Material Focus Ring / State Layer not emitted). Skipped from https://github.com/yschimke/compose-preview-daemon/pull/523. Remove when forward compatibility is updated for 1.13.x and rc-players moves off 1.12.1.",
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackageNames": [
+        "org.jetbrains.compose",
+        "org.jetbrains.compose:**",
+        "org.jetbrains.compose.**"
+      ],
+      "matchCurrentValue": "/^1\\.12\\.1$/",
+      "allowedVersions": "/^1\\.12\\.1$/"
+    },
+    {
+      "description": "compose-multiplatform-material3 1.12.0-alpha03 collides with compose-multiplatform-material3-forward (1.12.0-alpha03) in daemon/desktop/build.gradle.kts (forward must be strictly newer than production), and bumping forward to 1.13.0-rc01 fails ForwardMaterialInteractionExportTest (focusedButtonExportsMaterialsInsetFocusRing and opacityFocusAndPressStillExportOnTheForkedRippleNode). Skipped from https://github.com/yschimke/compose-preview-daemon/pull/523. Remove when forward compatibility is updated for material3 1.13.x.",
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackageNames": [
+        "org.jetbrains.compose.material3:material3"
+      ],
+      "matchCurrentValue": "/^1\\.12\\.0-alpha02$/",
+      "allowedVersions": "/^1\\.12\\.0-alpha02$/"
     }
   ],
   "customManagers": [
