@@ -1809,6 +1809,7 @@ public final class ee/schimke/composeai/daemon/SystemPropertyArgs {
 	public static final field MAX_INLINE_PROPERTY I
 	public static final field MAX_WINDOWS_INLINE_PROPERTIES I
 	public final fun deleteArgFiles (Ljava/util/Collection;)V
+	public final fun deleteRecursivelyNoFollow (Ljava/io/File;)Z
 	public final fun extractArgFiles (Ljava/util/List;)Ljava/util/List;
 	public final fun getDEFAULT_LEGACY_ARGFILE_MAX_AGE_MS ()J
 	public final fun newLaunchArgDir (Ljava/io/File;)Ljava/io/File;

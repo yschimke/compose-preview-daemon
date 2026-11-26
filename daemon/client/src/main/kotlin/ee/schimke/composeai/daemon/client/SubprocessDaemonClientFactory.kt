@@ -309,7 +309,7 @@ internal fun buildLaunchCommand(descriptor: DaemonLaunchDescriptor): LaunchComma
   val argFiles = SystemPropertyArgs.extractArgFiles(argv)
   val cleanup: () -> Unit =
     if (launchDir != null) {
-      { runCatching { launchDir.deleteRecursively() } }
+      { SystemPropertyArgs.deleteRecursivelyNoFollow(launchDir) }
     } else {
       { SystemPropertyArgs.deleteArgFiles(argFiles) }
     }

@@ -412,7 +412,10 @@ public class SandboxSparePool(
       add(classpathArgFile(descriptor.classpath, launchDir))
       add(SANDBOX_WORKER_MAIN_CLASS)
     }
-    return LaunchCommand(argv = argv, cleanup = { runCatching { launchDir.deleteRecursively() } })
+    return LaunchCommand(
+      argv = argv,
+      cleanup = { SystemPropertyArgs.deleteRecursivelyNoFollow(launchDir) },
+    )
   }
 
   /**

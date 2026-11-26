@@ -2,6 +2,7 @@ package ee.schimke.composeai.daemon
 
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -48,7 +49,62 @@ class RoborazziResultsCleanupTest {
       assertTrue(freshLegacyDir.exists())
       assertTrue(unrelatedDir.exists())
     } finally {
-      base.deleteRecursively()
+      SystemPropertyArgs.deleteRecursivelyNoFollow(base)
+    }
+  }
+
+  @Test
+  fun `sweepStaleRoborazziResultDirs skips top-level symlinks and never follows nested symlinks`() {
+    val base = Files.createTempDirectory("roborazzi-sweep-symlink-test").toFile()
+    val outsideTop = Files.createTempDirectory("roborazzi-outside-top").toFile()
+    val outsidePid = Files.createTempDirectory("roborazzi-outside-pid").toFile()
+    val outsideLegacy = Files.createTempDirectory("roborazzi-outside-legacy").toFile()
+    val topKeep = File(outsideTop, "keep.txt").apply { writeText("keep-top") }
+    val pidKeep = File(outsidePid, "keep.txt").apply { writeText("keep-pid") }
+    val legacyKeep = File(outsideLegacy, "keep.txt").apply { writeText("keep-legacy") }
+    try {
+      val now = 2_000_000_000L
+      val maxAge = TimeUnit.HOURS.toMillis(24)
+
+      val topLink = File(base, "composeai-roborazzi-results-pid111-link")
+      Files.createSymbolicLink(topLink.toPath(), outsideTop.toPath())
+
+      val deadPidDir = File(base, "composeai-roborazzi-results-pid111-real").apply { mkdirs() }
+      File(deadPidDir, "result.json").writeText("{}")
+      val pidNestedLink = File(deadPidDir, "nested-link")
+      Files.createSymbolicLink(pidNestedLink.toPath(), outsidePid.toPath())
+
+      val oldLegacyDir = File(base, "composeai-roborazzi-results-legacy").apply { mkdirs() }
+      val legacySubDir = File(oldLegacyDir, "sub").apply { mkdirs() }
+      val legacyNestedLink = File(legacySubDir, "nested-link")
+      Files.createSymbolicLink(legacyNestedLink.toPath(), outsideLegacy.toPath())
+      oldLegacyDir.setLastModified(now - maxAge - 1_000L)
+
+      val removed =
+        sweepStaleRoborazziResultDirs(
+          baseDir = base,
+          isPidAlive = { false },
+          legacyMaxAgeMs = maxAge,
+          nowMs = now,
+        )
+
+      assertEquals(2, removed)
+      assertFalse(Files.exists(deadPidDir.toPath(), LinkOption.NOFOLLOW_LINKS))
+      assertFalse(Files.exists(pidNestedLink.toPath(), LinkOption.NOFOLLOW_LINKS))
+      assertFalse(Files.exists(oldLegacyDir.toPath(), LinkOption.NOFOLLOW_LINKS))
+      assertFalse(Files.exists(legacyNestedLink.toPath(), LinkOption.NOFOLLOW_LINKS))
+      assertTrue(Files.exists(topLink.toPath(), LinkOption.NOFOLLOW_LINKS))
+      assertTrue(topKeep.exists())
+      assertEquals("keep-top", topKeep.readText())
+      assertTrue(pidKeep.exists())
+      assertEquals("keep-pid", pidKeep.readText())
+      assertTrue(legacyKeep.exists())
+      assertEquals("keep-legacy", legacyKeep.readText())
+    } finally {
+      SystemPropertyArgs.deleteRecursivelyNoFollow(base)
+      SystemPropertyArgs.deleteRecursivelyNoFollow(outsideTop)
+      SystemPropertyArgs.deleteRecursivelyNoFollow(outsidePid)
+      SystemPropertyArgs.deleteRecursivelyNoFollow(outsideLegacy)
     }
   }
 
@@ -76,7 +132,7 @@ class RoborazziResultsCleanupTest {
       } else {
         System.setProperty("roborazzi.result.dir", previous)
       }
-      base.deleteRecursively()
+      SystemPropertyArgs.deleteRecursivelyNoFollow(base)
     }
   }
 }

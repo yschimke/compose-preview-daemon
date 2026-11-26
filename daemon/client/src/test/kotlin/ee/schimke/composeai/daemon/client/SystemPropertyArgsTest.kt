@@ -5,6 +5,7 @@ import ee.schimke.composeai.daemon.SystemPropertyArgs
 import ee.schimke.composeai.daemon.config.DaemonProperties
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.util.concurrent.TimeUnit
 import org.junit.Test
 
@@ -102,7 +103,76 @@ class SystemPropertyArgsTest {
       assertThat(freshLegacyCp.exists()).isTrue()
       assertThat(unrelated.exists()).isTrue()
     } finally {
-      dir.deleteRecursively()
+      SystemPropertyArgs.deleteRecursivelyNoFollow(dir)
+    }
+  }
+
+  @Test
+  fun `sweepStaleArgFiles skips top-level symlinks and never follows nested symlinks`() {
+    val tmp = Files.createTempDirectory("sweep-argfiles-symlink-test").toFile()
+    val outsideDir = Files.createTempDirectory("sweep-argfiles-outside-dir").toFile()
+    val outsideNestedDir = Files.createTempDirectory("sweep-argfiles-outside-nested").toFile()
+    val outsideFile = File(outsideDir, "keep-top.txt").apply { writeText("keep-top") }
+    val outsideNestedFile =
+      File(outsideNestedDir, "keep-nested.txt").apply { writeText("keep-nested") }
+    val outsideSingleFile = File(outsideDir, "keep-file.txt").apply { writeText("keep-file") }
+    try {
+      val topLevelDirLink = File(tmp, "composeai-launch-pid111-1-link")
+      Files.createSymbolicLink(topLevelDirLink.toPath(), outsideDir.toPath())
+      val topLevelFileLink = File(tmp, "composeai-props-pid111-link.args")
+      Files.createSymbolicLink(topLevelFileLink.toPath(), outsideSingleFile.toPath())
+
+      val staleLaunchDir = File(tmp, "composeai-launch-pid111-2-real").apply { mkdirs() }
+      File(staleLaunchDir, "composeai-cp1.args").writeText("-cp a")
+      val nestedDirLink = File(staleLaunchDir, "nested-dir-link")
+      Files.createSymbolicLink(nestedDirLink.toPath(), outsideNestedDir.toPath())
+      val nestedSubDir = File(staleLaunchDir, "sub").apply { mkdirs() }
+      val deepFileLink = File(nestedSubDir, "nested-file-link")
+      Files.createSymbolicLink(deepFileLink.toPath(), outsideSingleFile.toPath())
+
+      val removed =
+        SystemPropertyArgs.sweepStaleArgFiles(
+          directory = tmp,
+          isPidAlive = { false },
+        )
+
+      assertThat(removed).isEqualTo(1)
+      assertThat(Files.exists(staleLaunchDir.toPath(), LinkOption.NOFOLLOW_LINKS)).isFalse()
+      assertThat(Files.exists(nestedDirLink.toPath(), LinkOption.NOFOLLOW_LINKS)).isFalse()
+      assertThat(Files.exists(deepFileLink.toPath(), LinkOption.NOFOLLOW_LINKS)).isFalse()
+      // Top-level symlinks are skipped altogether.
+      assertThat(Files.exists(topLevelDirLink.toPath(), LinkOption.NOFOLLOW_LINKS)).isTrue()
+      assertThat(Files.exists(topLevelFileLink.toPath(), LinkOption.NOFOLLOW_LINKS)).isTrue()
+      // External targets are completely untouched.
+      assertThat(outsideFile.exists()).isTrue()
+      assertThat(outsideFile.readText()).isEqualTo("keep-top")
+      assertThat(outsideNestedFile.exists()).isTrue()
+      assertThat(outsideNestedFile.readText()).isEqualTo("keep-nested")
+      assertThat(outsideSingleFile.exists()).isTrue()
+      assertThat(outsideSingleFile.readText()).isEqualTo("keep-file")
+    } finally {
+      SystemPropertyArgs.deleteRecursivelyNoFollow(tmp)
+      SystemPropertyArgs.deleteRecursivelyNoFollow(outsideDir)
+      SystemPropertyArgs.deleteRecursivelyNoFollow(outsideNestedDir)
+    }
+  }
+
+  @Test
+  fun `deleteRecursivelyNoFollow refuses top-level symlinks`() {
+    val tmp = Files.createTempDirectory("delete-nofollow-top-test").toFile()
+    val outside = Files.createTempDirectory("delete-nofollow-outside").toFile()
+    val keep = File(outside, "keep.txt").apply { writeText("keep") }
+    try {
+      val link = File(tmp, "link")
+      Files.createSymbolicLink(link.toPath(), outside.toPath())
+
+      assertThat(SystemPropertyArgs.deleteRecursivelyNoFollow(link)).isFalse()
+      assertThat(Files.exists(link.toPath(), LinkOption.NOFOLLOW_LINKS)).isTrue()
+      assertThat(keep.exists()).isTrue()
+      assertThat(keep.readText()).isEqualTo("keep")
+    } finally {
+      SystemPropertyArgs.deleteRecursivelyNoFollow(tmp)
+      SystemPropertyArgs.deleteRecursivelyNoFollow(outside)
     }
   }
 
