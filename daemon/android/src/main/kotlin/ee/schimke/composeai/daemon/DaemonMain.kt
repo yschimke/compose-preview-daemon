@@ -933,6 +933,7 @@ internal fun renderSpecFromInfo(
     wrapHeight = wrapHeight,
     density = density,
     showBackground = params.showBackground ?: defaults.showBackground,
+    showSystemUi = params.showSystemUi ?: defaults.showSystemUi,
     backgroundColor = params.backgroundColor ?: defaults.backgroundColor,
     device = params.device ?: defaults.device,
     outputBaseName = defaults.outputBaseName,

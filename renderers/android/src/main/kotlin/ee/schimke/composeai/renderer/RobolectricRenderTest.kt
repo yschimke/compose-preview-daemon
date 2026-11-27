@@ -1811,6 +1811,23 @@ abstract class RobolectricRenderTestBase(
           // same reason, as [reduceMotionState]. Nothing flips it unless an interaction capture is
           // present, so every other preview composes exactly as before.
           val inspectionModeState = androidx.compose.runtime.mutableStateOf(inspectionMode)
+          val isAmbientPreview =
+            preview.captures.firstNotNullOfOrNull { it.ambient }?.state ==
+              AmbientCaptureState.Ambient
+          val wearStatusBar =
+            WearStatusBarSupport.resolve(
+              isRound = isRoundDevice(params.device),
+              showSystemUi = params.showSystemUi,
+              isTileOrWidget = params.kind != PreviewKind.COMPOSE,
+              classLoader = null,
+              context = rule.activity,
+              ambient = isAmbientPreview,
+            )
+          if (wearStatusBar.active) {
+            WearStatusBarSupport.installSystemStatusBar()
+          } else {
+            WearStatusBarSupport.clearSystemStatusBar()
+          }
           val providedValues = buildList {
             LocaleCompositionLocals.providedValue(
                 RuntimeEnvironment.getApplication().resources.configuration,
@@ -1833,6 +1850,9 @@ abstract class RobolectricRenderTestBase(
             // runs the real request. Null for coil 2 (no such hook — see
             // [ShadowAsyncImagePainter]) and for the common no-coil consumer. Issue #2952.
             CoilPreviewSupport.previewHandlerProvidedValue()?.let(::add)
+            if (wearStatusBar.active && wearStatusBar.localStatusBarEnabled != null) {
+              add(wearStatusBar.localStatusBarEnabled provides true)
+            }
           }
             .toTypedArray()
           // `showSystemUi = true` on a phone-shape preview wraps the
@@ -1841,10 +1861,11 @@ abstract class RobolectricRenderTestBase(
           // SystemUI process to draw real bars; without the wrapper the
           // canvas comes back at the right device size but with no chrome
           // (issue #256). Conceptually the same as `@PreviewWrapper`,
-          // applied automatically here for the system-UI case. Skipped
-          // for round Wear devices (circular clip already brands the
-          // capture) and for tile previews (tiles fill the whole watch
-          // face — bars don't apply).
+          // applied automatically here for the system-UI case. Round Wear
+          // devices use [WearStatusBarFrame] when the Wear OS Global Status
+          // Bar is active (Compose for Wear OS 1.8.0-alpha02+ or explicit
+          // `-Dcomposeai.wear.globalStatusBar=true`); tile previews never get
+          // status bars.
           val applySystemBars =
             params.showSystemUi && params.kind != PreviewKind.TILE && !isRoundDevice(params.device)
           rule.setContent {
@@ -1888,6 +1909,14 @@ abstract class RobolectricRenderTestBase(
                     }
                     if (applySystemBars) {
                       SystemBarsFrame(uiMode = params.uiMode) { core() }
+                    } else if (wearStatusBar.active) {
+                      WearStatusBarFrame(
+                        clockText = wearStatusBar.clockText,
+                        indicator = wearStatusBar.indicator,
+                        ambient = wearStatusBar.ambient,
+                      ) {
+                        core()
+                      }
                     } else {
                       core()
                     }

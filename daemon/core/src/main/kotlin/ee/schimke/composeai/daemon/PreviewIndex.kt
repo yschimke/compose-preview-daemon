@@ -282,6 +282,11 @@ public data class PreviewParamsDto(
    */
   val showBackground: Boolean? = null,
   /**
+   * `@Preview(showSystemUi = …)`. Threaded into `RenderSpec.showSystemUi` so Wear OS Global Status
+   * Bar and synthetic system chrome follow the preview declaration.
+   */
+  val showSystemUi: Boolean? = null,
+  /**
    * `@Preview(backgroundColor = …)`. Same plumbing as [showBackground]; encoded as Long because the
    * plugin's annotation reader hands back the raw `0xAARRGGBB` value.
    */
