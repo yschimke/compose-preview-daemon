@@ -3402,10 +3402,8 @@ open class RobolectricHost(
                             glimmerInputModeManager,
                         )
                       }
-                      if (
-                        heldWearStatusBar.active && heldWearStatusBar.localStatusBarEnabled != null
-                      ) {
-                        add(heldWearStatusBar.localStatusBarEnabled provides true)
+                      if (heldWearStatusBar.active) {
+                        heldWearStatusBar.localStatusBarEnabled?.let { add(it provides true) }
                       }
                     }
                       .toTypedArray()
@@ -3414,7 +3412,9 @@ open class RobolectricHost(
                         enabled = glimmerInputProfile,
                         clearFocusGeneration = glimmerClearFocusGeneration,
                       )
-                      val heldFrame: @Composable (@Composable () -> Unit) -> Unit =
+                      val heldFrame:
+                        @androidx.compose.runtime.Composable
+                        (@androidx.compose.runtime.Composable () -> Unit) -> Unit =
                         if (heldWearStatusBar.active) {
                           { inner ->
                             ee.schimke.composeai.renderer.WearStatusBarFrame(

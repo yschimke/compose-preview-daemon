@@ -537,8 +537,8 @@ class RenderEngine(
                   if (environment.wearReduceMotionLocal != null) {
                     add(environment.wearReduceMotionLocal provides true)
                   }
-                  if (wearStatusBar.active && wearStatusBar.localStatusBarEnabled != null) {
-                    add(wearStatusBar.localStatusBarEnabled provides true)
+                  if (wearStatusBar.active) {
+                    wearStatusBar.localStatusBarEnabled?.let { add(it provides true) }
                   }
                 }
                   .toTypedArray()
