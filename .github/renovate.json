@@ -38,6 +38,26 @@
       "allowedVersions": "/^[0-5]\\.[0-9]+\\.[0-9]+$/"
     },
     {
+      "description": "compose-bom 2026.11 pulls Compose 1.13 artifacts whose AAR metadata declares minCompileSdk = 37.1, failing checkDebugUnitTestAarMetadata in :data-gestures-connector and :data-remotecompose-connector on compileSdk 37 (compose-preview-daemon#534). Restores the shared preset skip overridden by the gradle-wide -compat rule above; placed before compose-bom-compat so 2025.11.x stays pinned. Remove when modules move to compileSdk 37.1+.",
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackageNames": [
+        "androidx.compose:compose-bom"
+      ],
+      "allowedVersions": "!/^(2026\\.11(\\..*)?|.*-SNAPSHOT|.*-compat)$/"
+    },
+    {
+      "description": "Compose 1.13 core artifacts declare minCompileSdk = 37.1 in AAR metadata (compose-preview-daemon#534). Restores the shared preset skip overridden by the gradle-wide -compat rule above. Remove when modules move to compileSdk 37.1+.",
+      "matchManagers": [
+        "gradle"
+      ],
+      "matchPackageNames": [
+        "/^androidx\\.compose\\.(animation|foundation|material|runtime|ui)($|[.:])/"
+      ],
+      "allowedVersions": "!/^(1\\.13(\\..*)?|.*-SNAPSHOT|.*-compat)$/"
+    },
+    {
       "description": "compose-bom-compat: pin to the 2025.11.x line (compose-ui 1.9.5) \u2014 renderer-android's published bytecode targets the oldest supported Compose. Renovate must not drift this floor higher; bumping the supported-Compose-minimum is a manual decision.",
       "matchManagers": [
         "gradle"
