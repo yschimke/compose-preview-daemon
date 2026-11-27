@@ -1847,6 +1847,7 @@ open class RobolectricHost(
         density = spec.density,
         backgroundColor = spec.backgroundColor,
         showBackground = spec.showBackground,
+        showSystemUi = spec.showSystemUi,
         clearBackground = spec.clearBackground,
         device = spec.device,
         outputBaseName = spec.outputBaseName,
@@ -3324,6 +3325,21 @@ open class RobolectricHost(
             // the band through the shadowed `LocalSoftwareKeyboardController` — leaves the band up
             // for the *next* preview held in the same daemon.
             KeyboardController.resetForNewSession()
+            val heldWearStatusBar =
+              ee.schimke.composeai.renderer.WearStatusBarSupport.resolve(
+                isRound = isRound,
+                showSystemUi = start.showSystemUi,
+                isTileOrWidget =
+                  (start.kind != null && start.kind != "COMPOSE") || start.wearWidgetSlot() != null,
+                classLoader = classLoader,
+                context = rule.activity,
+                clockEpochMillis = start.clockEpochMillis,
+              )
+            if (heldWearStatusBar.active) {
+              ee.schimke.composeai.renderer.WearStatusBarSupport.installSystemStatusBar()
+            } else {
+              ee.schimke.composeai.renderer.WearStatusBarSupport.clearSystemStatusBar()
+            }
             setupTrace.section("compose:setContent") {
               rule.setContent {
                 androidx.compose.runtime.key(reloadCounter.intValue) {
@@ -3386,6 +3402,9 @@ open class RobolectricHost(
                             glimmerInputModeManager,
                         )
                       }
+                      if (heldWearStatusBar.active) {
+                        heldWearStatusBar.localStatusBarEnabled?.let { add(it provides true) }
+                      }
                     }
                       .toTypedArray()
                     androidx.compose.runtime.CompositionLocalProvider(*heldProviders) {
@@ -3393,179 +3412,197 @@ open class RobolectricHost(
                         enabled = glimmerInputProfile,
                         clearFocusGeneration = glimmerClearFocusGeneration,
                       )
-                      androidx.compose.foundation.layout.Box(
-                        modifier = androidx.compose.ui.Modifier.fillMaxSize(),
-                      ) {
-                        // Wrap with the same `previewOverrideExtensions` chain the non-held
-                        // render path uses (see `RenderEngine.kt:302-309`) so interactive
-                        // sessions get `TouchOverlayExtension` + any other AroundComposable
-                        // override extensions whose planner emits. Without this wrap, the
-                        // extensions registered on the engine never reach the held composition
-                        // — they're consulted only inside `RenderEngine.render`'s composition
-                        // setup, which the held-rule `setContent` bypasses.
-                        //
-                        // The reconstructed `PreviewOverrides(touchOverlay = …, focus = …)`
-                        // carries
-                        // only the fields whose planners are exercised on the interactive path
-                        // today; other override-driven planners ride along because their
-                        // `plan(request)` returns an extension regardless of input (e.g. the
-                        // always-active keyboard band). See
-                        // `InteractiveCommand.Start.touchOverlay`
-                        // for the cross-boundary-threading rationale.
-                        //
-                        // `localeTag` joins it for the pseudolocale planner: `en-XA` / `ar-XB` is
-                        // otherwise applied here only as a Robolectric qualifier (base locale +
-                        // `ldrtl`), so a live session browsed at `?localeTag=ar-XB` mirrored but
-                        // showed plain, un-pseudolocalised strings (#4371).
-                        // `withPseudolocaleFrom`
-                        // ignores every real locale, which the qualifier path already serves.
-                        //
-                        // `namedOverrides` joins them for the plain-Compose knob planner, decoded
-                        // here so the values are the sandbox classloader's own — a host-side
-                        // `PreviewOverrideValue` would fail the controller's typed reads even if
-                        // it
-                        // crossed. Omitting it planned every held composition with an empty seed,
-                        // so an `@OverrideVariant` cell browsed in Live drew its base state and a
-                        // knob edited in the viewer did nothing (yschimke/wear-m3-catalog#83).
-                        val syntheticOverrides =
-                          ee.schimke.composeai.daemon.protocol
-                            .PreviewOverrides(
-                              touchOverlay = start.touchOverlay,
-                              focus =
-                                start.focusTabIndex?.let {
-                                  ee.schimke.composeai.daemon.protocol.FocusOverride.Builder()
-                                    .also { b ->
-                                      b.tabIndex = it
-                                      b.pressed = start.focusPressed
-                                    }
-                                    .build()
-                                },
-                              namedOverrides = HeldNamedOverrides.decode(start.namedOverrides),
-                              // Only a carried document's override crosses (see
-                              // `InteractiveCommand.Start.carriedRemoteComposeJson`); null keeps
-                              // the planner's unseeded extension, as before.
-                              remoteCompose = carriedRemoteCompose,
-                              clockEpochMillis = start.clockEpochMillis,
-                            )
-                            .withPseudolocaleFrom(start.localeTag)
-                        ComposeDataExtensionPipeline.Apply(
-                          extensions = engine.previewOverrideExtensions.plan(syntheticOverrides),
-                          previewId = null,
-                          renderMode = null,
-                          sink = RecordingExtensionCompositionSink(),
+                      val heldFrame:
+                        @androidx.compose.runtime.Composable
+                        (@androidx.compose.runtime.Composable () -> Unit) -> Unit =
+                        if (heldWearStatusBar.active) {
+                          { inner ->
+                            ee.schimke.composeai.renderer.WearStatusBarFrame(
+                              clockText = heldWearStatusBar.clockText,
+                              indicator = heldWearStatusBar.indicator,
+                              ambient = heldWearStatusBar.ambient,
+                            ) {
+                              inner()
+                            }
+                          }
+                        } else {
+                          { inner -> inner() }
+                        }
+                      heldFrame {
+                        androidx.compose.foundation.layout.Box(
+                          modifier = androidx.compose.ui.Modifier.fillMaxSize(),
                         ) {
-                          // Mirror `RenderEngine.render`'s kind dispatch so live mode renders the
-                          // same way a one-shot capture does. Non-composable previews (tile /
-                          // notification / Glance) go through their `*PreviewComposable`
-                          // strategy;
-                          // everything else invokes the resolved held composable. Pointer / key
-                          // dispatch against a tile or notification simply finds no Compose
-                          // targets
-                          // (they're inflated Views inside an `AndroidView`), so live input
-                          // no-ops
-                          // gracefully while the frame still renders instead of going blank.
-                          // `widthDp` / `heightDp` are the held session's resolved canvas
-                          // dimensions
-                          // (computed above for the qualifier string), reused here verbatim.
+                          // Wrap with the same `previewOverrideExtensions` chain the non-held
+                          // render path uses (see `RenderEngine.kt:302-309`) so interactive
+                          // sessions get `TouchOverlayExtension` + any other AroundComposable
+                          // override extensions whose planner emits. Without this wrap, the
+                          // extensions registered on the engine never reach the held composition
+                          // — they're consulted only inside `RenderEngine.render`'s composition
+                          // setup, which the held-rule `setContent` bypasses.
                           //
-                          // AS-parity wrap, mirroring `RenderEngine.render`'s content box: on a
-                          // wrapped axis measure the preview against a relaxed (min = 0) sandbox
-                          // constraint and size the box to its intrinsic size, recording that
-                          // size
-                          // so each streamed frame can be cropped back to it. Fixed axes stay
-                          // tight
-                          // so `fillMax*` / lazy content keep a finite viewport. It has to sit
-                          // *inside* the extension pipeline, exactly where the one-shot path puts
-                          // it — an `AroundComposable` extension may fill the window, and
-                          // measuring
-                          // outside it reports the sandbox rather than the preview. Without this
-                          // wrap the held composition filled the window and every streamed frame
-                          // was the sandbox device: a wear component sticker arrived as the whole
-                          // 454×454 watch face while its own snapshot was wrap-sized.
-                          androidx.compose.foundation.layout.Box(
-                            modifier =
-                              if (start.wrapWidth || start.wrapHeight) {
-                                androidx.compose.ui.Modifier.layout { measurable, constraints ->
-                                  val wrapped =
-                                    androidx.compose.ui.unit.Constraints(
-                                      minWidth = if (start.wrapWidth) 0 else constraints.maxWidth,
-                                      maxWidth = constraints.maxWidth,
-                                      minHeight =
-                                        if (start.wrapHeight) 0 else constraints.maxHeight,
-                                      maxHeight = constraints.maxHeight,
-                                    )
-                                  val placeable = measurable.measure(wrapped)
-                                  heldMeasuredContent[0] = placeable.width
-                                  heldMeasuredContent[1] = placeable.height
-                                  layout(placeable.width, placeable.height) {
-                                    placeable.place(0, 0)
-                                  }
-                                }
-                              } else {
-                                androidx.compose.ui.Modifier.fillMaxSize()
-                              },
-                            propagateMinConstraints = true,
+                          // The reconstructed `PreviewOverrides(touchOverlay = …, focus = …)`
+                          // carries
+                          // only the fields whose planners are exercised on the interactive path
+                          // today; other override-driven planners ride along because their
+                          // `plan(request)` returns an extension regardless of input (e.g. the
+                          // always-active keyboard band). See
+                          // `InteractiveCommand.Start.touchOverlay`
+                          // for the cross-boundary-threading rationale.
+                          //
+                          // `localeTag` joins it for the pseudolocale planner: `en-XA` / `ar-XB` is
+                          // otherwise applied here only as a Robolectric qualifier (base locale +
+                          // `ldrtl`), so a live session browsed at `?localeTag=ar-XB` mirrored but
+                          // showed plain, un-pseudolocalised strings (#4371).
+                          // `withPseudolocaleFrom`
+                          // ignores every real locale, which the qualifier path already serves.
+                          //
+                          // `namedOverrides` joins them for the plain-Compose knob planner, decoded
+                          // here so the values are the sandbox classloader's own — a host-side
+                          // `PreviewOverrideValue` would fail the controller's typed reads even if
+                          // it
+                          // crossed. Omitting it planned every held composition with an empty seed,
+                          // so an `@OverrideVariant` cell browsed in Live drew its base state and a
+                          // knob edited in the viewer did nothing (yschimke/wear-m3-catalog#83).
+                          val syntheticOverrides =
+                            ee.schimke.composeai.daemon.protocol
+                              .PreviewOverrides(
+                                touchOverlay = start.touchOverlay,
+                                focus =
+                                  start.focusTabIndex?.let {
+                                    ee.schimke.composeai.daemon.protocol.FocusOverride.Builder()
+                                      .also { b ->
+                                        b.tabIndex = it
+                                        b.pressed = start.focusPressed
+                                      }
+                                      .build()
+                                  },
+                                namedOverrides = HeldNamedOverrides.decode(start.namedOverrides),
+                                // Only a carried document's override crosses (see
+                                // `InteractiveCommand.Start.carriedRemoteComposeJson`); null keeps
+                                // the planner's unseeded extension, as before.
+                                remoteCompose = carriedRemoteCompose,
+                                clockEpochMillis = start.clockEpochMillis,
+                              )
+                              .withPseudolocaleFrom(start.localeTag)
+                          ComposeDataExtensionPipeline.Apply(
+                            extensions = engine.previewOverrideExtensions.plan(syntheticOverrides),
+                            previewId = null,
+                            renderMode = null,
+                            sink = RecordingExtensionCompositionSink(),
                           ) {
-                            if (isProtolayoutIr) {
-                              // v5 IR replay, protolayout — inflate the captured `Layout` +
-                              // `Resources` protos through `TileRenderer`, with no reference to
-                              // the
-                              // tile function that produced them. Same AndroidView-hosted shape
-                              // as
-                              // `RenderEngine.render`'s branch, so a held frame and a one-shot
-                              // capture walk an identical Compose tree.
-                              ee.schimke.composeai.renderer.TileIrReplayComposable(
-                                layoutBytes = irReplay.bytes,
-                                resourcesBytes = irReplay.resourcesBytes ?: ByteArray(0),
-                                label = "IR replay ${start.previewId ?: start.outputBaseName}",
-                              )
-                            } else if (rcReplayClass != null) {
-                              // v5 IR replay, Remote Compose — paint the captured RemoteDocument
-                              // through the connector's player, reached reflectively. The view
-                              // player owns the document's own state, so the held composition
-                              // stays
-                              // interactive: a tap dispatched by `interactive/input` lands on the
-                              // document exactly as it would on-device.
-                              InvokeIrReplay(rcReplayClass, irReplay!!.bytes)
-                            } else if (isTile) {
-                              ee.schimke.composeai.renderer.TilePreviewComposable(
-                                className = start.previewClassName,
-                                functionName = start.previewFunctionName,
-                                widthDp = widthDp,
-                                heightDp = heightDp,
-                                device = start.device,
-                                classLoader = classLoader,
-                              )
-                            } else if (isNotification) {
-                              ee.schimke.composeai.renderer.NotificationPreviewComposable(
-                                className = start.previewClassName,
-                                functionName = start.previewFunctionName,
-                                classLoader = classLoader,
-                                widthDp = widthDp,
-                              )
-                            } else if (isGlanceAppWidget) {
-                              ee.schimke.composeai.renderer.GlanceAppWidgetPreviewComposable(
-                                className = start.previewClassName,
-                                functionName = start.previewFunctionName,
-                                widthDp = widthDp,
-                                heightDp = heightDp,
-                                classLoader = classLoader,
-                              )
-                            } else {
-                              // The held composition must obey the same app environment contract
-                              // as
-                              // a
-                              // one-shot render. A PreviewWrapperProvider may install required
-                              // composition locals (for example app-owned SharedTransition
-                              // scopes),
-                              // and a selected theme provider replaces it on the same terms.
-                              WearWidgetSlotFrame(start.wearWidgetSlot()) {
-                                InvokeWithOptionalWrapper(
-                                  composableMethod = composableMethod!!,
-                                  wrapperFqnFromSpec = start.wrapperClassName,
-                                  themeProviderFqn = start.themeProviderFqn,
-                                  previewArgs = previewArgs,
+                            // Mirror `RenderEngine.render`'s kind dispatch so live mode renders the
+                            // same way a one-shot capture does. Non-composable previews (tile /
+                            // notification / Glance) go through their `*PreviewComposable`
+                            // strategy;
+                            // everything else invokes the resolved held composable. Pointer / key
+                            // dispatch against a tile or notification simply finds no Compose
+                            // targets
+                            // (they're inflated Views inside an `AndroidView`), so live input
+                            // no-ops
+                            // gracefully while the frame still renders instead of going blank.
+                            // `widthDp` / `heightDp` are the held session's resolved canvas
+                            // dimensions
+                            // (computed above for the qualifier string), reused here verbatim.
+                            //
+                            // AS-parity wrap, mirroring `RenderEngine.render`'s content box: on a
+                            // wrapped axis measure the preview against a relaxed (min = 0) sandbox
+                            // constraint and size the box to its intrinsic size, recording that
+                            // size
+                            // so each streamed frame can be cropped back to it. Fixed axes stay
+                            // tight
+                            // so `fillMax*` / lazy content keep a finite viewport. It has to sit
+                            // *inside* the extension pipeline, exactly where the one-shot path puts
+                            // it — an `AroundComposable` extension may fill the window, and
+                            // measuring
+                            // outside it reports the sandbox rather than the preview. Without this
+                            // wrap the held composition filled the window and every streamed frame
+                            // was the sandbox device: a wear component sticker arrived as the whole
+                            // 454×454 watch face while its own snapshot was wrap-sized.
+                            androidx.compose.foundation.layout.Box(
+                              modifier =
+                                if (start.wrapWidth || start.wrapHeight) {
+                                  androidx.compose.ui.Modifier.layout { measurable, constraints ->
+                                    val wrapped =
+                                      androidx.compose.ui.unit.Constraints(
+                                        minWidth = if (start.wrapWidth) 0 else constraints.maxWidth,
+                                        maxWidth = constraints.maxWidth,
+                                        minHeight =
+                                          if (start.wrapHeight) 0 else constraints.maxHeight,
+                                        maxHeight = constraints.maxHeight,
+                                      )
+                                    val placeable = measurable.measure(wrapped)
+                                    heldMeasuredContent[0] = placeable.width
+                                    heldMeasuredContent[1] = placeable.height
+                                    layout(placeable.width, placeable.height) {
+                                      placeable.place(0, 0)
+                                    }
+                                  }
+                                } else {
+                                  androidx.compose.ui.Modifier.fillMaxSize()
+                                },
+                              propagateMinConstraints = true,
+                            ) {
+                              if (isProtolayoutIr) {
+                                // v5 IR replay, protolayout — inflate the captured `Layout` +
+                                // `Resources` protos through `TileRenderer`, with no reference to
+                                // the
+                                // tile function that produced them. Same AndroidView-hosted shape
+                                // as
+                                // `RenderEngine.render`'s branch, so a held frame and a one-shot
+                                // capture walk an identical Compose tree.
+                                ee.schimke.composeai.renderer.TileIrReplayComposable(
+                                  layoutBytes = irReplay.bytes,
+                                  resourcesBytes = irReplay.resourcesBytes ?: ByteArray(0),
+                                  label = "IR replay ${start.previewId ?: start.outputBaseName}",
                                 )
+                              } else if (rcReplayClass != null) {
+                                // v5 IR replay, Remote Compose — paint the captured RemoteDocument
+                                // through the connector's player, reached reflectively. The view
+                                // player owns the document's own state, so the held composition
+                                // stays
+                                // interactive: a tap dispatched by `interactive/input` lands on the
+                                // document exactly as it would on-device.
+                                InvokeIrReplay(rcReplayClass, irReplay!!.bytes)
+                              } else if (isTile) {
+                                ee.schimke.composeai.renderer.TilePreviewComposable(
+                                  className = start.previewClassName,
+                                  functionName = start.previewFunctionName,
+                                  widthDp = widthDp,
+                                  heightDp = heightDp,
+                                  device = start.device,
+                                  classLoader = classLoader,
+                                )
+                              } else if (isNotification) {
+                                ee.schimke.composeai.renderer.NotificationPreviewComposable(
+                                  className = start.previewClassName,
+                                  functionName = start.previewFunctionName,
+                                  classLoader = classLoader,
+                                  widthDp = widthDp,
+                                )
+                              } else if (isGlanceAppWidget) {
+                                ee.schimke.composeai.renderer.GlanceAppWidgetPreviewComposable(
+                                  className = start.previewClassName,
+                                  functionName = start.previewFunctionName,
+                                  widthDp = widthDp,
+                                  heightDp = heightDp,
+                                  classLoader = classLoader,
+                                )
+                              } else {
+                                // The held composition must obey the same app environment contract
+                                // as
+                                // a
+                                // one-shot render. A PreviewWrapperProvider may install required
+                                // composition locals (for example app-owned SharedTransition
+                                // scopes),
+                                // and a selected theme provider replaces it on the same terms.
+                                WearWidgetSlotFrame(start.wearWidgetSlot()) {
+                                  InvokeWithOptionalWrapper(
+                                    composableMethod = composableMethod!!,
+                                    wrapperFqnFromSpec = start.wrapperClassName,
+                                    themeProviderFqn = start.themeProviderFqn,
+                                    previewArgs = previewArgs,
+                                  )
+                                }
                               }
                             }
                           }

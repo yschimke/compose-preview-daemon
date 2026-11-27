@@ -240,6 +240,7 @@ internal fun PreviewManifestEntry.renderSpec(manifestDir: File? = null): RenderS
     heightPx = resolved.heightPx,
     density = resolved.density,
     showBackground = resolved.showBackground,
+    showSystemUi = resolved.showSystemUi,
     backgroundColor = resolved.backgroundColor,
     device = resolved.device,
     outputBaseName = resolved.outputBaseName,
@@ -333,6 +334,7 @@ data class PreviewManifestEntry(
    * qualifier for circular Wear devices.
    */
   val device: String? = null,
+  val showSystemUi: Boolean? = null,
   val outputBaseName: String? = null,
   /** Flat-schema mirror of [PreviewParamsEntry.fontScale]. */
   val fontScale: Float? = null,
@@ -460,6 +462,7 @@ data class PreviewManifestEntry(
       heightPx = resolvedHeightPx,
       density = density,
       showBackground = showBackground,
+      showSystemUi = showSystemUi ?: p?.showSystemUi ?: false,
       backgroundColor = backgroundColor,
       device = device,
       outputBaseName = outputBaseName ?: id,
@@ -542,6 +545,7 @@ data class PreviewParamsEntry(
    */
   val locale: String? = null,
   val showBackground: Boolean = false,
+  val showSystemUi: Boolean = false,
   val backgroundColor: Long = 0L,
   /**
    * Raw Configuration bits from `@Preview(uiMode = ...)`. Only the `UI_MODE_NIGHT_*` bits are
@@ -613,6 +617,7 @@ data class ResolvedRenderParams(
   val heightPx: Int,
   val density: Float,
   val showBackground: Boolean,
+  val showSystemUi: Boolean = false,
   val backgroundColor: Long,
   val device: String?,
   val outputBaseName: String,

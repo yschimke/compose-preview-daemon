@@ -336,6 +336,11 @@ public data class PreviewParamsDto(
    * preview, mirrored from the plugin's `PreviewParams.dwfAssetPath`. See [DwfDocumentSeed].
    */
   val dwfAssetPath: String? = null,
+  /**
+   * `@Preview(showSystemUi = …)`. Threaded into `RenderSpec.showSystemUi` so Wear OS Global Status
+   * Bar and synthetic system chrome follow the preview declaration.
+   */
+  val showSystemUi: Boolean? = null,
 ) {
   /** Binary-compatible constructor retained for consumers compiled before [dwfAssetPath]. */
   public constructor(
@@ -375,6 +380,49 @@ public data class PreviewParamsDto(
     previewParameterLimit = previewParameterLimit,
     captureGutter = captureGutter,
     dwfAssetPath = null,
+    showSystemUi = null,
+  )
+
+  /** Binary-compatible constructor retained for consumers compiled before [showSystemUi]. */
+  public constructor(
+    widthDp: Int? = null,
+    heightDp: Int? = null,
+    wrapSandboxWidthDp: Int? = null,
+    wrapSandboxHeightDp: Int? = null,
+    density: Float? = null,
+    fontScale: Float? = null,
+    locale: String? = null,
+    uiMode: Int? = null,
+    device: String? = null,
+    showBackground: Boolean? = null,
+    backgroundColor: Long? = null,
+    kind: String? = null,
+    assetPath: String? = null,
+    wrapperClassName: String? = null,
+    previewParameterProviderClassName: String? = null,
+    previewParameterLimit: Int? = null,
+    captureGutter: CaptureGutterDto? = null,
+    dwfAssetPath: String? = null,
+  ) : this(
+    widthDp = widthDp,
+    heightDp = heightDp,
+    wrapSandboxWidthDp = wrapSandboxWidthDp,
+    wrapSandboxHeightDp = wrapSandboxHeightDp,
+    density = density,
+    fontScale = fontScale,
+    locale = locale,
+    uiMode = uiMode,
+    device = device,
+    showBackground = showBackground,
+    backgroundColor = backgroundColor,
+    kind = kind,
+    assetPath = assetPath,
+    wrapperClassName = wrapperClassName,
+    previewParameterProviderClassName = previewParameterProviderClassName,
+    previewParameterLimit = previewParameterLimit,
+    captureGutter = captureGutter,
+    dwfAssetPath = dwfAssetPath,
+    showSystemUi = null,
   )
 }
 

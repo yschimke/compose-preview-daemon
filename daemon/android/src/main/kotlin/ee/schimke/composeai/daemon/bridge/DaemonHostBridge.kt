@@ -386,6 +386,8 @@ sealed interface InteractiveCommand {
     val density: Float,
     val backgroundColor: Long,
     val showBackground: Boolean,
+    /** `@Preview(showSystemUi = …)` flag threaded for Wear OS GSB in held live sessions. */
+    val showSystemUi: Boolean = false,
     /**
      * Held-session cleared-background toggle; forces a transparent background and provides
      * `LocalPreviewBackgroundCleared = true`. `false` preserves the discovery-time background.

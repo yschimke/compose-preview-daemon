@@ -468,6 +468,25 @@ class RenderEngine(
                 else rule.activity,
               )
 
+            val wearStatusBar =
+              ee.schimke.composeai.renderer.WearStatusBarSupport.resolve(
+                isRound = isRoundDevice(spec.device),
+                showSystemUi = spec.showSystemUi,
+                isTileOrWidget =
+                  (spec.kind != null && spec.kind != "COMPOSE") || spec.wearWidget != null,
+                classLoader = classLoader,
+                context = rule.activity,
+                clockEpochMillis = spec.overrides?.clockEpochMillis,
+                ambient =
+                  spec.overrides?.ambient?.state ==
+                    ee.schimke.composeai.daemon.protocol.AmbientStateOverride.AMBIENT,
+              )
+            if (wearStatusBar.active) {
+              ee.schimke.composeai.renderer.WearStatusBarSupport.installSystemStatusBar()
+            } else {
+              ee.schimke.composeai.renderer.WearStatusBarSupport.clearSystemStatusBar()
+            }
+
             System.err.println(
               "compose-ai-daemon: [render] phase=setContent.start outputBaseName=${spec.outputBaseName}",
             )
@@ -517,6 +536,9 @@ class RenderEngine(
                   // `prepareRenderEnvironment`); no-op provider when not a Wear app.
                   if (environment.wearReduceMotionLocal != null) {
                     add(environment.wearReduceMotionLocal provides true)
+                  }
+                  if (wearStatusBar.active) {
+                    wearStatusBar.localStatusBarEnabled?.let { add(it provides true) }
                   }
                 }
                   .toTypedArray()
@@ -770,7 +792,21 @@ class RenderEngine(
                       }
                     }
                   }
-                  InspectablePreviewContent(slotTableCapture, content)
+                  val framedContent: @Composable () -> Unit =
+                    if (wearStatusBar.active) {
+                      {
+                        ee.schimke.composeai.renderer.WearStatusBarFrame(
+                          clockText = wearStatusBar.clockText,
+                          indicator = wearStatusBar.indicator,
+                          ambient = wearStatusBar.ambient,
+                        ) {
+                          content()
+                        }
+                      }
+                    } else {
+                      content
+                    }
+                  InspectablePreviewContent(slotTableCapture, framedContent)
                 }
               }
             }
