@@ -1,5 +1,52 @@
 # Changelog
 
+## [3.30.0](https://github.com/yschimke/compose-preview-daemon/compare/v3.29.1...v3.30.0) (2026-11-28)
+
+
+### Features
+
+* **wear:** add Wear OS Global Status Bar support for previews and daemon ([#539](https://github.com/yschimke/compose-preview-daemon/issues/539)) ([a15ff93](https://github.com/yschimke/compose-preview-daemon/commit/a15ff9388871ce2d8cff14afccffbd1a41835622))
+
+
+### Bug Fixes
+
+* **compile:** honor configured jvmTarget in BTA and warm in-process compilers ([#531](https://github.com/yschimke/compose-preview-daemon/issues/531)) ([029e863](https://github.com/yschimke/compose-preview-daemon/commit/029e863b8b16816b47870a9a666f7dd99cf1fc9b))
+* **daemon:** avoid following symlinks during temp directory cleanup ([#535](https://github.com/yschimke/compose-preview-daemon/issues/535)) ([611870f](https://github.com/yschimke/compose-preview-daemon/commit/611870fbdcad053742a7f8b01aba92b83474b4f9))
+* **daemon:** clean up launch argfiles and sweep stale roborazzi temp dirs ([#532](https://github.com/yschimke/compose-preview-daemon/issues/532)) ([5966ec0](https://github.com/yschimke/compose-preview-daemon/commit/5966ec0e8c2357a7ddfaf78e86d34b8b909b99bd))
+* **daemon:** scope incremental discovery to module class dirs and serialize scans ([#530](https://github.com/yschimke/compose-preview-daemon/issues/530)) ([f217784](https://github.com/yschimke/compose-preview-daemon/commit/f217784f4f1ecd23572a022316c789a907145b21))
+* **deps:** update androidx-wear to v1.7.2 ([#533](https://github.com/yschimke/compose-preview-daemon/issues/533)) ([42df54a](https://github.com/yschimke/compose-preview-daemon/commit/42df54a8aade43e0633bde3027fb9cc792fb3da7))
+* **deps:** update compose-multiplatform to 1.12.2, support 1.13 forward, and remove [#528](https://github.com/yschimke/compose-preview-daemon/issues/528) pins ([#529](https://github.com/yschimke/compose-preview-daemon/issues/529)) ([c9ca57f](https://github.com/yschimke/compose-preview-daemon/commit/c9ca57f8c94c7197883f4765b5e55adaf3b25167))
+* **deps:** update dependency androidx.xr.compose:compose to v1.0.0-rc01 ([#527](https://github.com/yschimke/compose-preview-daemon/issues/527)) ([c8ba8f8](https://github.com/yschimke/compose-preview-daemon/commit/c8ba8f8b08c2d61d5121546ec5b601640520c864))
+* **deps:** update dependency com.android.tools.build:gradle to v9.5.2 ([#542](https://github.com/yschimke/compose-preview-daemon/issues/542)) ([e9522b0](https://github.com/yschimke/compose-preview-daemon/commit/e9522b0f656a3a055160401ffb3b98c1290684c9))
+* **deps:** update dependency ee.schimke.composeai:compose-preview-contracts-bom to v3.47.0 ([#519](https://github.com/yschimke/compose-preview-daemon/issues/519)) ([b6b50df](https://github.com/yschimke/compose-preview-daemon/commit/b6b50df39a9fbb1f69b17eda3609f38cfb89378a))
+* **deps:** update dependency ee.schimke.composeai:rc-players-bom to v4 ([#538](https://github.com/yschimke/compose-preview-daemon/issues/538)) ([e6f72cc](https://github.com/yschimke/compose-preview-daemon/commit/e6f72cc993402292c72f90deafb823a54b28590b))
+* **deps:** update dependency org.robolectric:robolectric to v4.18.1 ([#521](https://github.com/yschimke/compose-preview-daemon/issues/521)) ([da0f1cb](https://github.com/yschimke/compose-preview-daemon/commit/da0f1cbfd228689198b125ac8cec4c1c1e4aabc6))
+
+
+### Documentation
+
+* record Robolectric's missing TextureView texture (R21) ([#543](https://github.com/yschimke/compose-preview-daemon/issues/543)) ([0e7df78](https://github.com/yschimke/compose-preview-daemon/commit/0e7df781d874c4d434296b7b96727f031ad924f0))
+
+
+### Build
+
+* move Compose Multiplatform floor to 1.12 and enforce client compatibility floors ([#522](https://github.com/yschimke/compose-preview-daemon/issues/522)) ([018547c](https://github.com/yschimke/compose-preview-daemon/commit/018547c6b9cb28dfc36a785aa1c0b336c018d692))
+* re-verify the render image android-all pin for Robolectric 4.18.1 ([#526](https://github.com/yschimke/compose-preview-daemon/issues/526)) ([96f4266](https://github.com/yschimke/compose-preview-daemon/commit/96f426631908623b764586ebadc8dc5d2cc24edc))
+
+
+### CI
+
+* plan the release PR head, not FETCH_HEAD after the tag fetch ([#524](https://github.com/yschimke/compose-preview-daemon/issues/524)) ([fd43e5e](https://github.com/yschimke/compose-preview-daemon/commit/fd43e5e7d7a5130601821d2fc24bf93b1b0df00d))
+
+
+### Chores
+
+* **deps:** update agp to v9.5.2 ([#540](https://github.com/yschimke/compose-preview-daemon/issues/540)) ([fd670f4](https://github.com/yschimke/compose-preview-daemon/commit/fd670f45b552ab9c70377de975b8612748bab2c7))
+* **deps:** update amannn/action-semantic-pull-request action to v6.1.3 ([#541](https://github.com/yschimke/compose-preview-daemon/issues/541)) ([9c86ee5](https://github.com/yschimke/compose-preview-daemon/commit/9c86ee5d2b99568ee8bee5328d41aef569aadaca))
+* **deps:** update gradle to v9.9.2 ([#536](https://github.com/yschimke/compose-preview-daemon/issues/536)) ([a5369b6](https://github.com/yschimke/compose-preview-daemon/commit/a5369b65022058f10da38064309a165ccf878ecf))
+* **renovate:** skip compose-bom 2026.11 and compose 1.13 ([#537](https://github.com/yschimke/compose-preview-daemon/issues/537)) ([b756e9c](https://github.com/yschimke/compose-preview-daemon/commit/b756e9c6f85b9135dd5aed258b0bf5cd6d276e01))
+* **renovate:** skip compose-multiplatform 1.12.2 and material3 1.12.0-alpha03 ([#528](https://github.com/yschimke/compose-preview-daemon/issues/528)) ([11a699f](https://github.com/yschimke/compose-preview-daemon/commit/11a699f8b5c1efd8ea0a47f2760922d35e868020))
+
 ## [3.29.1](https://github.com/yschimke/compose-preview-daemon/compare/v3.29.0...v3.29.1) (2026-11-24)
 
 
