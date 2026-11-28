@@ -51,6 +51,7 @@ unmeasured. Evidence confidence is separate from priority.
 | 16 | **P3 · R17 — shadowing a composable function** | Fixed locally: a custom `@PreviewWrapper` that ends in `RemoteContentPreview` now captures through the connector. Upstream value is documentation, not a speedup. | Any Robolectric user shadowing a `@Composable` top-level function in a non-default package. | High confidence (end-to-end test with a negative control); no upstream discussion. | None until a second case needs it; then ask whether shadows of composable functions are a supported pattern. |
 | 17 | **P3 · R19 — a started system intent resolves to nothing** | Fixed locally: an app tour passes over a system screen it can't open instead of failing the launcher activity's hero. Upstream value is documentation. | Any Robolectric user that follows `getNextStartedActivity()` from an app which asks for a runtime permission (or opens another system screen) on first composition. | High confidence in mechanism (a predicate unit test with a real `requestPermissions` call; the tour flow is not exercised); expected simulator behaviour, no upstream bug established. | None; revisit only if Robolectric ships a resolvable permission-controller activity. |
 | 18 | **P3 · R20 — the paused clock restarts under a live hwui** | Blocking at SDK 37 for every batch render after its first preview (silent `#FAFAFA` frames); fixed locally by keeping the shadow's `VSYNC` monotonic. | Any Robolectric 4.17 suite that draws native frames in several `@Test`s of one sandbox at SDK 37 while bypassing `ShadowNativeHardwareRenderer`'s host-clock offset. Stock 4.17 users are covered by that offset. | High confidence: three-test SDK 37 reproducer fails without the fix and passes with it. | Mention alongside the #4549 paused-clock request: an opt-out of the host offset needs a monotonic guarantee too. |
+| 19 | **P3 · R21 — no `TextureView` texture, and no `Surface` from a `SurfaceTexture`** | None for the daemon (no TextureView in a preview so far); blocking for the compose-ai-tools simulator, where Rive, video and camera previews draw into a `TextureView`. Fixed there with two shadows. | Any native-graphics test of a View that draws a `TextureView` with a canvas (Rive's Canvas renderer, custom players); GL producers are out of scope either way. | High confidence in source observation (4.18.1); simulator shadows with an 8-test suite and an end-to-end Rive run. | Ask whether a canvas-only `TextureView`/`Surface(SurfaceTexture)` path would be accepted, with the simulator's shadows as the starting point. |
 
 ## Applicability beyond the daemon
 
@@ -673,6 +674,33 @@ this investigation; their full application export still needs validation with th
   not run by this repository's JDK 17 CI) fails its second and third tests with `#FAFAFA` without
   the offset and passes with it; `MonotonicFrameVsyncTest` covers the arithmetic on any JVM.
   `AndroidRippleFrameTest` and `LivePressRippleTest` still pass. No upstream issue filed.
+
+## R21 — No `TextureView` texture, and no `Surface` from a `SurfaceTexture`
+
+- **Category/owner:** missing native-graphics support in Robolectric; the simulator owns the
+  workaround.
+- **Evidence/version:** Robolectric 4.18.1 shadows-framework, 2026-11-28
+  (compose-ai-tools#6753). `ShadowTextureView.getTextureLayer()` logs "TextureView is not
+  supported in Robolectric" and returns null, so the framework never makes the view's
+  `SurfaceTexture` and `onSurfaceTextureAvailable` never runs. `ShadowNativeSurface
+  .nativeCreateFromSurfaceTexture` returns 0 ("SurfaceTexture is not available for host"), so
+  `new Surface(texture)` is never valid and `lockCanvas` throws. Separately, a software
+  `lockCanvas` on an `ImageReader` surface draws nothing under native graphics (only a hardware
+  canvas reaches the reader).
+- **Impact:** an app waiting for its texture draws nothing. Rive's `RiveAnimationView` is a
+  `TextureView` whose Canvas renderer draws with `Surface.lockCanvas`.
+- **Current workaround (compose-ai-tools simulator):** `SimulatorShadowTextureView` makes the
+  texture at the view's first draw, as `getTextureLayer` does, and draws the last frame posted to
+  it (under `setTransform` and the layer paint); it also reports `LAYER_TYPE_NONE`, since a
+  software draw of a `LAYER_TYPE_HARDWARE` view goes through a drawing cache that replaces the
+  view's area. `SimulatorShadowSurface extends ShadowNativeSurface` gives a surface made from such a
+  texture a bitmap-backed `lockCanvas`/`lockHardwareCanvas`, and hands posted frames to the view.
+- **Proposed upstream change:** the same canvas-only path in Robolectric: a `TextureView` that gets
+  a `SurfaceTexture` and its listener callbacks, a valid `Surface(SurfaceTexture)` whose canvas
+  frames the view draws, and `getBitmap` reading the last one. GL and EGL producers stay out of
+  scope.
+- **Validation status:** `SimulatorShadowTextureViewTest` (8 tests, SDK 34) and a
+  `samples/rive` run in the simulator (3 Rive files drawn). No upstream issue filed.
 
 ## How to turn an item into upstream feedback
 
